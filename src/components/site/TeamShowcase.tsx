@@ -1,4 +1,4 @@
-import { useRef, useState, type PointerEvent, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowRight, Sparkles } from "lucide-react";
@@ -29,11 +29,12 @@ function initialsFor(name: string) {
 }
 
 /**
- * The team showcase — a grid of flip cards. Front: portrait, name, role.
- * Back (hover / focus / tap): what they own. Shared by the homepage (a
- * `limit` + "view all" link back to /about#team) and the About page (the
- * full roster, no limit). One card design, one interaction, everywhere the
- * team appears.
+ * The team showcase — a grid of portrait cards. Tap/click a photo to reveal
+ * what that person owns in a panel below it (no rotation — a plain
+ * expand/collapse, since the 3D flip was disorienting on some devices).
+ * Shared by the homepage (a `limit` + "view all" link back to /about#team)
+ * and the About page (the full roster, no limit). One card design, one
+ * interaction, everywhere the team appears.
  *
  * Pulls the admin-managed roster (image + blurb, both editable from
  * /admin > Team) and falls back to the bundled roster if that fails.
@@ -105,45 +106,20 @@ export function TeamShowcase({
 }
 
 function TeamCard({ person }: { person: Person }) {
-  const cardRef = useRef<HTMLDivElement>(null);
-  const [flipped, setFlipped] = useState(false);
+  const [open, setOpen] = useState(false);
   const src = person.imageUrl || (person.photo ? TEAM_PHOTOS[person.photo] : undefined);
-
-  function onPointerMove(event: PointerEvent<HTMLDivElement>) {
-    if (
-      event.pointerType !== "mouse" ||
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches
-    )
-      return;
-    const el = cardRef.current;
-    if (!el) return;
-    const bounds = el.getBoundingClientRect();
-    const px = (event.clientX - bounds.left) / bounds.width - 0.5;
-    const py = (event.clientY - bounds.top) / bounds.height - 0.5;
-    el.style.setProperty("--rx", `${(-py * 10).toFixed(2)}deg`);
-    el.style.setProperty("--ry", `${(px * 10).toFixed(2)}deg`);
-  }
-
-  function resetTilt() {
-    const el = cardRef.current;
-    if (!el) return;
-    el.style.setProperty("--rx", "0deg");
-    el.style.setProperty("--ry", "0deg");
-  }
-
   const firstName = person.name.split(" ")[0];
 
   return (
-    <div ref={cardRef} className="ts-card" onPointerMove={onPointerMove} onPointerLeave={resetTilt}>
+    <div className="ts-card">
       <button
         type="button"
-        className="ts-flip"
-        data-flipped={flipped || undefined}
-        aria-pressed={flipped}
-        aria-label={flipped ? `Show ${firstName}'s photo` : `Show what ${firstName} owns`}
-        onClick={() => setFlipped((f) => !f)}
+        className="ts-photo-btn"
+        aria-expanded={open}
+        aria-label={open ? `Hide what ${firstName} owns` : `Show what ${firstName} owns`}
+        onClick={() => setOpen((o) => !o)}
       >
-        <span className="ts-face ts-front" aria-hidden="true">
+        <span className="ts-photo">
           {src ? (
             <img src={src} alt="" loading="lazy" decoding="async" />
           ) : (
@@ -153,21 +129,18 @@ function TeamCard({ person }: { person: Person }) {
             <Sparkles aria-hidden="true" />
           </span>
         </span>
-        <span className="ts-face ts-back" aria-hidden="true">
-          <span className="ts-back-eyebrow">What {firstName} owns</span>
-          {person.blurb ? (
-            <p className="ts-back-blurb">{person.blurb}</p>
-          ) : (
-            <p className="ts-back-blurb ts-back-blurb-muted">{person.role}</p>
-          )}
-          <span className="ts-back-name">{person.name}</span>
-        </span>
       </button>
       <span className="ts-caption">
         <strong>{person.name}</strong>
         <span>{person.role}</span>
       </span>
-      {person.blurb ? <p className="sr-only">{person.blurb}</p> : null}
+      {person.blurb ? (
+        <div className="ts-detail" data-open={open || undefined}>
+          <div className="ts-detail-inner">
+            <p>{person.blurb}</p>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

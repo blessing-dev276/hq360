@@ -61,62 +61,45 @@
 /* --------------------------------------------------------------- card */
 
 .ts-card {
-  perspective: 1400px;
-  transform-style: preserve-3d;
-  transform: perspective(1000px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
-  transition: transform 380ms var(--ts-ease-emph);
+  height: 100%;
 }
 
-/* The flip box is exactly the portrait's 3:4 shape — the caption below it
-   (name, role) is a separate, non-flipping sibling. */
-.ts-flip {
+.ts-photo-btn {
   all: unset;
   position: relative;
   display: block;
   width: 100%;
   aspect-ratio: 3 / 4;
   cursor: pointer;
-  transform-style: preserve-3d;
-  transform: rotateY(0deg);
-  transition: transform 560ms var(--ts-ease-emph);
   border-radius: var(--radius-2xl);
   box-shadow: var(--shadow-editorial);
 }
 
-.ts-card:hover .ts-flip,
-.ts-flip:focus-visible,
-.ts-flip[data-flipped] {
-  transform: rotateY(180deg);
-}
-
-.ts-flip:focus-visible {
+.ts-photo-btn:focus-visible {
   outline: 2px solid var(--brand);
   outline-offset: 3px;
 }
 
-.ts-face {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  backface-visibility: hidden;
-  border-radius: var(--radius-2xl);
+.ts-photo {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
   overflow: hidden;
-}
-
-.ts-front {
+  border-radius: var(--radius-2xl);
   border: 1px solid var(--border);
   background: var(--secondary);
 }
 
-.ts-front img {
+.ts-photo img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   transition: transform var(--motion-slow, 460ms) var(--ts-ease-emph);
 }
 
-.ts-card:hover .ts-front img {
+.ts-photo-btn:hover .ts-photo img,
+.ts-photo-btn:focus-visible .ts-photo img {
   transform: scale(1.05);
 }
 
@@ -147,7 +130,7 @@
   color: oklch(1 0 0);
   box-shadow: 0 8px 20px -8px color-mix(in oklch, var(--brand) 70%, transparent);
   opacity: 0;
-  transform: rotate(-20deg) scale(0.6);
+  transform: scale(0.6);
   transition:
     opacity var(--ts-base) var(--ts-ease),
     transform var(--ts-base) var(--ts-ease-emph);
@@ -158,9 +141,11 @@
   height: 0.95rem;
 }
 
-.ts-card:hover .ts-spark {
+.ts-photo-btn:hover .ts-spark,
+.ts-photo-btn:focus-visible .ts-spark,
+.ts-photo-btn[aria-expanded="true"] .ts-spark {
   opacity: 1;
-  transform: rotate(8deg) scale(1);
+  transform: scale(1);
 }
 
 .ts-caption {
@@ -181,43 +166,31 @@
   color: var(--muted-foreground);
 }
 
-/* back face */
+/* "what they own" detail — a plain expand/collapse, no rotation */
 
-.ts-back {
-  transform: rotateY(180deg);
-  align-items: flex-start;
-  justify-content: center;
-  gap: 0.6rem;
-  padding: 1.5rem 1.25rem;
-  background: var(--foreground);
-  color: var(--background);
-  text-align: left;
+.ts-detail {
+  display: grid;
+  grid-template-rows: 0fr;
+  margin-top: 0.5rem;
+  transition: grid-template-rows var(--ts-base) var(--ts-ease-emph);
 }
 
-.ts-back-eyebrow {
-  font-family: var(--font-mono);
-  font-size: 0.68rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: color-mix(in oklch, var(--brand) 70%, oklch(0.9 0.006 90));
+.ts-detail[data-open] {
+  grid-template-rows: 1fr;
 }
 
-.ts-back-blurb {
+.ts-detail-inner {
+  overflow: hidden;
+}
+
+.ts-detail-inner p {
   margin: 0;
-  font-family: var(--font-display);
-  font-size: 1rem;
-  line-height: 1.45;
-}
-
-.ts-back-blurb-muted {
-  color: color-mix(in oklch, var(--background) 75%, transparent);
-}
-
-.ts-back-name {
-  margin-top: auto;
-  padding-top: 0.75rem;
-  font-size: 0.78rem;
-  color: color-mix(in oklch, var(--background) 70%, transparent);
+  padding: 0.6rem 0.8rem;
+  border-radius: var(--radius-lg);
+  background: var(--secondary);
+  color: var(--foreground);
+  font-size: 0.85rem;
+  line-height: 1.5;
 }
 
 /* -------------------------------------------------------------- view all */
@@ -267,22 +240,15 @@
     font-size: 0.9rem;
   }
 
-  .ts-back {
-    padding: 1.1rem 0.9rem;
-  }
-
-  .ts-back-blurb {
-    font-size: 0.88rem;
+  .ts-detail-inner p {
+    font-size: 0.82rem;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .ts-card {
-    transform: none !important;
-  }
-
-  .ts-flip,
-  .ts-photo img {
+  .ts-detail,
+  .ts-photo img,
+  .ts-spark {
     transition-duration: 0.001ms !important;
   }
 }

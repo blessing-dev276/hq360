@@ -24,7 +24,7 @@ const EXT: Record<string, string> = {
 };
 
 const schema = z.object({
-  bucket: z.enum(["portfolio", "team", "work"]),
+  bucket: z.enum(["portfolio", "team", "work", "testimonials"]),
   contentType: z.string().min(1).max(120),
 });
 

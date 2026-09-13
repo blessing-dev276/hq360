@@ -120,12 +120,13 @@ function UploadField({
 
 /* ------------------------------------------------------------------- root */
 
-type Tab = "portfolio" | "work" | "team";
+type Tab = "portfolio" | "work" | "team" | "testimonials";
 
 const TAB_TITLE: Record<Tab, string> = {
   portfolio: "Service portfolio",
   work: "Work & case studies",
   team: "Team",
+  testimonials: "Testimonials",
 };
 
 const input =
@@ -145,7 +146,7 @@ export function AdminApp() {
         </div>
 
         <div className="mt-6 flex gap-1 rounded-full border border-border bg-card p-1 text-sm">
-          {(["portfolio", "work", "team"] as const).map((t) => (
+          {(["portfolio", "work", "team", "testimonials"] as const).map((t) => (
             <button
               key={t}
               type="button"
@@ -165,8 +166,10 @@ export function AdminApp() {
             <PortfolioDashboard />
           ) : tab === "work" ? (
             <CaseStudyDashboard />
-          ) : (
+          ) : tab === "team" ? (
             <TeamDashboard />
+          ) : (
+            <TestimonialDashboard />
           )}
         </div>
       </div>
@@ -1913,6 +1916,386 @@ function CaseStudyForm({
         className="mt-4 rounded-full bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-70"
       >
         {saving ? "Saving…" : draft.id ? "Save changes" : "Add case study"}
+      </button>
+    </form>
+  );
+}
+
+/* ------------------------------------------------ testimonials dashboard */
+
+type Testimonial = {
+  id: string;
+  title: string;
+  quote: string | null;
+  media_url: string;
+  industry_slug: string | null;
+  capability_slug: string | null;
+  sort_order: number;
+  published: boolean;
+};
+
+type TestimonialDraft = {
+  id?: string;
+  title: string;
+  quote: string;
+  mediaUrl: string;
+  industrySlug: string;
+  capabilitySlug: string;
+  published: boolean;
+};
+
+const emptyTestimonialDraft: TestimonialDraft = {
+  title: "",
+  quote: "",
+  mediaUrl: "",
+  industrySlug: "",
+  capabilitySlug: "",
+  published: true,
+};
+
+function toTestimonialDraft(t: Testimonial): TestimonialDraft {
+  return {
+    id: t.id,
+    title: t.title,
+    quote: t.quote ?? "",
+    mediaUrl: t.media_url,
+    industrySlug: t.industry_slug ?? "",
+    capabilitySlug: t.capability_slug ?? "",
+    published: t.published,
+  };
+}
+
+function TestimonialDashboard() {
+  const [items, setItems] = useState<Testimonial[] | null>(null);
+  const [loadError, setLoadError] = useState("");
+  const [editing, setEditing] = useState<TestimonialDraft | null>(null);
+  const dragId = useRef<string | null>(null);
+
+  const load = useCallback(async () => {
+    const { status, body } = await api<{ ok: boolean; items: Testimonial[] }>(
+      "/api/admin/testimonials",
+    );
+    if (status === 200 && body.ok) {
+      setItems(body.items);
+      setLoadError("");
+    } else {
+      setLoadError(
+        status === 503
+          ? "Storage is not connected yet (missing Supabase service role key)."
+          : "Could not load testimonials.",
+      );
+      setItems([]);
+    }
+  }, []);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  const persistOrder = useCallback(async (ordered: Testimonial[]) => {
+    setItems(ordered);
+    await api("/api/admin/testimonials/reorder", {
+      method: "POST",
+      body: JSON.stringify({ ids: ordered.map((i) => i.id) }),
+    });
+  }, []);
+
+  const reorder = useCallback(
+    (fromId: string, toId: string) => {
+      if (!items || fromId === toId) return;
+      const from = items.findIndex((i) => i.id === fromId);
+      const to = items.findIndex((i) => i.id === toId);
+      if (from < 0 || to < 0) return;
+      const next = [...items];
+      const [moved] = next.splice(from, 1);
+      next.splice(to, 0, moved!);
+      void persistOrder(next);
+    },
+    [items, persistOrder],
+  );
+
+  const move = useCallback(
+    (id: string, dir: -1 | 1) => {
+      if (!items) return;
+      const idx = items.findIndex((i) => i.id === id);
+      const target = idx + dir;
+      if (idx < 0 || target < 0 || target >= items.length) return;
+      reorder(id, items[target]!.id);
+    },
+    [items, reorder],
+  );
+
+  async function saveDraft(draft: TestimonialDraft) {
+    const payload = {
+      title: draft.title,
+      quote: draft.quote,
+      mediaUrl: draft.mediaUrl,
+      industrySlug: draft.industrySlug,
+      capabilitySlug: draft.capabilitySlug,
+      published: draft.published,
+    };
+    const { status, body } = draft.id
+      ? await api<{ ok: boolean }>(`/api/admin/testimonials/${draft.id}`, {
+          method: "PATCH",
+          body: JSON.stringify(payload),
+        })
+      : await api<{ ok: boolean }>("/api/admin/testimonials", {
+          method: "POST",
+          body: JSON.stringify(payload),
+        });
+    if (status === 200 && body.ok) {
+      setEditing(null);
+      await load();
+      return true;
+    }
+    return false;
+  }
+
+  async function remove(id: string) {
+    if (!window.confirm("Delete this testimonial?")) return;
+    await api(`/api/admin/testimonials/${id}`, { method: "DELETE" });
+    await load();
+  }
+
+  return (
+    <div className="space-y-8">
+      <p className="text-sm text-muted-foreground">
+        Review screenshots — kept separate from the service portfolio, which is delivered work. Tag
+        one to an industry, and optionally a specific service, to show it there.
+      </p>
+
+      <TestimonialForm
+        key={editing?.id ?? "new"}
+        initial={editing ?? emptyTestimonialDraft}
+        onCancel={editing ? () => setEditing(null) : undefined}
+        onSave={saveDraft}
+      />
+
+      {loadError ? (
+        <p className="rounded-xl border border-border bg-card px-4 py-3 text-sm text-muted-foreground">
+          {loadError}
+        </p>
+      ) : null}
+
+      {items === null ? (
+        <p className="text-sm text-muted-foreground">Loading testimonials…</p>
+      ) : items.length === 0 && !loadError ? (
+        <p className="text-sm text-muted-foreground">No testimonials yet. Add one above.</p>
+      ) : (
+        <ul className="space-y-2">
+          {items.map((t, i) => (
+            <li
+              key={t.id}
+              draggable
+              onDragStart={() => (dragId.current = t.id)}
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={() => {
+                if (dragId.current) reorder(dragId.current, t.id);
+                dragId.current = null;
+              }}
+            >
+              <div className="flex items-center gap-3 rounded-xl border border-border bg-card p-3">
+                <span
+                  className="cursor-grab select-none px-1 text-muted-foreground"
+                  title="Drag to reorder"
+                  aria-hidden="true"
+                >
+                  ⠿
+                </span>
+                <div className="size-16 shrink-0 overflow-hidden rounded-lg border border-border bg-secondary">
+                  <img src={t.media_url} alt="" className="size-full object-cover" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium">{t.title}</p>
+                  <p className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+                    <span className="rounded-full bg-secondary px-2 py-0.5">
+                      {industryName(t.industry_slug)}
+                    </span>
+                    {t.capability_slug ? (
+                      <span className="rounded-full bg-secondary px-2 py-0.5">
+                        {CAPABILITY_OPTIONS.find((c) => c.value === t.capability_slug)?.label ??
+                          t.capability_slug}
+                      </span>
+                    ) : null}
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        await api(`/api/admin/testimonials/${t.id}`, {
+                          method: "PATCH",
+                          body: JSON.stringify({ published: !t.published }),
+                        });
+                        await load();
+                      }}
+                      className={cn(
+                        "rounded-full px-2 py-0.5",
+                        t.published
+                          ? "bg-brand-soft text-[oklch(0.42_0.16_42)]"
+                          : "bg-secondary text-muted-foreground line-through",
+                      )}
+                    >
+                      {t.published ? "Published" : "Hidden"}
+                    </button>
+                  </p>
+                </div>
+                <RowControls
+                  first={i === 0}
+                  last={i === items.length - 1}
+                  onUp={() => move(t.id, -1)}
+                  onDown={() => move(t.id, 1)}
+                  onEdit={() => setEditing(toTestimonialDraft(t))}
+                  onDelete={() => void remove(t.id)}
+                />
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+function TestimonialForm({
+  initial,
+  onSave,
+  onCancel,
+}: {
+  initial: TestimonialDraft;
+  onSave: (d: TestimonialDraft) => Promise<boolean>;
+  onCancel?: (() => void) | undefined;
+}) {
+  const [draft, setDraft] = useState<TestimonialDraft>(initial);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+
+  const set = <K extends keyof TestimonialDraft>(k: K, v: TestimonialDraft[K]) =>
+    setDraft((d) => ({ ...d, [k]: v }));
+
+  async function submit(e: FormEvent) {
+    e.preventDefault();
+    setError("");
+    if (!draft.title.trim()) return setError("Title is required.");
+    if (!draft.mediaUrl.trim()) return setError("Upload a screenshot.");
+    setSaving(true);
+    const ok = await onSave(draft);
+    setSaving(false);
+    if (!ok) setError("Could not save. Try again.");
+    else if (!draft.id) setDraft(emptyTestimonialDraft);
+  }
+
+  return (
+    <form onSubmit={submit} className="rounded-2xl border border-border bg-card p-5 sm:p-6">
+      <div className="flex items-center justify-between">
+        <h2 className="font-display text-lg">
+          {draft.id ? "Edit testimonial" : "Add testimonial"}
+        </h2>
+        {onCancel ? (
+          <button
+            type="button"
+            onClick={onCancel}
+            className="text-sm text-muted-foreground hover:text-foreground"
+          >
+            Cancel
+          </button>
+        ) : null}
+      </div>
+
+      <label className="mt-4 block">
+        <span className="text-sm font-medium">Title</span>
+        <input
+          className={cn(input, "mt-1.5")}
+          placeholder="e.g. sanman_thapa, five star review"
+          value={draft.title}
+          onChange={(e) => set("title", e.target.value)}
+        />
+      </label>
+
+      <label className="mt-4 block">
+        <span className="text-sm font-medium">Quote / context (optional)</span>
+        <textarea
+          rows={2}
+          className={cn(input, "mt-1.5 resize-y")}
+          placeholder="Short excerpt or context shown under the screenshot."
+          value={draft.quote}
+          onChange={(e) => set("quote", e.target.value)}
+        />
+      </label>
+
+      <div className="mt-4 rounded-xl border border-border bg-background p-4">
+        <span className="text-sm font-medium">Screenshot</span>
+        <div className="mt-3 flex items-center gap-4">
+          <div className="size-20 shrink-0 overflow-hidden rounded-lg border border-border bg-secondary">
+            {draft.mediaUrl ? (
+              <img src={draft.mediaUrl} alt="" className="size-full object-cover" />
+            ) : null}
+          </div>
+          <div className="min-w-0 flex-1">
+            <UploadField
+              bucket="testimonials"
+              accept="image/*"
+              onUploaded={(url) => set("mediaUrl", url)}
+              hint="Images up to 50 MB."
+            />
+            <input
+              className={cn(input, "mt-2")}
+              placeholder="…or paste an image URL"
+              value={draft.mediaUrl}
+              onChange={(e) => set("mediaUrl", e.target.value)}
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-4 grid gap-4 sm:grid-cols-2">
+        <label className="block">
+          <span className="text-sm font-medium">Industry (optional)</span>
+          <select
+            className={cn(input, "mt-1.5")}
+            value={draft.industrySlug}
+            onChange={(e) => set("industrySlug", e.target.value)}
+          >
+            <option value="">— Shown everywhere —</option>
+            {INDUSTRY_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="block">
+          <span className="text-sm font-medium">Service (optional)</span>
+          <select
+            className={cn(input, "mt-1.5")}
+            value={draft.capabilitySlug}
+            onChange={(e) => set("capabilitySlug", e.target.value)}
+          >
+            <option value="">— General —</option>
+            {CAPABILITY_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
+
+      <label className="mt-4 flex items-center gap-2 text-sm">
+        <input
+          type="checkbox"
+          checked={draft.published}
+          onChange={(e) => set("published", e.target.checked)}
+          className="size-4 accent-[var(--brand)]"
+        />
+        Published (visible on the public site)
+      </label>
+
+      {error ? <p className="mt-3 text-sm text-destructive">{error}</p> : null}
+
+      <button
+        type="submit"
+        disabled={saving}
+        className="mt-4 rounded-full bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-70"
+      >
+        {saving ? "Saving…" : draft.id ? "Save changes" : "Add testimonial"}
       </button>
     </form>
   );

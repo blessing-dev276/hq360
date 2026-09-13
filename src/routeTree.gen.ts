@@ -51,6 +51,7 @@ import { Route as ApiAdminCaseStudiesRouteImport } from './routes/api/admin/case
 import { Route as ApiAdminPortfolioRouteImport } from './routes/api/admin/portfolio'
 import { Route as ApiAdminSessionRouteImport } from './routes/api/admin/session'
 import { Route as ApiAdminTeamRouteImport } from './routes/api/admin/team'
+import { Route as ApiAdminTestimonialsRouteImport } from './routes/api/admin/testimonials'
 import { Route as ApiAdminUploadRouteImport } from './routes/api/admin/upload'
 import { Route as ApiAdminUploadUrlRouteImport } from './routes/api/admin/upload-url'
 import { Route as ApiPublicCaseStudiesRouteImport } from './routes/api/public/case-studies'
@@ -60,6 +61,7 @@ import { Route as ApiPublicNewsletterRouteImport } from './routes/api/public/new
 import { Route as ApiPublicPortfolioRouteImport } from './routes/api/public/portfolio'
 import { Route as ApiPublicResourceRequestRouteImport } from './routes/api/public/resource-request'
 import { Route as ApiPublicTeamRouteImport } from './routes/api/public/team'
+import { Route as ApiPublicTestimonialsRouteImport } from './routes/api/public/testimonials'
 import { Route as InsightsAnswersSlugRouteImport } from './routes/insights.answers.$slug'
 import { Route as InsightsGuidesSlugRouteImport } from './routes/insights.guides.$slug'
 import { Route as ApiAdminCaseStudiesIdRouteImport } from './routes/api/admin/case-studies.$id'
@@ -68,6 +70,8 @@ import { Route as ApiAdminPortfolioIdRouteImport } from './routes/api/admin/port
 import { Route as ApiAdminPortfolioReorderRouteImport } from './routes/api/admin/portfolio.reorder'
 import { Route as ApiAdminTeamIdRouteImport } from './routes/api/admin/team.$id'
 import { Route as ApiAdminTeamReorderRouteImport } from './routes/api/admin/team.reorder'
+import { Route as ApiAdminTestimonialsIdRouteImport } from './routes/api/admin/testimonials.$id'
+import { Route as ApiAdminTestimonialsReorderRouteImport } from './routes/api/admin/testimonials.reorder'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -279,6 +283,11 @@ const ApiAdminTeamRoute = ApiAdminTeamRouteImport.update({
   path: '/api/admin/team',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAdminTestimonialsRoute = ApiAdminTestimonialsRouteImport.update({
+  id: '/api/admin/testimonials',
+  path: '/api/admin/testimonials',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAdminUploadRoute = ApiAdminUploadRouteImport.update({
   id: '/api/admin/upload',
   path: '/api/admin/upload',
@@ -325,6 +334,11 @@ const ApiPublicTeamRoute = ApiPublicTeamRouteImport.update({
   path: '/api/public/team',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicTestimonialsRoute = ApiPublicTestimonialsRouteImport.update({
+  id: '/api/public/testimonials',
+  path: '/api/public/testimonials',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const InsightsAnswersSlugRoute = InsightsAnswersSlugRouteImport.update({
   id: '/insights/answers/$slug',
   path: '/insights/answers/$slug',
@@ -367,6 +381,17 @@ const ApiAdminTeamReorderRoute = ApiAdminTeamReorderRouteImport.update({
   path: '/reorder',
   getParentRoute: () => ApiAdminTeamRoute,
 } as any)
+const ApiAdminTestimonialsIdRoute = ApiAdminTestimonialsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ApiAdminTestimonialsRoute,
+} as any)
+const ApiAdminTestimonialsReorderRoute =
+  ApiAdminTestimonialsReorderRouteImport.update({
+    id: '/reorder',
+    path: '/reorder',
+    getParentRoute: () => ApiAdminTestimonialsRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -411,6 +436,7 @@ export interface FileRoutesByFullPath {
   '/api/admin/portfolio': typeof ApiAdminPortfolioRouteWithChildren
   '/api/admin/session': typeof ApiAdminSessionRoute
   '/api/admin/team': typeof ApiAdminTeamRouteWithChildren
+  '/api/admin/testimonials': typeof ApiAdminTestimonialsRouteWithChildren
   '/api/admin/upload': typeof ApiAdminUploadRoute
   '/api/admin/upload-url': typeof ApiAdminUploadUrlRoute
   '/api/public/case-studies': typeof ApiPublicCaseStudiesRoute
@@ -420,6 +446,7 @@ export interface FileRoutesByFullPath {
   '/api/public/portfolio': typeof ApiPublicPortfolioRoute
   '/api/public/resource-request': typeof ApiPublicResourceRequestRoute
   '/api/public/team': typeof ApiPublicTeamRoute
+  '/api/public/testimonials': typeof ApiPublicTestimonialsRoute
   '/insights/answers/$slug': typeof InsightsAnswersSlugRoute
   '/insights/guides/$slug': typeof InsightsGuidesSlugRoute
   '/api/admin/case-studies/$id': typeof ApiAdminCaseStudiesIdRoute
@@ -428,6 +455,8 @@ export interface FileRoutesByFullPath {
   '/api/admin/portfolio/reorder': typeof ApiAdminPortfolioReorderRoute
   '/api/admin/team/$id': typeof ApiAdminTeamIdRoute
   '/api/admin/team/reorder': typeof ApiAdminTeamReorderRoute
+  '/api/admin/testimonials/$id': typeof ApiAdminTestimonialsIdRoute
+  '/api/admin/testimonials/reorder': typeof ApiAdminTestimonialsReorderRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -472,6 +501,7 @@ export interface FileRoutesByTo {
   '/api/admin/portfolio': typeof ApiAdminPortfolioRouteWithChildren
   '/api/admin/session': typeof ApiAdminSessionRoute
   '/api/admin/team': typeof ApiAdminTeamRouteWithChildren
+  '/api/admin/testimonials': typeof ApiAdminTestimonialsRouteWithChildren
   '/api/admin/upload': typeof ApiAdminUploadRoute
   '/api/admin/upload-url': typeof ApiAdminUploadUrlRoute
   '/api/public/case-studies': typeof ApiPublicCaseStudiesRoute
@@ -481,6 +511,7 @@ export interface FileRoutesByTo {
   '/api/public/portfolio': typeof ApiPublicPortfolioRoute
   '/api/public/resource-request': typeof ApiPublicResourceRequestRoute
   '/api/public/team': typeof ApiPublicTeamRoute
+  '/api/public/testimonials': typeof ApiPublicTestimonialsRoute
   '/insights/answers/$slug': typeof InsightsAnswersSlugRoute
   '/insights/guides/$slug': typeof InsightsGuidesSlugRoute
   '/api/admin/case-studies/$id': typeof ApiAdminCaseStudiesIdRoute
@@ -489,6 +520,8 @@ export interface FileRoutesByTo {
   '/api/admin/portfolio/reorder': typeof ApiAdminPortfolioReorderRoute
   '/api/admin/team/$id': typeof ApiAdminTeamIdRoute
   '/api/admin/team/reorder': typeof ApiAdminTeamReorderRoute
+  '/api/admin/testimonials/$id': typeof ApiAdminTestimonialsIdRoute
+  '/api/admin/testimonials/reorder': typeof ApiAdminTestimonialsReorderRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -534,6 +567,7 @@ export interface FileRoutesById {
   '/api/admin/portfolio': typeof ApiAdminPortfolioRouteWithChildren
   '/api/admin/session': typeof ApiAdminSessionRoute
   '/api/admin/team': typeof ApiAdminTeamRouteWithChildren
+  '/api/admin/testimonials': typeof ApiAdminTestimonialsRouteWithChildren
   '/api/admin/upload': typeof ApiAdminUploadRoute
   '/api/admin/upload-url': typeof ApiAdminUploadUrlRoute
   '/api/public/case-studies': typeof ApiPublicCaseStudiesRoute
@@ -543,6 +577,7 @@ export interface FileRoutesById {
   '/api/public/portfolio': typeof ApiPublicPortfolioRoute
   '/api/public/resource-request': typeof ApiPublicResourceRequestRoute
   '/api/public/team': typeof ApiPublicTeamRoute
+  '/api/public/testimonials': typeof ApiPublicTestimonialsRoute
   '/insights/answers/$slug': typeof InsightsAnswersSlugRoute
   '/insights/guides/$slug': typeof InsightsGuidesSlugRoute
   '/api/admin/case-studies/$id': typeof ApiAdminCaseStudiesIdRoute
@@ -551,6 +586,8 @@ export interface FileRoutesById {
   '/api/admin/portfolio/reorder': typeof ApiAdminPortfolioReorderRoute
   '/api/admin/team/$id': typeof ApiAdminTeamIdRoute
   '/api/admin/team/reorder': typeof ApiAdminTeamReorderRoute
+  '/api/admin/testimonials/$id': typeof ApiAdminTestimonialsIdRoute
+  '/api/admin/testimonials/reorder': typeof ApiAdminTestimonialsReorderRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -597,6 +634,7 @@ export interface FileRouteTypes {
     | '/api/admin/portfolio'
     | '/api/admin/session'
     | '/api/admin/team'
+    | '/api/admin/testimonials'
     | '/api/admin/upload'
     | '/api/admin/upload-url'
     | '/api/public/case-studies'
@@ -606,6 +644,7 @@ export interface FileRouteTypes {
     | '/api/public/portfolio'
     | '/api/public/resource-request'
     | '/api/public/team'
+    | '/api/public/testimonials'
     | '/insights/answers/$slug'
     | '/insights/guides/$slug'
     | '/api/admin/case-studies/$id'
@@ -614,6 +653,8 @@ export interface FileRouteTypes {
     | '/api/admin/portfolio/reorder'
     | '/api/admin/team/$id'
     | '/api/admin/team/reorder'
+    | '/api/admin/testimonials/$id'
+    | '/api/admin/testimonials/reorder'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -658,6 +699,7 @@ export interface FileRouteTypes {
     | '/api/admin/portfolio'
     | '/api/admin/session'
     | '/api/admin/team'
+    | '/api/admin/testimonials'
     | '/api/admin/upload'
     | '/api/admin/upload-url'
     | '/api/public/case-studies'
@@ -667,6 +709,7 @@ export interface FileRouteTypes {
     | '/api/public/portfolio'
     | '/api/public/resource-request'
     | '/api/public/team'
+    | '/api/public/testimonials'
     | '/insights/answers/$slug'
     | '/insights/guides/$slug'
     | '/api/admin/case-studies/$id'
@@ -675,6 +718,8 @@ export interface FileRouteTypes {
     | '/api/admin/portfolio/reorder'
     | '/api/admin/team/$id'
     | '/api/admin/team/reorder'
+    | '/api/admin/testimonials/$id'
+    | '/api/admin/testimonials/reorder'
   id:
     | '__root__'
     | '/'
@@ -719,6 +764,7 @@ export interface FileRouteTypes {
     | '/api/admin/portfolio'
     | '/api/admin/session'
     | '/api/admin/team'
+    | '/api/admin/testimonials'
     | '/api/admin/upload'
     | '/api/admin/upload-url'
     | '/api/public/case-studies'
@@ -728,6 +774,7 @@ export interface FileRouteTypes {
     | '/api/public/portfolio'
     | '/api/public/resource-request'
     | '/api/public/team'
+    | '/api/public/testimonials'
     | '/insights/answers/$slug'
     | '/insights/guides/$slug'
     | '/api/admin/case-studies/$id'
@@ -736,6 +783,8 @@ export interface FileRouteTypes {
     | '/api/admin/portfolio/reorder'
     | '/api/admin/team/$id'
     | '/api/admin/team/reorder'
+    | '/api/admin/testimonials/$id'
+    | '/api/admin/testimonials/reorder'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -781,6 +830,7 @@ export interface RootRouteChildren {
   ApiAdminPortfolioRoute: typeof ApiAdminPortfolioRouteWithChildren
   ApiAdminSessionRoute: typeof ApiAdminSessionRoute
   ApiAdminTeamRoute: typeof ApiAdminTeamRouteWithChildren
+  ApiAdminTestimonialsRoute: typeof ApiAdminTestimonialsRouteWithChildren
   ApiAdminUploadRoute: typeof ApiAdminUploadRoute
   ApiAdminUploadUrlRoute: typeof ApiAdminUploadUrlRoute
   ApiPublicCaseStudiesRoute: typeof ApiPublicCaseStudiesRoute
@@ -790,6 +840,7 @@ export interface RootRouteChildren {
   ApiPublicPortfolioRoute: typeof ApiPublicPortfolioRoute
   ApiPublicResourceRequestRoute: typeof ApiPublicResourceRequestRoute
   ApiPublicTeamRoute: typeof ApiPublicTeamRoute
+  ApiPublicTestimonialsRoute: typeof ApiPublicTestimonialsRoute
   InsightsAnswersSlugRoute: typeof InsightsAnswersSlugRoute
   InsightsGuidesSlugRoute: typeof InsightsGuidesSlugRoute
 }
@@ -1090,6 +1141,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAdminTeamRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/admin/testimonials': {
+      id: '/api/admin/testimonials'
+      path: '/api/admin/testimonials'
+      fullPath: '/api/admin/testimonials'
+      preLoaderRoute: typeof ApiAdminTestimonialsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/admin/upload': {
       id: '/api/admin/upload'
       path: '/api/admin/upload'
@@ -1153,6 +1211,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicTeamRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/testimonials': {
+      id: '/api/public/testimonials'
+      path: '/api/public/testimonials'
+      fullPath: '/api/public/testimonials'
+      preLoaderRoute: typeof ApiPublicTestimonialsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/insights/answers/$slug': {
       id: '/insights/answers/$slug'
       path: '/insights/answers/$slug'
@@ -1209,6 +1274,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAdminTeamReorderRouteImport
       parentRoute: typeof ApiAdminTeamRoute
     }
+    '/api/admin/testimonials/$id': {
+      id: '/api/admin/testimonials/$id'
+      path: '/$id'
+      fullPath: '/api/admin/testimonials/$id'
+      preLoaderRoute: typeof ApiAdminTestimonialsIdRouteImport
+      parentRoute: typeof ApiAdminTestimonialsRoute
+    }
+    '/api/admin/testimonials/reorder': {
+      id: '/api/admin/testimonials/reorder'
+      path: '/reorder'
+      fullPath: '/api/admin/testimonials/reorder'
+      preLoaderRoute: typeof ApiAdminTestimonialsReorderRouteImport
+      parentRoute: typeof ApiAdminTestimonialsRoute
+    }
   }
 }
 
@@ -1251,6 +1330,19 @@ const ApiAdminTeamRouteChildren: ApiAdminTeamRouteChildren = {
 const ApiAdminTeamRouteWithChildren = ApiAdminTeamRoute._addFileChildren(
   ApiAdminTeamRouteChildren,
 )
+
+interface ApiAdminTestimonialsRouteChildren {
+  ApiAdminTestimonialsIdRoute: typeof ApiAdminTestimonialsIdRoute
+  ApiAdminTestimonialsReorderRoute: typeof ApiAdminTestimonialsReorderRoute
+}
+
+const ApiAdminTestimonialsRouteChildren: ApiAdminTestimonialsRouteChildren = {
+  ApiAdminTestimonialsIdRoute: ApiAdminTestimonialsIdRoute,
+  ApiAdminTestimonialsReorderRoute: ApiAdminTestimonialsReorderRoute,
+}
+
+const ApiAdminTestimonialsRouteWithChildren =
+  ApiAdminTestimonialsRoute._addFileChildren(ApiAdminTestimonialsRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
@@ -1295,6 +1387,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAdminPortfolioRoute: ApiAdminPortfolioRouteWithChildren,
   ApiAdminSessionRoute: ApiAdminSessionRoute,
   ApiAdminTeamRoute: ApiAdminTeamRouteWithChildren,
+  ApiAdminTestimonialsRoute: ApiAdminTestimonialsRouteWithChildren,
   ApiAdminUploadRoute: ApiAdminUploadRoute,
   ApiAdminUploadUrlRoute: ApiAdminUploadUrlRoute,
   ApiPublicCaseStudiesRoute: ApiPublicCaseStudiesRoute,
@@ -1304,6 +1397,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicPortfolioRoute: ApiPublicPortfolioRoute,
   ApiPublicResourceRequestRoute: ApiPublicResourceRequestRoute,
   ApiPublicTeamRoute: ApiPublicTeamRoute,
+  ApiPublicTestimonialsRoute: ApiPublicTestimonialsRoute,
   InsightsAnswersSlugRoute: InsightsAnswersSlugRoute,
   InsightsGuidesSlugRoute: InsightsGuidesSlugRoute,
 }

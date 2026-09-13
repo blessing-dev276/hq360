@@ -5,6 +5,7 @@ import { AuthorsJourney } from "@/components/site/AuthorsJourney";
 import { FeaturedAuthor } from "@/components/site/FeaturedAuthor";
 import { LaunchFilm } from "@/components/site/LaunchFilm";
 import { PortfolioStrip } from "@/components/site/PortfolioStrip";
+import { TestimonialStrip } from "@/components/site/TestimonialStrip";
 
 const industry = getIndustry("authors")!;
 
@@ -22,12 +23,19 @@ function RouteComponent() {
           <LaunchFilm />
           <FeaturedAuthor />
           {/* Admin-managed from /admin > Portfolio (filtered to this industry) —
-              add more review screenshots there, tagged to Authors & Publishers
-              and, optionally, a specific service. */}
+              real delivered work: campaigns, websites, case studies. */}
           <PortfolioStrip
             industry={industry.slug}
-            eyebrow="Discovery proof"
-            title="Real reviews, not invented numbers"
+            eyebrow="Selected work"
+            title="Real work, not invented numbers"
+          />
+          {/* Admin-managed from /admin > Testimonials (filtered to this
+              industry) — review screenshots, kept separate from portfolio
+              work. Add more, or tag one to a specific service, from there. */}
+          <TestimonialStrip
+            industry={industry.slug}
+            eyebrow="What authors say"
+            title="Testimonials"
             tone="raised"
           />
         </>

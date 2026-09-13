@@ -209,6 +209,45 @@ export type Database = {
         };
         Relationships: [];
       };
+      testimonials: {
+        Row: {
+          capability_slug: string | null;
+          created_at: string;
+          id: string;
+          industry_slug: string | null;
+          media_url: string;
+          published: boolean;
+          quote: string | null;
+          sort_order: number;
+          title: string;
+          updated_at: string;
+        };
+        Insert: {
+          capability_slug?: string | null;
+          created_at?: string;
+          id?: string;
+          industry_slug?: string | null;
+          media_url: string;
+          published?: boolean;
+          quote?: string | null;
+          sort_order?: number;
+          title: string;
+          updated_at?: string;
+        };
+        Update: {
+          capability_slug?: string | null;
+          created_at?: string;
+          id?: string;
+          industry_slug?: string | null;
+          media_url?: string;
+          published?: boolean;
+          quote?: string | null;
+          sort_order?: number;
+          title?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       team_members: {
         Row: {
           blurb: string | null;

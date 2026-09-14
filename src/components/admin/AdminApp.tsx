@@ -120,11 +120,14 @@ function UploadField({
 
 /* ------------------------------------------------------------------- root */
 
-type Tab = "portfolio" | "work" | "team" | "testimonials";
+type Tab = "work" | "team" | "testimonials";
+/** "Work" merges what used to be two separate tabs (case studies + the
+ * lightweight service portfolio) — both are "work we've done", just at
+ * different depths, so they live under one roof with a sub-switcher. */
+type WorkView = "cases" | "gallery";
 
 const TAB_TITLE: Record<Tab, string> = {
-  portfolio: "Service portfolio",
-  work: "Work & case studies",
+  work: "Work",
   team: "Team",
   testimonials: "Testimonials",
 };
@@ -133,7 +136,8 @@ const input =
   "w-full rounded-xl border border-border bg-background px-3.5 py-2.5 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
 export function AdminApp() {
-  const [tab, setTab] = useState<Tab>("portfolio");
+  const [tab, setTab] = useState<Tab>("work");
+  const [workView, setWorkView] = useState<WorkView>("cases");
 
   return (
     <div className="min-h-[70vh] bg-secondary/40">
@@ -146,7 +150,7 @@ export function AdminApp() {
         </div>
 
         <div className="mt-6 flex gap-1 rounded-full border border-border bg-card p-1 text-sm">
-          {(["portfolio", "work", "team", "testimonials"] as const).map((t) => (
+          {(["work", "team", "testimonials"] as const).map((t) => (
             <button
               key={t}
               type="button"
@@ -161,11 +165,38 @@ export function AdminApp() {
           ))}
         </div>
 
+        {tab === "work" ? (
+          <div className="mt-4 flex gap-1 text-sm">
+            {(
+              [
+                { id: "cases", label: "Case studies" },
+                { id: "gallery", label: "Quick gallery items" },
+              ] as const
+            ).map((v) => (
+              <button
+                key={v.id}
+                type="button"
+                onClick={() => setWorkView(v.id)}
+                className={cn(
+                  "rounded-full border px-3.5 py-1.5 font-medium transition",
+                  workView === v.id
+                    ? "border-brand text-brand"
+                    : "border-transparent text-muted-foreground hover:text-foreground",
+                )}
+              >
+                {v.label}
+              </button>
+            ))}
+          </div>
+        ) : null}
+
         <div className="mt-8">
-          {tab === "portfolio" ? (
-            <PortfolioDashboard />
-          ) : tab === "work" ? (
-            <CaseStudyDashboard />
+          {tab === "work" ? (
+            workView === "cases" ? (
+              <CaseStudyDashboard />
+            ) : (
+              <PortfolioDashboard />
+            )
           ) : tab === "team" ? (
             <TeamDashboard />
           ) : (

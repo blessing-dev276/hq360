@@ -18,16 +18,19 @@ type PortfolioItem = {
 };
 
 /**
- * Renders published portfolio items for an industry and/or a capability.
- * Managed from /admin. Renders nothing when there is nothing to show.
- * Clicking an item opens a full-screen viewer — full-page website
- * screenshots scroll inside it at readable width.
+ * Renders published portfolio items (quick visual proof — a screenshot, not
+ * a full write-up) for an industry and/or a capability. Managed from
+ * /admin > Work > Quick gallery items, alongside the full case studies at
+ * /work — one "Work" section in the admin, two depths of content. Renders
+ * nothing when there is nothing to show. Clicking an item opens a
+ * full-screen viewer — full-page website screenshots scroll inside it at
+ * readable width.
  */
 export function PortfolioStrip({
   industry,
   capability,
   eyebrow = "Selected work",
-  title = "Portfolio",
+  title = "Selected work",
   tone = "base",
 }: {
   industry?: string;

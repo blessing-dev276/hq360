@@ -10,7 +10,13 @@ export type AdminBucket = "portfolio" | "team" | "work" | "testimonials";
 export type UploadResult = { url: string; mediaType: "image" | "video" };
 
 const COMPRESSIBLE = /^image\/(png|jpe?g|webp)$/;
-const MAX_DIMENSION = 2400;
+// Capped by width, not the longer side. A full-page website screenshot is
+// tall (e.g. 1500x8000) — capping the longer side crushes the width down to
+// a few hundred px trying to keep the huge height under the limit, which is
+// what was making uploaded screenshots blurry. Height gets its own much
+// higher ceiling, just to keep the canvas size sane for extreme captures.
+const MAX_WIDTH = 2200;
+const MAX_HEIGHT = 20000;
 const WEBP_QUALITY = 0.94;
 // Below this, a file is already a reasonable size for the web — re-encoding
 // it only risks visible quality loss (especially on text-heavy screenshots)
@@ -21,7 +27,7 @@ async function compressImage(file: File): Promise<{ blob: Blob; type: string } |
   if (typeof document === "undefined" || !COMPRESSIBLE.test(file.type)) return null;
   try {
     const bitmap = await createImageBitmap(file);
-    const scale = Math.min(1, MAX_DIMENSION / Math.max(bitmap.width, bitmap.height));
+    const scale = Math.min(1, MAX_WIDTH / bitmap.width, MAX_HEIGHT / bitmap.height);
     const noResizeNeeded = scale === 1;
     // Nothing to gain: already the right size and either already webp, or
     // small enough that re-encoding would only cost quality.

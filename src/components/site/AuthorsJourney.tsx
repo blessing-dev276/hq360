@@ -11,7 +11,6 @@ import {
 } from "@/data/authors-journey";
 import { Container } from "@/components/site/Primitives";
 import { FaqSection } from "@/components/site/FaqSection";
-import { PortfolioStrip } from "@/components/site/PortfolioStrip";
 import { ProjectInquiryForm } from "@/components/site/ProjectInquiryForm";
 import { useReveal } from "@/hooks/use-reveal";
 import "./authors-journey.css";
@@ -86,7 +85,6 @@ export function AuthorsJourney({ industry, proof }: { industry: Industry; proof?
       />
       <Journey active={journeyStage} onActive={setJourneyStage} />
       {proof}
-      <PortfolioStrip industry={industry.slug} eyebrow="Selected work" title="Recent work" />
       <GrowthPlan />
       <FinalCta industry={industry} />
     </div>

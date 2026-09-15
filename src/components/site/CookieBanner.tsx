@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
+import { loadClarity } from "@/lib/clarity";
 
 const KEY = "hq360-cookie-consent";
 
@@ -8,7 +9,9 @@ export function CookieBanner() {
 
   useEffect(() => {
     try {
-      if (!window.localStorage.getItem(KEY)) setVisible(true);
+      const consent = window.localStorage.getItem(KEY);
+      if (!consent) setVisible(true);
+      else if (consent === "accepted") loadClarity();
     } catch {
       /* storage blocked — do not show */
     }
@@ -20,6 +23,7 @@ export function CookieBanner() {
     } catch {
       /* ignore */
     }
+    if (value === "accepted") loadClarity();
     setVisible(false);
   }
 

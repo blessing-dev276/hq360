@@ -1,0 +1,22 @@
+# Search access is independent of model training.
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: Twitterbot
+Allow: /
+
+User-agent: facebookexternalhit
+Allow: /
+
+User-agent: *
+Allow: /
+
+# GPTBot has no dedicated group and still inherits the unchanged wildcard above.
+
+Sitemap: https://www.hq360.space/sitemap.xml

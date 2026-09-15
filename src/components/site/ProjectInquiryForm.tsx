@@ -3,6 +3,7 @@ import { z } from "zod";
 import { cn } from "@/lib/utils";
 import { CAPABILITIES } from "@/data/capabilities";
 import { INDUSTRIES } from "@/data/industries";
+import { openBlankLeadTab, navigateLeadTab } from "@/lib/lead-mailto";
 
 const HELP_OPTIONS = CAPABILITIES.map((c) => c.name);
 const BUDGETS = ["Not sure yet", "Under $5k", "$5k – $15k", "$15k – $50k", "$50k+"];
@@ -77,6 +78,7 @@ export function ProjectInquiryForm({
     }
     setErrors({});
     setState("sending");
+    const mailTab = openBlankLeadTab();
 
     try {
       const res = await fetch("/api/public/inquiry", {
@@ -92,11 +94,29 @@ export function ProjectInquiryForm({
       const body = (await res.json().catch(() => ({}))) as { ok?: boolean };
       if (res.ok && body.ok) {
         setState("done");
+        navigateLeadTab(mailTab, {
+          subject: `New HQ360 inquiry from ${parsed.data.name}`,
+          body: [
+            `Name: ${parsed.data.name}`,
+            `Email: ${parsed.data.email}`,
+            `Company: ${parsed.data.company || "N/A"}`,
+            `Website: ${parsed.data.website || "N/A"}`,
+            `Industry: ${parsed.data.industry || sourceIndustry || "N/A"}`,
+            `Need help with: ${parsed.data.helpWith.join(", ") || "N/A"}`,
+            `Primary goal: ${parsed.data.primaryGoal || "N/A"}`,
+            `Budget: ${parsed.data.budgetRange || "N/A"}`,
+            `Timeline: ${parsed.data.timeline || "N/A"}`,
+            "",
+            `Message: ${parsed.data.message || "N/A"}`,
+          ].join("\n"),
+        });
       } else {
+        mailTab?.close();
         setState("idle");
         setErrors({ form: "We could not send that. Try again, or email us directly." });
       }
     } catch {
+      mailTab?.close();
       setState("idle");
       setErrors({ form: "Network error. Try again, or email us directly." });
     }

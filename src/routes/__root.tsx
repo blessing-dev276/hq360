@@ -14,6 +14,7 @@ import { PageLoadError, RouteProgress } from "@/components/site/loading/RouteLoa
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { SiteFooter } from "@/components/site/SiteFooter";
 import { CookieBanner } from "@/components/site/CookieBanner";
+import { LeadPopup } from "@/components/site/LeadPopup";
 import { BRAND } from "@/config/brand";
 import { organizationSchema, serializeJsonLd } from "@/lib/seo";
 
@@ -112,6 +113,7 @@ function RootComponent() {
       </main>
       <SiteFooter />
       <CookieBanner />
+      <LeadPopup />
     </QueryClientProvider>
   );
 }

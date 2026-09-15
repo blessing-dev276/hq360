@@ -3,7 +3,7 @@ import { ArrowUpRight, Check } from "lucide-react";
 import { getGuide, getAnswer, GUIDES, type Guide } from "@/data/insights-hub";
 import { Container, Eyebrow, Section, SectionHeader } from "@/components/site/Primitives";
 import { CtaBand } from "@/components/site/CtaBand";
-import { buildSeo, breadcrumbSchema } from "@/lib/seo";
+import { buildSeo, breadcrumbSchema, truncateDescription } from "@/lib/seo";
 import { BRAND } from "@/config/brand";
 import { CTAS } from "@/config/brand";
 
@@ -18,7 +18,7 @@ export const Route = createFileRoute("/insights/guides/$slug")({
       ? buildSeo(
           {
             title: `${loaderData.guide.title} | HQ360 Guide`,
-            description: loaderData.guide.summary,
+            description: truncateDescription(loaderData.guide.summary),
             path: `/insights/guides/${loaderData.guide.slug}`,
             type: "article",
           },

@@ -121,7 +121,12 @@ function TeamCard({ person }: { person: Person }) {
       >
         <span className="ts-photo">
           {src ? (
-            <img src={src} alt="" loading="lazy" decoding="async" />
+            <img
+              src={src}
+              alt={`${person.name}, ${person.role} at HQ360`}
+              loading="lazy"
+              decoding="async"
+            />
           ) : (
             <span className="ts-fallback">{initialsFor(person.name)}</span>
           )}

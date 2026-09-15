@@ -456,7 +456,7 @@ CAPABILITIES.push(
     seo: {
       title: "Mobile App Development | HQ360",
       description:
-        "Mobile product strategy, design and development for focused customer experiences.",
+        "HQ360 builds mobile products end to end: product strategy, UX and UI design, development and launch support focused on the tasks customers need to complete most.",
     },
   },
   {
@@ -490,7 +490,8 @@ CAPABILITIES.push(
     faqs: [],
     seo: {
       title: "Game Development | HQ360",
-      description: "Game concepts, design and development for engaging interactive experiences.",
+      description:
+        "HQ360 designs and builds interactive games — core loops, playable systems and levels — from concept through testing and launch, built to ship and to be played.",
     },
   },
 );

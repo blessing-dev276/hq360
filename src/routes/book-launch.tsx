@@ -11,7 +11,7 @@ export const Route = createFileRoute("/book-launch")({
       {
         title: "Sanman Thapa Book Launch | HQ360",
         description:
-          "Photographs and cover reveal film from the launch of From the Window: The City of What Ifs by Sanman Thapa, published with Arti Facts Publishing and delivered with HQ360.",
+          "Photographs and a cover-reveal film from Sanman Thapa's book launch, published with Arti Facts Publishing and delivered with HQ360.",
         path: "/book-launch",
         type: "article",
       },

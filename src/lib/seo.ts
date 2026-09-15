@@ -13,12 +13,30 @@ export type SeoInput = {
   type?: "website" | "article" | "profile";
   /** Absolute or root-relative image URL for social cards. */
   image?: string;
+  /** og:image:alt / twitter:image:alt. Defaults to the page title when a
+   * custom `image` is set, or "HQ360" for the default favicon fallback. */
+  imageAlt?: string;
   noindex?: boolean;
 };
 
 export function absolute(path: string): string {
   if (/^https?:\/\//.test(path)) return path;
   return `${BRAND.siteUrl.replace(/\/$/, "")}${path.startsWith("/") ? path : `/${path}`}`;
+}
+
+/**
+ * Content-driven meta descriptions (a case study's summary, an admin-entered
+ * field, etc.) have no length limit where they're authored, but a
+ * <meta name="description"> does — Google generally shows ~155-160 chars and
+ * cuts the rest mid-sentence. Truncate at the last whole word inside the
+ * limit rather than editing the source content.
+ */
+export function truncateDescription(text: string, max = 155): string {
+  const trimmed = text.trim();
+  if (trimmed.length <= max) return trimmed;
+  const cut = trimmed.slice(0, max);
+  const lastSpace = cut.lastIndexOf(" ");
+  return `${(lastSpace > 0 ? cut.slice(0, lastSpace) : cut).trimEnd()}…`;
 }
 
 /**
@@ -32,6 +50,7 @@ export function buildSeo(
   const url = absolute(input.path);
   const image = absolute(input.image ?? "/favicon.png");
   const fullTitle = input.title.includes("HQ360") ? input.title : `${input.title} | HQ360`;
+  const imageAlt = input.imageAlt ?? (input.image ? fullTitle : "HQ360");
 
   const meta: MetaTag[] = [
     { title: fullTitle },
@@ -42,10 +61,12 @@ export function buildSeo(
     { property: "og:url", content: url },
     { property: "og:site_name", content: BRAND.name },
     { property: "og:image", content: image },
+    { property: "og:image:alt", content: imageAlt },
     { name: "twitter:card", content: "summary_large_image" },
     { name: "twitter:title", content: fullTitle },
     { name: "twitter:description", content: input.description },
     { name: "twitter:image", content: image },
+    { name: "twitter:image:alt", content: imageAlt },
   ];
 
   if (input.noindex) meta.push({ name: "robots", content: "noindex, follow" });

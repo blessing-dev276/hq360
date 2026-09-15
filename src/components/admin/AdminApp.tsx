@@ -543,7 +543,7 @@ function ItemRow({
             className="size-full object-cover"
           />
         ) : (
-          <img src={item.media_url} alt="" className="size-full object-cover" />
+          <img src={item.media_url} alt={item.title} className="size-full object-cover" />
         )}
       </div>
       <div className="min-w-0 flex-1">
@@ -835,7 +835,11 @@ function ItemForm({
                   className="size-full object-cover"
                 />
               ) : (
-                <img src={draft.mediaUrl} alt="" className="size-full object-cover" />
+                <img
+                  src={draft.mediaUrl}
+                  alt={draft.title || "Preview"}
+                  className="size-full object-cover"
+                />
               )}
             </div>
             <span className="truncate text-xs text-muted-foreground">{draft.mediaUrl}</span>
@@ -1026,7 +1030,7 @@ function TeamDashboard() {
                 </span>
                 <div className="size-16 shrink-0 overflow-hidden rounded-lg border border-border bg-secondary">
                   {m.image_url ? (
-                    <img src={m.image_url} alt="" className="size-full object-cover" />
+                    <img src={m.image_url} alt={m.name} className="size-full object-cover" />
                   ) : (
                     <span className="flex size-full items-center justify-center text-sm font-semibold text-muted-foreground">
                       {initialsFor(m.name)}
@@ -1179,7 +1183,11 @@ function MemberForm({
         <div className="mt-3 flex items-center gap-4">
           <div className="size-20 shrink-0 overflow-hidden rounded-lg border border-border bg-secondary">
             {draft.imageUrl ? (
-              <img src={draft.imageUrl} alt="" className="size-full object-cover" />
+              <img
+                src={draft.imageUrl}
+                alt={draft.name || "Preview"}
+                className="size-full object-cover"
+              />
             ) : (
               <span className="flex size-full items-center justify-center text-sm font-semibold text-muted-foreground">
                 {draft.name ? initialsFor(draft.name) : "—"}
@@ -1514,7 +1522,11 @@ function CaseStudyDashboard() {
                         className="size-full object-cover"
                       />
                     ) : (
-                      <img src={it.media[0].src} alt="" className="size-full object-cover" />
+                      <img
+                        src={it.media[0].src}
+                        alt={it.media[0].alt || it.title}
+                        className="size-full object-cover"
+                      />
                     )
                   ) : (
                     <span className="flex size-full items-center justify-center text-[0.6rem] text-muted-foreground">
@@ -1824,7 +1836,11 @@ function CaseStudyForm({
                     m.type === "video" ? (
                       <video src={m.src} muted playsInline className="size-full object-cover" />
                     ) : (
-                      <img src={m.src} alt="" className="size-full object-cover" />
+                      <img
+                        src={m.src}
+                        alt={m.alt || draft.title || "Preview"}
+                        className="size-full object-cover"
+                      />
                     )
                   ) : null}
                 </div>
@@ -2134,7 +2150,7 @@ function TestimonialDashboard() {
                   ⠿
                 </span>
                 <div className="size-16 shrink-0 overflow-hidden rounded-lg border border-border bg-secondary">
-                  <img src={t.media_url} alt="" className="size-full object-cover" />
+                  <img src={t.media_url} alt={t.title} className="size-full object-cover" />
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium">{t.title}</p>
@@ -2256,7 +2272,11 @@ function TestimonialForm({
         <div className="mt-3 flex items-center gap-4">
           <div className="size-20 shrink-0 overflow-hidden rounded-lg border border-border bg-secondary">
             {draft.mediaUrl ? (
-              <img src={draft.mediaUrl} alt="" className="size-full object-cover" />
+              <img
+                src={draft.mediaUrl}
+                alt={draft.title || "Preview"}
+                className="size-full object-cover"
+              />
             ) : null}
           </div>
           <div className="min-w-0 flex-1">

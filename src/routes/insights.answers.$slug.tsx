@@ -3,7 +3,7 @@ import { ArrowUpRight } from "lucide-react";
 import { ANSWERS, getAnswer, type Answer } from "@/data/insights-hub";
 import { Container, Eyebrow, Section, SectionHeader } from "@/components/site/Primitives";
 import { CtaBand } from "@/components/site/CtaBand";
-import { buildSeo, breadcrumbSchema } from "@/lib/seo";
+import { buildSeo, breadcrumbSchema, truncateDescription } from "@/lib/seo";
 import { CTAS } from "@/config/brand";
 
 export const Route = createFileRoute("/insights/answers/$slug")({
@@ -17,7 +17,7 @@ export const Route = createFileRoute("/insights/answers/$slug")({
       ? buildSeo(
           {
             title: `${loaderData.answer.question} | HQ360`,
-            description: loaderData.answer.short,
+            description: truncateDescription(loaderData.answer.short),
             path: `/insights/answers/${loaderData.answer.slug}`,
             type: "article",
           },

@@ -8,7 +8,7 @@ import {
   SectionHeader,
 } from "@/components/site/Primitives";
 import { CtaBand } from "@/components/site/CtaBand";
-import { buildSeo, breadcrumbSchema } from "@/lib/seo";
+import { buildSeo, breadcrumbSchema, truncateDescription } from "@/lib/seo";
 import { CTAS } from "@/config/brand";
 import { loadCaseStudies } from "@/lib/case-studies.functions";
 
@@ -27,7 +27,7 @@ export const Route = createFileRoute("/work/$slug")({
       ? buildSeo(
           {
             title: `${loaderData.study.title} | HQ360 Work`,
-            description: loaderData.study.summary,
+            description: truncateDescription(loaderData.study.summary),
             path: `/work/${loaderData.study.slug}`,
             type: "article",
             noindex: loaderData.study.status === "sample",

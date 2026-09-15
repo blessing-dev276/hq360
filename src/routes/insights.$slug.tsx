@@ -2,7 +2,7 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { getInsight, INSIGHTS, type Insight } from "@/data/insights";
 import { Container, Eyebrow, Section, SectionHeader } from "@/components/site/Primitives";
 import { CtaBand } from "@/components/site/CtaBand";
-import { buildSeo, breadcrumbSchema } from "@/lib/seo";
+import { buildSeo, breadcrumbSchema, truncateDescription } from "@/lib/seo";
 import { CTAS } from "@/config/brand";
 
 export const Route = createFileRoute("/insights/$slug")({
@@ -16,7 +16,7 @@ export const Route = createFileRoute("/insights/$slug")({
       ? buildSeo(
           {
             title: `${loaderData.post.title} | HQ360 Insights`,
-            description: loaderData.post.excerpt,
+            description: truncateDescription(loaderData.post.excerpt),
             path: `/insights/${loaderData.post.slug}`,
             type: "article",
           },

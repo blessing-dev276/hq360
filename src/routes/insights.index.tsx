@@ -16,7 +16,7 @@ export const Route = createFileRoute("/insights/")({
       {
         title: "Growth Library: Guides, Answers, Glossary & Resources | HQ360",
         description:
-          "Practical guides, high-intent answers, a glossary and downloadable resources on growth systems, websites and CRO, SEO, advertising, CRM automation, retention and brand — from the HQ360 team.",
+          "Practical guides, quick answers, a glossary and downloads on growth systems, websites, SEO, advertising, automation and retention — from the HQ360 team.",
         path: "/insights",
       },
       [

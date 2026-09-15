@@ -181,7 +181,7 @@ export const INDUSTRIES: Industry[] = [
     seo: {
       title: "Author & Publisher Growth System | HQ360",
       description:
-        "HQ360 builds a connected growth system for authors and publishers: brand, book funnels, SEO, video, social, advertising, automation and a reader app that turns discovery into repeat sales.",
+        "HQ360 connects brand, book funnels, SEO, advertising and automation into one growth system for authors and publishers, built to turn discovery into repeat sales.",
     },
   },
 

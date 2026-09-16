@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
+import "./audit-workspace.css";
 import { uploadAdminMedia } from "@/lib/admin-upload";
 import {
   VERIFICATION_FIELDS,
@@ -39,7 +40,12 @@ async function api<T>(url: string, init?: RequestInit): Promise<{ status: number
   const res = await fetch(url, {
     ...init,
     headers: { "content-type": "application/json" },
-  });
+  }).catch(() => null);
+  if (!res)
+    return {
+      status: 0,
+      body: { ok: false, error: "Connection interrupted. Please try again." } as T,
+    };
   const body = (await res.json().catch(() => ({}))) as T;
   return { status: res.status, body };
 }
@@ -122,8 +128,12 @@ function AuditList({ onOpen }: { onOpen: (id: string) => void }) {
   const [error, setError] = useState("");
   const [creating, setCreating] = useState(false);
   const [manual, setManual] = useState({ authorName: "", bookTitle: "" });
+  const [query, setQuery] = useState("");
+  const [filter, setFilter] = useState("all");
+  const [showCreate, setShowCreate] = useState(false);
 
   const load = useCallback(async () => {
+    setError("");
     const [auditsRes, leadsRes] = await Promise.all([
       api<{ ok: boolean; items: AuditListItem[] }>("/api/admin/author-audits"),
       api<{ ok: boolean; items: AuthorAuditLead[] }>("/api/admin/author-audit-leads"),
@@ -131,6 +141,7 @@ function AuditList({ onOpen }: { onOpen: (id: string) => void }) {
     if (auditsRes.status === 200 && auditsRes.body.ok) setAudits(auditsRes.body.items);
     else setError("Could not load audits.");
     if (leadsRes.status === 200 && leadsRes.body.ok) setLeads(leadsRes.body.items);
+    else setError("Could not load new requests. Please refresh to try again.");
   }, []);
 
   useEffect(() => {
@@ -165,13 +176,45 @@ function AuditList({ onOpen }: { onOpen: (id: string) => void }) {
   }
 
   const pendingLeads = (leads ?? []).filter((l) => l.status === "new");
+  const visibleAudits = (audits ?? []).filter(
+    (a) =>
+      (filter === "all" || a.status === filter) &&
+      `${a.authors?.name} ${a.books?.title}`.toLowerCase().includes(query.toLowerCase()),
+  );
 
   return (
-    <div className="space-y-8">
-      <p className="text-sm text-muted-foreground">
-        Evidence-led author visibility audits. Every finding a client sees was researched, then
-        approved by a human — nothing is sent unreviewed.
-      </p>
+    <div className="audit-studio space-y-6">
+      <div className="audit-hero">
+        <div>
+          <span className="audit-eyebrow">HQ360 / Audit studio</span>
+          <h2>Turn evidence into opportunity.</h2>
+          <p>Research, review and deliver a clearer path forward for every author.</p>
+        </div>
+        <button type="button" onClick={() => setShowCreate(!showCreate)} aria-expanded={showCreate}>
+          + New audit
+        </button>
+      </div>
+      <div className="audit-metrics">
+        {[
+          ["Total audits", audits?.length],
+          ["New requests", leads ? pendingLeads.length : undefined],
+          [
+            "Awaiting review",
+            audits?.filter(
+              (a) => a.status === "needs_verification" || a.status === "ready_for_review",
+            ).length,
+          ],
+          [
+            "Completed / sent",
+            audits?.filter((a) => a.status === "completed" || a.status === "report_sent").length,
+          ],
+        ].map(([label, value]) => (
+          <div key={label} className="audit-metric">
+            <strong>{value ?? "—"}</strong>
+            <span>{label}</span>
+          </div>
+        ))}
+      </div>
 
       {pendingLeads.length > 0 ? (
         <div className="rounded-2xl border border-border bg-card p-5">
@@ -202,7 +245,11 @@ function AuditList({ onOpen }: { onOpen: (id: string) => void }) {
         </div>
       ) : null}
 
-      <form onSubmit={createManual} className="rounded-2xl border border-border bg-card p-5 sm:p-6">
+      <form
+        hidden={!showCreate}
+        onSubmit={createManual}
+        className="rounded-2xl border border-border bg-card p-5 sm:p-6"
+      >
         <h2 className="font-display text-lg">Start an audit manually</h2>
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
           <label className="block">
@@ -233,19 +280,44 @@ function AuditList({ onOpen }: { onOpen: (id: string) => void }) {
 
       {error ? <p className="text-sm text-destructive">{error}</p> : null}
 
+      <div className="audit-toolbar">
+        <input
+          className={input}
+          aria-label="Search audits"
+          placeholder="Search author or book…"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+        />
+        <select
+          className={input}
+          aria-label="Filter by status"
+          value={filter}
+          onChange={(e) => setFilter(e.target.value)}
+        >
+          <option value="all">All statuses</option>
+          {STATUS_ORDER.map((s) => (
+            <option key={s} value={s}>
+              {STATUS_LABEL[s]}
+            </option>
+          ))}
+        </select>
+      </div>
       {audits === null ? (
         <p className="text-sm text-muted-foreground">Loading audits…</p>
-      ) : audits.length === 0 ? (
-        <p className="text-sm text-muted-foreground">No audits yet.</p>
+      ) : visibleAudits.length === 0 ? (
+        <div className="audit-empty">
+          <h3>{audits.length ? "No matching audits" : "Your next audit starts here"}</h3>
+          <p>
+            {audits.length
+              ? "Try a different search or status."
+              : "Create an audit or open a new request to begin."}
+          </p>
+        </div>
       ) : (
         <ul className="space-y-2">
-          {audits.map((a) => (
+          {visibleAudits.map((a) => (
             <li key={a.id}>
-              <button
-                type="button"
-                onClick={() => onOpen(a.id)}
-                className="flex w-full items-center gap-3 rounded-xl border border-border bg-card p-3 text-left hover:border-brand/50"
-              >
+              <button type="button" onClick={() => onOpen(a.id)} className="audit-list-row">
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium">
                     {a.books?.title ?? "Untitled"} — {a.authors?.name ?? "Unknown author"}
@@ -346,12 +418,14 @@ type QualityCheck = {
 };
 
 function AuditWorkspace({ id, onBack }: { id: string; onBack: () => void }) {
+  const [stage, setStage] = useState("research");
   const [data, setData] = useState<AuditDetailResponse | null>(null);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
   const [quality, setQuality] = useState<QualityCheck | null>(null);
 
   const load = useCallback(async () => {
+    setQuality(null);
     const { status, body } = await api<AuditDetailResponse>(`/api/admin/author-audits/${id}`);
     if (status === 200 && body.ok) setData(body);
     else setError("Could not load this audit.");
@@ -366,6 +440,7 @@ function AuditWorkspace({ id, onBack }: { id: string; onBack: () => void }) {
       `/api/admin/author-audits/${id}/quality-check`,
     );
     if (status === 200 && body.ok) setQuality(body);
+    else setError("Could not run the quality check. Please try again.");
   }, [id]);
 
   async function setStatus(status: AuditStatus) {
@@ -449,9 +524,28 @@ function AuditWorkspace({ id, onBack }: { id: string; onBack: () => void }) {
     reports,
   } = data;
   const approvedFindingCount = findings.filter((f) => f.review_status === "approved").length;
+  const pendingReviews = [...findings, ...strengths, ...readerJourney, ...comparables].filter(
+    (item) => item.review_status !== "approved" && item.review_status !== "rejected",
+  ).length;
+  const stages = [
+    { id: "research", name: "Research", detail: `${sources.length} sources` },
+    { id: "verify", name: "Verify", detail: `${verifications.length} records` },
+    { id: "review", name: "Review", detail: `${pendingReviews} pending` },
+    { id: "plan", name: "Plan", detail: `${moves.length} priority moves` },
+    { id: "report", name: "Report", detail: `${reports.length} versions` },
+  ];
+  const nextStage = !sources.length
+    ? "research"
+    : !verifications.length
+      ? "verify"
+      : !approvedFindingCount || pendingReviews
+        ? "review"
+        : !moves.length
+          ? "plan"
+          : "report";
 
   return (
-    <div className="space-y-8">
+    <div className="audit-studio space-y-6">
       <BackButton onBack={onBack} />
 
       <div className="flex flex-wrap items-start justify-between gap-3 rounded-2xl border border-border bg-card p-5">
@@ -472,213 +566,265 @@ function AuditWorkspace({ id, onBack }: { id: string; onBack: () => void }) {
         </select>
       </div>
 
-      <label className="block rounded-2xl border border-border bg-card p-5">
-        <span className="text-sm font-medium">Prepared by (staff member)</span>
-        <span className="mt-0.5 block text-xs text-muted-foreground">
-          Shown on the cover of the client report. Leave blank to show HQ360 only.
-        </span>
-        <input
-          className={cn(input, "mt-2")}
-          defaultValue={audit.prepared_by_staff_name ?? ""}
-          onBlur={(e) => void setStaffName(e.target.value)}
-        />
-      </label>
-
-      {error ? <p className="text-sm text-destructive">{error}</p> : null}
-
-      <ResearchSection
-        sources={sources}
-        busy={busy === "research"}
-        onRun={() => void runResearch()}
-      />
-
-      <VerificationForm auditId={id} existing={verifications} onSaved={load} />
-
-      <section className="rounded-2xl border border-border bg-card p-5">
-        <div className="flex items-center justify-between">
-          <h3 className="font-display text-lg">Generate findings</h3>
-          <button
-            type="button"
-            disabled={busy === "synthesize"}
-            onClick={() => void runSynthesis()}
-            className="rounded-full bg-primary px-4 py-1.5 text-xs font-semibold text-primary-foreground disabled:opacity-60"
-          >
-            {busy === "synthesize" ? "Synthesizing…" : "Generate findings (AI)"}
-          </button>
+      <div className="audit-next">
+        <div>
+          <span className="audit-eyebrow">Suggested next step</span>
+          <p>
+            {nextStage === "research"
+              ? "Collect public evidence for this author."
+              : nextStage === "verify"
+                ? "Verify the important book and retailer information."
+                : nextStage === "review"
+                  ? "Generate and review findings before building a plan."
+                  : nextStage === "plan"
+                    ? "Build a strategy from approved findings."
+                    : "Check quality and preview the client report."}
+          </p>
         </div>
-        <p className="mt-1 text-xs text-muted-foreground">
-          Sends the research above to Claude for findings, strengths and reader-journey analysis —
-          all unreviewed until approved below.
+        <button type="button" onClick={() => setStage(nextStage)}>
+          Open {stages.find((s) => s.id === nextStage)?.name} →
+        </button>
+      </div>
+      <nav className="audit-stages" aria-label="Audit workflow">
+        {stages.map((s, index) => (
+          <button
+            key={s.id}
+            type="button"
+            aria-current={stage === s.id ? "step" : undefined}
+            onClick={() => setStage(s.id)}
+          >
+            <span className="audit-stage-number">{index + 1}</span>
+            <span>
+              <strong>{s.name}</strong>
+              <small>{s.detail}</small>
+            </span>
+          </button>
+        ))}
+      </nav>
+      <div hidden={stage !== "report"}>
+        <label className="block rounded-2xl border border-border bg-card p-5">
+          <span className="text-sm font-medium">Prepared by (staff member)</span>
+          <span className="mt-0.5 block text-xs text-muted-foreground">
+            Shown on the cover of the client report. Leave blank to show HQ360 only.
+          </span>
+          <input
+            className={cn(input, "mt-2")}
+            defaultValue={audit.prepared_by_staff_name ?? ""}
+            onBlur={(e) => void setStaffName(e.target.value)}
+          />
+        </label>
+      </div>
+      {error ? (
+        <p role="alert" className="text-sm text-destructive">
+          {error}
         </p>
-      </section>
-
-      {strengths.length > 0 ? (
-        <StrengthsSection auditId={id} strengths={strengths} onSaved={load} />
       ) : null}
-
-      {readerJourney.length > 0 ? (
-        <ReaderJourneySection auditId={id} steps={readerJourney} onSaved={load} />
-      ) : null}
-
-      <ComparablesSection auditId={id} comparables={comparables} onSaved={load} />
-
-      {findings.length > 0 ? (
-        <section className="space-y-3">
-          <h3 className="font-display text-lg">Findings — review before sending</h3>
-          {findings.map((f) => (
-            <FindingCard key={f.id} auditId={id} finding={f} onSaved={load} />
-          ))}
-        </section>
-      ) : null}
-
-      <section className="rounded-2xl border border-border bg-card p-5">
-        <div className="flex items-center justify-between">
-          <h3 className="font-display text-lg">Strategic plan</h3>
-          <button
-            type="button"
-            disabled={busy === "plan" || approvedFindingCount === 0}
-            onClick={() => void runPlan()}
-            className="rounded-full bg-primary px-4 py-1.5 text-xs font-semibold text-primary-foreground disabled:opacity-60"
-          >
-            {busy === "plan" ? "Generating…" : "Generate strategic plan (AI)"}
-          </button>
-        </div>
-        <p className="mt-1 text-xs text-muted-foreground">
-          {approvedFindingCount === 0
-            ? "Approve at least one finding above first — the executive assessment, 3 moves and roadmap are only built from what's already approved."
-            : `Builds the executive assessment, 3 moves and 30-day roadmap from the ${approvedFindingCount} approved finding(s) above.`}
+      {busy ? (
+        <p role="status" className="audit-busy">
+          Working on{" "}
+          {busy === "research" ? "research" : busy === "plan" ? "your strategic plan" : "findings"}…
+          You can explore the other stages while this completes.
         </p>
-      </section>
-
-      {audit.executive_assessment ? (
-        <ExecutiveAssessmentSection
-          auditId={id}
-          assessment={audit.executive_assessment}
-          reviewStatus={audit.executive_assessment_review_status}
-          clientVisible={audit.executive_assessment_client_visible}
-          onSaved={load}
-        />
       ) : null}
+      <div hidden={stage !== "research"} className="space-y-6">
+        <ResearchSection
+          sources={sources}
+          busy={busy === "research"}
+          onRun={() => void runResearch()}
+        />
 
-      {moves.length > 0 ? <MovesSection auditId={id} moves={moves} onSaved={load} /> : null}
-      {roadmap.length > 0 ? <RoadmapSection auditId={id} items={roadmap} onSaved={load} /> : null}
-
-      <EvidenceAssetsSection auditId={id} assets={evidenceAssets} onSaved={load} />
-
-      <section className="rounded-2xl border border-border bg-card p-5">
-        <div className="flex items-center justify-between">
-          <h3 className="font-display text-lg">Quality check</h3>
-          <button
-            type="button"
-            onClick={() => void loadQuality()}
-            className="rounded-full border border-border px-4 py-1.5 text-xs font-medium hover:border-brand hover:text-brand"
-          >
-            Run check
-          </button>
-        </div>
-        {quality ? (
-          <div className="mt-3 space-y-2">
-            <p
-              className={cn(
-                "text-sm font-medium",
-                quality.passed ? "text-emerald-700" : "text-destructive",
-              )}
+        <EvidenceAssetsSection auditId={id} assets={evidenceAssets} onSaved={load} />
+      </div>
+      <div hidden={stage !== "verify"}>
+        <VerificationForm auditId={id} existing={verifications} onSaved={load} />
+      </div>
+      <div hidden={stage !== "review"} className="space-y-6">
+        <section className="rounded-2xl border border-border bg-card p-5">
+          <div className="flex items-center justify-between">
+            <h3 className="font-display text-lg">Generate findings</h3>
+            <button
+              type="button"
+              disabled={busy !== null}
+              onClick={() => void runSynthesis()}
+              className="rounded-full bg-primary px-4 py-1.5 text-xs font-semibold text-primary-foreground disabled:opacity-60"
             >
-              {quality.passed
-                ? "Passed — ready to generate a final report."
-                : "Blocked — fix the issues below."}
-            </p>
-            {quality.issues.map((i, idx) => (
-              <p key={idx} className="text-xs text-destructive">
-                [{i.area}] {i.message}
-              </p>
-            ))}
-            {quality.warnings.map((w, idx) => (
-              <p key={idx} className="text-xs text-amber-700">
-                [{w.area}] {w.message}
-              </p>
-            ))}
+              {busy === "synthesize" ? "Synthesizing…" : "Generate findings (AI)"}
+            </button>
           </div>
-        ) : null}
-      </section>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Sends the research above to Claude for findings, strengths and reader-journey analysis —
+            all unreviewed until approved below.
+          </p>
+        </section>
 
-      <section className="rounded-2xl border border-border bg-card p-5">
-        <h3 className="font-display text-lg">Client report</h3>
-        <p className="mt-1 text-xs text-muted-foreground">
-          Preview shows exactly what the author would receive without the quality gate or saving a
-          version. Generating a final report requires the quality check to pass.
-        </p>
-        <div className="mt-4 flex flex-wrap gap-3">
-          <a
-            href={`/api/admin/author-audits/${id}/report?format=pdf&mode=preview`}
-            target="_blank"
-            rel="noreferrer"
-            className="rounded-full border border-border px-5 py-2 text-sm font-medium hover:border-brand hover:text-brand"
-          >
-            Preview PDF
-          </a>
-          <a
-            href={`/api/admin/author-audits/${id}/report?format=image&mode=preview`}
-            target="_blank"
-            rel="noreferrer"
-            className="rounded-full border border-border px-5 py-2 text-sm font-medium hover:border-brand hover:text-brand"
-          >
-            Preview image
-          </a>
-          <a
-            href={`/api/admin/author-audits/${id}/report?format=pdf`}
-            target="_blank"
-            rel="noreferrer"
-            className="rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground"
-          >
-            Generate final PDF
-          </a>
-          <a
-            href={`/api/admin/author-audits/${id}/report?format=image`}
-            target="_blank"
-            rel="noreferrer"
-            className="rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground"
-          >
-            Generate final image
-          </a>
-        </div>
-        {reports.length > 0 ? (
-          <div className="mt-5 border-t border-border pt-4">
-            <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
-              Report history
-            </p>
-            <ul className="mt-2 space-y-1.5">
-              {reports.map((r) => (
-                <li key={r.id} className="flex items-center gap-2 text-xs">
-                  <span
-                    className={cn(
-                      "rounded-full px-2 py-0.5 font-medium",
-                      r.outdated
-                        ? "bg-secondary text-muted-foreground line-through"
-                        : "bg-brand-soft text-[oklch(0.42_0.16_42)]",
-                    )}
-                  >
-                    {r.format} v{r.version}
-                  </span>
-                  <span className="text-muted-foreground">
-                    {new Date(r.generated_at).toLocaleString()}
-                    {r.generated_by ? ` · ${r.generated_by}` : ""}
-                    {r.outdated ? " · outdated" : ""}
-                  </span>
-                  <a
-                    href={r.storage_url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-brand underline"
-                  >
-                    open
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
+        {strengths.length > 0 ? (
+          <StrengthsSection auditId={id} strengths={strengths} onSaved={load} />
         ) : null}
-      </section>
+
+        {readerJourney.length > 0 ? (
+          <ReaderJourneySection auditId={id} steps={readerJourney} onSaved={load} />
+        ) : null}
+
+        <ComparablesSection auditId={id} comparables={comparables} onSaved={load} />
+
+        {findings.length > 0 ? (
+          <section className="space-y-3">
+            <h3 className="font-display text-lg">Findings — review before sending</h3>
+            {findings.map((f) => (
+              <FindingCard key={f.id} auditId={id} finding={f} onSaved={load} />
+            ))}
+          </section>
+        ) : null}
+      </div>
+      <div hidden={stage !== "plan"} className="space-y-6">
+        <section className="rounded-2xl border border-border bg-card p-5">
+          <div className="flex items-center justify-between">
+            <h3 className="font-display text-lg">Strategic plan</h3>
+            <button
+              type="button"
+              disabled={busy !== null || approvedFindingCount === 0}
+              onClick={() => void runPlan()}
+              className="rounded-full bg-primary px-4 py-1.5 text-xs font-semibold text-primary-foreground disabled:opacity-60"
+            >
+              {busy === "plan" ? "Generating…" : "Generate strategic plan (AI)"}
+            </button>
+          </div>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {approvedFindingCount === 0
+              ? "Approve at least one finding above first — the executive assessment, 3 moves and roadmap are only built from what's already approved."
+              : `Builds the executive assessment, 3 moves and 30-day roadmap from the ${approvedFindingCount} approved finding(s) above.`}
+          </p>
+        </section>
+
+        {audit.executive_assessment ? (
+          <ExecutiveAssessmentSection
+            auditId={id}
+            assessment={audit.executive_assessment}
+            reviewStatus={audit.executive_assessment_review_status}
+            clientVisible={audit.executive_assessment_client_visible}
+            onSaved={load}
+          />
+        ) : null}
+
+        {moves.length > 0 ? <MovesSection auditId={id} moves={moves} onSaved={load} /> : null}
+        {roadmap.length > 0 ? <RoadmapSection auditId={id} items={roadmap} onSaved={load} /> : null}
+      </div>
+      <div hidden={stage !== "report"} className="space-y-6">
+        <section className="rounded-2xl border border-border bg-card p-5">
+          <div className="flex items-center justify-between">
+            <h3 className="font-display text-lg">Quality check</h3>
+            <button
+              type="button"
+              onClick={() => void loadQuality()}
+              className="rounded-full border border-border px-4 py-1.5 text-xs font-medium hover:border-brand hover:text-brand"
+            >
+              Run check
+            </button>
+          </div>
+          {quality ? (
+            <div className="mt-3 space-y-2">
+              <p
+                className={cn(
+                  "text-sm font-medium",
+                  quality.passed ? "text-emerald-700" : "text-destructive",
+                )}
+              >
+                {quality.passed
+                  ? "Passed — ready to generate a final report."
+                  : "Blocked — fix the issues below."}
+              </p>
+              {quality.issues.map((i, idx) => (
+                <p key={idx} className="text-xs text-destructive">
+                  [{i.area}] {i.message}
+                </p>
+              ))}
+              {quality.warnings.map((w, idx) => (
+                <p key={idx} className="text-xs text-amber-700">
+                  [{w.area}] {w.message}
+                </p>
+              ))}
+            </div>
+          ) : null}
+        </section>
+
+        <section className="rounded-2xl border border-border bg-card p-5">
+          <h3 className="font-display text-lg">Client report</h3>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Preview shows exactly what the author would receive without the quality gate or saving a
+            version. Generating a final report requires the quality check to pass.
+          </p>
+          <div className="mt-4 flex flex-wrap gap-3">
+            <a
+              href={`/api/admin/author-audits/${id}/report?format=pdf&mode=preview`}
+              target="_blank"
+              rel="noreferrer"
+              className="rounded-full border border-border px-5 py-2 text-sm font-medium hover:border-brand hover:text-brand"
+            >
+              Preview PDF
+            </a>
+            <a
+              href={`/api/admin/author-audits/${id}/report?format=image&mode=preview`}
+              target="_blank"
+              rel="noreferrer"
+              className="rounded-full border border-border px-5 py-2 text-sm font-medium hover:border-brand hover:text-brand"
+            >
+              Preview image
+            </a>
+            <a
+              href={`/api/admin/author-audits/${id}/report?format=pdf`}
+              target="_blank"
+              rel="noreferrer"
+              className="rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground"
+            >
+              Generate final PDF
+            </a>
+            <a
+              href={`/api/admin/author-audits/${id}/report?format=image`}
+              target="_blank"
+              rel="noreferrer"
+              className="rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground"
+            >
+              Generate final image
+            </a>
+          </div>
+          {reports.length > 0 ? (
+            <div className="mt-5 border-t border-border pt-4">
+              <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+                Report history
+              </p>
+              <ul className="mt-2 space-y-1.5">
+                {reports.map((r) => (
+                  <li key={r.id} className="flex items-center gap-2 text-xs">
+                    <span
+                      className={cn(
+                        "rounded-full px-2 py-0.5 font-medium",
+                        r.outdated
+                          ? "bg-secondary text-muted-foreground line-through"
+                          : "bg-brand-soft text-[oklch(0.42_0.16_42)]",
+                      )}
+                    >
+                      {r.format} v{r.version}
+                    </span>
+                    <span className="text-muted-foreground">
+                      {new Date(r.generated_at).toLocaleString()}
+                      {r.generated_by ? ` · ${r.generated_by}` : ""}
+                      {r.outdated ? " · outdated" : ""}
+                    </span>
+                    <a
+                      href={r.storage_url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-brand underline"
+                    >
+                      open
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+        </section>
+      </div>
     </div>
   );
 }

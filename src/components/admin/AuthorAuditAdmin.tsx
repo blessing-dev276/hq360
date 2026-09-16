@@ -451,6 +451,7 @@ function AuditWorkspace({ id, onBack }: { id: string; onBack: () => void }) {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
   const [quality, setQuality] = useState<QualityCheck | null>(null);
+  const [copiedReportId, setCopiedReportId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setQuality(null);
@@ -846,6 +847,21 @@ function AuditWorkspace({ id, onBack }: { id: string; onBack: () => void }) {
                     >
                       open
                     </a>
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        try {
+                          await navigator.clipboard.writeText(r.storage_url);
+                          setCopiedReportId(r.id);
+                          setTimeout(() => setCopiedReportId(null), 2000);
+                        } catch {
+                          /* clipboard unavailable; the "open" link still works */
+                        }
+                      }}
+                      className="text-brand underline"
+                    >
+                      {copiedReportId === r.id ? "copied" : "copy link"}
+                    </button>
                   </li>
                 ))}
               </ul>

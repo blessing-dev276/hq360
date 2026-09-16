@@ -10,7 +10,7 @@ export const STATIC_SITEMAP_PATHS = [
   "/about",
   "/team",
   "/contact",
-  "/capabilities",
+  "/services",
   "/industries",
   "/work",
   "/book-launch",

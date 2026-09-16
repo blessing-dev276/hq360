@@ -1,9 +1,20 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
+import { CapabilitiesPage } from "./capabilities.index";
+import { buildSeo, breadcrumbSchema } from "@/lib/seo";
 
-// Legacy route. The old author-only "services" concept is now split into
-// Capabilities (what we do) and Industries (who we help).
 export const Route = createFileRoute("/services/")({
-  beforeLoad: () => {
-    throw redirect({ statusCode: 301, to: "/capabilities" });
-  },
+  head: () =>
+    buildSeo(
+      {
+        title: "Services — What HQ360 Does | HQ360",
+        description:
+          "Nine services spanning brand, websites, CRM automation, marketing, content, writing and translation, SEO, mobile apps and game development.",
+        path: "/services",
+      },
+      breadcrumbSchema([
+        { name: "Home", path: "/" },
+        { name: "Services", path: "/services" },
+      ]),
+    ),
+  component: CapabilitiesPage,
 });

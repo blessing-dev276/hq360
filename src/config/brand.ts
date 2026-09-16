@@ -60,43 +60,48 @@ export const INDUSTRY_MENU: { label: string; to: string }[] = [
 export const CAPABILITY_MENU: { label: string; to: string; blurb: string }[] = [
   {
     label: "Brand & Creative",
-    to: "/capabilities/brand-creative",
+    to: "/services/brand-creative",
     blurb: "Identity, design and creative direction that make a brand recognisable.",
   },
   {
     label: "Website & Funnel",
-    to: "/capabilities/websites-funnels",
+    to: "/services/websites-funnels",
     blurb: "Sites and landing pages built to turn attention into action.",
   },
   {
-    label: "Digital marketing",
-    to: "/capabilities/crm-automation",
+    label: "CRM Automation",
+    to: "/services/crm-automation",
     blurb: "Pipelines and follow-up that work without manual chasing.",
   },
   {
     label: "Social Media Marketing",
-    to: "/capabilities/lead-generation",
+    to: "/services/lead-generation",
     blurb: "Consistent, qualified demand from advertising and outreach.",
   },
   {
     label: "Ai Video & Video Editing",
-    to: "/capabilities/content-social",
+    to: "/services/content-social",
     blurb: "Visibility that keeps a brand in front of the right audience.",
   },
   {
     label: "SEO",
-    to: "/capabilities/visibility-reputation",
+    to: "/services/visibility-reputation",
     blurb: "Search presence, reviews and press that build credibility.",
   },
   {
     label: "Mobile App Development",
-    to: "/capabilities/mobile-app-development",
+    to: "/services/mobile-app-development",
     blurb: "Mobile products designed around the journeys your customers use most.",
   },
   {
     label: "Game Development",
-    to: "/capabilities/game-development",
+    to: "/services/game-development",
     blurb: "Interactive experiences designed to be played, shared and remembered.",
+  },
+  {
+    label: "Writing & Translation",
+    to: "/services/writing-translation",
+    blurb: "Writing, editing and translation that keep every message clear and on-brand.",
   },
 ];
 
@@ -129,14 +134,15 @@ export const FOOTER_NAV: { heading: string; links: { label: string; to: string }
   {
     heading: "Services",
     links: [
-      { label: "Brand & Creative", to: "/capabilities/brand-creative" },
-      { label: "Website & Funnel", to: "/capabilities/websites-funnels" },
-      { label: "Digital marketing", to: "/capabilities/crm-automation" },
-      { label: "Social Media Marketing", to: "/capabilities/lead-generation" },
-      { label: "Ai Video & Video Editing", to: "/capabilities/content-social" },
-      { label: "SEO", to: "/capabilities/visibility-reputation" },
-      { label: "Mobile App Development", to: "/capabilities/mobile-app-development" },
-      { label: "Game Development", to: "/capabilities/game-development" },
+      { label: "Brand & Creative", to: "/services/brand-creative" },
+      { label: "Website & Funnel", to: "/services/websites-funnels" },
+      { label: "CRM Automation", to: "/services/crm-automation" },
+      { label: "Social Media Marketing", to: "/services/lead-generation" },
+      { label: "Ai Video & Video Editing", to: "/services/content-social" },
+      { label: "SEO", to: "/services/visibility-reputation" },
+      { label: "Mobile App Development", to: "/services/mobile-app-development" },
+      { label: "Game Development", to: "/services/game-development" },
+      { label: "Writing & Translation", to: "/services/writing-translation" },
     ],
   },
   {

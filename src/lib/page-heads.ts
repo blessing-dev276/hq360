@@ -42,7 +42,7 @@ export function capabilityHead(capability: Capability) {
       }),
       breadcrumbSchema([
         { name: "Home", path: "/" },
-        { name: "Services", path: "/capabilities" },
+        { name: "Services", path: "/services" },
         { name: capability.name, path: capability.path },
       ]),
       faqSchema(capability.faqs),

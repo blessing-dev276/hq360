@@ -11,6 +11,7 @@ export type CapabilitySlug =
   | "lead-generation"
   | "content-social"
   | "visibility-reputation"
+  | "writing-translation"
   | "social-media-marketing"
   | "mobile-app-development"
   | "game-development";
@@ -35,7 +36,7 @@ export type Capability = {
 export const CAPABILITIES: Capability[] = [
   {
     slug: "brand-creative",
-    path: "/capabilities/brand-creative",
+    path: "/services/brand-creative",
     label: "Brand & Creative",
     name: "Brand & Creative",
     tagline: "Look like the business you are trying to become.",
@@ -98,7 +99,7 @@ export const CAPABILITIES: Capability[] = [
   },
   {
     slug: "websites-funnels",
-    path: "/capabilities/websites-funnels",
+    path: "/services/websites-funnels",
     label: "Website & Funnel",
     name: "Website & Funnel",
     tagline: "Turn your online presence into a sales asset built to convert attention into action.",
@@ -161,9 +162,9 @@ export const CAPABILITIES: Capability[] = [
   },
   {
     slug: "crm-automation",
-    path: "/capabilities/crm-automation",
-    label: "Digital marketing",
-    name: "Digital marketing",
+    path: "/services/crm-automation",
+    label: "CRM Automation",
+    name: "CRM Automation",
     tagline: "Turn new leads into booked conversations without manually chasing every enquiry.",
     summary:
       "Digital marketing operations for teams handling enquiries and sales. We set up CRM systems, sales pipelines and email or SMS follow-up to connect new leads with booking, nurture and reactivation workflows.",
@@ -221,14 +222,14 @@ export const CAPABILITIES: Capability[] = [
       },
     ],
     seo: {
-      title: "Digital Marketing, CRM & Automation | HQ360",
+      title: "CRM Automation | HQ360",
       description:
         "CRM setup, pipelines and SMS and email automation that answer every lead fast and follow up until they book, without manual chasing.",
     },
   },
   {
     slug: "lead-generation",
-    path: "/capabilities/lead-generation",
+    path: "/services/lead-generation",
     label: "Social Media Marketing",
     name: "Social Media Marketing",
     tagline: "Build a predictable flow of qualified conversations with people ready to buy.",
@@ -291,7 +292,7 @@ export const CAPABILITIES: Capability[] = [
   },
   {
     slug: "content-social",
-    path: "/capabilities/content-social",
+    path: "/services/content-social",
     label: "Ai Video & Video Editing",
     name: "Ai Video & Video Editing",
     tagline:
@@ -355,7 +356,7 @@ export const CAPABILITIES: Capability[] = [
   },
   {
     slug: "visibility-reputation",
-    path: "/capabilities/visibility-reputation",
+    path: "/services/visibility-reputation",
     label: "SEO",
     name: "SEO",
     tagline: "Be easy to find and easy to trust the moment someone checks.",
@@ -420,8 +421,36 @@ export const CAPABILITIES: Capability[] = [
 
 CAPABILITIES.push(
   {
+    slug: "writing-translation",
+    path: "/services/writing-translation",
+    label: "Writing & Translation",
+    name: "Writing & Translation",
+    tagline: "Make every message clear, credible and ready for the audience it needs to reach.",
+    summary:
+      "Writing and translation for businesses, founders and brands that need clear, accurate communication across their website, campaigns, documents and customer touchpoints.",
+    outcomes: [
+      "Clear copy that makes the next step easy to understand",
+      "A consistent brand voice across customer-facing material",
+      "Translations that preserve meaning, tone and intent",
+      "Polished content ready to publish or send",
+    ],
+    services: [
+      { title: "Website & landing-page copy", body: "Clear, conversion-focused copy for the pages where customers decide whether to enquire, book or buy." },
+      { title: "Marketing & sales copy", body: "Campaign messaging, emails, brochures and sales material that make the offer easy to act on." },
+      { title: "Content writing", body: "Articles, scripts, social captions and thought-leadership content shaped around your audience and goals." },
+      { title: "Translation & localisation", body: "Accurate translation adapted for the language, market and cultural context your audience expects." },
+      { title: "Editing & proofreading", body: "A careful final pass for clarity, structure, tone, grammar and consistency before publication." },
+    ],
+    deliverables: ["Messaging and voice guide", "Ready-to-publish copy or translations", "Edited source documents", "Content calendar or campaign copy pack"],
+    faqs: [
+      { q: "Can you match our existing tone of voice?", a: "Yes. We review your current material and audience before writing, then create work that sounds recognisably like your brand." },
+      { q: "Do you translate existing marketing material?", a: "Yes. We can translate and localise existing pages, campaigns and documents while keeping the message and call to action intact." },
+    ],
+    seo: { title: "Writing & Translation | HQ360", description: "Writing, editing, translation and localisation for websites, campaigns, sales material and customer communications." },
+  },
+  {
     slug: "mobile-app-development",
-    path: "/capabilities/mobile-app-development",
+    path: "/services/mobile-app-development",
     label: "Mobile App Development",
     name: "Mobile App Development",
     tagline: "Put your best customer journeys in the palm of their hand.",
@@ -461,7 +490,7 @@ CAPABILITIES.push(
   },
   {
     slug: "game-development",
-    path: "/capabilities/game-development",
+    path: "/services/game-development",
     label: "Game Development",
     name: "Game Development",
     tagline: "Build interactive experiences people want to play and share.",

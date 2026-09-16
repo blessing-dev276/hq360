@@ -222,11 +222,11 @@ export function SiteHeader() {
                               : "A sharper brand.\nA stronger business."}
                           </p>
                           <Link
-                            to={key === "industries" ? "/industries" : "/capabilities"}
+                            to={key === "industries" ? "/industries" : "/services"}
                             preload="intent"
                             className="hq-nav-text-link"
                           >
-                            {key === "industries" ? "View all industries" : "Explore capabilities"}
+                            {key === "industries" ? "View all industries" : "Explore services"}
                             <ArrowRight size={16} aria-hidden="true" />
                           </Link>
                         </div>
@@ -351,7 +351,7 @@ export function SiteHeader() {
           </MobileGroup>
           <MobileGroup
             title="Services"
-            extra={{ label: "Explore capabilities", to: "/capabilities" }}
+            extra={{ label: "Explore services", to: "/services" }}
           >
             <MobileLinks items={CAPABILITY_MENU} />
           </MobileGroup>

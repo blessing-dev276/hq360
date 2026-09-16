@@ -1,4 +1,4 @@
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound, redirect } from "@tanstack/react-router";
 import { CAPABILITIES, getCapability, type Capability } from "@/data/capabilities";
 import { INDUSTRIES } from "@/data/industries";
 import { Container, Eyebrow, Section, SectionHeader } from "@/components/site/Primitives";
@@ -14,6 +14,11 @@ import { buildSeo } from "@/lib/seo";
 import { CTAS } from "@/config/brand";
 
 export const Route = createFileRoute("/capabilities/$slug")({
+  beforeLoad: ({ params }) => {
+    const capability = getCapability(params.slug);
+    if (!capability) throw notFound();
+    throw redirect({ href: capability.path, statusCode: 301 });
+  },
   loader: ({ params }): { capability: Capability } => {
     const capability = getCapability(params.slug);
     if (!capability) throw notFound();
@@ -25,7 +30,7 @@ export const Route = createFileRoute("/capabilities/$slug")({
       : buildSeo({
           title: "Service not found | HQ360",
           description: "This service could not be found.",
-          path: "/capabilities",
+          path: "/services",
           noindex: true,
         }),
   component: CapabilityDetail,
@@ -33,6 +38,10 @@ export const Route = createFileRoute("/capabilities/$slug")({
 
 function CapabilityDetail() {
   const { capability } = Route.useLoaderData();
+  return <CapabilityDetailView capability={capability} />;
+}
+
+export function CapabilityDetailView({ capability }: { capability: Capability }) {
   const others = CAPABILITIES.filter((c) => c.slug !== capability.slug);
   const relatedIndustries = INDUSTRIES.filter((i) =>
     i.recommendedCapabilities.includes(capability.slug),
@@ -49,7 +58,7 @@ function CapabilityDetail() {
         </span>
         <Container className="relative py-16 sm:py-20 lg:py-24">
           <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground">
-            <Link to="/capabilities" className="hover:text-brand">
+            <Link to="/services" className="hover:text-brand">
               Services
             </Link>
             <span aria-hidden="true"> / </span>

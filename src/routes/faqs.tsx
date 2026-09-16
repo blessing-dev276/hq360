@@ -39,7 +39,7 @@ function FaqPage() {
             aria-label="Explore HQ360"
             className="mt-8 flex flex-wrap gap-5 text-sm text-brand underline underline-offset-4"
           >
-            <Link to="/capabilities">Explore services</Link>
+            <Link to="/services">Explore services</Link>
             <Link to="/industries">Industries we help</Link>
             <Link to="/contact">Start a project</Link>
           </nav>

@@ -1,5 +1,6 @@
 .lead-popup {
-  width: min(480px, 92vw);
+  width: min(560px, 94vw);
+  margin: auto;
   max-height: 88vh;
   padding: 0;
   border: none;
@@ -20,6 +21,147 @@
   max-height: 88vh;
   overflow-y: auto;
   padding: 1.75rem;
+  background: radial-gradient(
+    ellipse at 0 0,
+    color-mix(in oklch, var(--brand) 9%, transparent),
+    transparent 55%
+  );
+}
+
+.lead-popup [hidden] {
+  display: none !important;
+}
+.lead-popup[open] {
+  animation: lead-popup-enter 220ms ease-out;
+}
+@keyframes lead-popup-enter {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.lead-popup-intro {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding-right: 1.5rem;
+}
+.lead-popup-icon {
+  display: grid;
+  place-items: center;
+  width: 2.6rem;
+  height: 2.6rem;
+  flex-shrink: 0;
+  border-radius: 0.9rem;
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+.lead-popup-progress {
+  display: flex;
+  gap: 0.35rem;
+  margin: 1.4rem 0;
+}
+.lead-popup-progress span {
+  height: 3px;
+  flex: 1;
+  border-radius: 10px;
+  background: var(--border);
+}
+.lead-popup-progress [data-active="true"] {
+  background: var(--brand);
+}
+.lead-popup-choices {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.55rem;
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+.lead-popup-choice {
+  position: relative;
+  cursor: pointer;
+}
+.lead-popup-choice input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+}
+.lead-popup-choice span {
+  display: flex;
+  align-items: center;
+  min-height: 3.1rem;
+  height: 100%;
+  padding: 0.65rem 0.8rem;
+  font-size: 0.76rem;
+  line-height: 1.4;
+  font-weight: 550;
+  border: 1px solid var(--border);
+  border-radius: 0.8rem;
+  background: var(--card);
+  transition:
+    background 150ms,
+    border-color 150ms;
+}
+.lead-popup-choice:hover span {
+  border-color: var(--brand);
+}
+.lead-popup-choice input:checked + span {
+  background: color-mix(in oklch, var(--brand) 10%, var(--card));
+  border-color: var(--brand);
+  box-shadow: inset 0 0 0 1px var(--brand);
+}
+.lead-popup-choice input:focus-visible + span {
+  outline: 2px solid var(--ring);
+  outline-offset: 3px;
+}
+.lead-popup-details {
+  display: grid;
+  gap: 1rem;
+}
+.lead-popup-selection {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.7rem;
+  background: var(--secondary);
+  font-size: 0.8rem;
+}
+.lead-popup-selection button {
+  color: var(--brand);
+  font-weight: 600;
+  text-decoration: underline;
+}
+.lead-popup-actions {
+  display: flex;
+  gap: 0.6rem;
+}
+.lead-popup-actions .lead-popup-submit {
+  flex: 1;
+}
+.lead-popup-back {
+  display: grid;
+  place-items: center;
+  width: 3rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+}
+.lead-popup button {
+  cursor: pointer;
+}
+.lead-popup button:disabled {
+  cursor: wait;
+}
+.lead-popup button:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 3px;
 }
 
 @media (min-width: 640px) {
@@ -66,7 +208,7 @@
   margin-top: 0.6rem;
   padding-right: 2rem;
   font-family: var(--font-display);
-  font-size: 1.5rem;
+  font-size: clamp(1.6rem, 4vw, 2rem);
   line-height: 1.2;
   text-wrap: balance;
 }
@@ -99,6 +241,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 0.65rem;
   border-radius: 999px;
   background: var(--primary);
   padding: 0.9rem 1.5rem;
@@ -121,10 +264,15 @@
   margin-top: 0.15rem;
   font-size: 0.7rem;
   color: var(--muted-foreground);
+  text-align: center;
 }
 
 .lead-popup-done {
-  padding-top: 0.5rem;
+  display: grid;
+  justify-items: center;
+  gap: 1rem;
+  text-align: center;
+  padding: 2rem 0 1rem;
 }
 
 .lead-popup-done h3 {
@@ -140,7 +288,17 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .lead-popup-submit {
+  .lead-popup *,
+  .lead-popup[open] {
     transition: none;
+    animation: none;
+  }
+}
+@media (max-width: 380px) {
+  .lead-popup-shell {
+    padding: 1.5rem 1rem;
+  }
+  .lead-popup-choice span {
+    font-size: 0.7rem;
   }
 }

@@ -27,6 +27,7 @@ const INDUSTRY_GROUPS = [
 export function SiteHeader() {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const isAdmin = pathname === "/admin";
+  const [adminAuthed, setAdminAuthed] = useState(false);
   const [openMenu, setOpenMenu] = useState<MenuKey | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -40,8 +41,33 @@ export function SiteHeader() {
 
   async function signOutAdmin() {
     await fetch("/api/admin/session", { method: "DELETE", credentials: "same-origin" });
+    setAdminAuthed(false);
     window.location.assign("/admin");
   }
+
+  useEffect(() => {
+    if (!isAdmin) {
+      setAdminAuthed(false);
+      return;
+    }
+
+    const controller = new AbortController();
+    const syncSession = () => {
+      void fetch("/api/admin/session", {
+        credentials: "same-origin",
+        signal: controller.signal,
+      })
+        .then((response) => response.json())
+        .then((result: { authed?: boolean }) => setAdminAuthed(result.authed === true))
+        .catch(() => setAdminAuthed(false));
+    };
+    syncSession();
+    window.addEventListener("hq360-admin-auth", syncSession);
+    return () => {
+      controller.abort();
+      window.removeEventListener("hq360-admin-auth", syncSession);
+    };
+  }, [isAdmin]);
 
   function clearHoverTimer() {
     if (hoverTimerRef.current !== null) {
@@ -392,7 +418,7 @@ export function SiteHeader() {
           </ul>
         </nav>
 
-        {isAdmin ? (
+        {isAdmin && adminAuthed ? (
           <button type="button" className="hq-header-cta" onClick={signOutAdmin}>
             Sign out
             <LogOut size={16} aria-hidden="true" />
@@ -514,7 +540,7 @@ export function SiteHeader() {
               </li>
             ))}
           </ul>
-          {isAdmin ? (
+          {isAdmin && adminAuthed ? (
             <button type="button" className="hq-mobile-project-link" onClick={signOutAdmin}>
               Sign out
               <LogOut size={20} aria-hidden="true" />

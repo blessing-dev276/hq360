@@ -43,6 +43,7 @@ export function AdminGate({ children }: { children: ReactNode }) {
     setSubmitting(false);
     if (response?.ok) {
       setState("signed-in");
+      window.dispatchEvent(new Event("hq360-admin-auth"));
       return;
     }
     setError(

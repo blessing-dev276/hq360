@@ -1,7 +1,8 @@
 import { Link } from "@tanstack/react-router";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowRight, ArrowUpRight } from "lucide-react";
 import { Container } from "@/components/site/Primitives";
 import { CtaBand } from "@/components/site/CtaBand";
+import { PHOTOS as TEAM_PHOTOS } from "@/components/site/TeamAvatar";
 import { TeamShowcase } from "@/components/site/TeamShowcase";
 import { TEAM } from "@/data/team";
 import { BRAND, CTAS } from "@/config/brand";
@@ -30,7 +31,7 @@ function TeamHero() {
     <section className="ab-hero ab-team-hero">
       <div className="ab-hero-grid" aria-hidden="true" />
       <Container size="wide" className="relative z-10">
-        <div className="ab-hero-copy">
+        <div className="tm-hero-copy">
           <p className="ab-eyebrow">
             <span /> Meet the team
           </p>
@@ -39,6 +40,25 @@ function TeamHero() {
             A small multidisciplinary team &mdash; every discipline in-house, one named lead per
             engagement. No account managers relaying work between vendors.
           </p>
+          <div className="tm-hero-actions">
+            <a href="#team" className="ab-btn ab-btn-primary">
+              Meet the roster <ArrowRight aria-hidden="true" />
+            </a>
+            <Link to={CTAS.primary.to} className="ab-btn ab-btn-ghost">
+              {CTAS.primary.label} <ArrowUpRight aria-hidden="true" />
+            </Link>
+          </div>
+          <ul className="tm-hero-avatars" aria-hidden="true">
+            {TEAM.map((member) => (
+              <li key={member.name}>
+                {TEAM_PHOTOS[member.photo] ? (
+                  <img src={TEAM_PHOTOS[member.photo]} alt="" loading="eager" decoding="async" />
+                ) : (
+                  <span>{member.initials}</span>
+                )}
+              </li>
+            ))}
+          </ul>
         </div>
       </Container>
     </section>

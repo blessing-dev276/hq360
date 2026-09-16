@@ -24,7 +24,8 @@ function Tools() {
         {FREE_TOOLS.map((t) => (
           <Link
             key={t.slug}
-            to={`/tools/${t.slug}`}
+            to="/tools/$tool"
+            params={{ tool: t.slug }}
             className="rounded-2xl border border-border bg-card p-7 transition hover:border-brand"
           >
             <h2 className="font-display text-xl">{t.name}</h2>

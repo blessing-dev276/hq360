@@ -37,6 +37,7 @@ import { Route as RoofersRouteImport } from './routes/roofers'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as TeamRouteImport } from './routes/team'
 import { Route as TermsRouteImport } from './routes/terms'
+import { Route as TestimonialsRouteImport } from './routes/testimonials'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as CapabilitiesIndexRouteImport } from './routes/capabilities.index'
@@ -49,6 +50,7 @@ import { Route as ServicesSlugRouteImport } from './routes/services.$slug'
 import { Route as ToolsIndexRouteImport } from './routes/tools/index'
 import { Route as ToolsToolRouteImport } from './routes/tools/$tool'
 import { Route as ToolsAuthorVisibilityAuditRouteImport } from './routes/tools/author-visibility-audit'
+import { Route as ToolsWebsiteAuditRouteImport } from './routes/tools/website-audit'
 import { Route as WorkIndexRouteImport } from './routes/work.index'
 import { Route as WorkSlugRouteImport } from './routes/work.$slug'
 import { Route as ApiAdminCaseStudiesRouteImport } from './routes/api/admin/case-studies'
@@ -219,6 +221,11 @@ const TermsRoute = TermsRouteImport.update({
   path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TestimonialsRoute = TestimonialsRouteImport.update({
+  id: '/testimonials',
+  path: '/testimonials',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BlogIndexRoute = BlogIndexRouteImport.update({
   id: '/blog/',
   path: '/blog/',
@@ -280,6 +287,11 @@ const ToolsAuthorVisibilityAuditRoute =
     path: '/tools/author-visibility-audit',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ToolsWebsiteAuditRoute = ToolsWebsiteAuditRouteImport.update({
+  id: '/tools/website-audit',
+  path: '/tools/website-audit',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const WorkIndexRoute = WorkIndexRouteImport.update({
   id: '/work/',
   path: '/work/',
@@ -459,6 +471,7 @@ export interface FileRoutesByFullPath {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/team': typeof TeamRoute
   '/terms': typeof TermsRoute
+  '/testimonials': typeof TestimonialsRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/capabilities/$slug': typeof CapabilitiesSlugRoute
   '/insights/$slug': typeof InsightsSlugRoute
@@ -466,6 +479,7 @@ export interface FileRoutesByFullPath {
   '/services/$slug': typeof ServicesSlugRoute
   '/tools/$tool': typeof ToolsToolRoute
   '/tools/author-visibility-audit': typeof ToolsAuthorVisibilityAuditRoute
+  '/tools/website-audit': typeof ToolsWebsiteAuditRoute
   '/work/$slug': typeof WorkSlugRoute
   '/blog/': typeof BlogIndexRoute
   '/capabilities/': typeof CapabilitiesIndexRoute
@@ -530,6 +544,7 @@ export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/team': typeof TeamRoute
   '/terms': typeof TermsRoute
+  '/testimonials': typeof TestimonialsRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/capabilities/$slug': typeof CapabilitiesSlugRoute
   '/insights/$slug': typeof InsightsSlugRoute
@@ -537,6 +552,7 @@ export interface FileRoutesByTo {
   '/services/$slug': typeof ServicesSlugRoute
   '/tools/$tool': typeof ToolsToolRoute
   '/tools/author-visibility-audit': typeof ToolsAuthorVisibilityAuditRoute
+  '/tools/website-audit': typeof ToolsWebsiteAuditRoute
   '/work/$slug': typeof WorkSlugRoute
   '/blog': typeof BlogIndexRoute
   '/capabilities': typeof CapabilitiesIndexRoute
@@ -602,6 +618,7 @@ export interface FileRoutesById {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/team': typeof TeamRoute
   '/terms': typeof TermsRoute
+  '/testimonials': typeof TestimonialsRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/capabilities/$slug': typeof CapabilitiesSlugRoute
   '/insights/$slug': typeof InsightsSlugRoute
@@ -609,6 +626,7 @@ export interface FileRoutesById {
   '/services/$slug': typeof ServicesSlugRoute
   '/tools/$tool': typeof ToolsToolRoute
   '/tools/author-visibility-audit': typeof ToolsAuthorVisibilityAuditRoute
+  '/tools/website-audit': typeof ToolsWebsiteAuditRoute
   '/work/$slug': typeof WorkSlugRoute
   '/blog/': typeof BlogIndexRoute
   '/capabilities/': typeof CapabilitiesIndexRoute
@@ -675,6 +693,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/team'
     | '/terms'
+    | '/testimonials'
     | '/blog/$slug'
     | '/capabilities/$slug'
     | '/insights/$slug'
@@ -682,6 +701,7 @@ export interface FileRouteTypes {
     | '/services/$slug'
     | '/tools/$tool'
     | '/tools/author-visibility-audit'
+    | '/tools/website-audit'
     | '/work/$slug'
     | '/blog/'
     | '/capabilities/'
@@ -746,6 +766,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/team'
     | '/terms'
+    | '/testimonials'
     | '/blog/$slug'
     | '/capabilities/$slug'
     | '/insights/$slug'
@@ -753,6 +774,7 @@ export interface FileRouteTypes {
     | '/services/$slug'
     | '/tools/$tool'
     | '/tools/author-visibility-audit'
+    | '/tools/website-audit'
     | '/work/$slug'
     | '/blog'
     | '/capabilities'
@@ -817,6 +839,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/team'
     | '/terms'
+    | '/testimonials'
     | '/blog/$slug'
     | '/capabilities/$slug'
     | '/insights/$slug'
@@ -824,6 +847,7 @@ export interface FileRouteTypes {
     | '/services/$slug'
     | '/tools/$tool'
     | '/tools/author-visibility-audit'
+    | '/tools/website-audit'
     | '/work/$slug'
     | '/blog/'
     | '/capabilities/'
@@ -889,6 +913,7 @@ export interface RootRouteChildren {
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TeamRoute: typeof TeamRoute
   TermsRoute: typeof TermsRoute
+  TestimonialsRoute: typeof TestimonialsRoute
   BlogSlugRoute: typeof BlogSlugRoute
   CapabilitiesSlugRoute: typeof CapabilitiesSlugRoute
   InsightsSlugRoute: typeof InsightsSlugRoute
@@ -896,6 +921,7 @@ export interface RootRouteChildren {
   ServicesSlugRoute: typeof ServicesSlugRoute
   ToolsToolRoute: typeof ToolsToolRoute
   ToolsAuthorVisibilityAuditRoute: typeof ToolsAuthorVisibilityAuditRoute
+  ToolsWebsiteAuditRoute: typeof ToolsWebsiteAuditRoute
   WorkSlugRoute: typeof WorkSlugRoute
   BlogIndexRoute: typeof BlogIndexRoute
   CapabilitiesIndexRoute: typeof CapabilitiesIndexRoute
@@ -1122,6 +1148,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/testimonials': {
+      id: '/testimonials'
+      path: '/testimonials'
+      fullPath: '/testimonials'
+      preLoaderRoute: typeof TestimonialsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/blog/': {
       id: '/blog/'
       path: '/blog'
@@ -1204,6 +1237,13 @@ declare module '@tanstack/react-router' {
       path: '/tools/author-visibility-audit'
       fullPath: '/tools/author-visibility-audit'
       preLoaderRoute: typeof ToolsAuthorVisibilityAuditRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tools/website-audit': {
+      id: '/tools/website-audit'
+      path: '/tools/website-audit'
+      fullPath: '/tools/website-audit'
+      preLoaderRoute: typeof ToolsWebsiteAuditRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/work/': {
@@ -1494,6 +1534,7 @@ const rootRouteChildren: RootRouteChildren = {
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TeamRoute: TeamRoute,
   TermsRoute: TermsRoute,
+  TestimonialsRoute: TestimonialsRoute,
   BlogSlugRoute: BlogSlugRoute,
   CapabilitiesSlugRoute: CapabilitiesSlugRoute,
   InsightsSlugRoute: InsightsSlugRoute,
@@ -1501,6 +1542,7 @@ const rootRouteChildren: RootRouteChildren = {
   ServicesSlugRoute: ServicesSlugRoute,
   ToolsToolRoute: ToolsToolRoute,
   ToolsAuthorVisibilityAuditRoute: ToolsAuthorVisibilityAuditRoute,
+  ToolsWebsiteAuditRoute: ToolsWebsiteAuditRoute,
   WorkSlugRoute: WorkSlugRoute,
   BlogIndexRoute: BlogIndexRoute,
   CapabilitiesIndexRoute: CapabilitiesIndexRoute,

@@ -1,29 +1,29 @@
 import { useState, type FormEvent } from "react";
-import { ArrowRight, LockKeyhole, Search } from "lucide-react";
+import { ArrowRight, Gauge, LockKeyhole } from "lucide-react";
 import { Container, Section, SectionHeader } from "@/components/site/Primitives";
 import { AuditHero } from "@/components/site/AuditHero";
 import { CTAS } from "@/config/brand";
-
-const HERO_STEPS = [
-  ["01", "Tell us about the author and book"],
-  ["02", "HQ360 reviews the available public evidence"],
-  ["03", "Receive a preliminary, evidence-backed assessment"],
-] as const;
-
-const HERO_CHIPS = ["Evidence-led", "Human reviewed", "No invented claims"];
 
 type FormState = "idle" | "submitting" | "success" | "error";
 
 const inputClass =
   "mt-2 w-full rounded-xl border border-border bg-card px-4 py-3 text-sm text-foreground outline-none transition placeholder:text-muted-foreground focus:border-brand focus:ring-2 focus:ring-brand/20";
 
+const HERO_STEPS = [
+  ["01", "Tell us about the business and the site"],
+  ["02", "HQ360 reviews the public evidence"],
+  ["03", "Receive a preliminary, evidence-backed assessment"],
+] as const;
+
+const HERO_CHIPS = ["No fluff score", "Reviewed by a human", "One clear next step"];
+
 const auditAreas = [
-  "Book & retailer presence",
-  "Author identity & profile",
-  "Search visibility",
-  "Website & reader journey",
-  "Goodreads, social & authority signals",
-  "Marketing infrastructure",
+  "Site speed & mobile experience",
+  "On-page SEO signals",
+  "Conversion paths & forms",
+  "Tracking & analytics setup",
+  "Content & messaging clarity",
+  "Technical health checks",
 ];
 
 const reportRules = [
@@ -32,47 +32,41 @@ const reportRules = [
   "Internal notes and service mapping never appear in a public report.",
 ];
 
-export function AuthorVisibilityAudit() {
+export function WebsiteAudit() {
   const [state, setState] = useState<FormState>("idle");
   const [message, setMessage] = useState("");
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
-    const author = String(form.get("author") ?? "").trim();
-    const book = String(form.get("book") ?? "").trim();
+    const name = String(form.get("name") ?? "").trim();
+    const website = String(form.get("website") ?? "").trim();
     const email = String(form.get("email") ?? "").trim();
     const consent = form.get("consent") === "on";
 
-    if (!author || !book || !email || !consent) {
+    if (!name || !website || !email || !consent) {
       setState("error");
-      setMessage("Please add your name, book title, email address and consent before continuing.");
+      setMessage("Please add your name, website, email address and consent before continuing.");
       return;
     }
 
     setState("submitting");
     setMessage("");
     try {
-      const website = String(form.get("website") ?? "").trim();
-      const amazonUrl = String(form.get("amazonUrl") ?? "").trim();
-      const goodreadsUrl = String(form.get("goodreadsUrl") ?? "").trim();
+      const industry = String(form.get("industry") ?? "").trim();
+      const goal = String(form.get("goal") ?? "").trim();
       const response = await fetch("/api/public/growth-audit", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
-          name: author,
+          name,
           email,
           website,
-          industry: "Authors & Publishers",
-          auditFocus: [
-            `Book title: ${book}`,
-            amazonUrl ? `Amazon URL: ${amazonUrl}` : "",
-            goodreadsUrl ? `Goodreads URL: ${goodreadsUrl}` : "",
-            "Requested: Author Visibility Audit",
-          ]
+          industry: industry || "Not specified",
+          auditFocus: [goal ? `Main goal: ${goal}` : "", "Requested: Website Audit"]
             .filter(Boolean)
             .join("\n"),
-          sourcePath: "/tools/author-visibility-audit",
+          sourcePath: "/tools/website-audit",
           company_url: "",
         }),
       });
@@ -93,8 +87,8 @@ export function AuthorVisibilityAudit() {
     <>
       <AuditHero
         eyebrow="HQ360 proprietary tool"
-        title="See what readers see before they decide to buy."
-        lede="Get a preliminary view of how your book and author presence appear across the places readers use to discover, evaluate and purchase books."
+        title="See your website the way a visitor actually does."
+        lede="Get a preliminary view of how your website performs on speed, search, conversion paths and tracking — reviewed by a person, not an automated score."
         chips={HERO_CHIPS}
         steps={HERO_STEPS}
       />
@@ -102,10 +96,10 @@ export function AuthorVisibilityAudit() {
       <Section id="audit-form">
         <div className="grid gap-12 lg:grid-cols-[0.82fr_1.18fr] lg:gap-16">
           <div>
-            <SectionHeader eyebrow="Start your audit" title="A clearer view of your visibility" />
+            <SectionHeader eyebrow="Start your audit" title="A clearer view of your website" />
             <p className="mt-5 max-w-md text-sm leading-relaxed text-muted-foreground">
-              Links are optional, but they help HQ360 verify the right author and book. We do not
-              infer private activity from what is not publicly visible.
+              Tell us about the business and the site. We review what is publicly available and do
+              not infer anything from private data.
             </p>
           </div>
           <form
@@ -115,33 +109,37 @@ export function AuthorVisibilityAudit() {
           >
             <div className="grid gap-5 sm:grid-cols-2">
               <label className="text-sm font-semibold">
-                Author name <span className="text-brand">*</span>
+                Your name <span className="text-brand">*</span>
                 <input
                   className={inputClass}
-                  name="author"
+                  name="name"
                   autoComplete="name"
                   placeholder="Your name"
                 />
               </label>
               <label className="text-sm font-semibold">
-                Book title <span className="text-brand">*</span>
-                <input className={inputClass} name="book" placeholder="Title of your book" />
-              </label>
-              <label className="text-sm font-semibold">
-                Amazon book URL <span className="font-normal text-muted-foreground">or ASIN</span>
-                <input className={inputClass} name="amazonUrl" placeholder="https://amazon…" />
-              </label>
-              <label className="text-sm font-semibold">
-                Author website
-                <input className={inputClass} name="website" type="url" placeholder="https://…" />
+                Business name
+                <input className={inputClass} name="business" placeholder="Your business" />
               </label>
               <label className="text-sm font-semibold sm:col-span-2">
-                Goodreads book or author URL
+                Website URL <span className="text-brand">*</span>
                 <input
                   className={inputClass}
-                  name="goodreadsUrl"
+                  name="website"
                   type="url"
-                  placeholder="https://goodreads.com/…"
+                  placeholder="https://…"
+                />
+              </label>
+              <label className="text-sm font-semibold">
+                Industry
+                <input className={inputClass} name="industry" placeholder="e.g. Real estate" />
+              </label>
+              <label className="text-sm font-semibold">
+                Main goal for the site
+                <input
+                  className={inputClass}
+                  name="goal"
+                  placeholder="e.g. More booked calls"
                 />
               </label>
               <label className="text-sm font-semibold sm:col-span-2">
@@ -158,8 +156,8 @@ export function AuthorVisibilityAudit() {
             <label className="mt-6 flex items-start gap-3 text-sm leading-relaxed text-muted-foreground">
               <input name="consent" type="checkbox" className="mt-1 size-4 accent-brand" />
               <span>
-                I consent to HQ360 reviewing the details and public links I provide to prepare a
-                preliminary visibility assessment and to contact me about it.
+                I consent to HQ360 reviewing the details and public site I provide to prepare a
+                preliminary website assessment and to contact me about it.
               </span>
             </label>
             <input
@@ -195,8 +193,8 @@ export function AuthorVisibilityAudit() {
       <Section tone="raised">
         <SectionHeader
           eyebrow="What we examine"
-          title="A complete reader-discovery picture"
-          intro="The final audit is structured around the touchpoints a reader can actually encounter — not a generic score."
+          title="A complete picture, not a generic score"
+          intro="The final audit is structured around what actually affects visitors and revenue — not a vanity number."
         />
         <ul className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {auditAreas.map((area) => (
@@ -204,7 +202,7 @@ export function AuthorVisibilityAudit() {
               key={area}
               className="rounded-2xl border border-border bg-card p-5 text-sm font-semibold"
             >
-              <Search className="mb-5 size-5 text-brand" />
+              <Gauge className="mb-5 size-5 text-brand" />
               {area}
             </li>
           ))}
@@ -236,16 +234,16 @@ export function AuthorVisibilityAudit() {
       <section className="border-t border-border">
         <Container className="flex flex-col gap-5 py-12 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="font-display text-xl">Need help with your author platform now?</p>
+            <p className="font-display text-xl">Want this built into a growth system?</p>
             <p className="mt-1 text-sm text-muted-foreground">
-              Explore HQ360’s author and publisher growth services.
+              Explore HQ360’s website and funnel services.
             </p>
           </div>
           <a
-            href="/authors"
+            href={CTAS.primary.to}
             className="inline-flex items-center gap-2 text-sm font-semibold text-brand"
           >
-            Explore author services <ArrowRight className="size-4" />
+            Start a project <ArrowRight className="size-4" />
           </a>
         </Container>
       </section>

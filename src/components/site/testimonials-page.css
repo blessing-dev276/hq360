@@ -1,0 +1,141 @@
+/*
+ * /testimonials — centered hero + media-type filter tabs, feeding the
+ * shared TestimonialStrip grid below.
+ */
+
+.tsp-hero {
+  position: relative;
+  overflow: clip;
+  padding-block: clamp(3rem, 7vw, 5.5rem);
+  background:
+    radial-gradient(
+      130% 90% at 50% -10%,
+      color-mix(in oklch, var(--brand-soft) 70%, transparent),
+      transparent 55%
+    ),
+    var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.tsp-hero-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(var(--border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border) 1px, transparent 1px);
+  background-size: clamp(3rem, 6vw, 5rem) clamp(3rem, 6vw, 5rem);
+  mask-image: radial-gradient(120% 80% at 50% 0%, #000 15%, transparent 70%);
+  opacity: 0.35;
+}
+
+.tsp-hero-copy {
+  max-width: 40rem;
+  margin-inline: auto;
+  text-align: center;
+}
+
+.tsp-hero-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  margin-bottom: 1rem;
+  border-radius: 999px;
+  background-image: var(--gradient-brand);
+  color: oklch(1 0 0);
+  box-shadow: 0 10px 24px -10px color-mix(in oklch, var(--brand) 65%, transparent);
+  transform: rotate(-8deg);
+  transition: transform 260ms ease;
+}
+
+.tsp-hero-badge:hover {
+  transform: rotate(0deg) scale(1.05);
+}
+
+.tsp-hero-badge svg {
+  width: 1.4rem;
+  height: 1.4rem;
+}
+
+.tsp-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+.tsp-eyebrow > span {
+  width: 1.75rem;
+  height: 2px;
+  border-radius: 999px;
+  background-image: var(--gradient-brand);
+}
+
+.tsp-hero-copy h1 {
+  margin: 1rem 0 0;
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 4.5vw, 3.2rem);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+  color: var(--foreground);
+}
+
+.tsp-hero-lede {
+  margin: 1.1rem auto 0;
+  max-width: 42ch;
+  font-size: clamp(1rem, 1.3vw, 1.1rem);
+  line-height: 1.6;
+  color: var(--muted-foreground);
+}
+
+.tsp-hero-count {
+  margin: 1rem 0 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--brand);
+}
+
+.tsp-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+  margin: clamp(2rem, 4vw, 2.75rem) 0 0;
+  position: relative;
+  z-index: 1;
+}
+
+.tsp-tabs button {
+  appearance: none;
+  border: 1px solid var(--border);
+  background: var(--card);
+  padding: 0.55rem 1.2rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+  cursor: pointer;
+  transition:
+    background-color 200ms ease,
+    border-color 200ms ease,
+    color 200ms ease;
+}
+
+.tsp-tabs button:hover {
+  border-color: var(--brand);
+  color: var(--foreground);
+}
+
+.tsp-tabs button.active {
+  border-color: transparent;
+  background: var(--charcoal);
+  color: oklch(0.97 0.006 90);
+}

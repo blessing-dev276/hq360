@@ -1,0 +1,239 @@
+/*
+ * Centered hero for the audit tools (/tools/author-visibility-audit,
+ * /tools/website-audit). The step strip is decorative auto-play, not a
+ * live status — reduced-motion users get the static state.
+ */
+
+.aud-hero {
+  position: relative;
+  overflow: clip;
+  padding-block: clamp(3rem, 7vw, 5.5rem);
+  background:
+    radial-gradient(
+      130% 90% at 50% -10%,
+      color-mix(in oklch, var(--brand-soft) 70%, transparent),
+      transparent 55%
+    ),
+    var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.aud-hero-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(var(--border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border) 1px, transparent 1px);
+  background-size: clamp(3rem, 6vw, 5rem) clamp(3rem, 6vw, 5rem);
+  mask-image: radial-gradient(120% 80% at 50% 0%, #000 15%, transparent 70%);
+  opacity: 0.35;
+}
+
+.aud-hero-copy {
+  max-width: 42rem;
+  margin-inline: auto;
+  text-align: center;
+}
+
+.aud-hero-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  margin-bottom: 1rem;
+  border-radius: 999px;
+  background-image: var(--gradient-brand);
+  color: oklch(1 0 0);
+  box-shadow: 0 10px 24px -10px color-mix(in oklch, var(--brand) 65%, transparent);
+  animation: aud-pulse 2.4s ease-in-out infinite;
+}
+
+.aud-hero-badge svg {
+  width: 1.4rem;
+  height: 1.4rem;
+}
+
+@keyframes aud-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.08);
+  }
+}
+
+.aud-hero-title {
+  margin: 1rem 0 0;
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 4.5vw, 3.2rem);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+  color: var(--foreground);
+}
+
+.aud-hero-lede {
+  margin: 1.1rem auto 0;
+  max-width: 42ch;
+  font-size: clamp(1rem, 1.3vw, 1.1rem);
+  line-height: 1.6;
+  color: var(--muted-foreground);
+}
+
+.aud-hero-chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem 1.4rem;
+  margin: 1.5rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.aud-hero-chips li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.aud-hero-chips svg {
+  width: 1rem;
+  height: 1rem;
+  color: var(--brand);
+}
+
+/* ------------------------------------------------------------ steps */
+
+.aud-hero-steps {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  list-style: none;
+  margin: clamp(2.5rem, 5vw, 3.5rem) auto 0;
+  padding: 0;
+  max-width: 46rem;
+  position: relative;
+  z-index: 1;
+}
+
+.aud-hero-steps li {
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+
+.aud-hero-steps button {
+  all: unset;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  cursor: pointer;
+  border-radius: var(--radius-lg);
+  transition: transform var(--fast, 160ms) var(--ease, ease);
+}
+
+.aud-step-num {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--muted-foreground);
+  transition:
+    background-color var(--base, 260ms) var(--ease, ease),
+    border-color var(--base, 260ms) var(--ease, ease),
+    color var(--base, 260ms) var(--ease, ease),
+    transform var(--base, 260ms) var(--ease, ease);
+}
+
+.aud-hero-steps button.active .aud-step-num {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: oklch(1 0 0);
+  transform: scale(1.08);
+}
+
+.aud-hero-steps button span:last-child {
+  max-width: 11rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--muted-foreground);
+  transition: color var(--base, 260ms) var(--ease, ease);
+}
+
+.aud-hero-steps button.active span:last-child {
+  color: var(--foreground);
+}
+
+.aud-step-line {
+  flex: 1;
+  height: 1px;
+  margin: 0 0.25rem;
+  background: var(--border);
+  align-self: flex-start;
+  margin-top: 1.2rem;
+}
+
+/* ------------------------------------------------------------ cta */
+
+.aud-hero-cta {
+  display: flex;
+  width: fit-content;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin: clamp(2rem, 4vw, 2.75rem) auto 0;
+  padding: 0.85rem 1.75rem;
+  border-radius: 999px;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+  box-shadow: var(--shadow-editorial);
+  transition:
+    transform var(--fast, 160ms) var(--ease, ease),
+    box-shadow var(--base, 260ms) var(--ease, ease);
+}
+
+.aud-hero-cta:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lift);
+}
+
+/* ------------------------------------------------------------ responsive */
+
+@media (max-width: 640px) {
+  .aud-hero-steps {
+    flex-wrap: wrap;
+    row-gap: 1.25rem;
+  }
+
+  .aud-hero-steps li {
+    flex-basis: 30%;
+  }
+
+  .aud-step-line {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aud-hero-badge {
+    animation: none;
+  }
+}

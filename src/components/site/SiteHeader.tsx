@@ -253,22 +253,10 @@ export function SiteHeader() {
                           <ul className="hq-capability-menu-list">
                             {RESOURCE_LINKS.map((link) => (
                               <li key={link.label}>
-                                {"to" in link ? (
-                                  <Link to={link.to} className="hq-capability-menu-link">
-                                    {link.label}
-                                    <ArrowUpRight size={15} />
-                                  </Link>
-                                ) : (
-                                  <a
-                                    href={link.href}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    className="hq-capability-menu-link"
-                                  >
-                                    {link.label}
-                                    <ArrowUpRight size={15} />
-                                  </a>
-                                )}
+                                <Link to={link.to} className="hq-capability-menu-link">
+                                  {link.label}
+                                  <ArrowUpRight size={15} />
+                                </Link>
                               </li>
                             ))}
                           </ul>
@@ -281,7 +269,11 @@ export function SiteHeader() {
                           <ul className="hq-resources-grid">
                             {FREE_TOOLS.map((tool, index) => (
                               <li key={tool.slug}>
-                                <Link to={`/tools/${tool.slug}`} className="hq-resource-card">
+                                <Link
+                                  to="/tools/$tool"
+                                  params={{ tool: tool.slug }}
+                                  className="hq-resource-card"
+                                >
                                   <span className="hq-resource-number">
                                     {String(index + 1).padStart(2, "0")}
                                   </span>
@@ -466,7 +458,7 @@ export function SiteHeader() {
               <li className="hq-mobile-resource-heading">Free Tools</li>
               {FREE_TOOLS.map((tool) => (
                 <li key={tool.slug}>
-                  <Link to={`/tools/${tool.slug}`}>
+                  <Link to="/tools/$tool" params={{ tool: tool.slug }}>
                     {tool.name}
                     <ArrowUpRight size={14} aria-hidden="true" />
                   </Link>

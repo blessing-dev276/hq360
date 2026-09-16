@@ -3,20 +3,8 @@ export const FREE_TOOLS = [
     slug: "website-audit",
     name: "Website Audit",
     description: "Review the path from first visit to enquiry.",
-    fields: [
-      "Does your homepage explain who you help?",
-      "Is your main action easy to find on mobile?",
-      "Have you checked loading speed on a phone?",
-      "Do your enquiry and purchase forms work?",
-      "Does each key page have a clear title and description?",
-    ],
-    actions: [
-      "Clarify your audience and offer above the fold.",
-      "Make the main call to action visible on mobile.",
-      "Measure mobile performance before deciding what to optimise.",
-      "Test the full enquiry or purchase journey.",
-      "Review page titles and descriptions for clarity.",
-    ],
+    fields: [],
+    actions: [],
   },
   {
     slug: "author-visibility-audit",

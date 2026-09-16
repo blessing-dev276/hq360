@@ -45,13 +45,14 @@ function InsightsHub() {
       <Section>
         <SectionHeader
           as="h1"
+          align="center"
           eyebrow="The HQ360 growth library"
           title="Answers, playbooks and tools for growing a business"
           intro="Working knowledge from building connected growth systems — no listicles. Guides go deep, answers are quick, the glossary defines the jargon, and the resources are yours to download."
         />
 
         {/* Content-type quick nav */}
-        <div className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mx-auto mt-10 grid max-w-4xl gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {[
             { label: "Guides", to: "#guides", desc: `${GUIDES.length} in-depth playbooks` },
             { label: "Answers", to: "#answers", desc: `${ANSWERS.length} common questions` },
@@ -76,7 +77,11 @@ function InsightsHub() {
         </div>
 
         {/* Topic filter */}
-        <div className="mt-10 flex flex-wrap gap-2" role="group" aria-label="Filter by topic">
+        <div
+          className="mt-10 flex flex-wrap justify-center gap-2"
+          role="group"
+          aria-label="Filter by topic"
+        >
           {topics.map((t) => (
             <button
               key={t}

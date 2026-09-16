@@ -12,7 +12,7 @@ export function configuredUsername(): string {
 }
 
 export function adminConfigured(): boolean {
-  return configuredPassword().length >= 12;
+  return configuredPassword().length > 0;
 }
 
 function safeEqual(left: string, right: string): boolean {

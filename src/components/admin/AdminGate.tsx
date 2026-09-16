@@ -77,7 +77,7 @@ export function AdminGate({ children }: { children: ReactNode }) {
 
           {state === "unconfigured" ? (
             <p className="mt-6 rounded-xl bg-destructive/10 p-4 text-sm text-destructive">
-              Admin access is disabled until a secure ADMIN_PASSWORD is configured.
+              Admin access is disabled until ADMIN_PASSWORD is available to the production server.
             </p>
           ) : (
             <form className="mt-7 space-y-5" onSubmit={login}>

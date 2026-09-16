@@ -28,6 +28,7 @@ function IndustriesPage() {
       <Section>
         <SectionHeader
           as="h1"
+          align="center"
           eyebrow="Who we help"
           title="Built around your industry"
           intro="Every landing below is a real system, not a template with the name swapped. The plumbing page talks about after-hours response; the coaching page talks about qualified calls. Pick the one that sounds like your business."

@@ -32,6 +32,7 @@ function WorkPage() {
       <Section>
         <SectionHeader
           as="h1"
+          align="center"
           eyebrow="Work"
           title="The work, and the way it is built"
           intro="A growing set of projects, plus a few engagements shown as illustrative structures while the client-approved case studies are being written. Nothing here presents a number as a result unless it is real and checkable."

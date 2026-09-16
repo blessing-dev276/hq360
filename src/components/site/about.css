@@ -168,12 +168,21 @@
   }
 }
 
-.ab-hero-layout {
-  display: grid;
-  grid-template-columns: 1.05fr 0.95fr;
-  gap: clamp(2rem, 5vw, 4.5rem);
+.ab-hero-centered {
+  display: flex;
+  flex-direction: column;
   align-items: center;
+  gap: clamp(2rem, 5vw, 3.5rem);
   margin-top: clamp(1.5rem, 3vw, 2.5rem);
+  text-align: center;
+}
+
+.ab-hero-centered .ab-hero-copy {
+  max-width: 46rem;
+}
+
+.ab-hero-centered .ab-cons-wrap {
+  width: 100%;
 }
 
 .ab-hero-copy h1 {
@@ -185,7 +194,7 @@
 }
 
 .ab-hero-lede {
-  margin: 1.5rem 0 0;
+  margin: 1.5rem auto 0;
   max-width: 46ch;
   font-size: clamp(1rem, 1.3vw, 1.15rem);
   line-height: 1.6;
@@ -227,7 +236,7 @@
 }
 
 .ab-hero-caption {
-  margin: 1.5rem 0 0;
+  margin: 1.5rem auto 0;
   min-height: 3em;
   max-width: 40ch;
   font-family: var(--font-display);
@@ -455,6 +464,103 @@
   to {
     offset-distance: 100%;
   }
+}
+
+/* ============================================== 1b · FOUNDER ====== */
+
+.ab-founder {
+  padding-block: clamp(2.5rem, 5vw, 4rem);
+  background: var(--surface);
+  border-top: 1px solid var(--line);
+}
+
+.ab-founder-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 38rem;
+  margin-inline: auto;
+  text-align: center;
+}
+
+.ab-founder-card .ab-eyebrow {
+  justify-content: center;
+  margin-top: 1.25rem;
+}
+
+.ab-founder-photo {
+  width: 5.5rem;
+  height: 5.5rem;
+  overflow: hidden;
+  border-radius: 999px;
+  border: 3px solid var(--surface);
+  box-shadow: var(--shadow-editorial);
+  background: var(--carbon);
+}
+
+.ab-founder-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.ab-founder-photo span {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.4rem;
+  color: oklch(0.96 0.003 95);
+}
+
+.ab-founder-quote {
+  margin: 1rem 0 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.15rem, 2.4vw, 1.5rem);
+  line-height: 1.4;
+  letter-spacing: -0.015em;
+  color: var(--ink);
+}
+
+.ab-founder-byline {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  margin: 1rem 0 0;
+}
+
+.ab-founder-byline strong {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  color: var(--ink);
+}
+
+.ab-founder-byline span {
+  font-size: 0.85rem;
+  color: var(--ink-muted);
+}
+
+.ab-founder-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 1.5rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--ink);
+  text-decoration: none;
+  background-image: linear-gradient(var(--brand), var(--brand));
+  background-size: 0% 2px;
+  background-position: 0 100%;
+  background-repeat: no-repeat;
+  transition: background-size var(--base) var(--ease);
+}
+
+.ab-founder-link:hover {
+  background-size: 100% 2px;
 }
 
 /* ================================================= 2 · SEAMS ====== */
@@ -1256,7 +1362,6 @@
 /* =============================================== RESPONSIVE ====== */
 
 @media (max-width: 960px) {
-  .ab-hero-layout,
   .ab-seams-layout,
   .ab-dial-layout,
   .ab-process-layout {

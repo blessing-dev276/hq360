@@ -3,7 +3,9 @@ import { Link } from "@tanstack/react-router";
 import { ArrowRight, ArrowUpRight } from "lucide-react";
 import { Container } from "@/components/site/Primitives";
 import { CtaBand } from "@/components/site/CtaBand";
+import { PHOTOS as TEAM_PHOTOS } from "@/components/site/TeamAvatar";
 import { GROWTH_FRAMEWORK, PRINCIPLES, PROCESS } from "@/data/process";
+import { TEAM } from "@/data/team";
 import { BRAND, CTAS } from "@/config/brand";
 import "./about.css";
 
@@ -56,6 +58,7 @@ export function AboutExperience() {
   return (
     <div className="ab">
       <Hero />
+      <Founder />
       <Seams />
       <Framework />
       <Principles />
@@ -98,7 +101,7 @@ function Hero() {
     <section className="ab-hero">
       <div className="ab-hero-grid" aria-hidden="true" />
       <Container size="wide" className="relative z-10">
-        <div className="ab-hero-layout">
+        <div className="ab-hero-centered">
           <div className="ab-hero-copy">
             <p className="ab-eyebrow">
               <span /> About {BRAND.name}
@@ -156,6 +159,42 @@ function Hero() {
               <span className="ab-cons-spark" aria-hidden="true" />
             </div>
           </div>
+        </div>
+      </Container>
+    </section>
+  );
+}
+
+/* ------------------------------------------------------- 1b · founder */
+
+const FOUNDER = TEAM[0]!;
+
+function Founder() {
+  const photo = TEAM_PHOTOS[FOUNDER.photo];
+  return (
+    <section className="ab-founder">
+      <Container size="wide">
+        <div className="ab-founder-card">
+          <div className="ab-founder-photo">
+            {photo ? (
+              <img src={photo} alt={`${FOUNDER.name}, Founder & CEO of ${BRAND.name}`} loading="lazy" decoding="async" />
+            ) : (
+              <span aria-hidden="true">{FOUNDER.initials}</span>
+            )}
+          </div>
+          <p className="ab-eyebrow">
+            <span /> From our founder
+          </p>
+          <p className="ab-founder-quote">
+            &ldquo;{FOUNDER.blurb}&rdquo;
+          </p>
+          <p className="ab-founder-byline">
+            <strong>{FOUNDER.name}</strong>
+            <span>Founder &amp; CEO, {BRAND.name}</span>
+          </p>
+          <Link to="/team" className="ab-founder-link">
+            Meet the rest of the team <ArrowRight aria-hidden="true" className="inline size-4" />
+          </Link>
         </div>
       </Container>
     </section>

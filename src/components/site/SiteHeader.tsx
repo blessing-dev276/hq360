@@ -4,14 +4,15 @@ import { ArrowRight, ArrowUpRight, ChevronDown, Menu, X } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { ABOUT_MENU, CAPABILITY_MENU, CTAS, INDUSTRY_MENU, PRIMARY_NAV } from "@/config/brand";
 import "./SiteHeader.css";
+import { FREE_TOOLS } from "@/data/free-tools";
 
 type MenuKey = "industries" | "capabilities" | "about" | "resources";
 type NavItem = { label: string; to: string };
 
-const RESOURCE_LINKS = [
+const RESOURCE_LINKS: NavItem[] = [
   { label: "Insights", to: "/insights" },
-  { label: "Testimonials & Reviews", href: "https://brand24.com/reviews/" },
-] as const;
+  { label: "Testimonials & Reviews", to: "/testimonials" },
+];
 
 const INDUSTRY_GROUPS = [
   { label: "People & ideas", routes: ["/authors", "/creators", "/coaches"] },
@@ -211,42 +212,51 @@ export function SiteHeader() {
                     {item.label}
                     <ChevronDown size={13} aria-hidden="true" />
                   </button>
-                  {openMenu === key && (key === "about" || key === "resources") && (
+                  {openMenu === key && key === "about" && (
                     <div
                       id={`${menuId}-${key}`}
                       className="hq-simple-menu"
                       aria-labelledby={`${menuId}-${key}-trigger`}
-                      onPointerEnter={clearHoverTimer}
                     >
                       <ul className="hq-capability-menu-list">
-                        {key === "about"
-                          ? ABOUT_MENU.map((link) => (
-                              <li key={link.to}>
-                                <Link
-                                  to={link.to}
-                                  preload="intent"
-                                  className="hq-capability-menu-link"
-                                >
-                                  <span>
-                                    <strong>{link.label}</strong>
-                                    <span className="hq-capability-menu-description">
-                                      {link.blurb}
-                                    </span>
-                                  </span>
-                                  <ArrowUpRight size={15} aria-hidden="true" />
-                                </Link>
-                              </li>
-                            ))
-                          : RESOURCE_LINKS.map((link) => (
+                        {ABOUT_MENU.map((link) => (
+                          <li key={link.to}>
+                            <Link to={link.to} className="hq-capability-menu-link">
+                              <span>
+                                <strong>{link.label}</strong>
+                                <span className="hq-capability-menu-description">{link.blurb}</span>
+                              </span>
+                              <ArrowUpRight size={15} aria-hidden="true" />
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  {openMenu === key && key === "resources" && (
+                    <div
+                      id={`${menuId}-${key}`}
+                      className="hq-mega-menu hq-resources-menu"
+                      aria-labelledby={`${menuId}-${key}-trigger`}
+                    >
+                      <div className="hq-resources-layout">
+                        <aside className="hq-resources-intro">
+                          <span className="hq-nav-eyebrow">Ideas into action</span>
+                          <p>
+                            Find your
+                            <br />
+                            next move.
+                          </p>
+                          <span className="hq-resources-caption">
+                            Useful perspectives and practical tools to help you move forward.
+                          </span>
+                          <ul className="hq-capability-menu-list">
+                            {RESOURCE_LINKS.map((link) => (
                               <li key={link.label}>
                                 {"to" in link ? (
-                                  <Link
-                                    to={link.to}
-                                    preload="intent"
-                                    className="hq-capability-menu-link"
-                                  >
-                                    <strong>{link.label}</strong>
-                                    <ArrowUpRight size={15} aria-hidden="true" />
+                                  <Link to={link.to} className="hq-capability-menu-link">
+                                    {link.label}
+                                    <ArrowUpRight size={15} />
                                   </Link>
                                 ) : (
                                   <a
@@ -255,34 +265,37 @@ export function SiteHeader() {
                                     rel="noreferrer"
                                     className="hq-capability-menu-link"
                                   >
-                                    <strong>{link.label}</strong>
-                                    <ArrowUpRight size={15} aria-hidden="true" />
+                                    {link.label}
+                                    <ArrowUpRight size={15} />
                                   </a>
                                 )}
                               </li>
                             ))}
-                        {key === "resources" ? (
-                          <li className="hq-resource-tools">
+                          </ul>
+                        </aside>
+                        <div>
+                          <div className="hq-resources-heading">
                             <strong>Free Tools</strong>
-                            <Link
-                              to="/contact"
-                              preload="intent"
-                              className="hq-capability-menu-link"
-                            >
-                              Website Audit
-                              <ArrowUpRight size={15} aria-hidden="true" />
-                            </Link>
-                            <Link
-                              to="/tools/author-visibility-audit"
-                              preload="intent"
-                              className="hq-capability-menu-link"
-                            >
-                              Author Audit
-                              <ArrowUpRight size={15} aria-hidden="true" />
-                            </Link>
-                          </li>
-                        ) : null}
-                      </ul>
+                            <Link to="/tools">View all →</Link>
+                          </div>
+                          <ul className="hq-resources-grid">
+                            {FREE_TOOLS.map((tool, index) => (
+                              <li key={tool.slug}>
+                                <Link to={`/tools/${tool.slug}`} className="hq-resource-card">
+                                  <span className="hq-resource-number">
+                                    {String(index + 1).padStart(2, "0")}
+                                  </span>
+                                  <span>
+                                    <strong>{tool.name}</strong>
+                                    <small>{tool.description}</small>
+                                  </span>
+                                  <ArrowUpRight size={15} aria-hidden="true" />
+                                </Link>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
                     </div>
                   )}
                   {openMenu === key && key !== "about" && key !== "resources" && (
@@ -445,22 +458,24 @@ export function SiteHeader() {
                 </Link>
               </li>
               <li>
-                <a href="https://brand24.com/reviews/" target="_blank" rel="noreferrer">
+                <Link to="/testimonials" preload="intent">
                   Testimonials &amp; Reviews
-                  <ArrowUpRight size={14} aria-hidden="true" />
-                </a>
-              </li>
-              <li className="hq-mobile-resource-heading">Free Tools</li>
-              <li>
-                <Link to="/contact" preload="intent">
-                  Website Audit
                   <ArrowUpRight size={14} aria-hidden="true" />
                 </Link>
               </li>
+              <li className="hq-mobile-resource-heading">Free Tools</li>
+              {FREE_TOOLS.map((tool) => (
+                <li key={tool.slug}>
+                  <Link to={`/tools/${tool.slug}`}>
+                    {tool.name}
+                    <ArrowUpRight size={14} aria-hidden="true" />
+                  </Link>
+                </li>
+              ))}
               <li>
-                <Link to="/tools/author-visibility-audit" preload="intent">
-                  Author Audit
-                  <ArrowUpRight size={14} aria-hidden="true" />
+                <Link to="/tools">
+                  All free tools
+                  <ArrowRight size={14} />
                 </Link>
               </li>
             </ul>

@@ -1,4 +1,5 @@
 import { CAPABILITIES } from "@/data/capabilities";
+import { FREE_TOOLS } from "@/data/free-tools";
 import { INDUSTRIES } from "@/data/industries";
 import { INSIGHTS } from "@/data/insights";
 import { ANSWERS, GUIDES } from "@/data/insights-hub";
@@ -7,6 +8,8 @@ import { absolute } from "@/lib/seo";
 /** Only canonical, indexable public pages; redirects and sample work stay out. */
 export const STATIC_SITEMAP_PATHS = [
   "/",
+  "/tools",
+  ...FREE_TOOLS.map((tool) => `/tools/${tool.slug}`),
   "/about",
   "/team",
   "/contact",

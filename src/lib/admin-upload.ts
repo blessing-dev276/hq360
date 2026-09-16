@@ -6,7 +6,7 @@
  * Falls back to the buffered /api/admin/upload route if the signed flow fails.
  */
 
-export type AdminBucket = "portfolio" | "team" | "work" | "testimonials";
+export type AdminBucket = "portfolio" | "team" | "work" | "testimonials" | "audit-evidence";
 export type UploadResult = { url: string; mediaType: "image" | "video" };
 
 const COMPRESSIBLE = /^image\/(png|jpe?g|webp)$/;

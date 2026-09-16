@@ -1,20 +1,35 @@
 import { useCallback, useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
+import { uploadAdminMedia } from "@/lib/admin-upload";
 import {
   VERIFICATION_FIELDS,
+  VERIFICATION_SECTIONS,
+  SECTION_LABEL,
   fieldsBySection,
-  type VerificationField,
 } from "@/lib/author-audit/verification-fields";
+import {
+  READER_JOURNEY_STAGE_LABEL,
+  READER_JOURNEY_STAGE_ORDER,
+} from "@/lib/author-audit/reader-journey-labels";
 import type {
   Author,
+  AuditComparable,
+  AuditEvidenceAsset,
   AuditFinding,
   AuditFindingStatus,
   AuditManualVerification,
+  AuditPriorityMove,
+  AuditReaderJourneyStep,
+  AuditReport,
+  AuditRoadmapItem,
   AuditSource,
   AuditStatus,
+  AuditStrength,
   AuthorAudit,
   AuthorAuditLead,
   Book,
+  ExecutiveAssessment,
+  ReviewStatus,
 } from "@/lib/author-audit/db";
 
 const input =
@@ -76,12 +91,21 @@ const FINDING_STATUS_COLOR: Record<AuditFindingStatus, string> = {
   unable_to_verify: "bg-secondary text-muted-foreground",
 };
 
-const SECTION_LABEL: Record<VerificationField["section"], string> = {
-  amazon: "Amazon",
-  goodreads: "Goodreads",
-  social: "Social & media presence",
-  reader_journey: "Reader journey",
-  marketing_infra: "Marketing infrastructure",
+const REVIEW_LABEL: Record<ReviewStatus, string> = {
+  ai_research: "AI draft",
+  needs_verification: "Needs verification",
+  approved: "Approved",
+  rejected: "Rejected",
+};
+
+const EMPTY_ASSESSMENT: ExecutiveAssessment = {
+  whatIsWorking: "",
+  strongestOpportunities: "",
+  journeyBreaks: "",
+  comparablePatterns: "",
+  priorityFirst: "",
+  doNotChange: "",
+  unknowns: "",
 };
 
 export function AuthorAuditAdmin() {
@@ -89,6 +113,8 @@ export function AuthorAuditAdmin() {
   if (openId) return <AuditWorkspace id={openId} onBack={() => setOpenId(null)} />;
   return <AuditList onOpen={setOpenId} />;
 }
+
+/* -------------------------------------------------------------------- list */
 
 function AuditList({ onOpen }: { onOpen: (id: string) => void }) {
   const [audits, setAudits] = useState<AuditListItem[] | null>(null);
@@ -143,7 +169,7 @@ function AuditList({ onOpen }: { onOpen: (id: string) => void }) {
   return (
     <div className="space-y-8">
       <p className="text-sm text-muted-foreground">
-        Evidence-led author visibility audits. Every finding a client sees was gathered, then
+        Evidence-led author visibility audits. Every finding a client sees was researched, then
         approved by a human — nothing is sent unreviewed.
       </p>
 
@@ -240,26 +266,90 @@ function AuditList({ onOpen }: { onOpen: (id: string) => void }) {
   );
 }
 
-type AuditSnapshot = { executiveSummary?: string; strengths?: string[] } & Record<string, unknown>;
+/* --------------------------------------------------------- shared review UI */
+
+/** Approve / needs verification / reject + the client-visible gate, shared
+ * by every v2 reviewable entity (strengths, reader-journey steps,
+ * comparables, moves, roadmap items — findings use the same shape too). */
+function ReviewBar({
+  reviewStatus,
+  clientVisible,
+  onChange,
+}: {
+  reviewStatus: ReviewStatus;
+  clientVisible: boolean;
+  onChange: (patch: { reviewStatus?: ReviewStatus; clientVisible?: boolean }) => void;
+}) {
+  return (
+    <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-border pt-3">
+      <div className="flex rounded-full border border-border p-0.5 text-xs">
+        {(["needs_verification", "approved", "rejected"] as const).map((s) => (
+          <button
+            key={s}
+            type="button"
+            onClick={() => onChange({ reviewStatus: s })}
+            className={cn(
+              "rounded-full px-3 py-1 font-medium",
+              reviewStatus === s ? "bg-primary text-primary-foreground" : "text-muted-foreground",
+            )}
+          >
+            {REVIEW_LABEL[s]}
+          </button>
+        ))}
+      </div>
+      <label className="ml-auto flex items-center gap-2 text-xs font-medium">
+        <input
+          type="checkbox"
+          checked={clientVisible}
+          onChange={(e) => onChange({ clientVisible: e.target.checked })}
+          disabled={reviewStatus !== "approved"}
+          className="size-4 accent-[var(--brand)] disabled:opacity-40"
+        />
+        Client visible
+      </label>
+      {reviewStatus === "ai_research" ? (
+        <span className="w-full text-[0.65rem] text-muted-foreground">
+          AI draft — read it, then mark approved or rejected.
+        </span>
+      ) : null}
+    </div>
+  );
+}
+
+/* --------------------------------------------------------------- workspace */
 
 type AuditDetailResponse = {
   ok: boolean;
   audit: Omit<AuthorAudit, "input_snapshot"> & {
     authors: Author;
     books: Book;
-    input_snapshot: AuditSnapshot;
+    input_snapshot: Record<string, unknown>;
   };
   sources: AuditSource[];
   evidence: { id: string; section: string; claim: string; excerpt: string | null }[];
   findings: AuditFinding[];
   verifications: AuditManualVerification[];
   opportunities: { capability_slug: string; rationale: string }[];
+  strengths: AuditStrength[];
+  readerJourney: AuditReaderJourneyStep[];
+  comparables: AuditComparable[];
+  moves: AuditPriorityMove[];
+  roadmap: AuditRoadmapItem[];
+  evidenceAssets: AuditEvidenceAsset[];
+  reports: AuditReport[];
+};
+
+type QualityCheck = {
+  passed: boolean;
+  issues: { area: string; message: string }[];
+  warnings: { area: string; message: string }[];
 };
 
 function AuditWorkspace({ id, onBack }: { id: string; onBack: () => void }) {
   const [data, setData] = useState<AuditDetailResponse | null>(null);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
+  const [quality, setQuality] = useState<QualityCheck | null>(null);
 
   const load = useCallback(async () => {
     const { status, body } = await api<AuditDetailResponse>(`/api/admin/author-audits/${id}`);
@@ -271,12 +361,26 @@ function AuditWorkspace({ id, onBack }: { id: string; onBack: () => void }) {
     void load();
   }, [load]);
 
+  const loadQuality = useCallback(async () => {
+    const { status, body } = await api<QualityCheck & { ok: boolean }>(
+      `/api/admin/author-audits/${id}/quality-check`,
+    );
+    if (status === 200 && body.ok) setQuality(body);
+  }, [id]);
+
   async function setStatus(status: AuditStatus) {
     await api(`/api/admin/author-audits/${id}`, {
       method: "PATCH",
       body: JSON.stringify({ status }),
     });
     await load();
+  }
+
+  async function setStaffName(name: string) {
+    await api(`/api/admin/author-audits/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify({ preparedByStaffName: name || null }),
+    });
   }
 
   async function runResearch() {
@@ -309,6 +413,18 @@ function AuditWorkspace({ id, onBack }: { id: string; onBack: () => void }) {
     await load();
   }
 
+  async function runPlan() {
+    setBusy("plan");
+    setError("");
+    const { status, body } = await api<{ ok: boolean; error?: string }>(
+      `/api/admin/author-audits/${id}/synthesize-plan`,
+      { method: "POST" },
+    );
+    setBusy(null);
+    if (status !== 200 || !body.ok) setError(body.error || "Strategic plan generation failed.");
+    await load();
+  }
+
   if (error && !data) {
     return (
       <div className="space-y-4">
@@ -319,7 +435,20 @@ function AuditWorkspace({ id, onBack }: { id: string; onBack: () => void }) {
   }
   if (!data) return <p className="text-sm text-muted-foreground">Loading…</p>;
 
-  const { audit, sources, findings, verifications } = data;
+  const {
+    audit,
+    sources,
+    findings,
+    verifications,
+    strengths,
+    readerJourney,
+    comparables,
+    moves,
+    roadmap,
+    evidenceAssets,
+    reports,
+  } = data;
+  const approvedFindingCount = findings.filter((f) => f.review_status === "approved").length;
 
   return (
     <div className="space-y-8">
@@ -343,54 +472,28 @@ function AuditWorkspace({ id, onBack }: { id: string; onBack: () => void }) {
         </select>
       </div>
 
+      <label className="block rounded-2xl border border-border bg-card p-5">
+        <span className="text-sm font-medium">Prepared by (staff member)</span>
+        <span className="mt-0.5 block text-xs text-muted-foreground">
+          Shown on the cover of the client report. Leave blank to show HQ360 only.
+        </span>
+        <input
+          className={cn(input, "mt-2")}
+          defaultValue={audit.prepared_by_staff_name ?? ""}
+          onBlur={(e) => void setStaffName(e.target.value)}
+        />
+      </label>
+
       {error ? <p className="text-sm text-destructive">{error}</p> : null}
 
-      {/* Research */}
-      <section className="rounded-2xl border border-border bg-card p-5">
-        <div className="flex items-center justify-between">
-          <h3 className="font-display text-lg">Automated research</h3>
-          <button
-            type="button"
-            disabled={busy === "research"}
-            onClick={() => void runResearch()}
-            className="rounded-full bg-primary px-4 py-1.5 text-xs font-semibold text-primary-foreground disabled:opacity-60"
-          >
-            {busy === "research" ? "Running…" : "Run automated research"}
-          </button>
-        </div>
-        <p className="mt-1 text-xs text-muted-foreground">
-          Google Books, Open Library and a direct website check. Amazon and Goodreads have no usable
-          free API — fill those in below.
-        </p>
-        {sources.length > 0 ? (
-          <ul className="mt-4 space-y-2">
-            {sources.map((s) => (
-              <li key={s.id} className="rounded-xl border border-border p-3 text-sm">
-                <p className="font-medium">
-                  {s.provider} — {s.source_type}{" "}
-                  <span className="ml-2 rounded-full bg-secondary px-2 py-0.5 text-xs">
-                    {s.status}
-                  </span>
-                </p>
-                {s.error_message ? (
-                  <p className="mt-1 text-xs text-destructive">{s.error_message}</p>
-                ) : (
-                  <pre className="mt-1 max-h-32 overflow-auto text-xs text-muted-foreground">
-                    {JSON.stringify(s.raw_data, null, 2).slice(0, 800)}
-                  </pre>
-                )}
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="mt-3 text-xs text-muted-foreground">No research run yet.</p>
-        )}
-      </section>
+      <ResearchSection
+        sources={sources}
+        busy={busy === "research"}
+        onRun={() => void runResearch()}
+      />
 
-      {/* Manual verification */}
       <VerificationForm auditId={id} existing={verifications} onSaved={load} />
 
-      {/* Synthesis */}
       <section className="rounded-2xl border border-border bg-card p-5">
         <div className="flex items-center justify-between">
           <h3 className="font-display text-lg">Generate findings</h3>
@@ -404,18 +507,21 @@ function AuditWorkspace({ id, onBack }: { id: string; onBack: () => void }) {
           </button>
         </div>
         <p className="mt-1 text-xs text-muted-foreground">
-          Sends the research above to Claude, which returns evidence-only findings — nothing here is
-          visible to the client until you approve it below.
+          Sends the research above to Claude for findings, strengths and reader-journey analysis —
+          all unreviewed until approved below.
         </p>
       </section>
 
-      {/* Executive summary + strengths — also staff-reviewed before the report can use them */}
-      {audit.input_snapshot.executiveSummary ||
-      (audit.input_snapshot.strengths ?? []).length > 0 ? (
-        <SummaryEditor auditId={id} snapshot={audit.input_snapshot} onSaved={load} />
+      {strengths.length > 0 ? (
+        <StrengthsSection auditId={id} strengths={strengths} onSaved={load} />
       ) : null}
 
-      {/* Findings review */}
+      {readerJourney.length > 0 ? (
+        <ReaderJourneySection auditId={id} steps={readerJourney} onSaved={load} />
+      ) : null}
+
+      <ComparablesSection auditId={id} comparables={comparables} onSaved={load} />
+
       {findings.length > 0 ? (
         <section className="space-y-3">
           <h3 className="font-display text-lg">Findings — review before sending</h3>
@@ -425,30 +531,153 @@ function AuditWorkspace({ id, onBack }: { id: string; onBack: () => void }) {
         </section>
       ) : null}
 
-      {/* Report */}
+      <section className="rounded-2xl border border-border bg-card p-5">
+        <div className="flex items-center justify-between">
+          <h3 className="font-display text-lg">Strategic plan</h3>
+          <button
+            type="button"
+            disabled={busy === "plan" || approvedFindingCount === 0}
+            onClick={() => void runPlan()}
+            className="rounded-full bg-primary px-4 py-1.5 text-xs font-semibold text-primary-foreground disabled:opacity-60"
+          >
+            {busy === "plan" ? "Generating…" : "Generate strategic plan (AI)"}
+          </button>
+        </div>
+        <p className="mt-1 text-xs text-muted-foreground">
+          {approvedFindingCount === 0
+            ? "Approve at least one finding above first — the executive assessment, 3 moves and roadmap are only built from what's already approved."
+            : `Builds the executive assessment, 3 moves and 30-day roadmap from the ${approvedFindingCount} approved finding(s) above.`}
+        </p>
+      </section>
+
+      {audit.executive_assessment ? (
+        <ExecutiveAssessmentSection
+          auditId={id}
+          assessment={audit.executive_assessment}
+          reviewStatus={audit.executive_assessment_review_status}
+          clientVisible={audit.executive_assessment_client_visible}
+          onSaved={load}
+        />
+      ) : null}
+
+      {moves.length > 0 ? <MovesSection auditId={id} moves={moves} onSaved={load} /> : null}
+      {roadmap.length > 0 ? <RoadmapSection auditId={id} items={roadmap} onSaved={load} /> : null}
+
+      <EvidenceAssetsSection auditId={id} assets={evidenceAssets} onSaved={load} />
+
+      <section className="rounded-2xl border border-border bg-card p-5">
+        <div className="flex items-center justify-between">
+          <h3 className="font-display text-lg">Quality check</h3>
+          <button
+            type="button"
+            onClick={() => void loadQuality()}
+            className="rounded-full border border-border px-4 py-1.5 text-xs font-medium hover:border-brand hover:text-brand"
+          >
+            Run check
+          </button>
+        </div>
+        {quality ? (
+          <div className="mt-3 space-y-2">
+            <p
+              className={cn(
+                "text-sm font-medium",
+                quality.passed ? "text-emerald-700" : "text-destructive",
+              )}
+            >
+              {quality.passed
+                ? "Passed — ready to generate a final report."
+                : "Blocked — fix the issues below."}
+            </p>
+            {quality.issues.map((i, idx) => (
+              <p key={idx} className="text-xs text-destructive">
+                [{i.area}] {i.message}
+              </p>
+            ))}
+            {quality.warnings.map((w, idx) => (
+              <p key={idx} className="text-xs text-amber-700">
+                [{w.area}] {w.message}
+              </p>
+            ))}
+          </div>
+        ) : null}
+      </section>
+
       <section className="rounded-2xl border border-border bg-card p-5">
         <h3 className="font-display text-lg">Client report</h3>
         <p className="mt-1 text-xs text-muted-foreground">
-          Only findings marked "Client visible" above are included.
+          Preview shows exactly what the author would receive without the quality gate or saving a
+          version. Generating a final report requires the quality check to pass.
         </p>
         <div className="mt-4 flex flex-wrap gap-3">
           <a
-            href={`/api/admin/author-audits/${id}/report?format=pdf`}
+            href={`/api/admin/author-audits/${id}/report?format=pdf&mode=preview`}
             target="_blank"
             rel="noreferrer"
             className="rounded-full border border-border px-5 py-2 text-sm font-medium hover:border-brand hover:text-brand"
           >
-            View / download PDF
+            Preview PDF
+          </a>
+          <a
+            href={`/api/admin/author-audits/${id}/report?format=image&mode=preview`}
+            target="_blank"
+            rel="noreferrer"
+            className="rounded-full border border-border px-5 py-2 text-sm font-medium hover:border-brand hover:text-brand"
+          >
+            Preview image
+          </a>
+          <a
+            href={`/api/admin/author-audits/${id}/report?format=pdf`}
+            target="_blank"
+            rel="noreferrer"
+            className="rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground"
+          >
+            Generate final PDF
           </a>
           <a
             href={`/api/admin/author-audits/${id}/report?format=image`}
             target="_blank"
             rel="noreferrer"
-            className="rounded-full border border-border px-5 py-2 text-sm font-medium hover:border-brand hover:text-brand"
+            className="rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground"
           >
-            View / download shareable image
+            Generate final image
           </a>
         </div>
+        {reports.length > 0 ? (
+          <div className="mt-5 border-t border-border pt-4">
+            <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+              Report history
+            </p>
+            <ul className="mt-2 space-y-1.5">
+              {reports.map((r) => (
+                <li key={r.id} className="flex items-center gap-2 text-xs">
+                  <span
+                    className={cn(
+                      "rounded-full px-2 py-0.5 font-medium",
+                      r.outdated
+                        ? "bg-secondary text-muted-foreground line-through"
+                        : "bg-brand-soft text-[oklch(0.42_0.16_42)]",
+                    )}
+                  >
+                    {r.format} v{r.version}
+                  </span>
+                  <span className="text-muted-foreground">
+                    {new Date(r.generated_at).toLocaleString()}
+                    {r.generated_by ? ` · ${r.generated_by}` : ""}
+                    {r.outdated ? " · outdated" : ""}
+                  </span>
+                  <a
+                    href={r.storage_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-brand underline"
+                  >
+                    open
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
       </section>
     </div>
   );
@@ -466,79 +695,62 @@ function BackButton({ onBack }: { onBack: () => void }) {
   );
 }
 
-function SummaryEditor({
-  auditId,
-  snapshot,
-  onSaved,
+/* ------------------------------------------------------------- research */
+
+function ResearchSection({
+  sources,
+  busy,
+  onRun,
 }: {
-  auditId: string;
-  snapshot: AuditSnapshot;
-  onSaved: () => void;
+  sources: AuditSource[];
+  busy: boolean;
+  onRun: () => void;
 }) {
-  const [summary, setSummary] = useState(snapshot.executiveSummary ?? "");
-  const [strengthsText, setStrengthsText] = useState((snapshot.strengths ?? []).join("\n"));
-  const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
-
-  useEffect(() => {
-    setSummary(snapshot.executiveSummary ?? "");
-    setStrengthsText((snapshot.strengths ?? []).join("\n"));
-  }, [snapshot]);
-
-  async function save() {
-    setSaving(true);
-    setSaved(false);
-    await api(`/api/admin/author-audits/${auditId}`, {
-      method: "PATCH",
-      body: JSON.stringify({
-        executiveSummary: summary,
-        strengths: strengthsText
-          .split("\n")
-          .map((s) => s.trim())
-          .filter(Boolean),
-      }),
-    });
-    setSaving(false);
-    setSaved(true);
-    onSaved();
-  }
-
   return (
     <section className="rounded-2xl border border-border bg-card p-5">
-      <h3 className="font-display text-lg">Executive summary &amp; strengths</h3>
+      <div className="flex items-center justify-between">
+        <h3 className="font-display text-lg">Automated research</h3>
+        <button
+          type="button"
+          disabled={busy}
+          onClick={onRun}
+          className="rounded-full bg-primary px-4 py-1.5 text-xs font-semibold text-primary-foreground disabled:opacity-60"
+        >
+          {busy ? "Running…" : "Run automated research"}
+        </button>
+      </div>
       <p className="mt-1 text-xs text-muted-foreground">
-        Claude drafted these from the evidence above — read them like any other finding and edit
-        before they go in front of the client. This also feeds the report and the shareable image.
+        Google Books, Open Library and a direct website check. Amazon, Goodreads, search visibility,
+        social and media have no reliable free API — fill those in below.
       </p>
-      <label className="mt-4 block">
-        <span className="text-xs font-medium text-muted-foreground">Executive summary</span>
-        <textarea
-          rows={3}
-          className={cn(input, "mt-1 resize-y")}
-          value={summary}
-          onChange={(e) => setSummary(e.target.value)}
-        />
-      </label>
-      <label className="mt-3 block">
-        <span className="text-xs font-medium text-muted-foreground">Strengths — one per line</span>
-        <textarea
-          rows={3}
-          className={cn(input, "mt-1 resize-y")}
-          value={strengthsText}
-          onChange={(e) => setStrengthsText(e.target.value)}
-        />
-      </label>
-      <button
-        type="button"
-        disabled={saving}
-        onClick={() => void save()}
-        className="mt-4 rounded-full border border-border px-4 py-1.5 text-xs font-medium hover:border-brand hover:text-brand disabled:opacity-60"
-      >
-        {saving ? "Saving…" : saved ? "Saved" : "Save summary"}
-      </button>
+      {sources.length > 0 ? (
+        <ul className="mt-4 space-y-2">
+          {sources.map((s) => (
+            <li key={s.id} className="rounded-xl border border-border p-3 text-sm">
+              <p className="font-medium">
+                {s.provider} — {s.source_type}{" "}
+                <span className="ml-2 rounded-full bg-secondary px-2 py-0.5 text-xs">
+                  {s.status}
+                </span>
+              </p>
+              {s.error_message ? (
+                <p className="mt-1 text-xs text-destructive">{s.error_message}</p>
+              ) : (
+                <pre className="mt-1 max-h-32 overflow-auto text-xs text-muted-foreground">
+                  {JSON.stringify(s.raw_data, null, 2).slice(0, 800)}
+                </pre>
+              )}
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="mt-3 text-xs text-muted-foreground">No research run yet.</p>
+      )}
     </section>
   );
 }
+
+/* --------------------------------------------------------- manual verification */
 
 function VerificationForm({
   auditId,
@@ -585,8 +797,6 @@ function VerificationForm({
     onSaved();
   }
 
-  const sections = ["amazon", "goodreads", "social", "reader_journey", "marketing_infra"] as const;
-
   return (
     <form onSubmit={save} className="rounded-2xl border border-border bg-card p-5">
       <h3 className="font-display text-lg">Manual verification</h3>
@@ -595,7 +805,7 @@ function VerificationForm({
         fields are treated as unverified, never guessed.
       </p>
       <div className="mt-4 space-y-6">
-        {sections.map((section) => (
+        {VERIFICATION_SECTIONS.map((section) => (
           <div key={section}>
             <h4 className="text-sm font-semibold">{SECTION_LABEL[section]}</h4>
             <div className="mt-2 grid gap-3 sm:grid-cols-2">
@@ -627,6 +837,298 @@ function VerificationForm({
   );
 }
 
+/* ----------------------------------------------------------------- strengths */
+
+function StrengthsSection({
+  auditId,
+  strengths,
+  onSaved,
+}: {
+  auditId: string;
+  strengths: AuditStrength[];
+  onSaved: () => void;
+}) {
+  return (
+    <section className="space-y-3">
+      <h3 className="font-display text-lg">What is already working</h3>
+      {strengths.map((s) => (
+        <StrengthCard key={s.id} auditId={auditId} strength={s} onSaved={onSaved} />
+      ))}
+    </section>
+  );
+}
+
+function StrengthCard({
+  auditId,
+  strength,
+  onSaved,
+}: {
+  auditId: string;
+  strength: AuditStrength;
+  onSaved: () => void;
+}) {
+  const [draft, setDraft] = useState({ title: strength.title, observation: strength.observation });
+
+  async function patch(body: Record<string, unknown>) {
+    await api(`/api/admin/author-audits/${auditId}/strengths/${strength.id}`, {
+      method: "PATCH",
+      body: JSON.stringify(body),
+    });
+    onSaved();
+  }
+
+  return (
+    <div className="rounded-2xl border border-border bg-card p-5">
+      <input
+        className={cn(input, "font-medium")}
+        value={draft.title}
+        onChange={(e) => setDraft((d) => ({ ...d, title: e.target.value }))}
+        onBlur={() => void patch({ title: draft.title })}
+      />
+      <textarea
+        rows={2}
+        className={cn(input, "mt-2 resize-y")}
+        value={draft.observation}
+        onChange={(e) => setDraft((d) => ({ ...d, observation: e.target.value }))}
+        onBlur={() => void patch({ observation: draft.observation })}
+      />
+      {strength.evidence ? (
+        <p className="mt-2 text-xs text-muted-foreground">Evidence: {strength.evidence}</p>
+      ) : null}
+      <div className="mt-3 flex gap-2 text-xs">
+        {(["preserve", "build_upon", "no_change_needed"] as const).map((d) => (
+          <button
+            key={d}
+            type="button"
+            onClick={() => void patch({ disposition: d })}
+            className={cn(
+              "rounded-full border px-3 py-1 font-medium",
+              strength.disposition === d
+                ? "border-brand text-brand"
+                : "border-border text-muted-foreground",
+            )}
+          >
+            {d === "preserve" ? "Preserve" : d === "build_upon" ? "Build upon" : "No change needed"}
+          </button>
+        ))}
+      </div>
+      <ReviewBar
+        reviewStatus={strength.review_status}
+        clientVisible={strength.client_visible}
+        onChange={(patch2) => void patch(patch2)}
+      />
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------ reader journey */
+
+function ReaderJourneySection({
+  auditId,
+  steps,
+  onSaved,
+}: {
+  auditId: string;
+  steps: AuditReaderJourneyStep[];
+  onSaved: () => void;
+}) {
+  const ordered = READER_JOURNEY_STAGE_ORDER.map((stage) =>
+    steps.find((s) => s.stage === stage),
+  ).filter((s): s is AuditReaderJourneyStep => !!s);
+  return (
+    <section className="space-y-3">
+      <h3 className="font-display text-lg">Reader journey</h3>
+      <p className="text-xs text-muted-foreground">
+        Discovery → Interest → Trust → Book information → Purchase → Follow → Owned audience → Next
+        book.
+      </p>
+      {ordered.map((step) => (
+        <ReaderJourneyCard key={step.id} auditId={auditId} step={step} onSaved={onSaved} />
+      ))}
+    </section>
+  );
+}
+
+function ReaderJourneyCard({
+  auditId,
+  step,
+  onSaved,
+}: {
+  auditId: string;
+  step: AuditReaderJourneyStep;
+  onSaved: () => void;
+}) {
+  async function patch(body: Record<string, unknown>) {
+    await api(`/api/admin/author-audits/${auditId}/reader-journey/${step.id}`, {
+      method: "PATCH",
+      body: JSON.stringify(body),
+    });
+    onSaved();
+  }
+  return (
+    <div className="rounded-2xl border border-border bg-card p-5">
+      <div className="flex items-center justify-between">
+        <p className="text-sm font-semibold">{READER_JOURNEY_STAGE_LABEL[step.stage]}</p>
+        <span className="rounded-full bg-secondary px-2.5 py-1 text-xs font-medium capitalize">
+          {step.status.replace(/_/g, " ")}
+        </span>
+      </div>
+      <p className="mt-2 text-sm">{step.observation}</p>
+      {step.friction ? (
+        <p className="mt-1 text-xs text-amber-700">Friction: {step.friction}</p>
+      ) : null}
+      {step.recommendation ? (
+        <p className="mt-1 text-xs text-muted-foreground">Recommendation: {step.recommendation}</p>
+      ) : null}
+      <ReviewBar
+        reviewStatus={step.review_status}
+        clientVisible={step.client_visible}
+        onChange={(patch2) => void patch(patch2)}
+      />
+    </div>
+  );
+}
+
+/* -------------------------------------------------------------- comparables */
+
+function ComparablesSection({
+  auditId,
+  comparables,
+  onSaved,
+}: {
+  auditId: string;
+  comparables: AuditComparable[];
+  onSaved: () => void;
+}) {
+  const [adding, setAdding] = useState(false);
+  const [draft, setDraft] = useState({ author: "", book: "", whyComparable: "" });
+  const [saving, setSaving] = useState(false);
+
+  async function create(e: React.FormEvent) {
+    e.preventDefault();
+    if (!draft.author.trim() || !draft.whyComparable.trim()) return;
+    setSaving(true);
+    await api(`/api/admin/author-audits/${auditId}/comparables`, {
+      method: "POST",
+      body: JSON.stringify(draft),
+    });
+    setSaving(false);
+    setDraft({ author: "", book: "", whyComparable: "" });
+    setAdding(false);
+    onSaved();
+  }
+
+  return (
+    <section className="space-y-3">
+      <div className="flex items-center justify-between">
+        <h3 className="font-display text-lg">Comparable market analysis</h3>
+        <button
+          type="button"
+          onClick={() => setAdding((v) => !v)}
+          className="rounded-full border border-border px-4 py-1.5 text-xs font-medium hover:border-brand hover:text-brand"
+        >
+          {adding ? "Cancel" : "Add comparable"}
+        </button>
+      </div>
+      <p className="text-xs text-muted-foreground">
+        Staff-entered only — no automated discovery source is connected, and inventing one would
+        break the audit's no-fabrication rule. Look for patterns across 3-5, not a ranking.
+      </p>
+      {adding ? (
+        <form onSubmit={create} className="rounded-2xl border border-border bg-card p-5">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <label className="block">
+              <span className="text-xs font-medium text-muted-foreground">Author</span>
+              <input
+                className={cn(input, "mt-1")}
+                value={draft.author}
+                onChange={(e) => setDraft((d) => ({ ...d, author: e.target.value }))}
+              />
+            </label>
+            <label className="block">
+              <span className="text-xs font-medium text-muted-foreground">Book</span>
+              <input
+                className={cn(input, "mt-1")}
+                value={draft.book}
+                onChange={(e) => setDraft((d) => ({ ...d, book: e.target.value }))}
+              />
+            </label>
+          </div>
+          <label className="mt-3 block">
+            <span className="text-xs font-medium text-muted-foreground">
+              Why this is comparable
+            </span>
+            <textarea
+              rows={2}
+              className={cn(input, "mt-1 resize-y")}
+              value={draft.whyComparable}
+              onChange={(e) => setDraft((d) => ({ ...d, whyComparable: e.target.value }))}
+            />
+          </label>
+          <button
+            type="submit"
+            disabled={saving}
+            className="mt-3 rounded-full bg-primary px-5 py-2 text-xs font-semibold text-primary-foreground disabled:opacity-60"
+          >
+            {saving ? "Adding…" : "Add"}
+          </button>
+        </form>
+      ) : null}
+      {comparables.map((c) => (
+        <ComparableCard key={c.id} auditId={auditId} comparable={c} onSaved={onSaved} />
+      ))}
+    </section>
+  );
+}
+
+function ComparableCard({
+  auditId,
+  comparable,
+  onSaved,
+}: {
+  auditId: string;
+  comparable: AuditComparable;
+  onSaved: () => void;
+}) {
+  async function patch(body: Record<string, unknown>) {
+    await api(`/api/admin/author-audits/${auditId}/comparables/${comparable.id}`, {
+      method: "PATCH",
+      body: JSON.stringify(body),
+    });
+    onSaved();
+  }
+  async function remove() {
+    if (!window.confirm("Remove this comparable?")) return;
+    await api(`/api/admin/author-audits/${auditId}/comparables/${comparable.id}`, {
+      method: "DELETE",
+    });
+    onSaved();
+  }
+  return (
+    <div className="rounded-2xl border border-border bg-card p-5">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-sm font-semibold">
+            {comparable.author}
+            {comparable.book ? ` — ${comparable.book}` : ""}
+          </p>
+          <p className="mt-1 text-xs text-muted-foreground">{comparable.why_comparable}</p>
+        </div>
+        <button type="button" onClick={() => void remove()} className="text-xs text-destructive">
+          Remove
+        </button>
+      </div>
+      <ReviewBar
+        reviewStatus={comparable.review_status}
+        clientVisible={comparable.client_visible}
+        onChange={(patch2) => void patch(patch2)}
+      />
+    </div>
+  );
+}
+
+/* ----------------------------------------------------------------- findings */
+
 function FindingCard({
   auditId,
   finding,
@@ -656,7 +1158,12 @@ function FindingCard({
   return (
     <div className="rounded-2xl border border-border bg-card p-5">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-sm font-semibold">{finding.section}</p>
+        <div>
+          <p className="text-sm font-semibold">
+            {finding.title ?? finding.category ?? finding.section}
+          </p>
+          <p className="text-xs text-muted-foreground">{finding.category ?? finding.section}</p>
+        </div>
         <span
           className={cn(
             "rounded-full px-2.5 py-1 text-xs font-medium",
@@ -694,8 +1201,13 @@ function FindingCard({
           onChange={(e) => setDraft((d) => ({ ...d, recommendation: e.target.value }))}
         />
       </label>
+      {finding.source_urls.length > 0 ? (
+        <p className="mt-2 text-xs text-muted-foreground">
+          Sources: {finding.source_urls.join(", ")}
+        </p>
+      ) : null}
 
-      <div className="mt-4 flex flex-wrap items-center gap-3">
+      <div className="mt-3">
         <button
           type="button"
           disabled={saving}
@@ -710,21 +1222,310 @@ function FindingCard({
         >
           Save edits
         </button>
-        <label className="ml-auto flex items-center gap-2 text-xs font-medium">
-          <input
-            type="checkbox"
-            checked={finding.client_visible}
-            onChange={(e) =>
-              void patch({
-                clientVisible: e.target.checked,
-                reviewStatus: e.target.checked ? "approved" : "needs_verification",
-              })
-            }
-            className="size-4 accent-[var(--brand)]"
-          />
-          Client visible (include in report)
-        </label>
       </div>
+      <ReviewBar
+        reviewStatus={finding.review_status}
+        clientVisible={finding.client_visible}
+        onChange={(patch2) => void patch(patch2)}
+      />
     </div>
+  );
+}
+
+/* ----------------------------------------------------- executive assessment */
+
+const ASSESSMENT_FIELDS: { key: keyof ExecutiveAssessment; label: string }[] = [
+  { key: "whatIsWorking", label: "What is already working" },
+  { key: "strongestOpportunities", label: "Strongest verified opportunities" },
+  { key: "journeyBreaks", label: "Where the reader journey breaks or weakens" },
+  { key: "comparablePatterns", label: "Patterns from comparables" },
+  { key: "priorityFirst", label: "What deserves attention first" },
+  { key: "doNotChange", label: "What should not be changed" },
+  { key: "unknowns", label: "What remains unknown or unverifiable" },
+];
+
+function ExecutiveAssessmentSection({
+  auditId,
+  assessment,
+  reviewStatus,
+  clientVisible,
+  onSaved,
+}: {
+  auditId: string;
+  assessment: ExecutiveAssessment;
+  reviewStatus: ReviewStatus;
+  clientVisible: boolean;
+  onSaved: () => void;
+}) {
+  const [draft, setDraft] = useState<ExecutiveAssessment>({ ...EMPTY_ASSESSMENT, ...assessment });
+
+  useEffect(() => setDraft({ ...EMPTY_ASSESSMENT, ...assessment }), [assessment]);
+
+  async function save() {
+    await api(`/api/admin/author-audits/${auditId}`, {
+      method: "PATCH",
+      body: JSON.stringify({ executiveAssessment: draft }),
+    });
+    onSaved();
+  }
+
+  async function reviewPatch(patch: { reviewStatus?: ReviewStatus; clientVisible?: boolean }) {
+    await api(`/api/admin/author-audits/${auditId}`, {
+      method: "PATCH",
+      body: JSON.stringify({
+        ...(patch.reviewStatus ? { executiveAssessmentReviewStatus: patch.reviewStatus } : {}),
+        ...(patch.clientVisible !== undefined
+          ? { executiveAssessmentClientVisible: patch.clientVisible }
+          : {}),
+      }),
+    });
+    onSaved();
+  }
+
+  return (
+    <section className="rounded-2xl border border-border bg-card p-5">
+      <h3 className="font-display text-lg">Executive assessment</h3>
+      <p className="mt-1 text-xs text-muted-foreground">
+        Claude drafted this from approved findings — read and edit before it goes in front of the
+        client.
+      </p>
+      <div className="mt-4 space-y-4">
+        {ASSESSMENT_FIELDS.map((f) => (
+          <label key={f.key} className="block">
+            <span className="text-xs font-medium text-muted-foreground">{f.label}</span>
+            <textarea
+              rows={2}
+              className={cn(input, "mt-1 resize-y")}
+              value={draft[f.key]}
+              onChange={(e) => setDraft((d) => ({ ...d, [f.key]: e.target.value }))}
+            />
+          </label>
+        ))}
+      </div>
+      <button
+        type="button"
+        onClick={() => void save()}
+        className="mt-4 rounded-full border border-border px-4 py-1.5 text-xs font-medium hover:border-brand hover:text-brand"
+      >
+        Save edits
+      </button>
+      <ReviewBar
+        reviewStatus={reviewStatus}
+        clientVisible={clientVisible}
+        onChange={(p) => void reviewPatch(p)}
+      />
+    </section>
+  );
+}
+
+/* ---------------------------------------------------------------- 3 moves */
+
+function MovesSection({
+  auditId,
+  moves,
+  onSaved,
+}: {
+  auditId: string;
+  moves: AuditPriorityMove[];
+  onSaved: () => void;
+}) {
+  return (
+    <section className="space-y-3">
+      <h3 className="font-display text-lg">The 3 moves we would make first</h3>
+      {[...moves]
+        .sort((a, b) => a.rank - b.rank)
+        .map((m) => (
+          <MoveCard key={m.id} auditId={auditId} move={m} onSaved={onSaved} />
+        ))}
+    </section>
+  );
+}
+
+function MoveCard({
+  auditId,
+  move,
+  onSaved,
+}: {
+  auditId: string;
+  move: AuditPriorityMove;
+  onSaved: () => void;
+}) {
+  async function patch(body: Record<string, unknown>) {
+    await api(`/api/admin/author-audits/${auditId}/moves/${move.id}`, {
+      method: "PATCH",
+      body: JSON.stringify(body),
+    });
+    onSaved();
+  }
+  return (
+    <div className="rounded-2xl border border-border bg-card p-5">
+      <p className="font-display text-base">
+        Move {move.rank} — {move.title}
+      </p>
+      <p className="mt-2 text-xs font-medium text-muted-foreground uppercase">What we found</p>
+      <p className="text-sm">{move.what_we_found}</p>
+      <p className="mt-2 text-xs font-medium text-muted-foreground uppercase">
+        What we would change
+      </p>
+      <p className="text-sm">{move.what_we_would_change}</p>
+      <p className="mt-2 text-xs font-medium text-muted-foreground uppercase">
+        Why this comes first
+      </p>
+      <p className="text-sm">{move.why_first}</p>
+      <ReviewBar
+        reviewStatus={move.review_status}
+        clientVisible={move.client_visible}
+        onChange={(patch2) => void patch(patch2)}
+      />
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------ 30-day roadmap */
+
+function RoadmapSection({
+  auditId,
+  items,
+  onSaved,
+}: {
+  auditId: string;
+  items: AuditRoadmapItem[];
+  onSaved: () => void;
+}) {
+  const byWeek = new Map<number, AuditRoadmapItem[]>();
+  for (const item of items) byWeek.set(item.week, [...(byWeek.get(item.week) ?? []), item]);
+  return (
+    <section className="space-y-3">
+      <h3 className="font-display text-lg">30-day action roadmap</h3>
+      {[...byWeek.entries()].map(([week, weekItems]) => (
+        <div key={week} className="rounded-2xl border border-border bg-card p-5">
+          <p className="font-display text-base">Week {week}</p>
+          <div className="mt-3 space-y-3">
+            {weekItems.map((item) => (
+              <RoadmapItemRow key={item.id} auditId={auditId} item={item} onSaved={onSaved} />
+            ))}
+          </div>
+        </div>
+      ))}
+    </section>
+  );
+}
+
+function RoadmapItemRow({
+  auditId,
+  item,
+  onSaved,
+}: {
+  auditId: string;
+  item: AuditRoadmapItem;
+  onSaved: () => void;
+}) {
+  async function patch(body: Record<string, unknown>) {
+    await api(`/api/admin/author-audits/${auditId}/roadmap/${item.id}`, {
+      method: "PATCH",
+      body: JSON.stringify(body),
+    });
+    onSaved();
+  }
+  return (
+    <div className="border-t border-border pt-3 first:border-t-0 first:pt-0">
+      <p className="text-sm">{item.action}</p>
+      {item.completion_indicator ? (
+        <p className="mt-1 text-xs text-muted-foreground">Done when: {item.completion_indicator}</p>
+      ) : null}
+      <ReviewBar
+        reviewStatus={item.review_status}
+        clientVisible={item.client_visible}
+        onChange={(patch2) => void patch(patch2)}
+      />
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------ evidence assets */
+
+function EvidenceAssetsSection({
+  auditId,
+  assets,
+  onSaved,
+}: {
+  auditId: string;
+  assets: AuditEvidenceAsset[];
+  onSaved: () => void;
+}) {
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState("");
+
+  async function onFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    setError("");
+    try {
+      const { url } = await uploadAdminMedia(file, "audit-evidence");
+      await api(`/api/admin/author-audits/${auditId}/evidence-assets`, {
+        method: "POST",
+        body: JSON.stringify({ storageUrl: url }),
+      });
+      onSaved();
+    } catch {
+      setError("Upload failed.");
+    }
+    setUploading(false);
+    e.target.value = "";
+  }
+
+  async function patch(assetId: string, body: Record<string, unknown>) {
+    await api(`/api/admin/author-audits/${auditId}/evidence-assets/${assetId}`, {
+      method: "PATCH",
+      body: JSON.stringify(body),
+    });
+    onSaved();
+  }
+
+  return (
+    <section className="rounded-2xl border border-border bg-card p-5">
+      <h3 className="font-display text-lg">Visual evidence</h3>
+      <p className="mt-1 text-xs text-muted-foreground">
+        Manual upload only — no automated screenshots of platforms that restrict scraping (Amazon,
+        Goodreads, social).
+      </p>
+      <input
+        type="file"
+        accept="image/*"
+        disabled={uploading}
+        onChange={onFile}
+        className="mt-3 block text-sm"
+      />
+      {error ? <p className="mt-2 text-xs text-destructive">{error}</p> : null}
+      {assets.length > 0 ? (
+        <ul className="mt-4 grid gap-3 sm:grid-cols-2">
+          {assets.map((a) => (
+            <li key={a.id} className="rounded-xl border border-border p-3">
+              <img
+                src={a.storage_url}
+                alt={a.caption ?? "Evidence"}
+                className="w-full rounded-lg object-cover"
+              />
+              <input
+                className={cn(input, "mt-2")}
+                placeholder="Caption"
+                defaultValue={a.caption ?? ""}
+                onBlur={(e) => void patch(a.id, { caption: e.target.value })}
+              />
+              <label className="mt-2 flex items-center gap-2 text-xs font-medium">
+                <input
+                  type="checkbox"
+                  checked={a.client_visible}
+                  onChange={(e) => void patch(a.id, { clientVisible: e.target.checked })}
+                  className="size-4 accent-[var(--brand)]"
+                />
+                Client visible
+              </label>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+    </section>
   );
 }

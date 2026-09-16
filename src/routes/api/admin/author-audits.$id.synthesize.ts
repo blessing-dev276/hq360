@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { isAdminRequest } from "@/lib/admin-auth.server";
 import { asAuditDb, type Author, type AuditSource, type Book } from "@/lib/author-audit/db";
 import { synthesizeAudit } from "@/lib/author-audit/synthesize";
+import { VERIFICATION_FIELDS } from "@/lib/author-audit/verification-fields";
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -11,12 +12,16 @@ function json(body: unknown, status = 200) {
 }
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const FIELD_SECTION = new Map(VERIFICATION_FIELDS.map((f) => [f.key, f.section]));
 
-/** Sends everything gathered so far (automated sources + manual
- * verifications) to Claude for structured, evidence-only synthesis, then
- * writes the result as audit_evidence / audit_findings / service_opportunities
- * rows — all starting unreviewed (review_status: "ai_research",
- * client_visible: false) until staff approve them individually. */
+/** Phase A of the two-phase synthesis: sends everything gathered so far
+ * (automated sources + manual verifications) to Claude for structured,
+ * evidence-only analysis, then writes the result as audit_evidence /
+ * audit_findings / audit_strengths / audit_reader_journey rows — all
+ * starting unreviewed (review_status: "ai_research", client_visible:
+ * false) until staff approve them individually. The strategic layer (three
+ * moves / roadmap / executive assessment) is Phase B, generated only after
+ * staff have approved material here — see .synthesize-plan.ts. */
 export const Route = createFileRoute("/api/admin/author-audits/$id/synthesize")({
   server: {
     handlers: {
@@ -74,36 +79,36 @@ export const Route = createFileRoute("/api/admin/author-audits/$id/synthesize")(
             })),
             manualVerifications: verificationRows.map((v) => ({
               fieldKey: v.field_key,
+              section: FIELD_SECTION.get(v.field_key) ?? "other",
               value: v.value,
               verificationStatus: v.verification_status,
             })),
           });
 
-          const { data: insertedEvidence, error: evidenceErr } = await db
-            .from("audit_evidence")
-            .insert(
-              result.evidence.map((e) => ({
-                audit_id: params.id,
-                section: e.section,
-                claim: e.claim,
-                excerpt: e.excerpt,
-                url: e.url,
-                verification_status: e.verificationStatus,
-                confidence: e.confidence,
-                client_safe:
-                  e.verificationStatus === "verified" || e.verificationStatus === "likely",
-              })),
-            )
-            .select("id");
+          const now = new Date().toISOString();
+
+          const { error: evidenceErr } = await db.from("audit_evidence").insert(
+            result.evidence.map((e) => ({
+              audit_id: params.id,
+              section: e.section,
+              claim: e.claim,
+              excerpt: e.excerpt,
+              url: e.url,
+              verification_status: e.verificationStatus,
+              confidence: e.confidence,
+              client_safe: e.verificationStatus === "verified" || e.verificationStatus === "likely",
+            })),
+          );
           if (evidenceErr) return json({ ok: false, error: "storage" }, 500);
-          const evidenceIds = (insertedEvidence ?? []).map((e) => (e as { id: string }).id);
 
           for (const finding of result.findings) {
             const { data: insertedFinding, error: findingErr } = await db
               .from("audit_findings")
               .insert({
                 audit_id: params.id,
-                section: finding.section,
+                section: finding.category,
+                title: finding.title,
+                category: finding.category,
                 observation: finding.observation,
                 why_it_matters: finding.whyItMatters,
                 recommendation: finding.recommendation,
@@ -111,6 +116,9 @@ export const Route = createFileRoute("/api/admin/author-audits/$id/synthesize")(
                 priority: finding.priority,
                 effort: finding.effort,
                 potential_impact: finding.potentialImpact,
+                source_urls: finding.sourceUrls,
+                retrieved_at: now,
+                capability_slug: finding.serviceOpportunity?.capabilitySlug ?? null,
                 review_status: "ai_research",
                 client_visible: false,
               })
@@ -131,24 +139,47 @@ export const Route = createFileRoute("/api/admin/author-audits/$id/synthesize")(
             }
           }
 
-          await db
-            .from("author_audits")
-            .update({
-              status: "ready_for_review",
-              input_snapshot: {
-                ...record.input_snapshot,
-                executiveSummary: result.executiveSummary,
-                strengths: result.strengths,
-              },
-            })
-            .eq("id", params.id);
+          if (result.strengths.length > 0) {
+            await db.from("audit_strengths").insert(
+              result.strengths.map((s) => ({
+                audit_id: params.id,
+                title: s.title,
+                observation: s.observation,
+                evidence: s.evidence,
+                source_urls: s.sourceUrls,
+                retrieved_at: now,
+                review_status: "ai_research",
+                client_visible: false,
+              })),
+            );
+          }
+
+          if (result.readerJourney.length > 0) {
+            await db.from("audit_reader_journey").upsert(
+              result.readerJourney.map((j) => ({
+                audit_id: params.id,
+                stage: j.stage,
+                status: j.status,
+                observation: j.observation,
+                evidence: j.evidence,
+                friction: j.friction,
+                recommendation: j.recommendation,
+                retrieved_at: now,
+                review_status: "ai_research",
+                client_visible: false,
+              })),
+              { onConflict: "audit_id,stage" },
+            );
+          }
+
+          await db.from("author_audits").update({ status: "ready_for_review" }).eq("id", params.id);
 
           return json({
             ok: true,
-            evidenceCount: evidenceIds.length,
+            evidenceCount: result.evidence.length,
             findingCount: result.findings.length,
-            executiveSummary: result.executiveSummary,
-            strengths: result.strengths,
+            strengthCount: result.strengths.length,
+            journeyStepCount: result.readerJourney.length,
           });
         } catch (err) {
           console.error(

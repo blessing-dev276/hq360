@@ -13,24 +13,18 @@ function json(body: unknown, status = 200) {
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 const schema = z.object({
-  title: z.string().min(1).max(300).optional(),
-  observation: z.string().min(1).max(4000).optional(),
-  whyItMatters: z.string().max(2000).nullable().optional(),
-  recommendation: z.string().max(2000).nullable().optional(),
-  reviewStatus: z.enum(["ai_research", "needs_verification", "approved", "rejected"]).optional(),
+  caption: z.string().max(500).nullable().optional(),
+  source: z.string().max(300).nullable().optional(),
   clientVisible: z.boolean().optional(),
 });
 
-/** Staff edits a single finding in place and/or approves it for the client
- * report. A finding only ever reaches the report once clientVisible is set
- * true, which only a human does here. */
-export const Route = createFileRoute("/api/admin/author-audits/$id/findings/$findingId")({
+export const Route = createFileRoute("/api/admin/author-audits/$id/evidence-assets/$assetId")({
   server: {
     handlers: {
       PATCH: async ({ request, params }) => {
         if (!(await isAdminRequest(request)))
           return json({ ok: false, error: "unauthorized" }, 401);
-        if (!UUID.test(params.id) || !UUID.test(params.findingId))
+        if (!UUID.test(params.id) || !UUID.test(params.assetId))
           return json({ ok: false, error: "not_found" }, 404);
         let body: z.infer<typeof schema>;
         try {
@@ -38,13 +32,9 @@ export const Route = createFileRoute("/api/admin/author-audits/$id/findings/$fin
         } catch {
           return json({ ok: false, error: "invalid" }, 400);
         }
-
         const update: Record<string, unknown> = {};
-        if (body.title !== undefined) update.title = body.title;
-        if (body.observation !== undefined) update.observation = body.observation;
-        if (body.whyItMatters !== undefined) update.why_it_matters = body.whyItMatters;
-        if (body.recommendation !== undefined) update.recommendation = body.recommendation;
-        if (body.reviewStatus !== undefined) update.review_status = body.reviewStatus;
+        if (body.caption !== undefined) update.caption = body.caption;
+        if (body.source !== undefined) update.source = body.source;
         if (body.clientVisible !== undefined) update.client_visible = body.clientVisible;
         if (Object.keys(update).length === 0) return json({ ok: false, error: "empty" }, 400);
 
@@ -52,9 +42,9 @@ export const Route = createFileRoute("/api/admin/author-audits/$id/findings/$fin
           const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
           const db = asAuditDb(supabaseAdmin);
           const { data, error } = await db
-            .from("audit_findings")
+            .from("audit_evidence_assets")
             .update(update)
-            .eq("id", params.findingId)
+            .eq("id", params.assetId)
             .eq("audit_id", params.id)
             .select("*")
             .single();
@@ -62,7 +52,30 @@ export const Route = createFileRoute("/api/admin/author-audits/$id/findings/$fin
           return json({ ok: true, item: data });
         } catch (err) {
           console.error(
-            "[admin/author-audits/:id/findings/:findingId] PATCH",
+            "[admin/author-audits/:id/evidence-assets/:assetId] PATCH",
+            err instanceof Error ? err.message : err,
+          );
+          return json({ ok: false, error: "unavailable" }, 503);
+        }
+      },
+      DELETE: async ({ request, params }) => {
+        if (!(await isAdminRequest(request)))
+          return json({ ok: false, error: "unauthorized" }, 401);
+        if (!UUID.test(params.id) || !UUID.test(params.assetId))
+          return json({ ok: false, error: "not_found" }, 404);
+        try {
+          const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+          const db = asAuditDb(supabaseAdmin);
+          const { error } = await db
+            .from("audit_evidence_assets")
+            .delete()
+            .eq("id", params.assetId)
+            .eq("audit_id", params.id);
+          if (error) return json({ ok: false, error: "storage" }, 500);
+          return json({ ok: true });
+        } catch (err) {
+          console.error(
+            "[admin/author-audits/:id/evidence-assets/:assetId] DELETE",
             err instanceof Error ? err.message : err,
           );
           return json({ ok: false, error: "unavailable" }, 503);

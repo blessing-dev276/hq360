@@ -53,6 +53,8 @@ import { Route as ToolsAuthorVisibilityAuditRouteImport } from './routes/tools/a
 import { Route as ToolsWebsiteAuditRouteImport } from './routes/tools/website-audit'
 import { Route as WorkIndexRouteImport } from './routes/work.index'
 import { Route as WorkSlugRouteImport } from './routes/work.$slug'
+import { Route as ApiAdminAuthorAuditLeadsRouteImport } from './routes/api/admin/author-audit-leads'
+import { Route as ApiAdminAuthorAuditsRouteImport } from './routes/api/admin/author-audits'
 import { Route as ApiAdminCaseStudiesRouteImport } from './routes/api/admin/case-studies'
 import { Route as ApiAdminPortfolioRouteImport } from './routes/api/admin/portfolio'
 import { Route as ApiAdminSessionRouteImport } from './routes/api/admin/session'
@@ -72,6 +74,7 @@ import { Route as ApiPublicTestimonialsRouteImport } from './routes/api/public/t
 import { Route as ApiPublicVoiceMessageRouteImport } from './routes/api/public/voice-message'
 import { Route as InsightsAnswersSlugRouteImport } from './routes/insights.answers.$slug'
 import { Route as InsightsGuidesSlugRouteImport } from './routes/insights.guides.$slug'
+import { Route as ApiAdminAuthorAuditsIdRouteImport } from './routes/api/admin/author-audits.$id'
 import { Route as ApiAdminCaseStudiesIdRouteImport } from './routes/api/admin/case-studies.$id'
 import { Route as ApiAdminCaseStudiesReorderRouteImport } from './routes/api/admin/case-studies.reorder'
 import { Route as ApiAdminPortfolioIdRouteImport } from './routes/api/admin/portfolio.$id'
@@ -80,6 +83,11 @@ import { Route as ApiAdminTeamIdRouteImport } from './routes/api/admin/team.$id'
 import { Route as ApiAdminTeamReorderRouteImport } from './routes/api/admin/team.reorder'
 import { Route as ApiAdminTestimonialsIdRouteImport } from './routes/api/admin/testimonials.$id'
 import { Route as ApiAdminTestimonialsReorderRouteImport } from './routes/api/admin/testimonials.reorder'
+import { Route as ApiAdminAuthorAuditsIdReportRouteImport } from './routes/api/admin/author-audits.$id.report'
+import { Route as ApiAdminAuthorAuditsIdResearchRouteImport } from './routes/api/admin/author-audits.$id.research'
+import { Route as ApiAdminAuthorAuditsIdSynthesizeRouteImport } from './routes/api/admin/author-audits.$id.synthesize'
+import { Route as ApiAdminAuthorAuditsIdVerificationsRouteImport } from './routes/api/admin/author-audits.$id.verifications'
+import { Route as ApiAdminAuthorAuditsIdFindingsFindingIdRouteImport } from './routes/api/admin/author-audits.$id.findings.$findingId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -302,6 +310,17 @@ const WorkSlugRoute = WorkSlugRouteImport.update({
   path: '/work/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAdminAuthorAuditLeadsRoute =
+  ApiAdminAuthorAuditLeadsRouteImport.update({
+    id: '/api/admin/author-audit-leads',
+    path: '/api/admin/author-audit-leads',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiAdminAuthorAuditsRoute = ApiAdminAuthorAuditsRouteImport.update({
+  id: '/api/admin/author-audits',
+  path: '/api/admin/author-audits',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAdminCaseStudiesRoute = ApiAdminCaseStudiesRouteImport.update({
   id: '/api/admin/case-studies',
   path: '/api/admin/case-studies',
@@ -398,6 +417,11 @@ const InsightsGuidesSlugRoute = InsightsGuidesSlugRouteImport.update({
   path: '/insights/guides/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAdminAuthorAuditsIdRoute = ApiAdminAuthorAuditsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ApiAdminAuthorAuditsRoute,
+} as any)
 const ApiAdminCaseStudiesIdRoute = ApiAdminCaseStudiesIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -440,6 +464,36 @@ const ApiAdminTestimonialsReorderRoute =
     id: '/reorder',
     path: '/reorder',
     getParentRoute: () => ApiAdminTestimonialsRoute,
+  } as any)
+const ApiAdminAuthorAuditsIdReportRoute =
+  ApiAdminAuthorAuditsIdReportRouteImport.update({
+    id: '/report',
+    path: '/report',
+    getParentRoute: () => ApiAdminAuthorAuditsIdRoute,
+  } as any)
+const ApiAdminAuthorAuditsIdResearchRoute =
+  ApiAdminAuthorAuditsIdResearchRouteImport.update({
+    id: '/research',
+    path: '/research',
+    getParentRoute: () => ApiAdminAuthorAuditsIdRoute,
+  } as any)
+const ApiAdminAuthorAuditsIdSynthesizeRoute =
+  ApiAdminAuthorAuditsIdSynthesizeRouteImport.update({
+    id: '/synthesize',
+    path: '/synthesize',
+    getParentRoute: () => ApiAdminAuthorAuditsIdRoute,
+  } as any)
+const ApiAdminAuthorAuditsIdVerificationsRoute =
+  ApiAdminAuthorAuditsIdVerificationsRouteImport.update({
+    id: '/verifications',
+    path: '/verifications',
+    getParentRoute: () => ApiAdminAuthorAuditsIdRoute,
+  } as any)
+const ApiAdminAuthorAuditsIdFindingsFindingIdRoute =
+  ApiAdminAuthorAuditsIdFindingsFindingIdRouteImport.update({
+    id: '/findings/$findingId',
+    path: '/findings/$findingId',
+    getParentRoute: () => ApiAdminAuthorAuditsIdRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -487,6 +541,8 @@ export interface FileRoutesByFullPath {
   '/services/': typeof ServicesIndexRoute
   '/tools/': typeof ToolsIndexRoute
   '/work/': typeof WorkIndexRoute
+  '/api/admin/author-audit-leads': typeof ApiAdminAuthorAuditLeadsRoute
+  '/api/admin/author-audits': typeof ApiAdminAuthorAuditsRouteWithChildren
   '/api/admin/case-studies': typeof ApiAdminCaseStudiesRouteWithChildren
   '/api/admin/portfolio': typeof ApiAdminPortfolioRouteWithChildren
   '/api/admin/session': typeof ApiAdminSessionRoute
@@ -506,6 +562,7 @@ export interface FileRoutesByFullPath {
   '/api/public/voice-message': typeof ApiPublicVoiceMessageRoute
   '/insights/answers/$slug': typeof InsightsAnswersSlugRoute
   '/insights/guides/$slug': typeof InsightsGuidesSlugRoute
+  '/api/admin/author-audits/$id': typeof ApiAdminAuthorAuditsIdRouteWithChildren
   '/api/admin/case-studies/$id': typeof ApiAdminCaseStudiesIdRoute
   '/api/admin/case-studies/reorder': typeof ApiAdminCaseStudiesReorderRoute
   '/api/admin/portfolio/$id': typeof ApiAdminPortfolioIdRoute
@@ -514,6 +571,11 @@ export interface FileRoutesByFullPath {
   '/api/admin/team/reorder': typeof ApiAdminTeamReorderRoute
   '/api/admin/testimonials/$id': typeof ApiAdminTestimonialsIdRoute
   '/api/admin/testimonials/reorder': typeof ApiAdminTestimonialsReorderRoute
+  '/api/admin/author-audits/$id/report': typeof ApiAdminAuthorAuditsIdReportRoute
+  '/api/admin/author-audits/$id/research': typeof ApiAdminAuthorAuditsIdResearchRoute
+  '/api/admin/author-audits/$id/synthesize': typeof ApiAdminAuthorAuditsIdSynthesizeRoute
+  '/api/admin/author-audits/$id/verifications': typeof ApiAdminAuthorAuditsIdVerificationsRoute
+  '/api/admin/author-audits/$id/findings/$findingId': typeof ApiAdminAuthorAuditsIdFindingsFindingIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -560,6 +622,8 @@ export interface FileRoutesByTo {
   '/services': typeof ServicesIndexRoute
   '/tools': typeof ToolsIndexRoute
   '/work': typeof WorkIndexRoute
+  '/api/admin/author-audit-leads': typeof ApiAdminAuthorAuditLeadsRoute
+  '/api/admin/author-audits': typeof ApiAdminAuthorAuditsRouteWithChildren
   '/api/admin/case-studies': typeof ApiAdminCaseStudiesRouteWithChildren
   '/api/admin/portfolio': typeof ApiAdminPortfolioRouteWithChildren
   '/api/admin/session': typeof ApiAdminSessionRoute
@@ -579,6 +643,7 @@ export interface FileRoutesByTo {
   '/api/public/voice-message': typeof ApiPublicVoiceMessageRoute
   '/insights/answers/$slug': typeof InsightsAnswersSlugRoute
   '/insights/guides/$slug': typeof InsightsGuidesSlugRoute
+  '/api/admin/author-audits/$id': typeof ApiAdminAuthorAuditsIdRouteWithChildren
   '/api/admin/case-studies/$id': typeof ApiAdminCaseStudiesIdRoute
   '/api/admin/case-studies/reorder': typeof ApiAdminCaseStudiesReorderRoute
   '/api/admin/portfolio/$id': typeof ApiAdminPortfolioIdRoute
@@ -587,6 +652,11 @@ export interface FileRoutesByTo {
   '/api/admin/team/reorder': typeof ApiAdminTeamReorderRoute
   '/api/admin/testimonials/$id': typeof ApiAdminTestimonialsIdRoute
   '/api/admin/testimonials/reorder': typeof ApiAdminTestimonialsReorderRoute
+  '/api/admin/author-audits/$id/report': typeof ApiAdminAuthorAuditsIdReportRoute
+  '/api/admin/author-audits/$id/research': typeof ApiAdminAuthorAuditsIdResearchRoute
+  '/api/admin/author-audits/$id/synthesize': typeof ApiAdminAuthorAuditsIdSynthesizeRoute
+  '/api/admin/author-audits/$id/verifications': typeof ApiAdminAuthorAuditsIdVerificationsRoute
+  '/api/admin/author-audits/$id/findings/$findingId': typeof ApiAdminAuthorAuditsIdFindingsFindingIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -634,6 +704,8 @@ export interface FileRoutesById {
   '/services/': typeof ServicesIndexRoute
   '/tools/': typeof ToolsIndexRoute
   '/work/': typeof WorkIndexRoute
+  '/api/admin/author-audit-leads': typeof ApiAdminAuthorAuditLeadsRoute
+  '/api/admin/author-audits': typeof ApiAdminAuthorAuditsRouteWithChildren
   '/api/admin/case-studies': typeof ApiAdminCaseStudiesRouteWithChildren
   '/api/admin/portfolio': typeof ApiAdminPortfolioRouteWithChildren
   '/api/admin/session': typeof ApiAdminSessionRoute
@@ -653,6 +725,7 @@ export interface FileRoutesById {
   '/api/public/voice-message': typeof ApiPublicVoiceMessageRoute
   '/insights/answers/$slug': typeof InsightsAnswersSlugRoute
   '/insights/guides/$slug': typeof InsightsGuidesSlugRoute
+  '/api/admin/author-audits/$id': typeof ApiAdminAuthorAuditsIdRouteWithChildren
   '/api/admin/case-studies/$id': typeof ApiAdminCaseStudiesIdRoute
   '/api/admin/case-studies/reorder': typeof ApiAdminCaseStudiesReorderRoute
   '/api/admin/portfolio/$id': typeof ApiAdminPortfolioIdRoute
@@ -661,6 +734,11 @@ export interface FileRoutesById {
   '/api/admin/team/reorder': typeof ApiAdminTeamReorderRoute
   '/api/admin/testimonials/$id': typeof ApiAdminTestimonialsIdRoute
   '/api/admin/testimonials/reorder': typeof ApiAdminTestimonialsReorderRoute
+  '/api/admin/author-audits/$id/report': typeof ApiAdminAuthorAuditsIdReportRoute
+  '/api/admin/author-audits/$id/research': typeof ApiAdminAuthorAuditsIdResearchRoute
+  '/api/admin/author-audits/$id/synthesize': typeof ApiAdminAuthorAuditsIdSynthesizeRoute
+  '/api/admin/author-audits/$id/verifications': typeof ApiAdminAuthorAuditsIdVerificationsRoute
+  '/api/admin/author-audits/$id/findings/$findingId': typeof ApiAdminAuthorAuditsIdFindingsFindingIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -709,6 +787,8 @@ export interface FileRouteTypes {
     | '/services/'
     | '/tools/'
     | '/work/'
+    | '/api/admin/author-audit-leads'
+    | '/api/admin/author-audits'
     | '/api/admin/case-studies'
     | '/api/admin/portfolio'
     | '/api/admin/session'
@@ -728,6 +808,7 @@ export interface FileRouteTypes {
     | '/api/public/voice-message'
     | '/insights/answers/$slug'
     | '/insights/guides/$slug'
+    | '/api/admin/author-audits/$id'
     | '/api/admin/case-studies/$id'
     | '/api/admin/case-studies/reorder'
     | '/api/admin/portfolio/$id'
@@ -736,6 +817,11 @@ export interface FileRouteTypes {
     | '/api/admin/team/reorder'
     | '/api/admin/testimonials/$id'
     | '/api/admin/testimonials/reorder'
+    | '/api/admin/author-audits/$id/report'
+    | '/api/admin/author-audits/$id/research'
+    | '/api/admin/author-audits/$id/synthesize'
+    | '/api/admin/author-audits/$id/verifications'
+    | '/api/admin/author-audits/$id/findings/$findingId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -782,6 +868,8 @@ export interface FileRouteTypes {
     | '/services'
     | '/tools'
     | '/work'
+    | '/api/admin/author-audit-leads'
+    | '/api/admin/author-audits'
     | '/api/admin/case-studies'
     | '/api/admin/portfolio'
     | '/api/admin/session'
@@ -801,6 +889,7 @@ export interface FileRouteTypes {
     | '/api/public/voice-message'
     | '/insights/answers/$slug'
     | '/insights/guides/$slug'
+    | '/api/admin/author-audits/$id'
     | '/api/admin/case-studies/$id'
     | '/api/admin/case-studies/reorder'
     | '/api/admin/portfolio/$id'
@@ -809,6 +898,11 @@ export interface FileRouteTypes {
     | '/api/admin/team/reorder'
     | '/api/admin/testimonials/$id'
     | '/api/admin/testimonials/reorder'
+    | '/api/admin/author-audits/$id/report'
+    | '/api/admin/author-audits/$id/research'
+    | '/api/admin/author-audits/$id/synthesize'
+    | '/api/admin/author-audits/$id/verifications'
+    | '/api/admin/author-audits/$id/findings/$findingId'
   id:
     | '__root__'
     | '/'
@@ -855,6 +949,8 @@ export interface FileRouteTypes {
     | '/services/'
     | '/tools/'
     | '/work/'
+    | '/api/admin/author-audit-leads'
+    | '/api/admin/author-audits'
     | '/api/admin/case-studies'
     | '/api/admin/portfolio'
     | '/api/admin/session'
@@ -874,6 +970,7 @@ export interface FileRouteTypes {
     | '/api/public/voice-message'
     | '/insights/answers/$slug'
     | '/insights/guides/$slug'
+    | '/api/admin/author-audits/$id'
     | '/api/admin/case-studies/$id'
     | '/api/admin/case-studies/reorder'
     | '/api/admin/portfolio/$id'
@@ -882,6 +979,11 @@ export interface FileRouteTypes {
     | '/api/admin/team/reorder'
     | '/api/admin/testimonials/$id'
     | '/api/admin/testimonials/reorder'
+    | '/api/admin/author-audits/$id/report'
+    | '/api/admin/author-audits/$id/research'
+    | '/api/admin/author-audits/$id/synthesize'
+    | '/api/admin/author-audits/$id/verifications'
+    | '/api/admin/author-audits/$id/findings/$findingId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -929,6 +1031,8 @@ export interface RootRouteChildren {
   ServicesIndexRoute: typeof ServicesIndexRoute
   ToolsIndexRoute: typeof ToolsIndexRoute
   WorkIndexRoute: typeof WorkIndexRoute
+  ApiAdminAuthorAuditLeadsRoute: typeof ApiAdminAuthorAuditLeadsRoute
+  ApiAdminAuthorAuditsRoute: typeof ApiAdminAuthorAuditsRouteWithChildren
   ApiAdminCaseStudiesRoute: typeof ApiAdminCaseStudiesRouteWithChildren
   ApiAdminPortfolioRoute: typeof ApiAdminPortfolioRouteWithChildren
   ApiAdminSessionRoute: typeof ApiAdminSessionRoute
@@ -1260,6 +1364,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WorkSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/admin/author-audit-leads': {
+      id: '/api/admin/author-audit-leads'
+      path: '/api/admin/author-audit-leads'
+      fullPath: '/api/admin/author-audit-leads'
+      preLoaderRoute: typeof ApiAdminAuthorAuditLeadsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/author-audits': {
+      id: '/api/admin/author-audits'
+      path: '/api/admin/author-audits'
+      fullPath: '/api/admin/author-audits'
+      preLoaderRoute: typeof ApiAdminAuthorAuditsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/admin/case-studies': {
       id: '/api/admin/case-studies'
       path: '/api/admin/case-studies'
@@ -1393,6 +1511,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InsightsGuidesSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/admin/author-audits/$id': {
+      id: '/api/admin/author-audits/$id'
+      path: '/$id'
+      fullPath: '/api/admin/author-audits/$id'
+      preLoaderRoute: typeof ApiAdminAuthorAuditsIdRouteImport
+      parentRoute: typeof ApiAdminAuthorAuditsRoute
+    }
     '/api/admin/case-studies/$id': {
       id: '/api/admin/case-studies/$id'
       path: '/$id'
@@ -1449,8 +1574,79 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAdminTestimonialsReorderRouteImport
       parentRoute: typeof ApiAdminTestimonialsRoute
     }
+    '/api/admin/author-audits/$id/report': {
+      id: '/api/admin/author-audits/$id/report'
+      path: '/report'
+      fullPath: '/api/admin/author-audits/$id/report'
+      preLoaderRoute: typeof ApiAdminAuthorAuditsIdReportRouteImport
+      parentRoute: typeof ApiAdminAuthorAuditsIdRoute
+    }
+    '/api/admin/author-audits/$id/research': {
+      id: '/api/admin/author-audits/$id/research'
+      path: '/research'
+      fullPath: '/api/admin/author-audits/$id/research'
+      preLoaderRoute: typeof ApiAdminAuthorAuditsIdResearchRouteImport
+      parentRoute: typeof ApiAdminAuthorAuditsIdRoute
+    }
+    '/api/admin/author-audits/$id/synthesize': {
+      id: '/api/admin/author-audits/$id/synthesize'
+      path: '/synthesize'
+      fullPath: '/api/admin/author-audits/$id/synthesize'
+      preLoaderRoute: typeof ApiAdminAuthorAuditsIdSynthesizeRouteImport
+      parentRoute: typeof ApiAdminAuthorAuditsIdRoute
+    }
+    '/api/admin/author-audits/$id/verifications': {
+      id: '/api/admin/author-audits/$id/verifications'
+      path: '/verifications'
+      fullPath: '/api/admin/author-audits/$id/verifications'
+      preLoaderRoute: typeof ApiAdminAuthorAuditsIdVerificationsRouteImport
+      parentRoute: typeof ApiAdminAuthorAuditsIdRoute
+    }
+    '/api/admin/author-audits/$id/findings/$findingId': {
+      id: '/api/admin/author-audits/$id/findings/$findingId'
+      path: '/findings/$findingId'
+      fullPath: '/api/admin/author-audits/$id/findings/$findingId'
+      preLoaderRoute: typeof ApiAdminAuthorAuditsIdFindingsFindingIdRouteImport
+      parentRoute: typeof ApiAdminAuthorAuditsIdRoute
+    }
   }
 }
+
+interface ApiAdminAuthorAuditsIdRouteChildren {
+  ApiAdminAuthorAuditsIdReportRoute: typeof ApiAdminAuthorAuditsIdReportRoute
+  ApiAdminAuthorAuditsIdResearchRoute: typeof ApiAdminAuthorAuditsIdResearchRoute
+  ApiAdminAuthorAuditsIdSynthesizeRoute: typeof ApiAdminAuthorAuditsIdSynthesizeRoute
+  ApiAdminAuthorAuditsIdVerificationsRoute: typeof ApiAdminAuthorAuditsIdVerificationsRoute
+  ApiAdminAuthorAuditsIdFindingsFindingIdRoute: typeof ApiAdminAuthorAuditsIdFindingsFindingIdRoute
+}
+
+const ApiAdminAuthorAuditsIdRouteChildren: ApiAdminAuthorAuditsIdRouteChildren =
+  {
+    ApiAdminAuthorAuditsIdReportRoute: ApiAdminAuthorAuditsIdReportRoute,
+    ApiAdminAuthorAuditsIdResearchRoute: ApiAdminAuthorAuditsIdResearchRoute,
+    ApiAdminAuthorAuditsIdSynthesizeRoute:
+      ApiAdminAuthorAuditsIdSynthesizeRoute,
+    ApiAdminAuthorAuditsIdVerificationsRoute:
+      ApiAdminAuthorAuditsIdVerificationsRoute,
+    ApiAdminAuthorAuditsIdFindingsFindingIdRoute:
+      ApiAdminAuthorAuditsIdFindingsFindingIdRoute,
+  }
+
+const ApiAdminAuthorAuditsIdRouteWithChildren =
+  ApiAdminAuthorAuditsIdRoute._addFileChildren(
+    ApiAdminAuthorAuditsIdRouteChildren,
+  )
+
+interface ApiAdminAuthorAuditsRouteChildren {
+  ApiAdminAuthorAuditsIdRoute: typeof ApiAdminAuthorAuditsIdRouteWithChildren
+}
+
+const ApiAdminAuthorAuditsRouteChildren: ApiAdminAuthorAuditsRouteChildren = {
+  ApiAdminAuthorAuditsIdRoute: ApiAdminAuthorAuditsIdRouteWithChildren,
+}
+
+const ApiAdminAuthorAuditsRouteWithChildren =
+  ApiAdminAuthorAuditsRoute._addFileChildren(ApiAdminAuthorAuditsRouteChildren)
 
 interface ApiAdminCaseStudiesRouteChildren {
   ApiAdminCaseStudiesIdRoute: typeof ApiAdminCaseStudiesIdRoute
@@ -1550,6 +1746,8 @@ const rootRouteChildren: RootRouteChildren = {
   ServicesIndexRoute: ServicesIndexRoute,
   ToolsIndexRoute: ToolsIndexRoute,
   WorkIndexRoute: WorkIndexRoute,
+  ApiAdminAuthorAuditLeadsRoute: ApiAdminAuthorAuditLeadsRoute,
+  ApiAdminAuthorAuditsRoute: ApiAdminAuthorAuditsRouteWithChildren,
   ApiAdminCaseStudiesRoute: ApiAdminCaseStudiesRouteWithChildren,
   ApiAdminPortfolioRoute: ApiAdminPortfolioRouteWithChildren,
   ApiAdminSessionRoute: ApiAdminSessionRoute,

@@ -23,10 +23,10 @@ export function extractAsin(value: string): string | undefined {
   const input = value.trim().toUpperCase();
   const direct = input.match(/^[A-Z0-9]{10}$/)?.[0];
   if (direct) return direct;
-  return input.match(/(?:DP|ASIN)[\/=]([A-Z0-9]{10})(?:[/?&#]|$)/)?.[1];
+  return input.match(/(?:DP|ASIN)[/=]([A-Z0-9]{10})(?:[/?&#]|$)/)?.[1];
 }
 
-function normalized(value: string) {
+export function normalized(value: string) {
   return value.trim().replace(/\s+/g, " ").toLocaleLowerCase();
 }
 
@@ -73,7 +73,7 @@ export async function searchGoogleBooks(input: {
     return {
       provider: "google_books",
       sourceType: "book_metadata",
-      url: item.id ? `https://books.google.com/books?id=${item.id}` : undefined,
+      ...(item.id ? { url: `https://books.google.com/books?id=${item.id}` } : {}),
       status: "retrieved",
       retrievedAt,
       data: item.volumeInfo,
@@ -114,7 +114,7 @@ export async function searchOpenLibrary(input: {
     return {
       provider: "open_library",
       sourceType: "book_metadata",
-      url: typeof item.key === "string" ? `https://openlibrary.org${item.key}` : undefined,
+      ...(typeof item.key === "string" ? { url: `https://openlibrary.org${item.key}` } : {}),
       status: "retrieved",
       retrievedAt,
       data: item,
@@ -205,7 +205,7 @@ export function amazonManualVerification(amazonUrlOrAsin?: string): ResearchSour
   return {
     provider: "amazon_manual",
     sourceType: "amazon_listing",
-    url: amazonUrlOrAsin?.startsWith("http") ? amazonUrlOrAsin : undefined,
+    ...(amazonUrlOrAsin?.startsWith("http") ? { url: amazonUrlOrAsin } : {}),
     status: "manual_verification_required",
     retrievedAt: new Date().toISOString(),
     data: {

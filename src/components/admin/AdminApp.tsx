@@ -4,6 +4,7 @@ import { CAPABILITIES } from "@/data/capabilities";
 import { INDUSTRIES } from "@/data/industries";
 import { uploadAdminMedia, type AdminBucket } from "@/lib/admin-upload";
 import type { SerializedCaseStudy } from "@/lib/case-study-shape";
+import { AuthorAuditAdmin } from "@/components/admin/AuthorAuditAdmin";
 
 /* ------------------------------------------------------------------ types */
 
@@ -120,7 +121,7 @@ function UploadField({
 
 /* ------------------------------------------------------------------- root */
 
-type Tab = "work" | "team" | "testimonials";
+type Tab = "work" | "team" | "testimonials" | "audits";
 /** "Work" merges what used to be two separate tabs (case studies + the
  * lightweight service portfolio) — both are "work we've done", just at
  * different depths, so they live under one roof with a sub-switcher. */
@@ -130,6 +131,7 @@ const TAB_TITLE: Record<Tab, string> = {
   work: "Work",
   team: "Team",
   testimonials: "Testimonials",
+  audits: "Audits",
 };
 
 const input =
@@ -150,7 +152,7 @@ export function AdminApp() {
         </div>
 
         <div className="mt-6 flex gap-1 rounded-full border border-border bg-card p-1 text-sm">
-          {(["work", "team", "testimonials"] as const).map((t) => (
+          {(["work", "team", "testimonials", "audits"] as const).map((t) => (
             <button
               key={t}
               type="button"
@@ -199,8 +201,10 @@ export function AdminApp() {
             )
           ) : tab === "team" ? (
             <TeamDashboard />
-          ) : (
+          ) : tab === "testimonials" ? (
             <TestimonialDashboard />
+          ) : (
+            <AuthorAuditAdmin />
           )}
         </div>
       </div>

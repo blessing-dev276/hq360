@@ -108,13 +108,13 @@ export const CAPABILITY_MENU: { label: string; to: string; blurb: string }[] = [
 export const PRIMARY_NAV: {
   label: string;
   to?: string;
-  menu?: "industries" | "capabilities" | "about";
+  menu?: "industries" | "capabilities" | "about" | "resources";
 }[] = [
   { label: "Industries", menu: "industries" },
   { label: "Services", menu: "capabilities" },
   { label: "Work", to: "/work" },
   { label: "About", menu: "about" },
-  { label: "Insights", to: "/insights" },
+  { label: "Resources", menu: "resources" },
 ];
 
 /** The About nav dropdown: the agency story, and the people behind it. */

@@ -5,8 +5,13 @@ import { Logo } from "@/components/Logo";
 import { ABOUT_MENU, CAPABILITY_MENU, CTAS, INDUSTRY_MENU, PRIMARY_NAV } from "@/config/brand";
 import "./SiteHeader.css";
 
-type MenuKey = "industries" | "capabilities" | "about";
+type MenuKey = "industries" | "capabilities" | "about" | "resources";
 type NavItem = { label: string; to: string };
+
+const RESOURCE_LINKS = [
+  { label: "Insights", to: "/insights" },
+  { label: "Testimonials & Reviews", href: "https://brand24.com/reviews/" },
+] as const;
 
 const INDUSTRY_GROUPS = [
   { label: "People & ideas", routes: ["/authors", "/creators", "/coaches"] },
@@ -98,7 +103,9 @@ export function SiteHeader() {
   useEffect(() => {
     if (!openMenu) return;
     if (focusPanelRef.current) {
-      const links = headerRef.current?.querySelectorAll<HTMLAnchorElement>(".hq-mega-menu a[href], .hq-simple-menu a[href]");
+      const links = headerRef.current?.querySelectorAll<HTMLAnchorElement>(
+        ".hq-mega-menu a[href], .hq-simple-menu a[href]",
+      );
       const index = focusPanelRef.current === "last" ? (links?.length ?? 1) - 1 : 0;
       links?.[index]?.focus();
       focusPanelRef.current = null;
@@ -135,7 +142,8 @@ export function SiteHeader() {
         if (event.pointerType !== "mouse") return;
         clearHoverTimer();
         // A menu being read with the keyboard must remain available.
-        if (headerRef.current?.querySelector(".hq-mega-menu :focus, .hq-simple-menu :focus")) return;
+        if (headerRef.current?.querySelector(".hq-mega-menu :focus, .hq-simple-menu :focus"))
+          return;
         hoverTimerRef.current = setTimeout(() => setOpenMenu(null), 180);
       }}
     >
@@ -190,10 +198,9 @@ export function SiteHeader() {
                       if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
                       event.preventDefault();
                       if (openMenu === key) {
-                        const links =
-                          headerRef.current?.querySelectorAll<HTMLAnchorElement>(
-                            ".hq-mega-menu a[href], .hq-simple-menu a[href]",
-                          );
+                        const links = headerRef.current?.querySelectorAll<HTMLAnchorElement>(
+                          ".hq-mega-menu a[href], .hq-simple-menu a[href]",
+                        );
                         links?.[event.key === "ArrowUp" ? links.length - 1 : 0]?.focus();
                       } else {
                         focusPanelRef.current = event.key === "ArrowUp" ? "last" : "first";
@@ -204,7 +211,7 @@ export function SiteHeader() {
                     {item.label}
                     <ChevronDown size={13} aria-hidden="true" />
                   </button>
-                  {openMenu === key && key === "about" && (
+                  {openMenu === key && (key === "about" || key === "resources") && (
                     <div
                       id={`${menuId}-${key}`}
                       className="hq-simple-menu"
@@ -212,19 +219,69 @@ export function SiteHeader() {
                       onPointerEnter={clearHoverTimer}
                     >
                       <ul className="hq-capability-menu-list">
-                        {ABOUT_MENU.map((link) => (
-                          <li key={link.to}>
-                            <Link to={link.to} preload="intent" className="hq-capability-menu-link">
-                              <span>
-                                <strong>{link.label}</strong>
-                                <span className="hq-capability-menu-description">
-                                  {link.blurb}
-                                </span>
-                              </span>
+                        {key === "about"
+                          ? ABOUT_MENU.map((link) => (
+                              <li key={link.to}>
+                                <Link
+                                  to={link.to}
+                                  preload="intent"
+                                  className="hq-capability-menu-link"
+                                >
+                                  <span>
+                                    <strong>{link.label}</strong>
+                                    <span className="hq-capability-menu-description">
+                                      {link.blurb}
+                                    </span>
+                                  </span>
+                                  <ArrowUpRight size={15} aria-hidden="true" />
+                                </Link>
+                              </li>
+                            ))
+                          : RESOURCE_LINKS.map((link) => (
+                              <li key={link.label}>
+                                {"to" in link ? (
+                                  <Link
+                                    to={link.to}
+                                    preload="intent"
+                                    className="hq-capability-menu-link"
+                                  >
+                                    <strong>{link.label}</strong>
+                                    <ArrowUpRight size={15} aria-hidden="true" />
+                                  </Link>
+                                ) : (
+                                  <a
+                                    href={link.href}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="hq-capability-menu-link"
+                                  >
+                                    <strong>{link.label}</strong>
+                                    <ArrowUpRight size={15} aria-hidden="true" />
+                                  </a>
+                                )}
+                              </li>
+                            ))}
+                        {key === "resources" ? (
+                          <li className="hq-resource-tools">
+                            <strong>Free Tools</strong>
+                            <Link
+                              to="/contact"
+                              preload="intent"
+                              className="hq-capability-menu-link"
+                            >
+                              Website Audit
+                              <ArrowUpRight size={15} aria-hidden="true" />
+                            </Link>
+                            <Link
+                              to="/tools/author-visibility-audit"
+                              preload="intent"
+                              className="hq-capability-menu-link"
+                            >
+                              Author Audit
                               <ArrowUpRight size={15} aria-hidden="true" />
                             </Link>
                           </li>
-                        ))}
+                        ) : null}
                       </ul>
                     </div>
                   )}
@@ -373,14 +430,40 @@ export function SiteHeader() {
               </div>
             ))}
           </MobileGroup>
-          <MobileGroup
-            title="Services"
-            extra={{ label: "Explore services", to: "/services" }}
-          >
+          <MobileGroup title="Services" extra={{ label: "Explore services", to: "/services" }}>
             <MobileLinks items={CAPABILITY_MENU} />
           </MobileGroup>
           <MobileGroup title="About">
             <MobileLinks items={ABOUT_MENU} />
+          </MobileGroup>
+          <MobileGroup title="Resources">
+            <ul className="hq-mobile-submenu-links">
+              <li>
+                <Link to="/insights" preload="intent">
+                  Insights
+                  <ArrowUpRight size={14} aria-hidden="true" />
+                </Link>
+              </li>
+              <li>
+                <a href="https://brand24.com/reviews/" target="_blank" rel="noreferrer">
+                  Testimonials &amp; Reviews
+                  <ArrowUpRight size={14} aria-hidden="true" />
+                </a>
+              </li>
+              <li className="hq-mobile-resource-heading">Free Tools</li>
+              <li>
+                <Link to="/contact" preload="intent">
+                  Website Audit
+                  <ArrowUpRight size={14} aria-hidden="true" />
+                </Link>
+              </li>
+              <li>
+                <Link to="/tools/author-visibility-audit" preload="intent">
+                  Author Audit
+                  <ArrowUpRight size={14} aria-hidden="true" />
+                </Link>
+              </li>
+            </ul>
           </MobileGroup>
           <ul className="hq-mobile-primary-links">
             {PRIMARY_NAV.filter((item) => item.to).map((item) => (

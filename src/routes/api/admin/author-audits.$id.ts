@@ -26,6 +26,8 @@ const STATUSES: AuditStatus[] = [
 
 const patchSchema = z.object({
   status: z.enum(STATUSES as [AuditStatus, ...AuditStatus[]]).optional(),
+  executiveSummary: z.string().max(4000).optional(),
+  strengths: z.array(z.string().max(1000)).max(20).optional(),
 });
 
 export const Route = createFileRoute("/api/admin/author-audits/$id")({
@@ -97,13 +99,33 @@ export const Route = createFileRoute("/api/admin/author-audits/$id")({
         } catch {
           return json({ ok: false, error: "invalid" }, 400);
         }
-        if (!body.status) return json({ ok: false, error: "empty" }, 400);
+        if (!body.status && !body.executiveSummary && !body.strengths)
+          return json({ ok: false, error: "empty" }, 400);
         try {
           const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
           const db = asAuditDb(supabaseAdmin);
-          const update: Record<string, unknown> = { status: body.status };
-          if (body.status === "completed")
-            update.client_report_approved_at = new Date().toISOString();
+          const update: Record<string, unknown> = {};
+          if (body.status) {
+            update.status = body.status;
+            if (body.status === "completed")
+              update.client_report_approved_at = new Date().toISOString();
+          }
+          if (body.executiveSummary !== undefined || body.strengths !== undefined) {
+            const { data: current } = await db
+              .from("author_audits")
+              .select("input_snapshot")
+              .eq("id", params.id)
+              .single();
+            const snapshot =
+              (current as { input_snapshot: Record<string, unknown> } | null)?.input_snapshot ?? {};
+            update.input_snapshot = {
+              ...snapshot,
+              ...(body.executiveSummary !== undefined
+                ? { executiveSummary: body.executiveSummary }
+                : {}),
+              ...(body.strengths !== undefined ? { strengths: body.strengths } : {}),
+            };
+          }
           const { data, error } = await db
             .from("author_audits")
             .update(update)

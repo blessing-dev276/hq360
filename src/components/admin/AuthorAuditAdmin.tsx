@@ -240,9 +240,15 @@ function AuditList({ onOpen }: { onOpen: (id: string) => void }) {
   );
 }
 
+type AuditSnapshot = { executiveSummary?: string; strengths?: string[] } & Record<string, unknown>;
+
 type AuditDetailResponse = {
   ok: boolean;
-  audit: AuthorAudit & { authors: Author; books: Book };
+  audit: Omit<AuthorAudit, "input_snapshot"> & {
+    authors: Author;
+    books: Book;
+    input_snapshot: AuditSnapshot;
+  };
   sources: AuditSource[];
   evidence: { id: string; section: string; claim: string; excerpt: string | null }[];
   findings: AuditFinding[];
@@ -403,6 +409,12 @@ function AuditWorkspace({ id, onBack }: { id: string; onBack: () => void }) {
         </p>
       </section>
 
+      {/* Executive summary + strengths — also staff-reviewed before the report can use them */}
+      {audit.input_snapshot.executiveSummary ||
+      (audit.input_snapshot.strengths ?? []).length > 0 ? (
+        <SummaryEditor auditId={id} snapshot={audit.input_snapshot} onSaved={load} />
+      ) : null}
+
       {/* Findings review */}
       {findings.length > 0 ? (
         <section className="space-y-3">
@@ -451,6 +463,80 @@ function BackButton({ onBack }: { onBack: () => void }) {
     >
       ← All audits
     </button>
+  );
+}
+
+function SummaryEditor({
+  auditId,
+  snapshot,
+  onSaved,
+}: {
+  auditId: string;
+  snapshot: AuditSnapshot;
+  onSaved: () => void;
+}) {
+  const [summary, setSummary] = useState(snapshot.executiveSummary ?? "");
+  const [strengthsText, setStrengthsText] = useState((snapshot.strengths ?? []).join("\n"));
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    setSummary(snapshot.executiveSummary ?? "");
+    setStrengthsText((snapshot.strengths ?? []).join("\n"));
+  }, [snapshot]);
+
+  async function save() {
+    setSaving(true);
+    setSaved(false);
+    await api(`/api/admin/author-audits/${auditId}`, {
+      method: "PATCH",
+      body: JSON.stringify({
+        executiveSummary: summary,
+        strengths: strengthsText
+          .split("\n")
+          .map((s) => s.trim())
+          .filter(Boolean),
+      }),
+    });
+    setSaving(false);
+    setSaved(true);
+    onSaved();
+  }
+
+  return (
+    <section className="rounded-2xl border border-border bg-card p-5">
+      <h3 className="font-display text-lg">Executive summary &amp; strengths</h3>
+      <p className="mt-1 text-xs text-muted-foreground">
+        Claude drafted these from the evidence above — read them like any other finding and edit
+        before they go in front of the client. This also feeds the report and the shareable image.
+      </p>
+      <label className="mt-4 block">
+        <span className="text-xs font-medium text-muted-foreground">Executive summary</span>
+        <textarea
+          rows={3}
+          className={cn(input, "mt-1 resize-y")}
+          value={summary}
+          onChange={(e) => setSummary(e.target.value)}
+        />
+      </label>
+      <label className="mt-3 block">
+        <span className="text-xs font-medium text-muted-foreground">Strengths — one per line</span>
+        <textarea
+          rows={3}
+          className={cn(input, "mt-1 resize-y")}
+          value={strengthsText}
+          onChange={(e) => setStrengthsText(e.target.value)}
+        />
+      </label>
+      <button
+        type="button"
+        disabled={saving}
+        onClick={() => void save()}
+        className="mt-4 rounded-full border border-border px-4 py-1.5 text-xs font-medium hover:border-brand hover:text-brand disabled:opacity-60"
+      >
+        {saving ? "Saving…" : saved ? "Saved" : "Save summary"}
+      </button>
+    </section>
   );
 }
 

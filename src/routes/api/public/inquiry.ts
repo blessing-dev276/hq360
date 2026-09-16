@@ -15,7 +15,9 @@ const schema = z.object({
   sourcePath: z.string().max(300).optional().or(z.literal("")),
   sourceIndustry: z.string().max(120).optional().or(z.literal("")),
   /** Honeypot — must be empty. */
-  company_url: z.string().max(0).optional(),
+  // Honeypot — see the comment in growth-audit.ts's schema for why this
+  // isn't length-capped.
+  company_url: z.string().optional(),
 });
 
 function json(body: unknown, status = 200) {

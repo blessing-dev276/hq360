@@ -10,7 +10,9 @@ const schema = z.object({
   websiteUrl: z.string().trim().max(2_000).optional().or(z.literal("")),
   goodreadsUrl: z.string().trim().max(2_000).optional().or(z.literal("")),
   consent: z.literal(true),
-  company_url: z.string().max(0).optional(),
+  // Honeypot — see the comment in growth-audit.ts's schema for why this
+  // isn't length-capped.
+  company_url: z.string().optional(),
 });
 
 function json(body: unknown, status = 200) {
@@ -34,6 +36,24 @@ export const Route = createFileRoute("/api/public/author-audit")({
         try {
           const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
           const db = asAuditDb(supabaseAdmin);
+
+          // A dropped connection between client and server (common on mobile
+          // networks) can make a successful submission look failed to the
+          // visitor, who then resubmits — that shouldn't create a second
+          // lead. Treat an identical submission (same email/author/book)
+          // in the last 5 minutes as the same request.
+          const dedupeWindow = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+          const { data: recent } = await db
+            .from("author_audit_leads")
+            .select("id")
+            .eq("email", body.email.toLowerCase())
+            .eq("author_name", body.authorName)
+            .eq("book_title", body.bookTitle)
+            .gte("created_at", dedupeWindow)
+            .limit(1)
+            .maybeSingle();
+          if (recent) return json({ ok: true, id: (recent as { id: string }).id }, 200);
+
           const { data, error } = await db
             .from("author_audit_leads")
             .insert({

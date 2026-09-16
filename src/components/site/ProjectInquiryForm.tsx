@@ -216,10 +216,13 @@ export function ProjectInquiryForm({
           </div>
         </details>
 
-        {/* Honeypot */}
+        {/* Honeypot — deliberately not named "company"/"url"/"website" etc,
+            since those are exactly what autofill/password-manager
+            extensions target even on a hidden field with
+            autocomplete="off". */}
         <input
           type="text"
-          name="company_url"
+          name="hp"
           tabIndex={-1}
           autoComplete="off"
           value={honey}

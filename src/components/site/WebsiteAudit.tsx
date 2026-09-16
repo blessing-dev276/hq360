@@ -52,26 +52,46 @@ export function WebsiteAudit() {
 
     setState("submitting");
     setMessage("");
-    try {
-      const industry = String(form.get("industry") ?? "").trim();
-      const goal = String(form.get("goal") ?? "").trim();
+    const industry = String(form.get("industry") ?? "").trim();
+    const goal = String(form.get("goal") ?? "").trim();
+    const honeypot = String(form.get("hp") ?? "");
+    const payload = JSON.stringify({
+      name,
+      email,
+      website,
+      industry: industry || "Not specified",
+      auditFocus: [goal ? `Main goal: ${goal}` : "", "Requested: Website Audit"]
+        .filter(Boolean)
+        .join("\n"),
+      sourcePath: "/tools/website-audit",
+      company_url: honeypot,
+    });
+
+    async function attempt() {
       const response = await fetch("/api/public/growth-audit", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          name,
-          email,
-          website,
-          industry: industry || "Not specified",
-          auditFocus: [goal ? `Main goal: ${goal}` : "", "Requested: Website Audit"]
-            .filter(Boolean)
-            .join("\n"),
-          sourcePath: "/tools/website-audit",
-          company_url: "",
-        }),
+        body: payload,
       });
       const result = (await response.json().catch(() => null)) as { ok?: boolean } | null;
       if (!response.ok || !result?.ok) throw new Error("request_failed");
+    }
+
+    try {
+      try {
+        await attempt();
+      } catch (err) {
+        // A dropped connection (common on mobile networks) throws a network
+        // error before any response arrives — the request may already have
+        // reached the server. One retry, safe because the server dedupes
+        // identical submissions a few minutes apart.
+        if (err instanceof TypeError) {
+          await new Promise((r) => setTimeout(r, 800));
+          await attempt();
+        } else {
+          throw err;
+        }
+      }
       setState("success");
       setMessage(
         "Your preliminary audit request is with HQ360. We will review the supplied information before any research is presented as a finding.",
@@ -123,12 +143,7 @@ export function WebsiteAudit() {
               </label>
               <label className="text-sm font-semibold sm:col-span-2">
                 Website URL <span className="text-brand">*</span>
-                <input
-                  className={inputClass}
-                  name="website"
-                  type="url"
-                  placeholder="https://…"
-                />
+                <input className={inputClass} name="website" type="url" placeholder="https://…" />
               </label>
               <label className="text-sm font-semibold">
                 Industry
@@ -136,11 +151,7 @@ export function WebsiteAudit() {
               </label>
               <label className="text-sm font-semibold">
                 Main goal for the site
-                <input
-                  className={inputClass}
-                  name="goal"
-                  placeholder="e.g. More booked calls"
-                />
+                <input className={inputClass} name="goal" placeholder="e.g. More booked calls" />
               </label>
               <label className="text-sm font-semibold sm:col-span-2">
                 Email address <span className="text-brand">*</span>
@@ -160,8 +171,12 @@ export function WebsiteAudit() {
                 preliminary website assessment and to contact me about it.
               </span>
             </label>
+            {/* Honeypot — deliberately not named "company"/"url"/"website" etc,
+                since those are exactly what autofill/password-manager
+                extensions target even on a hidden field with
+                autocomplete="off". */}
             <input
-              name="company_url"
+              name="hp"
               tabIndex={-1}
               autoComplete="off"
               className="hidden"

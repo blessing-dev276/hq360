@@ -52,26 +52,46 @@ export function AuthorVisibilityAudit() {
 
     setState("submitting");
     setMessage("");
-    try {
-      const website = String(form.get("website") ?? "").trim();
-      const amazonUrl = String(form.get("amazonUrl") ?? "").trim();
-      const goodreadsUrl = String(form.get("goodreadsUrl") ?? "").trim();
+    const website = String(form.get("website") ?? "").trim();
+    const amazonUrl = String(form.get("amazonUrl") ?? "").trim();
+    const goodreadsUrl = String(form.get("goodreadsUrl") ?? "").trim();
+    const honeypot = String(form.get("hp") ?? "");
+    const payload = JSON.stringify({
+      authorName: author,
+      bookTitle: book,
+      email,
+      amazonUrlOrAsin: amazonUrl,
+      websiteUrl: website,
+      goodreadsUrl,
+      consent: true,
+      company_url: honeypot,
+    });
+
+    async function attempt() {
       const response = await fetch("/api/public/author-audit", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          authorName: author,
-          bookTitle: book,
-          email,
-          amazonUrlOrAsin: amazonUrl,
-          websiteUrl: website,
-          goodreadsUrl,
-          consent: true,
-          company_url: "",
-        }),
+        body: payload,
       });
       const result = (await response.json().catch(() => null)) as { ok?: boolean } | null;
       if (!response.ok || !result?.ok) throw new Error("request_failed");
+    }
+
+    try {
+      try {
+        await attempt();
+      } catch (err) {
+        // A dropped connection (common on mobile networks) throws a network
+        // error before any response arrives — the request may already have
+        // reached the server. One retry, safe because the server dedupes
+        // identical submissions a few minutes apart.
+        if (err instanceof TypeError) {
+          await new Promise((r) => setTimeout(r, 800));
+          await attempt();
+        } else {
+          throw err;
+        }
+      }
       setState("success");
       setMessage(
         "Your preliminary audit request is with HQ360. We will review the supplied information before any research is presented as a finding.",
@@ -156,8 +176,13 @@ export function AuthorVisibilityAudit() {
                 preliminary visibility assessment and to contact me about it.
               </span>
             </label>
+            {/* Honeypot — deliberately not named "company"/"url"/"website" etc,
+                since those are exactly what autofill/password-manager
+                extensions target even on a hidden field with
+                autocomplete="off", which previously produced a false
+                validation failure for real visitors. */}
             <input
-              name="company_url"
+              name="hp"
               tabIndex={-1}
               autoComplete="off"
               className="hidden"

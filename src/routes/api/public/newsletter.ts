@@ -4,7 +4,9 @@ import { z } from "zod";
 const schema = z.object({
   email: z.string().email().max(320),
   sourcePath: z.string().max(300).optional().or(z.literal("")),
-  company_url: z.string().max(0).optional(), // honeypot
+  // Honeypot — see the comment in growth-audit.ts's schema for why this
+  // isn't length-capped.
+  company_url: z.string().optional(),
 });
 
 function json(body: unknown, status = 200) {

@@ -7,7 +7,7 @@ import { PHOTOS as TEAM_PHOTOS } from "@/components/site/TeamAvatar";
 import { fetchPublicContent } from "@/lib/public-content";
 import "./team-showcase.css";
 
-type Person = {
+export type Person = {
   key: string;
   name: string;
   role: string;
@@ -44,6 +44,7 @@ export function TeamShowcase({
   title,
   limit,
   viewAll,
+  filter,
 }: {
   eyebrow?: string;
   title: ReactNode;
@@ -51,6 +52,8 @@ export function TeamShowcase({
   limit?: number;
   /** Optional "see everyone" link shown under a limited grid. */
   viewAll?: { label: string; to: string };
+  /** Optional predicate over each person (used by the Team page's department filter). */
+  filter?: (person: Person) => boolean;
 }) {
   const query = useQuery({
     queryKey: ["public", "team"],
@@ -79,7 +82,8 @@ export function TeamShowcase({
         };
       })
     : FALLBACK;
-  const people = limit ? all.slice(0, limit) : all;
+  const filtered = filter ? all.filter(filter) : all;
+  const people = limit ? filtered.slice(0, limit) : filtered;
 
   return (
     <div className="ts-wrap">

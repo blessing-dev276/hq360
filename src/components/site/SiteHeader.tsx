@@ -285,7 +285,7 @@ export function SiteHeader() {
                       </ul>
                     </div>
                   )}
-                  {openMenu === key && key !== "about" && (
+                  {openMenu === key && key !== "about" && key !== "resources" && (
                     <div
                       id={`${menuId}-${key}`}
                       className="hq-mega-menu"

@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AdminApp } from "@/components/admin/AdminApp";
+import { AdminGate } from "@/components/admin/AdminGate";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
@@ -8,5 +9,13 @@ export const Route = createFileRoute("/admin")({
       { name: "robots", content: "noindex, nofollow" },
     ],
   }),
-  component: AdminApp,
+  component: AdminPage,
 });
+
+function AdminPage() {
+  return (
+    <AdminGate>
+      <AdminApp />
+    </AdminGate>
+  );
+}

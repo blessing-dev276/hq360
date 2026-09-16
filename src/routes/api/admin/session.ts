@@ -5,7 +5,7 @@ import {
   clearCookie,
   isAdminRequest,
   sessionCookie,
-  verifyPassword,
+  verifyCredentials,
 } from "@/lib/admin-auth.server";
 
 function json(body: unknown, status = 200, headers: Record<string, string> = {}) {
@@ -15,7 +15,10 @@ function json(body: unknown, status = 200, headers: Record<string, string> = {})
   });
 }
 
-const loginSchema = z.object({ password: z.string().min(1).max(200) });
+const loginSchema = z.object({
+  username: z.string().trim().min(1).max(100),
+  password: z.string().min(1).max(200),
+});
 
 export const Route = createFileRoute("/api/admin/session")({
   server: {
@@ -36,8 +39,8 @@ export const Route = createFileRoute("/api/admin/session")({
         } catch {
           return json({ ok: false, error: "invalid" }, 400);
         }
-        if (!verifyPassword(body.password)) {
-          return json({ ok: false, error: "wrong_password" }, 401);
+        if (!verifyCredentials(body.username, body.password)) {
+          return json({ ok: false, error: "wrong_credentials" }, 401);
         }
         return json({ ok: true }, 200, { "set-cookie": await sessionCookie() });
       },

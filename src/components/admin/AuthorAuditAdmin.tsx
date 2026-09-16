@@ -131,6 +131,25 @@ function AuditList({ onOpen }: { onOpen: (id: string) => void }) {
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("all");
   const [showCreate, setShowCreate] = useState(false);
+  const [deleting, setDeleting] = useState<string | null>(null);
+
+  async function deleteAudit(audit: AuditListItem) {
+    if (
+      !window.confirm(
+        `Permanently delete the audit for “${audit.books?.title ?? "Untitled"}”? Its research, findings and report history will be removed. This cannot be undone. Shared author/book records and uploaded files are retained.`,
+      )
+    )
+      return;
+    setDeleting(audit.id);
+    setError("");
+    const result = await api<{ ok: boolean }>(`/api/admin/author-audits/${audit.id}`, {
+      method: "DELETE",
+    });
+    setDeleting(null);
+    if (result.status === 200 && result.body.ok)
+      setAudits((current) => current?.filter((item) => item.id !== audit.id) ?? null);
+    else setError("Could not delete this audit. Please try again.");
+  }
 
   const load = useCallback(async () => {
     setError("");
@@ -316,7 +335,7 @@ function AuditList({ onOpen }: { onOpen: (id: string) => void }) {
       ) : (
         <ul className="space-y-2">
           {visibleAudits.map((a) => (
-            <li key={a.id}>
+            <li key={a.id} className="flex items-center gap-2">
               <button type="button" onClick={() => onOpen(a.id)} className="audit-list-row">
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium">
@@ -329,6 +348,15 @@ function AuditList({ onOpen }: { onOpen: (id: string) => void }) {
                 <span className="rounded-full bg-secondary px-2.5 py-1 text-xs font-medium">
                   {STATUS_LABEL[a.status]}
                 </span>
+              </button>
+              <button
+                type="button"
+                disabled={deleting !== null}
+                onClick={() => void deleteAudit(a)}
+                aria-label={`Delete audit for ${a.books?.title ?? "Untitled"}`}
+                className="shrink-0 rounded-xl border border-border px-3 py-3 text-xs font-semibold text-destructive hover:bg-destructive/10 disabled:opacity-50"
+              >
+                {deleting === a.id ? "Deleting…" : "Delete"}
               </button>
             </li>
           ))}

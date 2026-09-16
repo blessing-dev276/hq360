@@ -1,16 +1,13 @@
-import { useState, type FormEvent } from "react";
-import { ArrowRight, LockKeyhole, Search } from "lucide-react";
+import { useRef, useState, type FormEvent } from "react";
+import { ArrowRight, BookOpen, CheckCircle2, LockKeyhole, Search } from "lucide-react";
 import { Container, Section, SectionHeader } from "@/components/site/Primitives";
-import { AuditHero } from "@/components/site/AuditHero";
-import { CTAS } from "@/config/brand";
+import "./author-audit-page.css";
 
 const HERO_STEPS = [
   ["01", "Tell us about the author and book"],
   ["02", "HQ360 reviews the available public evidence"],
   ["03", "Receive a preliminary, evidence-backed assessment"],
 ] as const;
-
-const HERO_CHIPS = ["Evidence-led", "Human reviewed", "No invented claims"];
 
 type FormState = "idle" | "submitting" | "success" | "error";
 
@@ -35,10 +32,29 @@ const reportRules = [
 export function AuthorVisibilityAudit() {
   const [state, setState] = useState<FormState>("idle");
   const [message, setMessage] = useState("");
+  const [step, setStep] = useState(0);
+  const formRef = useRef<HTMLFormElement>(null);
+
+  function nextStep() {
+    const fields = formRef.current?.querySelectorAll<HTMLInputElement>(
+      `[data-step="${step}"] input`,
+    );
+    for (const field of fields ?? []) {
+      if (!field.reportValidity()) return;
+    }
+    setMessage("");
+    setStep((current) => Math.min(2, current + 1));
+  }
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const form = new FormData(event.currentTarget);
+    if (step < 2) {
+      nextStep();
+      return;
+    }
+    const formElement = event.currentTarget;
+    if (!formElement.reportValidity()) return;
+    const form = new FormData(formElement);
     const author = String(form.get("author") ?? "").trim();
     const book = String(form.get("book") ?? "").trim();
     const email = String(form.get("email") ?? "").trim();
@@ -96,7 +112,7 @@ export function AuthorVisibilityAudit() {
       setMessage(
         "Your preliminary audit request is with HQ360. We will review the supplied information before any research is presented as a finding.",
       );
-      event.currentTarget.reset();
+      formElement.reset();
     } catch {
       setState("error");
       setMessage("We could not submit your request. Please try again or contact HQ360 directly.");
@@ -104,14 +120,50 @@ export function AuthorVisibilityAudit() {
   }
 
   return (
-    <>
-      <AuditHero
-        eyebrow="HQ360 proprietary tool"
-        title="See what readers see before they decide to buy."
-        lede="Get a preliminary view of how your book and author presence appear across the places readers use to discover, evaluate and purchase books."
-        chips={HERO_CHIPS}
-        steps={HERO_STEPS}
-      />
+    <div className="author-audit-page">
+      <section className="author-audit-hero">
+        <Container className="author-audit-hero-grid">
+          <div>
+            <span className="author-audit-eyebrow">Complimentary author visibility audit</span>
+            <h1>
+              A great book deserves
+              <br />
+              <em>to be discovered.</em>
+            </h1>
+            <p>
+              See how readers find your book, what earns their trust, and where the journey could be
+              stronger. Get a preliminary assessment reviewed by the HQ360 team.
+            </p>
+            <a href="#audit-form" className="author-audit-cta">
+              Start my audit <ArrowRight size={18} />
+            </a>
+            <span className="author-audit-note">
+              Free to request · Human reviewed · No account needed
+            </span>
+          </div>
+          <aside className="author-audit-preview">
+            <span className="author-audit-eyebrow">Inside your assessment</span>
+            <BookOpen size={34} className="my-6" />
+            <h2>
+              Your reader’s journey.
+              <br />A clearer next chapter.
+            </h2>
+            <div className="author-audit-preview-row">
+              <span>01 / Discovery</span>
+              <p>Can the right readers find you?</p>
+            </div>
+            <div className="author-audit-preview-row">
+              <span>02 / Trust</span>
+              <p>Does your online presence build confidence?</p>
+            </div>
+            <div className="author-audit-preview-row">
+              <span>03 / Action</span>
+              <p>Is the next step clear and easy?</p>
+            </div>
+            <small>Illustrative overview — your findings depend on available evidence.</small>
+          </aside>
+        </Container>
+      </section>
 
       <Section id="audit-form">
         <div className="grid gap-12 lg:grid-cols-[0.82fr_1.18fr] lg:gap-16">
@@ -121,93 +173,190 @@ export function AuthorVisibilityAudit() {
               Links are optional, but they help HQ360 verify the right author and book. We do not
               infer private activity from what is not publicly visible.
             </p>
+            <ol className="author-audit-process">
+              {HERO_STEPS.map(([number, text]) => (
+                <li key={number}>
+                  <span>{number}</span>
+                  <p>{text}</p>
+                </li>
+              ))}
+            </ol>
           </div>
-          <form
-            onSubmit={submit}
-            className="rounded-2xl border border-border bg-secondary/35 p-5 sm:p-7"
-            noValidate
-          >
-            <div className="grid gap-5 sm:grid-cols-2">
-              <label className="text-sm font-semibold">
-                Author name <span className="text-brand">*</span>
-                <input
-                  className={inputClass}
-                  name="author"
-                  autoComplete="name"
-                  placeholder="Your name"
-                />
-              </label>
-              <label className="text-sm font-semibold">
-                Book title <span className="text-brand">*</span>
-                <input className={inputClass} name="book" placeholder="Title of your book" />
-              </label>
-              <label className="text-sm font-semibold">
-                Amazon book URL <span className="font-normal text-muted-foreground">or ASIN</span>
-                <input className={inputClass} name="amazonUrl" placeholder="https://amazon…" />
-              </label>
-              <label className="text-sm font-semibold">
-                Author website
-                <input className={inputClass} name="website" type="url" placeholder="https://…" />
-              </label>
-              <label className="text-sm font-semibold sm:col-span-2">
-                Goodreads book or author URL
-                <input
-                  className={inputClass}
-                  name="goodreadsUrl"
-                  type="url"
-                  placeholder="https://goodreads.com/…"
-                />
-              </label>
-              <label className="text-sm font-semibold sm:col-span-2">
-                Email address <span className="text-brand">*</span>
-                <input
-                  className={inputClass}
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  placeholder="you@example.com"
-                />
-              </label>
+          {state === "success" ? (
+            <div className="author-audit-success" role="status">
+              <CheckCircle2 size={44} />
+              <h2>Your next chapter starts here.</h2>
+              <p>{message}</p>
+              <p>
+                The team will use your email address to follow up. You don’t need to submit again.
+              </p>
+              <a href="/authors" className="author-audit-cta">
+                Explore author services <ArrowRight size={17} />
+              </a>
             </div>
-            <label className="mt-6 flex items-start gap-3 text-sm leading-relaxed text-muted-foreground">
-              <input name="consent" type="checkbox" className="mt-1 size-4 accent-brand" />
-              <span>
-                I consent to HQ360 reviewing the details and public links I provide to prepare a
-                preliminary visibility assessment and to contact me about it.
-              </span>
-            </label>
-            {/* Honeypot — deliberately not named "company"/"url"/"website" etc,
+          ) : (
+            <form
+              ref={formRef}
+              onSubmit={submit}
+              className="rounded-2xl border border-border bg-secondary/35 p-5 sm:p-7"
+              noValidate
+            >
+              <div className="author-audit-stepper" aria-label="Request progress">
+                {["Your book", "Your links", "Your details"].map((label, index) => (
+                  <span
+                    key={label}
+                    aria-current={step === index ? "step" : undefined}
+                    data-complete={step > index}
+                  >
+                    <b>{step > index ? "✓" : index + 1}</b>
+                    {label}
+                  </span>
+                ))}
+              </div>
+              <h3 className="mb-2 font-display text-xl">
+                {["Let’s meet your book.", "Connect the dots.", "Where can we reach you?"][step]}
+              </h3>
+              <p className="mb-6 text-sm text-muted-foreground">
+                {
+                  [
+                    "Tell us who you are and which book you’d like us to review.",
+                    "These links are optional. Add what you have, or continue to the next step.",
+                    "We’ll use this email to follow up on your assessment.",
+                  ][step]
+                }
+              </p>
+              <fieldset data-step="0" hidden={step !== 0}>
+                <div className="grid gap-5 sm:grid-cols-2">
+                  <label className="text-sm font-semibold">
+                    Author name <span className="text-brand">*</span>
+                    <input
+                      className={inputClass}
+                      name="author"
+                      required
+                      maxLength={160}
+                      autoComplete="name"
+                      placeholder="Your name"
+                    />
+                  </label>
+                  <label className="text-sm font-semibold">
+                    Book title <span className="text-brand">*</span>
+                    <input
+                      className={inputClass}
+                      name="book"
+                      required
+                      maxLength={300}
+                      placeholder="Title of your book"
+                    />
+                  </label>
+                </div>
+              </fieldset>
+              <fieldset data-step="1" hidden={step !== 1}>
+                <div className="grid gap-5 sm:grid-cols-2">
+                  <label className="text-sm font-semibold">
+                    Amazon book URL{" "}
+                    <span className="font-normal text-muted-foreground">or ASIN</span>
+                    <input className={inputClass} name="amazonUrl" placeholder="https://amazon…" />
+                  </label>
+                  <label className="text-sm font-semibold">
+                    Author website
+                    <input
+                      className={inputClass}
+                      name="website"
+                      type="url"
+                      placeholder="https://…"
+                    />
+                  </label>
+                  <label className="text-sm font-semibold sm:col-span-2">
+                    Goodreads book or author URL
+                    <input
+                      className={inputClass}
+                      name="goodreadsUrl"
+                      type="url"
+                      placeholder="https://goodreads.com/…"
+                    />
+                  </label>
+                </div>
+              </fieldset>
+              <fieldset data-step="2" hidden={step !== 2}>
+                <div className="grid gap-5">
+                  <label className="text-sm font-semibold sm:col-span-2">
+                    Email address <span className="text-brand">*</span>
+                    <input
+                      className={inputClass}
+                      name="email"
+                      required
+                      maxLength={320}
+                      type="email"
+                      autoComplete="email"
+                      placeholder="you@example.com"
+                    />
+                  </label>
+                </div>
+                <label className="mt-6 flex items-start gap-3 text-sm leading-relaxed text-muted-foreground">
+                  <input
+                    name="consent"
+                    type="checkbox"
+                    required
+                    className="mt-1 size-4 accent-brand"
+                  />
+                  <span>
+                    I consent to HQ360 reviewing the details and public links I provide to prepare a
+                    preliminary visibility assessment and to contact me about it.
+                  </span>
+                </label>
+              </fieldset>
+              {/* Honeypot — deliberately not named "company"/"url"/"website" etc,
                 since those are exactly what autofill/password-manager
                 extensions target even on a hidden field with
                 autocomplete="off", which previously produced a false
                 validation failure for real visitors. */}
-            <input
-              name="hp"
-              tabIndex={-1}
-              autoComplete="off"
-              className="hidden"
-              aria-hidden="true"
-            />
-            {message ? (
-              <p
-                role="status"
-                className={`mt-5 rounded-xl p-4 text-sm ${state === "success" ? "bg-brand/10 text-foreground" : "bg-destructive/10 text-destructive"}`}
-              >
-                {message}
+              <input
+                name="hp"
+                tabIndex={-1}
+                autoComplete="off"
+                className="hidden"
+                aria-hidden="true"
+              />
+              {message ? (
+                <p
+                  role="status"
+                  className="mt-5 rounded-xl bg-destructive/10 p-4 text-sm text-destructive"
+                >
+                  {message}
+                </p>
+              ) : null}
+              <div className="mt-6 flex items-center gap-3">
+                {step > 0 ? (
+                  <button
+                    type="button"
+                    disabled={state === "submitting"}
+                    className="rounded-full border border-border px-5 py-3 text-sm"
+                    onClick={() => {
+                      setStep(step - 1);
+                      setMessage("");
+                    }}
+                  >
+                    Back
+                  </button>
+                ) : null}
+                <button
+                  disabled={state === "submitting"}
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-primary px-6 py-3.5 text-sm font-semibold text-primary-foreground transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {state === "submitting"
+                    ? "Sending request…"
+                    : step < 2
+                      ? "Continue"
+                      : "Request my free audit"}
+                  <ArrowRight className="size-4" />
+                </button>
+              </div>
+              <p className="mt-3 text-center text-xs text-muted-foreground">
+                A request is not an instant automated report. Findings are prepared only after
+                research and review.
               </p>
-            ) : null}
-            <button
-              disabled={state === "submitting"}
-              className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-full bg-primary px-6 py-3.5 text-sm font-semibold text-primary-foreground transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {state === "submitting" ? "Sending request…" : "Request preliminary audit"}
-              <ArrowRight className="size-4" />
-            </button>
-            <p className="mt-3 text-center text-xs text-muted-foreground">
-              A request is not an instant automated report. Findings are prepared only after
-              research and review.
-            </p>
-          </form>
+            </form>
+          )}
         </div>
       </Section>
 
@@ -223,8 +372,27 @@ export function AuthorVisibilityAudit() {
               key={area}
               className="rounded-2xl border border-border bg-card p-5 text-sm font-semibold"
             >
-              <Search className="mb-5 size-5 text-brand" />
-              {area}
+              <details>
+                <summary className="cursor-pointer">
+                  <Search className="mb-5 size-5 text-brand" />
+                  {area}
+                  <span className="mt-3 block text-xs font-normal text-muted-foreground">
+                    Explore this area +
+                  </span>
+                </summary>
+                <p className="mt-4 text-sm font-normal leading-relaxed text-muted-foreground">
+                  {
+                    [
+                      "How your book is presented on retailer pages, including the details that help readers decide.",
+                      "Whether readers can recognise the same author across public profiles and book pages.",
+                      "What readers can discover when searching for your name and book.",
+                      "How easily a visitor can move from learning about you to exploring or buying your book.",
+                      "Public reviews, profiles and mentions that help readers evaluate your work.",
+                      "Visible opportunities to connect with readers and support an ongoing relationship.",
+                    ][auditAreas.indexOf(area)]
+                  }
+                </p>
+              </details>
             </li>
           ))}
         </ul>
@@ -268,6 +436,6 @@ export function AuthorVisibilityAudit() {
           </a>
         </Container>
       </section>
-    </>
+    </div>
   );
 }

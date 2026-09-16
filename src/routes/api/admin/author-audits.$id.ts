@@ -47,6 +47,29 @@ const patchSchema = z.object({
 export const Route = createFileRoute("/api/admin/author-audits/$id")({
   server: {
     handlers: {
+      DELETE: async ({ request, params }) => {
+        if (!(await isAdminRequest(request)))
+          return json({ ok: false, error: "unauthorized" }, 401);
+        if (!UUID.test(params.id)) return json({ ok: false, error: "not_found" }, 404);
+        const origin = request.headers.get("origin");
+        if (origin && origin !== new URL(request.url).origin)
+          return json({ ok: false, error: "forbidden" }, 403);
+        try {
+          const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+          // Related research and review records cascade; shared authors/books remain.
+          const { data, error } = await asAuditDb(supabaseAdmin)
+            .from("author_audits")
+            .delete()
+            .eq("id", params.id)
+            .select("id")
+            .maybeSingle();
+          if (error) return json({ ok: false, error: "delete_failed" }, 500);
+          if (!data) return json({ ok: false, error: "not_found" }, 404);
+          return json({ ok: true });
+        } catch {
+          return json({ ok: false, error: "unavailable" }, 503);
+        }
+      },
       GET: async ({ request, params }) => {
         if (!(await isAdminRequest(request)))
           return json({ ok: false, error: "unauthorized" }, 401);

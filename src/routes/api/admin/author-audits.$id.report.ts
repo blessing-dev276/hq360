@@ -120,11 +120,14 @@ export const Route = createFileRoute("/api/admin/author-audits/$id/report")({
             },
           });
         } catch (err) {
-          console.error(
-            "[admin/author-audits/:id/report] GET",
-            err instanceof Error ? err.message : err,
-          );
-          return errorJson("unavailable", 503);
+          const detail = err instanceof Error ? err.message : String(err);
+          console.error("[admin/author-audits/:id/report] GET", detail);
+          // Temporarily surface the real error to the (admin-only) caller —
+          // this route was returning a generic "unavailable" in production
+          // while working locally, so the actual cause needs to be visible
+          // to diagnose. Safe here since this route already requires admin
+          // auth; not something to leave on a public route.
+          return errorJson({ error: "unavailable", detail }, 503);
         }
       },
     },

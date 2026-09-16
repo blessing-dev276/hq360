@@ -252,6 +252,24 @@
   padding-top: 0.1rem;
 }
 
+.hq-simple-menu {
+  position: absolute;
+  left: 50%;
+  top: calc(100% - 0.25rem);
+  translate: -50% 0;
+  width: min(20rem, calc(100vw - 2rem));
+  padding: 0.6rem;
+  border-radius: 1.25rem;
+  background: var(--surface-raised);
+  border: 1px solid var(--hairline);
+  box-shadow: var(--shadow-lift);
+  animation: hq-mega-in var(--motion-base, 220ms) var(--ease-emphasized, ease);
+}
+
+.hq-simple-menu .hq-capability-menu-list {
+  margin: 0;
+}
+
 .hq-capability-menu-description {
   font-size: 0.78rem;
   color: var(--ink-muted);
@@ -500,7 +518,8 @@
   .hq-header *,
   .hq-header-surface,
   .hq-mobile-dialog[open],
-  .hq-mega-menu {
+  .hq-mega-menu,
+  .hq-simple-menu {
     animation: none !important;
     transition-duration: 0.001ms !important;
   }

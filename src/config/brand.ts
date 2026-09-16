@@ -108,14 +108,27 @@ export const CAPABILITY_MENU: { label: string; to: string; blurb: string }[] = [
 export const PRIMARY_NAV: {
   label: string;
   to?: string;
-  menu?: "industries" | "capabilities";
+  menu?: "industries" | "capabilities" | "about";
 }[] = [
   { label: "Industries", menu: "industries" },
   { label: "Services", menu: "capabilities" },
   { label: "Work", to: "/work" },
-  { label: "About", to: "/about" },
-  { label: "Team", to: "/team" },
+  { label: "About", menu: "about" },
   { label: "Insights", to: "/insights" },
+];
+
+/** The About nav dropdown: the agency story, and the people behind it. */
+export const ABOUT_MENU: { label: string; to: string; blurb: string }[] = [
+  {
+    label: "Our Agency",
+    to: "/about",
+    blurb: "Why HQ360 exists and how a single connected team builds growth.",
+  },
+  {
+    label: "Meet the Team",
+    to: "/team",
+    blurb: "The people on your account, and what each of them owns.",
+  },
 ];
 
 export const FOOTER_NAV: { heading: string; links: { label: string; to: string }[] }[] = [

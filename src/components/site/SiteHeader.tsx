@@ -2,10 +2,10 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import { useEffect, useId, useRef, useState } from "react";
 import { ArrowRight, ArrowUpRight, ChevronDown, Menu, X } from "lucide-react";
 import { Logo } from "@/components/Logo";
-import { CAPABILITY_MENU, CTAS, INDUSTRY_MENU, PRIMARY_NAV } from "@/config/brand";
+import { ABOUT_MENU, CAPABILITY_MENU, CTAS, INDUSTRY_MENU, PRIMARY_NAV } from "@/config/brand";
 import "./SiteHeader.css";
 
-type MenuKey = "industries" | "capabilities";
+type MenuKey = "industries" | "capabilities" | "about";
 type NavItem = { label: string; to: string };
 
 const INDUSTRY_GROUPS = [
@@ -98,7 +98,7 @@ export function SiteHeader() {
   useEffect(() => {
     if (!openMenu) return;
     if (focusPanelRef.current) {
-      const links = headerRef.current?.querySelectorAll<HTMLAnchorElement>(".hq-mega-menu a[href]");
+      const links = headerRef.current?.querySelectorAll<HTMLAnchorElement>(".hq-mega-menu a[href], .hq-simple-menu a[href]");
       const index = focusPanelRef.current === "last" ? (links?.length ?? 1) - 1 : 0;
       links?.[index]?.focus();
       focusPanelRef.current = null;
@@ -135,7 +135,7 @@ export function SiteHeader() {
         if (event.pointerType !== "mouse") return;
         clearHoverTimer();
         // A menu being read with the keyboard must remain available.
-        if (headerRef.current?.querySelector(".hq-mega-menu :focus")) return;
+        if (headerRef.current?.querySelector(".hq-mega-menu :focus, .hq-simple-menu :focus")) return;
         hoverTimerRef.current = setTimeout(() => setOpenMenu(null), 180);
       }}
     >
@@ -192,7 +192,7 @@ export function SiteHeader() {
                       if (openMenu === key) {
                         const links =
                           headerRef.current?.querySelectorAll<HTMLAnchorElement>(
-                            ".hq-mega-menu a[href]",
+                            ".hq-mega-menu a[href], .hq-simple-menu a[href]",
                           );
                         links?.[event.key === "ArrowUp" ? links.length - 1 : 0]?.focus();
                       } else {
@@ -204,7 +204,31 @@ export function SiteHeader() {
                     {item.label}
                     <ChevronDown size={13} aria-hidden="true" />
                   </button>
-                  {openMenu === key && (
+                  {openMenu === key && key === "about" && (
+                    <div
+                      id={`${menuId}-${key}`}
+                      className="hq-simple-menu"
+                      aria-labelledby={`${menuId}-${key}-trigger`}
+                      onPointerEnter={clearHoverTimer}
+                    >
+                      <ul className="hq-capability-menu-list">
+                        {ABOUT_MENU.map((link) => (
+                          <li key={link.to}>
+                            <Link to={link.to} preload="intent" className="hq-capability-menu-link">
+                              <span>
+                                <strong>{link.label}</strong>
+                                <span className="hq-capability-menu-description">
+                                  {link.blurb}
+                                </span>
+                              </span>
+                              <ArrowUpRight size={15} aria-hidden="true" />
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  {openMenu === key && key !== "about" && (
                     <div
                       id={`${menuId}-${key}`}
                       className="hq-mega-menu"
@@ -355,6 +379,9 @@ export function SiteHeader() {
           >
             <MobileLinks items={CAPABILITY_MENU} />
           </MobileGroup>
+          <MobileGroup title="About">
+            <MobileLinks items={ABOUT_MENU} />
+          </MobileGroup>
           <ul className="hq-mobile-primary-links">
             {PRIMARY_NAV.filter((item) => item.to).map((item) => (
               <li key={item.label}>
@@ -397,7 +424,7 @@ function MobileGroup({
   children,
 }: {
   title: string;
-  extra: NavItem;
+  extra?: NavItem;
   children: React.ReactNode;
 }) {
   return (
@@ -408,10 +435,12 @@ function MobileGroup({
       </summary>
       <div className="hq-mobile-group-content">
         {children}
-        <Link to={extra.to} preload="intent" className="hq-nav-text-link">
-          {extra.label}
-          <ArrowRight size={16} aria-hidden="true" />
-        </Link>
+        {extra ? (
+          <Link to={extra.to} preload="intent" className="hq-nav-text-link">
+            {extra.label}
+            <ArrowRight size={16} aria-hidden="true" />
+          </Link>
+        ) : null}
       </div>
     </details>
   );

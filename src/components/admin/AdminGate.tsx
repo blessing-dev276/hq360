@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent, type ReactNode } from "react";
-import { ArrowRight, LockKeyhole, LogOut } from "lucide-react";
+import { ArrowRight, LockKeyhole } from "lucide-react";
 import { Logo } from "@/components/Logo";
 
 type AuthState = "signed-out" | "signed-in" | "unconfigured";
@@ -50,11 +50,6 @@ export function AdminGate({ children }: { children: ReactNode }) {
         ? "Admin login has not been configured on this server."
         : "The username or password is incorrect.",
     );
-  }
-
-  async function logout() {
-    await fetch("/api/admin/session", { method: "DELETE", credentials: "same-origin" });
-    setState("signed-out");
   }
 
   if (state !== "signed-in") {
@@ -119,16 +114,5 @@ export function AdminGate({ children }: { children: ReactNode }) {
     );
   }
 
-  return (
-    <>
-      <button
-        type="button"
-        onClick={logout}
-        className="fixed top-5 right-5 z-[60] inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2 text-sm font-semibold shadow-sm"
-      >
-        Sign out <LogOut className="size-4" aria-hidden="true" />
-      </button>
-      {children}
-    </>
-  );
+  return children;
 }

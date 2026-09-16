@@ -1,6 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { useEffect, useId, useRef, useState } from "react";
-import { ArrowRight, ArrowUpRight, ChevronDown, Menu, X } from "lucide-react";
+import { ArrowRight, ArrowUpRight, ChevronDown, LogOut, Menu, X } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { ABOUT_MENU, CAPABILITY_MENU, CTAS, INDUSTRY_MENU, PRIMARY_NAV } from "@/config/brand";
 import "./SiteHeader.css";
@@ -26,6 +26,7 @@ const INDUSTRY_GROUPS = [
 
 export function SiteHeader() {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
+  const isAdmin = pathname === "/admin";
   const [openMenu, setOpenMenu] = useState<MenuKey | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -36,6 +37,11 @@ export function SiteHeader() {
   const hoverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const focusPanelRef = useRef<"first" | "last" | null>(null);
   const menuId = useId();
+
+  async function signOutAdmin() {
+    await fetch("/api/admin/session", { method: "DELETE", credentials: "same-origin" });
+    window.location.assign("/admin");
+  }
 
   function clearHoverTimer() {
     if (hoverTimerRef.current !== null) {
@@ -386,10 +392,17 @@ export function SiteHeader() {
           </ul>
         </nav>
 
-        <Link to={CTAS.primary.to} preload="intent" className="hq-header-cta">
-          {CTAS.primary.label}
-          <ArrowUpRight size={16} aria-hidden="true" />
-        </Link>
+        {isAdmin ? (
+          <button type="button" className="hq-header-cta" onClick={signOutAdmin}>
+            Sign out
+            <LogOut size={16} aria-hidden="true" />
+          </button>
+        ) : (
+          <Link to={CTAS.primary.to} preload="intent" className="hq-header-cta">
+            {CTAS.primary.label}
+            <ArrowUpRight size={16} aria-hidden="true" />
+          </Link>
+        )}
         <button
           type="button"
           onClick={() => {
@@ -501,10 +514,17 @@ export function SiteHeader() {
               </li>
             ))}
           </ul>
-          <Link to={CTAS.primary.to} preload="intent" className="hq-mobile-project-link">
-            {CTAS.primary.label}
-            <ArrowUpRight size={20} aria-hidden="true" />
-          </Link>
+          {isAdmin ? (
+            <button type="button" className="hq-mobile-project-link" onClick={signOutAdmin}>
+              Sign out
+              <LogOut size={20} aria-hidden="true" />
+            </button>
+          ) : (
+            <Link to={CTAS.primary.to} preload="intent" className="hq-mobile-project-link">
+              {CTAS.primary.label}
+              <ArrowUpRight size={20} aria-hidden="true" />
+            </Link>
+          )}
           <p className="hq-mobile-signoff">Strategy. Creative. Technology. Growth.</p>
         </nav>
       </dialog>

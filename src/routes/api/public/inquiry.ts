@@ -97,6 +97,7 @@ export const Route = createFileRoute("/api/public/inquiry")({
             console.error("[inquiry] forward failed", err instanceof Error ? err.message : err);
           }
 
+          let emailed = false;
           try {
             const { sendLeadEmail } = await import("@/lib/email.server");
             const result = await sendLeadEmail({
@@ -120,6 +121,7 @@ export const Route = createFileRoute("/api/public/inquiry")({
                 parsed.message || "N/A",
               ].join("\n"),
             });
+            emailed = result.sent;
             if (!result.sent) {
               console.warn("[inquiry] direct email not sent", result.error);
             }
@@ -130,7 +132,7 @@ export const Route = createFileRoute("/api/public/inquiry")({
             );
           }
 
-          return json({ ok: true, id: data.id, forwarded });
+          return json({ ok: true, id: data.id, forwarded, emailed });
         } catch (err) {
           console.error("[inquiry] handler error", err instanceof Error ? err.message : err);
           return json({ ok: false, error: "unavailable" }, 503);

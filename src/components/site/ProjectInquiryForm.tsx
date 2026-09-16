@@ -43,6 +43,7 @@ export function ProjectInquiryForm({
   const [errors, setErrors] = useState<Errors>({});
   const [state, setState] = useState<"idle" | "sending" | "done">("idle");
   const [honey, setHoney] = useState("");
+  const [emailed, setEmailed] = useState(false);
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -85,8 +86,9 @@ export function ProjectInquiryForm({
           company_url: honey,
         }),
       });
-      const body = (await res.json().catch(() => ({}))) as { ok?: boolean };
+      const body = (await res.json().catch(() => ({}))) as { ok?: boolean; emailed?: boolean };
       if (res.ok && body.ok) {
+        setEmailed(body.emailed === true);
         setState("done");
       } else {
         setState("idle");
@@ -121,8 +123,9 @@ export function ProjectInquiryForm({
         </div>
         <h3 className="mt-5 font-display text-2xl">Thanks — that's in.</h3>
         <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-muted-foreground">
-          We read every enquiry ourselves and reply within one working day, usually with a first
-          view of what we would do and whether we are the right fit.
+          {emailed
+            ? "Your enquiry has been emailed to HQ360. We will reply within one working day."
+            : "Your enquiry has been saved. Email notification is delayed; for urgent requests, contact ceo@hq360.space."}
         </p>
       </div>
     );

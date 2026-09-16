@@ -15,6 +15,8 @@ export type EmailMessage = {
   text: string;
   html?: string;
   replyTo?: string;
+  /** File bytes encoded as base64 for Resend. */
+  attachments?: { filename: string; content: string; content_type: string }[];
 };
 
 export type EmailResult = { sent: boolean; id?: string; error?: string };
@@ -47,6 +49,7 @@ async function sendViaResend(msg: EmailMessage): Promise<EmailResult> {
         text: msg.text,
         html: msg.html ?? `<p>${escapeHtml(msg.text).replace(/\n/g, "<br>")}</p>`,
         ...(msg.replyTo ? { reply_to: msg.replyTo } : {}),
+        ...(msg.attachments?.length ? { attachments: msg.attachments } : {}),
       }),
     });
 

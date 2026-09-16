@@ -226,8 +226,8 @@ export function VoiceMessage() {
               </label>
               <label className="flex gap-2 text-xs leading-relaxed text-muted-foreground">
                 <input required type="checkbox" name="consent" value="yes" />I agree to have this
-                recording transcribed by ElevenLabs and the transcript emailed to HQ360 so you can
-                respond.
+                recording transcribed by ElevenLabs and the recording and transcript emailed to
+                HQ360 so you can respond.
               </label>
               <button
                 disabled={!blob || recording || busy || starting}

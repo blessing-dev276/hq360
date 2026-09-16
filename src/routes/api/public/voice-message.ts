@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
+import { Buffer } from "node:buffer";
 import { sendEmail, leadInboxAddress } from "@/lib/email.server";
 
 const attempts = new Map<string, number>();
@@ -37,12 +38,19 @@ export const Route = createFileRoute("/api/public/voice-message")({
             })
             .safeParse(Object.fromEntries(form));
           const audio = form.get("audio");
+          const audioType = audio instanceof File ? audio.type.split(";")[0].trim() : "";
+          const extensions: Record<string, string> = {
+            "audio/webm": "webm",
+            "audio/ogg": "ogg",
+            "audio/mp4": "m4a",
+            "video/mp4": "mp4",
+          };
           if (
             !contact.success ||
             !(audio instanceof File) ||
             !audio.size ||
             audio.size > 2_000_000 ||
-            !/^(audio\/(webm|ogg|mp4)|video\/mp4)/.test(audio.type)
+            !Object.hasOwn(extensions, audioType)
           )
             return json("Please provide your name, email, consent and a short recording.", 400);
           const upload = new FormData();
@@ -62,7 +70,14 @@ export const Route = createFileRoute("/api/public/voice-message")({
             to: leadInboxAddress(),
             replyTo: contact.data.email,
             subject: `HQ360 voice enquiry from ${contact.data.name}`,
-            text: `Name: ${contact.data.name}\nEmail: ${contact.data.email}\n\nVoice message (automatically transcribed):\n${result.text.slice(0, 20000)}`,
+            text: `Name: ${contact.data.name}\nEmail: ${contact.data.email}\n\nThe original voice recording is attached.\n\nVoice message (automatically transcribed):\n${result.text.slice(0, 20000)}`,
+            attachments: [
+              {
+                filename: `hq360-voice-message.${extensions[audioType]}`,
+                content: Buffer.from(await audio.arrayBuffer()).toString("base64"),
+                content_type: audioType,
+              },
+            ],
           });
           if (!sent.sent)
             return json("Email delivery failed. Please try again or use our contact page.", 502);

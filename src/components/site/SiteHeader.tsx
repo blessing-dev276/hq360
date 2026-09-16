@@ -215,22 +215,38 @@ export function SiteHeader() {
                   {openMenu === key && key === "about" && (
                     <div
                       id={`${menuId}-${key}`}
-                      className="hq-simple-menu"
+                      className="hq-mega-menu hq-about-menu"
                       aria-labelledby={`${menuId}-${key}-trigger`}
                     >
-                      <ul className="hq-capability-menu-list">
-                        {ABOUT_MENU.map((link) => (
-                          <li key={link.to}>
-                            <Link to={link.to} className="hq-capability-menu-link">
-                              <span>
-                                <strong>{link.label}</strong>
-                                <span className="hq-capability-menu-description">{link.blurb}</span>
-                              </span>
-                              <ArrowUpRight size={15} aria-hidden="true" />
-                            </Link>
-                          </li>
-                        ))}
-                      </ul>
+                      <div className="hq-about-layout">
+                        <aside className="hq-menu-feature">
+                          <span className="hq-nav-eyebrow">Inside HQ360</span>
+                          <p>
+                            One team.
+                            <br />
+                            Every angle.
+                          </p>
+                          <span className="hq-menu-caption">
+                            Meet the people and principles behind connected growth.
+                          </span>
+                        </aside>
+                        <ul className="hq-about-links">
+                          {ABOUT_MENU.map((link, index) => (
+                            <li key={link.to}>
+                              <Link to={link.to} className="hq-menu-card">
+                                <span className="hq-menu-card-number">
+                                  {String(index + 1).padStart(2, "0")}
+                                </span>
+                                <span>
+                                  <strong>{link.label}</strong>
+                                  <small>{link.blurb}</small>
+                                </span>
+                                <ArrowUpRight size={16} aria-hidden="true" />
+                              </Link>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
                     </div>
                   )}
                   {openMenu === key && key === "resources" && (
@@ -297,8 +313,8 @@ export function SiteHeader() {
                       aria-labelledby={`${menuId}-${key}-trigger`}
                       onPointerEnter={clearHoverTimer}
                     >
-                      <div className="hq-mega-inner">
-                        <div className="hq-mega-intro">
+                      <div className={`hq-mega-inner hq-${key}-layout`}>
+                        <aside className="hq-menu-feature">
                           <span className="hq-nav-eyebrow">
                             {key === "industries" ? "Who we help" : "What we do"}
                           </span>
@@ -307,6 +323,11 @@ export function SiteHeader() {
                               ? "Your world.\nOur perspective."
                               : "A sharper brand.\nA stronger business."}
                           </p>
+                          <span className="hq-menu-caption">
+                            {key === "industries"
+                              ? "Specialist thinking shaped around the way your market actually works."
+                              : "Strategy, creative and technology working as one connected system."}
+                          </span>
                           <Link
                             to={key === "industries" ? "/industries" : "/services"}
                             preload="intent"
@@ -315,7 +336,7 @@ export function SiteHeader() {
                             {key === "industries" ? "View all industries" : "Explore services"}
                             <ArrowRight size={16} aria-hidden="true" />
                           </Link>
-                        </div>
+                        </aside>
                         {key === "industries" ? (
                           <div className="hq-industry-menu-groups">
                             {INDUSTRY_GROUPS.map((group) => (
@@ -324,8 +345,12 @@ export function SiteHeader() {
                                 <ul>
                                   {group.items.map((link) => (
                                     <li key={link.to}>
-                                      <Link to={link.to} preload="intent" className="hq-mega-link">
-                                        {link.label}
+                                      <Link
+                                        to={link.to}
+                                        preload="intent"
+                                        className="hq-industry-link"
+                                      >
+                                        <span>{link.label}</span>
                                         <ArrowUpRight size={14} aria-hidden="true" />
                                       </Link>
                                     </li>
@@ -335,22 +360,16 @@ export function SiteHeader() {
                             ))}
                           </div>
                         ) : (
-                          <ul className="hq-capability-menu-list">
+                          <ul className="hq-services-grid">
                             {CAPABILITY_MENU.map((link, index) => (
                               <li key={link.to}>
-                                <Link
-                                  to={link.to}
-                                  preload="intent"
-                                  className="hq-capability-menu-link"
-                                >
-                                  <span className="hq-capability-menu-number" aria-hidden="true">
+                                <Link to={link.to} preload="intent" className="hq-menu-card">
+                                  <span className="hq-menu-card-number" aria-hidden="true">
                                     {String(index + 1).padStart(2, "0")}
                                   </span>
                                   <span>
                                     <strong>{link.label}</strong>
-                                    <span className="hq-capability-menu-description">
-                                      {link.blurb}
-                                    </span>
+                                    <small>{link.blurb}</small>
                                   </span>
                                   <ArrowUpRight size={15} aria-hidden="true" />
                                 </Link>

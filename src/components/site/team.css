@@ -1,0 +1,128 @@
+/*
+ * Team page — the sections unique to /team (stats strip + values grid).
+ * Shares the .ab hero / section-head / eyebrow system from about.css.
+ */
+
+.tm-stats {
+  background: var(--surface);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+.tm-stats-list {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  list-style: none;
+  margin: 0;
+  padding: clamp(2rem, 4vw, 3rem) 0;
+}
+
+.tm-stats-list li {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0 clamp(1rem, 2.5vw, 2rem);
+  text-align: center;
+  border-left: 1px solid var(--line);
+}
+
+.tm-stats-list li:first-child {
+  border-left: none;
+}
+
+.tm-stats-list strong {
+  font-family: var(--font-display);
+  font-size: clamp(2.25rem, 5vw, 3.25rem);
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: var(--brand);
+}
+
+.tm-stats-label {
+  margin-top: 0.35rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.tm-stats-detail {
+  font-size: 0.85rem;
+  color: var(--ink-muted);
+}
+
+/* ------------------------------------------------------------- values */
+
+.tm-values {
+  background: var(--carbon);
+  color: oklch(0.96 0.003 95);
+  padding-block: clamp(3rem, 6vw, 5rem);
+}
+
+.tm-values .ab-eyebrow {
+  color: oklch(0.7 0.01 250);
+}
+
+.tm-values-list {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem;
+  list-style: none;
+  margin: clamp(2rem, 4vw, 3rem) 0 0;
+  padding: 0;
+}
+
+.tm-values-list li {
+  padding: 1.5rem;
+  border-radius: var(--radius-2xl, 1.25rem);
+  background: color-mix(in oklch, oklch(1 0 0) 4%, transparent);
+  border: 1px solid color-mix(in oklch, oklch(1 0 0) 10%, transparent);
+}
+
+.tm-values-index {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--brand);
+}
+
+.tm-values-list h3 {
+  margin: 0.75rem 0 0.5rem;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  letter-spacing: -0.01em;
+}
+
+.tm-values-list p {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: oklch(0.82 0.01 80);
+}
+
+/* ------------------------------------------------------------ responsive */
+
+@media (max-width: 900px) {
+  .tm-values-list {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .tm-stats-list {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .tm-stats-list li {
+    border-left: none;
+    border-top: 1px solid var(--line);
+    padding-top: 1.25rem;
+  }
+
+  .tm-stats-list li:first-child {
+    border-top: none;
+    padding-top: 0;
+  }
+
+  .tm-values-list {
+    grid-template-columns: 1fr;
+  }
+}

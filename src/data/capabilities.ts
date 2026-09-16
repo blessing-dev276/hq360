@@ -525,6 +525,18 @@ CAPABILITIES.push(
   },
 );
 
+// Keep the public service catalogue in the intended presentation order.
+const writingTranslationIndex = CAPABILITIES.findIndex(
+  (capability) => capability.slug === "writing-translation",
+);
+const crmAutomationIndex = CAPABILITIES.findIndex(
+  (capability) => capability.slug === "crm-automation",
+);
+if (writingTranslationIndex !== -1 && crmAutomationIndex !== -1) {
+  const [writingTranslation] = CAPABILITIES.splice(writingTranslationIndex, 1);
+  CAPABILITIES.splice(crmAutomationIndex + 1, 0, writingTranslation!);
+}
+
 export function getCapability(slug: string): Capability | undefined {
   return CAPABILITIES.find((c) => c.slug === slug);
 }

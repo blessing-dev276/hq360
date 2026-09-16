@@ -74,6 +74,11 @@ export const CAPABILITY_MENU: { label: string; to: string; blurb: string }[] = [
     blurb: "Pipelines and follow-up that work without manual chasing.",
   },
   {
+    label: "Writing & Translation",
+    to: "/services/writing-translation",
+    blurb: "Writing, editing and translation that keep every message clear and on-brand.",
+  },
+  {
     label: "Social Media Marketing",
     to: "/services/lead-generation",
     blurb: "Consistent, qualified demand from advertising and outreach.",
@@ -97,11 +102,6 @@ export const CAPABILITY_MENU: { label: string; to: string; blurb: string }[] = [
     label: "Game Development",
     to: "/services/game-development",
     blurb: "Interactive experiences designed to be played, shared and remembered.",
-  },
-  {
-    label: "Writing & Translation",
-    to: "/services/writing-translation",
-    blurb: "Writing, editing and translation that keep every message clear and on-brand.",
   },
 ];
 
@@ -137,12 +137,12 @@ export const FOOTER_NAV: { heading: string; links: { label: string; to: string }
       { label: "Brand & Creative", to: "/services/brand-creative" },
       { label: "Website & Funnel", to: "/services/websites-funnels" },
       { label: "CRM Automation", to: "/services/crm-automation" },
+      { label: "Writing & Translation", to: "/services/writing-translation" },
       { label: "Social Media Marketing", to: "/services/lead-generation" },
       { label: "Ai Video & Video Editing", to: "/services/content-social" },
       { label: "SEO", to: "/services/visibility-reputation" },
       { label: "Mobile App Development", to: "/services/mobile-app-development" },
       { label: "Game Development", to: "/services/game-development" },
-      { label: "Writing & Translation", to: "/services/writing-translation" },
     ],
   },
   {

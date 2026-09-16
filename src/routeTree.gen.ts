@@ -65,6 +65,7 @@ import { Route as ApiPublicPortfolioRouteImport } from './routes/api/public/port
 import { Route as ApiPublicResourceRequestRouteImport } from './routes/api/public/resource-request'
 import { Route as ApiPublicTeamRouteImport } from './routes/api/public/team'
 import { Route as ApiPublicTestimonialsRouteImport } from './routes/api/public/testimonials'
+import { Route as ApiPublicVoiceMessageRouteImport } from './routes/api/public/voice-message'
 import { Route as InsightsAnswersSlugRouteImport } from './routes/insights.answers.$slug'
 import { Route as InsightsGuidesSlugRouteImport } from './routes/insights.guides.$slug'
 import { Route as ApiAdminCaseStudiesIdRouteImport } from './routes/api/admin/case-studies.$id'
@@ -358,6 +359,11 @@ const ApiPublicTestimonialsRoute = ApiPublicTestimonialsRouteImport.update({
   path: '/api/public/testimonials',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicVoiceMessageRoute = ApiPublicVoiceMessageRouteImport.update({
+  id: '/api/public/voice-message',
+  path: '/api/public/voice-message',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const InsightsAnswersSlugRoute = InsightsAnswersSlugRouteImport.update({
   id: '/insights/answers/$slug',
   path: '/insights/answers/$slug',
@@ -469,6 +475,7 @@ export interface FileRoutesByFullPath {
   '/api/public/resource-request': typeof ApiPublicResourceRequestRoute
   '/api/public/team': typeof ApiPublicTeamRoute
   '/api/public/testimonials': typeof ApiPublicTestimonialsRoute
+  '/api/public/voice-message': typeof ApiPublicVoiceMessageRoute
   '/insights/answers/$slug': typeof InsightsAnswersSlugRoute
   '/insights/guides/$slug': typeof InsightsGuidesSlugRoute
   '/api/admin/case-studies/$id': typeof ApiAdminCaseStudiesIdRoute
@@ -537,6 +544,7 @@ export interface FileRoutesByTo {
   '/api/public/resource-request': typeof ApiPublicResourceRequestRoute
   '/api/public/team': typeof ApiPublicTeamRoute
   '/api/public/testimonials': typeof ApiPublicTestimonialsRoute
+  '/api/public/voice-message': typeof ApiPublicVoiceMessageRoute
   '/insights/answers/$slug': typeof InsightsAnswersSlugRoute
   '/insights/guides/$slug': typeof InsightsGuidesSlugRoute
   '/api/admin/case-studies/$id': typeof ApiAdminCaseStudiesIdRoute
@@ -606,6 +614,7 @@ export interface FileRoutesById {
   '/api/public/resource-request': typeof ApiPublicResourceRequestRoute
   '/api/public/team': typeof ApiPublicTeamRoute
   '/api/public/testimonials': typeof ApiPublicTestimonialsRoute
+  '/api/public/voice-message': typeof ApiPublicVoiceMessageRoute
   '/insights/answers/$slug': typeof InsightsAnswersSlugRoute
   '/insights/guides/$slug': typeof InsightsGuidesSlugRoute
   '/api/admin/case-studies/$id': typeof ApiAdminCaseStudiesIdRoute
@@ -676,6 +685,7 @@ export interface FileRouteTypes {
     | '/api/public/resource-request'
     | '/api/public/team'
     | '/api/public/testimonials'
+    | '/api/public/voice-message'
     | '/insights/answers/$slug'
     | '/insights/guides/$slug'
     | '/api/admin/case-studies/$id'
@@ -744,6 +754,7 @@ export interface FileRouteTypes {
     | '/api/public/resource-request'
     | '/api/public/team'
     | '/api/public/testimonials'
+    | '/api/public/voice-message'
     | '/insights/answers/$slug'
     | '/insights/guides/$slug'
     | '/api/admin/case-studies/$id'
@@ -812,6 +823,7 @@ export interface FileRouteTypes {
     | '/api/public/resource-request'
     | '/api/public/team'
     | '/api/public/testimonials'
+    | '/api/public/voice-message'
     | '/insights/answers/$slug'
     | '/insights/guides/$slug'
     | '/api/admin/case-studies/$id'
@@ -881,6 +893,7 @@ export interface RootRouteChildren {
   ApiPublicResourceRequestRoute: typeof ApiPublicResourceRequestRoute
   ApiPublicTeamRoute: typeof ApiPublicTeamRoute
   ApiPublicTestimonialsRoute: typeof ApiPublicTestimonialsRoute
+  ApiPublicVoiceMessageRoute: typeof ApiPublicVoiceMessageRoute
   InsightsAnswersSlugRoute: typeof InsightsAnswersSlugRoute
   InsightsGuidesSlugRoute: typeof InsightsGuidesSlugRoute
 }
@@ -1279,6 +1292,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicTestimonialsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/voice-message': {
+      id: '/api/public/voice-message'
+      path: '/api/public/voice-message'
+      fullPath: '/api/public/voice-message'
+      preLoaderRoute: typeof ApiPublicVoiceMessageRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/insights/answers/$slug': {
       id: '/insights/answers/$slug'
       path: '/insights/answers/$slug'
@@ -1462,6 +1482,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicResourceRequestRoute: ApiPublicResourceRequestRoute,
   ApiPublicTeamRoute: ApiPublicTeamRoute,
   ApiPublicTestimonialsRoute: ApiPublicTestimonialsRoute,
+  ApiPublicVoiceMessageRoute: ApiPublicVoiceMessageRoute,
   InsightsAnswersSlugRoute: InsightsAnswersSlugRoute,
   InsightsGuidesSlugRoute: InsightsGuidesSlugRoute,
 }

@@ -23,16 +23,20 @@ export const Route = createFileRoute("/api/public/testimonials")({
         const url = new URL(request.url);
         const industry = url.searchParams.get("industry") ?? "";
         const capability = url.searchParams.get("capability") ?? "";
+        const mediaType = url.searchParams.get("mediaType") ?? "";
 
         try {
           const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
           let query = supabaseAdmin
             .from("testimonials")
-            .select("id, title, quote, media_url, industry_slug, capability_slug")
+            .select(
+              "id, title, quote, media_type, media_url, thumbnail_url, industry_slug, capability_slug",
+            )
             .eq("published", true);
 
           if (industry) query = query.eq("industry_slug", industry);
           if (capability) query = query.eq("capability_slug", capability);
+          if (mediaType) query = query.eq("media_type", mediaType);
 
           const { data, error } = await query
             .order("sort_order", { ascending: true })

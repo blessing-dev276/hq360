@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { X } from "lucide-react";
+import { Play, X } from "lucide-react";
 import { Section, SectionHeader } from "@/components/site/Primitives";
 import { Reveal } from "@/components/site/Reveal";
 import { CaseStudySkeleton } from "@/components/site/loading/RouteLoading";
@@ -11,24 +11,30 @@ type Testimonial = {
   id: string;
   title: string;
   quote: string | null;
+  media_type: "image" | "video";
   media_url: string;
+  thumbnail_url: string | null;
 };
 
 /**
- * Renders published testimonials (review screenshots) for an industry
- * and/or a capability. Distinct from PortfolioStrip: a testimonial is proof
- * of reputation, not a delivered work sample. Managed from /admin >
- * Testimonials. Renders nothing when there is nothing to show.
+ * Renders published testimonials for an industry and/or a capability.
+ * Distinct from PortfolioStrip: a testimonial is proof of reputation, not a
+ * delivered work sample. Screenshots and client testimonial videos share the
+ * same table — pass `mediaType` to show only one kind. Managed from
+ * /admin > Testimonials. Renders nothing when there is nothing to show.
  */
 export function TestimonialStrip({
   industry,
   capability,
+  mediaType,
   eyebrow = "What clients say",
   title = "Testimonials",
   tone = "base",
 }: {
   industry?: string;
   capability?: string;
+  /** Show only screenshots or only videos. Omit to show both. */
+  mediaType?: "image" | "video";
   eyebrow?: string;
   title?: string;
   tone?: "base" | "raised";
@@ -36,8 +42,9 @@ export function TestimonialStrip({
   const params = new URLSearchParams();
   if (industry) params.set("industry", industry);
   if (capability) params.set("capability", capability);
+  if (mediaType) params.set("mediaType", mediaType);
   const query = useQuery({
-    queryKey: ["public", "testimonials", industry ?? "", capability ?? ""],
+    queryKey: ["public", "testimonials", industry ?? "", capability ?? "", mediaType ?? ""],
     queryFn: ({ signal }) =>
       fetchPublicContent<{ items: Testimonial[] }>(
         `/api/public/testimonials?${params.toString()}`,
@@ -74,7 +81,22 @@ export function TestimonialStrip({
               <Reveal delay={i * 35} className="h-full">
                 <button type="button" className="tst-card" onClick={() => setOpenId(it.id)}>
                   <span className="tst-shot">
-                    <img src={it.media_url} alt={it.title} loading="lazy" decoding="async" />
+                    {it.media_type === "video" ? (
+                      <>
+                        <video
+                          src={it.media_url}
+                          poster={it.thumbnail_url ?? undefined}
+                          muted
+                          playsInline
+                          preload="metadata"
+                        />
+                        <span className="tst-play" aria-hidden="true">
+                          <Play />
+                        </span>
+                      </>
+                    ) : (
+                      <img src={it.media_url} alt={it.title} loading="lazy" decoding="async" />
+                    )}
                   </span>
                   <span className="tst-caption">{it.title}</span>
                 </button>
@@ -122,7 +144,23 @@ function TestimonialViewer({ item, onClose }: { item: Testimonial; onClose: () =
           </button>
         </header>
         <div className="tst-viewer-scroll">
-          <img src={item.media_url} alt={item.title} className="tst-viewer-img" decoding="async" />
+          {item.media_type === "video" ? (
+            <video
+              src={item.media_url}
+              poster={item.thumbnail_url ?? undefined}
+              controls
+              autoPlay
+              playsInline
+              className="tst-viewer-img"
+            />
+          ) : (
+            <img
+              src={item.media_url}
+              alt={item.title}
+              className="tst-viewer-img"
+              decoding="async"
+            />
+          )}
           {item.quote ? <p className="tst-viewer-quote">{item.quote}</p> : null}
         </div>
       </div>

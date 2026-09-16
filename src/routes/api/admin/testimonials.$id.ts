@@ -15,7 +15,9 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const patchSchema = z.object({
   title: z.string().min(1).max(200).optional(),
   quote: z.string().max(2000).nullable().optional(),
+  mediaType: z.enum(["image", "video"]).optional(),
   mediaUrl: z.string().min(1).max(2000).optional(),
+  thumbnailUrl: z.string().max(2000).nullable().optional(),
   industrySlug: z.string().max(120).nullable().optional(),
   capabilitySlug: z.string().max(120).nullable().optional(),
   published: z.boolean().optional(),
@@ -37,7 +39,9 @@ export const Route = createFileRoute("/api/admin/testimonials/$id")({
         const update: TablesUpdate<"testimonials"> = {};
         if (body.title !== undefined) update.title = body.title;
         if (body.quote !== undefined) update.quote = body.quote || null;
+        if (body.mediaType !== undefined) update.media_type = body.mediaType;
         if (body.mediaUrl !== undefined) update.media_url = body.mediaUrl;
+        if (body.thumbnailUrl !== undefined) update.thumbnail_url = body.thumbnailUrl || null;
         if (body.industrySlug !== undefined) update.industry_slug = body.industrySlug || null;
         if (body.capabilitySlug !== undefined) update.capability_slug = body.capabilitySlug || null;
         if (body.published !== undefined) update.published = body.published;

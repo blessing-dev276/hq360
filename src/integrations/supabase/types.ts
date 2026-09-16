@@ -215,10 +215,12 @@ export type Database = {
           created_at: string;
           id: string;
           industry_slug: string | null;
+          media_type: string;
           media_url: string;
           published: boolean;
           quote: string | null;
           sort_order: number;
+          thumbnail_url: string | null;
           title: string;
           updated_at: string;
         };
@@ -227,10 +229,12 @@ export type Database = {
           created_at?: string;
           id?: string;
           industry_slug?: string | null;
+          media_type?: string;
           media_url: string;
           published?: boolean;
           quote?: string | null;
           sort_order?: number;
+          thumbnail_url?: string | null;
           title: string;
           updated_at?: string;
         };
@@ -239,10 +243,12 @@ export type Database = {
           created_at?: string;
           id?: string;
           industry_slug?: string | null;
+          media_type?: string;
           media_url?: string;
           published?: boolean;
           quote?: string | null;
           sort_order?: number;
+          thumbnail_url?: string | null;
           title?: string;
           updated_at?: string;
         };

@@ -1974,7 +1974,9 @@ type Testimonial = {
   id: string;
   title: string;
   quote: string | null;
+  media_type: MediaType;
   media_url: string;
+  thumbnail_url: string | null;
   industry_slug: string | null;
   capability_slug: string | null;
   sort_order: number;
@@ -1985,7 +1987,9 @@ type TestimonialDraft = {
   id?: string;
   title: string;
   quote: string;
+  mediaType: MediaType;
   mediaUrl: string;
+  thumbnailUrl: string;
   industrySlug: string;
   capabilitySlug: string;
   published: boolean;
@@ -1994,7 +1998,9 @@ type TestimonialDraft = {
 const emptyTestimonialDraft: TestimonialDraft = {
   title: "",
   quote: "",
+  mediaType: "image",
   mediaUrl: "",
+  thumbnailUrl: "",
   industrySlug: "",
   capabilitySlug: "",
   published: true,
@@ -2005,7 +2011,9 @@ function toTestimonialDraft(t: Testimonial): TestimonialDraft {
     id: t.id,
     title: t.title,
     quote: t.quote ?? "",
+    mediaType: t.media_type,
     mediaUrl: t.media_url,
+    thumbnailUrl: t.thumbnail_url ?? "",
     industrySlug: t.industry_slug ?? "",
     capabilitySlug: t.capability_slug ?? "",
     published: t.published,
@@ -2076,7 +2084,9 @@ function TestimonialDashboard() {
     const payload = {
       title: draft.title,
       quote: draft.quote,
+      mediaType: draft.mediaType,
       mediaUrl: draft.mediaUrl,
+      thumbnailUrl: draft.thumbnailUrl,
       industrySlug: draft.industrySlug,
       capabilitySlug: draft.capabilitySlug,
       published: draft.published,
@@ -2107,8 +2117,9 @@ function TestimonialDashboard() {
   return (
     <div className="space-y-8">
       <p className="text-sm text-muted-foreground">
-        Review screenshots — kept separate from the service portfolio, which is delivered work. Tag
-        one to an industry, and optionally a specific service, to show it there.
+        Review screenshots and client testimonial videos — kept separate from the service portfolio,
+        which is delivered work. Tag one to an industry, and optionally a specific service, to show
+        it there.
       </p>
 
       <TestimonialForm
@@ -2150,11 +2161,22 @@ function TestimonialDashboard() {
                   ⠿
                 </span>
                 <div className="size-16 shrink-0 overflow-hidden rounded-lg border border-border bg-secondary">
-                  <img src={t.media_url} alt={t.title} className="size-full object-cover" />
+                  {t.media_type === "video" ? (
+                    <video
+                      src={t.media_url}
+                      poster={t.thumbnail_url ?? undefined}
+                      muted
+                      playsInline
+                      className="size-full object-cover"
+                    />
+                  ) : (
+                    <img src={t.media_url} alt={t.title} className="size-full object-cover" />
+                  )}
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium">{t.title}</p>
                   <p className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+                    <span className="rounded-full bg-secondary px-2 py-0.5">{t.media_type}</span>
                     <span className="rounded-full bg-secondary px-2 py-0.5">
                       {industryName(t.industry_slug)}
                     </span>
@@ -2221,7 +2243,8 @@ function TestimonialForm({
     e.preventDefault();
     setError("");
     if (!draft.title.trim()) return setError("Title is required.");
-    if (!draft.mediaUrl.trim()) return setError("Upload a screenshot.");
+    if (!draft.mediaUrl.trim())
+      return setError(draft.mediaType === "video" ? "Upload a video." : "Upload a screenshot.");
     setSaving(true);
     const ok = await onSave(draft);
     setSaving(false);
@@ -2268,32 +2291,92 @@ function TestimonialForm({
       </label>
 
       <div className="mt-4 rounded-xl border border-border bg-background p-4">
-        <span className="text-sm font-medium">Screenshot</span>
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium">
+            {draft.mediaType === "video" ? "Video" : "Screenshot"}
+          </span>
+          <div className="ml-auto flex rounded-full border border-border p-0.5 text-xs">
+            {(["image", "video"] as const).map((t) => (
+              <button
+                key={t}
+                type="button"
+                onClick={() => set("mediaType", t)}
+                className={cn(
+                  "rounded-full px-3 py-1 font-medium capitalize",
+                  draft.mediaType === t
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground",
+                )}
+              >
+                {t}
+              </button>
+            ))}
+          </div>
+        </div>
+
         <div className="mt-3 flex items-center gap-4">
           <div className="size-20 shrink-0 overflow-hidden rounded-lg border border-border bg-secondary">
             {draft.mediaUrl ? (
-              <img
-                src={draft.mediaUrl}
-                alt={draft.title || "Preview"}
-                className="size-full object-cover"
-              />
+              draft.mediaType === "video" ? (
+                <video
+                  src={draft.mediaUrl}
+                  poster={draft.thumbnailUrl || undefined}
+                  muted
+                  playsInline
+                  className="size-full object-cover"
+                />
+              ) : (
+                <img
+                  src={draft.mediaUrl}
+                  alt={draft.title || "Preview"}
+                  className="size-full object-cover"
+                />
+              )
             ) : null}
           </div>
           <div className="min-w-0 flex-1">
             <UploadField
               bucket="testimonials"
-              accept="image/*"
+              accept={draft.mediaType === "video" ? "video/*" : "image/*"}
               onUploaded={(url) => set("mediaUrl", url)}
-              hint="Images up to 50 MB."
+              hint={
+                draft.mediaType === "video"
+                  ? "Video up to 50 MB. Larger: host elsewhere and paste the URL."
+                  : "Images up to 50 MB."
+              }
             />
             <input
               className={cn(input, "mt-2")}
-              placeholder="…or paste an image URL"
+              placeholder={
+                draft.mediaType === "video" ? "…or paste a video URL" : "…or paste an image URL"
+              }
               value={draft.mediaUrl}
               onChange={(e) => set("mediaUrl", e.target.value)}
             />
           </div>
         </div>
+
+        {draft.mediaType === "video" ? (
+          <div className="mt-3">
+            <span className="text-xs font-medium text-muted-foreground">
+              Poster / thumbnail (optional)
+            </span>
+            <div className="mt-1.5">
+              <UploadField
+                bucket="testimonials"
+                accept="image/*"
+                onUploaded={(url) => set("thumbnailUrl", url)}
+                hint="Shown before the video plays."
+              />
+              <input
+                className={cn(input, "mt-2")}
+                placeholder="…or paste a poster image URL"
+                value={draft.thumbnailUrl}
+                onChange={(e) => set("thumbnailUrl", e.target.value)}
+              />
+            </div>
+          </div>
+        ) : null}
       </div>
 
       <div className="mt-4 grid gap-4 sm:grid-cols-2">

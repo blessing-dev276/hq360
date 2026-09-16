@@ -12,7 +12,9 @@ function json(body: unknown, status = 200) {
 const createSchema = z.object({
   title: z.string().min(1).max(200),
   quote: z.string().max(2000).optional().or(z.literal("")),
+  mediaType: z.enum(["image", "video"]).optional(),
   mediaUrl: z.string().min(1).max(2000),
+  thumbnailUrl: z.string().max(2000).optional().or(z.literal("")),
   industrySlug: z.string().max(120).optional().or(z.literal("")),
   capabilitySlug: z.string().max(120).optional().or(z.literal("")),
   published: z.boolean().optional(),
@@ -62,7 +64,9 @@ export const Route = createFileRoute("/api/admin/testimonials")({
             .insert({
               title: body.title,
               quote: body.quote || null,
+              media_type: body.mediaType ?? "image",
               media_url: body.mediaUrl,
+              thumbnail_url: body.thumbnailUrl || null,
               industry_slug: body.industrySlug || null,
               capability_slug: body.capabilitySlug || null,
               published: body.published ?? true,

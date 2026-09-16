@@ -46,6 +46,8 @@ import { Route as InsightsSlugRouteImport } from './routes/insights.$slug'
 import { Route as InsightsGlossaryRouteImport } from './routes/insights.glossary'
 import { Route as ServicesIndexRouteImport } from './routes/services.index'
 import { Route as ServicesSlugRouteImport } from './routes/services.$slug'
+import { Route as ToolsIndexRouteImport } from './routes/tools/index'
+import { Route as ToolsToolRouteImport } from './routes/tools/$tool'
 import { Route as ToolsAuthorVisibilityAuditRouteImport } from './routes/tools/author-visibility-audit'
 import { Route as WorkIndexRouteImport } from './routes/work.index'
 import { Route as WorkSlugRouteImport } from './routes/work.$slug'
@@ -262,6 +264,16 @@ const ServicesSlugRoute = ServicesSlugRouteImport.update({
   path: '/services/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ToolsIndexRoute = ToolsIndexRouteImport.update({
+  id: '/tools/',
+  path: '/tools/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ToolsToolRoute = ToolsToolRouteImport.update({
+  id: '/tools/$tool',
+  path: '/tools/$tool',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ToolsAuthorVisibilityAuditRoute =
   ToolsAuthorVisibilityAuditRouteImport.update({
     id: '/tools/author-visibility-audit',
@@ -452,12 +464,14 @@ export interface FileRoutesByFullPath {
   '/insights/$slug': typeof InsightsSlugRoute
   '/insights/glossary': typeof InsightsGlossaryRoute
   '/services/$slug': typeof ServicesSlugRoute
+  '/tools/$tool': typeof ToolsToolRoute
   '/tools/author-visibility-audit': typeof ToolsAuthorVisibilityAuditRoute
   '/work/$slug': typeof WorkSlugRoute
   '/blog/': typeof BlogIndexRoute
   '/capabilities/': typeof CapabilitiesIndexRoute
   '/insights/': typeof InsightsIndexRoute
   '/services/': typeof ServicesIndexRoute
+  '/tools/': typeof ToolsIndexRoute
   '/work/': typeof WorkIndexRoute
   '/api/admin/case-studies': typeof ApiAdminCaseStudiesRouteWithChildren
   '/api/admin/portfolio': typeof ApiAdminPortfolioRouteWithChildren
@@ -521,12 +535,14 @@ export interface FileRoutesByTo {
   '/insights/$slug': typeof InsightsSlugRoute
   '/insights/glossary': typeof InsightsGlossaryRoute
   '/services/$slug': typeof ServicesSlugRoute
+  '/tools/$tool': typeof ToolsToolRoute
   '/tools/author-visibility-audit': typeof ToolsAuthorVisibilityAuditRoute
   '/work/$slug': typeof WorkSlugRoute
   '/blog': typeof BlogIndexRoute
   '/capabilities': typeof CapabilitiesIndexRoute
   '/insights': typeof InsightsIndexRoute
   '/services': typeof ServicesIndexRoute
+  '/tools': typeof ToolsIndexRoute
   '/work': typeof WorkIndexRoute
   '/api/admin/case-studies': typeof ApiAdminCaseStudiesRouteWithChildren
   '/api/admin/portfolio': typeof ApiAdminPortfolioRouteWithChildren
@@ -591,12 +607,14 @@ export interface FileRoutesById {
   '/insights/$slug': typeof InsightsSlugRoute
   '/insights/glossary': typeof InsightsGlossaryRoute
   '/services/$slug': typeof ServicesSlugRoute
+  '/tools/$tool': typeof ToolsToolRoute
   '/tools/author-visibility-audit': typeof ToolsAuthorVisibilityAuditRoute
   '/work/$slug': typeof WorkSlugRoute
   '/blog/': typeof BlogIndexRoute
   '/capabilities/': typeof CapabilitiesIndexRoute
   '/insights/': typeof InsightsIndexRoute
   '/services/': typeof ServicesIndexRoute
+  '/tools/': typeof ToolsIndexRoute
   '/work/': typeof WorkIndexRoute
   '/api/admin/case-studies': typeof ApiAdminCaseStudiesRouteWithChildren
   '/api/admin/portfolio': typeof ApiAdminPortfolioRouteWithChildren
@@ -662,12 +680,14 @@ export interface FileRouteTypes {
     | '/insights/$slug'
     | '/insights/glossary'
     | '/services/$slug'
+    | '/tools/$tool'
     | '/tools/author-visibility-audit'
     | '/work/$slug'
     | '/blog/'
     | '/capabilities/'
     | '/insights/'
     | '/services/'
+    | '/tools/'
     | '/work/'
     | '/api/admin/case-studies'
     | '/api/admin/portfolio'
@@ -731,12 +751,14 @@ export interface FileRouteTypes {
     | '/insights/$slug'
     | '/insights/glossary'
     | '/services/$slug'
+    | '/tools/$tool'
     | '/tools/author-visibility-audit'
     | '/work/$slug'
     | '/blog'
     | '/capabilities'
     | '/insights'
     | '/services'
+    | '/tools'
     | '/work'
     | '/api/admin/case-studies'
     | '/api/admin/portfolio'
@@ -800,12 +822,14 @@ export interface FileRouteTypes {
     | '/insights/$slug'
     | '/insights/glossary'
     | '/services/$slug'
+    | '/tools/$tool'
     | '/tools/author-visibility-audit'
     | '/work/$slug'
     | '/blog/'
     | '/capabilities/'
     | '/insights/'
     | '/services/'
+    | '/tools/'
     | '/work/'
     | '/api/admin/case-studies'
     | '/api/admin/portfolio'
@@ -870,12 +894,14 @@ export interface RootRouteChildren {
   InsightsSlugRoute: typeof InsightsSlugRoute
   InsightsGlossaryRoute: typeof InsightsGlossaryRoute
   ServicesSlugRoute: typeof ServicesSlugRoute
+  ToolsToolRoute: typeof ToolsToolRoute
   ToolsAuthorVisibilityAuditRoute: typeof ToolsAuthorVisibilityAuditRoute
   WorkSlugRoute: typeof WorkSlugRoute
   BlogIndexRoute: typeof BlogIndexRoute
   CapabilitiesIndexRoute: typeof CapabilitiesIndexRoute
   InsightsIndexRoute: typeof InsightsIndexRoute
   ServicesIndexRoute: typeof ServicesIndexRoute
+  ToolsIndexRoute: typeof ToolsIndexRoute
   WorkIndexRoute: typeof WorkIndexRoute
   ApiAdminCaseStudiesRoute: typeof ApiAdminCaseStudiesRouteWithChildren
   ApiAdminPortfolioRoute: typeof ApiAdminPortfolioRouteWithChildren
@@ -1157,6 +1183,20 @@ declare module '@tanstack/react-router' {
       path: '/services/$slug'
       fullPath: '/services/$slug'
       preLoaderRoute: typeof ServicesSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tools/': {
+      id: '/tools/'
+      path: '/tools'
+      fullPath: '/tools/'
+      preLoaderRoute: typeof ToolsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tools/$tool': {
+      id: '/tools/$tool'
+      path: '/tools/$tool'
+      fullPath: '/tools/$tool'
+      preLoaderRoute: typeof ToolsToolRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/tools/author-visibility-audit': {
@@ -1459,12 +1499,14 @@ const rootRouteChildren: RootRouteChildren = {
   InsightsSlugRoute: InsightsSlugRoute,
   InsightsGlossaryRoute: InsightsGlossaryRoute,
   ServicesSlugRoute: ServicesSlugRoute,
+  ToolsToolRoute: ToolsToolRoute,
   ToolsAuthorVisibilityAuditRoute: ToolsAuthorVisibilityAuditRoute,
   WorkSlugRoute: WorkSlugRoute,
   BlogIndexRoute: BlogIndexRoute,
   CapabilitiesIndexRoute: CapabilitiesIndexRoute,
   InsightsIndexRoute: InsightsIndexRoute,
   ServicesIndexRoute: ServicesIndexRoute,
+  ToolsIndexRoute: ToolsIndexRoute,
   WorkIndexRoute: WorkIndexRoute,
   ApiAdminCaseStudiesRoute: ApiAdminCaseStudiesRouteWithChildren,
   ApiAdminPortfolioRoute: ApiAdminPortfolioRouteWithChildren,

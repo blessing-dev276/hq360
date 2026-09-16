@@ -37,13 +37,41 @@ function titleMatches(expected: string, received?: string) {
   return left === right || left.includes(right) || right.includes(left);
 }
 
-async function readJson(url: string) {
+/** Many real book titles are "Main Title: A Descriptive Subtitle" — catalog
+ * search APIs frequently only index the main title, so a query built from
+ * the full title-plus-subtitle can miss a record that genuinely exists.
+ * Returns the portion before the first subtitle separator, or undefined if
+ * there isn't one. */
+function primaryTitle(title: string): string | undefined {
+  const cut = title.search(/[:—–]/);
+  if (cut <= 0) return undefined;
+  const trimmed = title.slice(0, cut).trim();
+  return trimmed && trimmed !== title ? trimmed : undefined;
+}
+
+async function readJson(url: string, retryOn429 = false): Promise<unknown> {
   const response = await fetch(url, {
     headers: { accept: "application/json", "user-agent": "HQ360AuthorAudit/1.0" },
     signal: AbortSignal.timeout(8_000),
   });
+  if (response.status === 429 && retryOn429) {
+    await new Promise((r) => setTimeout(r, 1_500));
+    return readJson(url, false);
+  }
   if (!response.ok) throw new Error(`Provider returned ${response.status}`);
   return response.json() as Promise<unknown>;
+}
+
+async function queryGoogleBooks(title: string, author: string) {
+  const apiKey = process.env.GOOGLE_BOOKS_API_KEY;
+  const query = encodeURIComponent(`intitle:${title}+inauthor:${author}`);
+  const url = `https://www.googleapis.com/books/v1/volumes?q=${query}&maxResults=5${apiKey ? `&key=${apiKey}` : ""}`;
+  const data = (await readJson(url, /* retryOn429 */ !apiKey)) as {
+    items?: { volumeInfo?: Record<string, unknown>; id?: string }[];
+  };
+  return data.items?.find((candidate) =>
+    titleMatches(title, String(candidate.volumeInfo?.title ?? "")),
+  );
 }
 
 export async function searchGoogleBooks(input: {
@@ -52,15 +80,9 @@ export async function searchGoogleBooks(input: {
 }): Promise<ResearchSource> {
   const retrievedAt = new Date().toISOString();
   try {
-    const query = encodeURIComponent(`intitle:${input.title}+inauthor:${input.author}`);
-    const data = (await readJson(
-      `https://www.googleapis.com/books/v1/volumes?q=${query}&maxResults=5`,
-    )) as {
-      items?: { volumeInfo?: Record<string, unknown>; id?: string }[];
-    };
-    const item = data.items?.find((candidate) =>
-      titleMatches(input.title, String(candidate.volumeInfo?.title ?? "")),
-    );
+    let item = await queryGoogleBooks(input.title, input.author);
+    const shortTitle = primaryTitle(input.title);
+    if (!item && shortTitle) item = await queryGoogleBooks(shortTitle, input.author);
     if (!item?.volumeInfo) {
       return {
         provider: "google_books",
@@ -90,19 +112,23 @@ export async function searchGoogleBooks(input: {
   }
 }
 
+async function queryOpenLibrary(title: string, author: string) {
+  const query = new URLSearchParams({ title, author, limit: "5" });
+  const data = (await readJson(`https://openlibrary.org/search.json?${query}`)) as {
+    docs?: Record<string, unknown>[];
+  };
+  return data.docs?.find((candidate) => titleMatches(title, String(candidate.title ?? "")));
+}
+
 export async function searchOpenLibrary(input: {
   title: string;
   author: string;
 }): Promise<ResearchSource> {
   const retrievedAt = new Date().toISOString();
   try {
-    const query = new URLSearchParams({ title: input.title, author: input.author, limit: "5" });
-    const data = (await readJson(`https://openlibrary.org/search.json?${query}`)) as {
-      docs?: Record<string, unknown>[];
-    };
-    const item = data.docs?.find((candidate) =>
-      titleMatches(input.title, String(candidate.title ?? "")),
-    );
+    let item = await queryOpenLibrary(input.title, input.author);
+    const shortTitle = primaryTitle(input.title);
+    if (!item && shortTitle) item = await queryOpenLibrary(shortTitle, input.author);
     if (!item)
       return {
         provider: "open_library",
@@ -133,8 +159,13 @@ export async function searchOpenLibrary(input: {
 
 function permittedWebsiteUrl(value?: string) {
   if (!value) return undefined;
+  // A visitor typing a website into a plain text field very often leaves
+  // off the scheme ("donnamaltz.com" rather than "https://donnamaltz.com")
+  // -- new URL() throws on that, which silently made a real, valid website
+  // read as "not supplied". Assume https for a bare domain/path.
+  const withScheme = /^[a-z][a-z0-9+.-]*:\/\//i.test(value) ? value : `https://${value}`;
   try {
-    const url = new URL(value);
+    const url = new URL(withScheme);
     if (url.protocol !== "https:" && url.protocol !== "http:") return undefined;
     const hostname = url.hostname.toLowerCase();
     if (

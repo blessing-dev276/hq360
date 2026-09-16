@@ -46,6 +46,7 @@ import { Route as InsightsSlugRouteImport } from './routes/insights.$slug'
 import { Route as InsightsGlossaryRouteImport } from './routes/insights.glossary'
 import { Route as ServicesIndexRouteImport } from './routes/services.index'
 import { Route as ServicesSlugRouteImport } from './routes/services.$slug'
+import { Route as ToolsAuthorVisibilityAuditRouteImport } from './routes/tools/author-visibility-audit'
 import { Route as WorkIndexRouteImport } from './routes/work.index'
 import { Route as WorkSlugRouteImport } from './routes/work.$slug'
 import { Route as ApiAdminCaseStudiesRouteImport } from './routes/api/admin/case-studies'
@@ -259,6 +260,12 @@ const ServicesSlugRoute = ServicesSlugRouteImport.update({
   path: '/services/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ToolsAuthorVisibilityAuditRoute =
+  ToolsAuthorVisibilityAuditRouteImport.update({
+    id: '/tools/author-visibility-audit',
+    path: '/tools/author-visibility-audit',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const WorkIndexRoute = WorkIndexRouteImport.update({
   id: '/work/',
   path: '/work/',
@@ -433,6 +440,7 @@ export interface FileRoutesByFullPath {
   '/insights/$slug': typeof InsightsSlugRoute
   '/insights/glossary': typeof InsightsGlossaryRoute
   '/services/$slug': typeof ServicesSlugRoute
+  '/tools/author-visibility-audit': typeof ToolsAuthorVisibilityAuditRoute
   '/work/$slug': typeof WorkSlugRoute
   '/blog/': typeof BlogIndexRoute
   '/capabilities/': typeof CapabilitiesIndexRoute
@@ -499,6 +507,7 @@ export interface FileRoutesByTo {
   '/insights/$slug': typeof InsightsSlugRoute
   '/insights/glossary': typeof InsightsGlossaryRoute
   '/services/$slug': typeof ServicesSlugRoute
+  '/tools/author-visibility-audit': typeof ToolsAuthorVisibilityAuditRoute
   '/work/$slug': typeof WorkSlugRoute
   '/blog': typeof BlogIndexRoute
   '/capabilities': typeof CapabilitiesIndexRoute
@@ -566,6 +575,7 @@ export interface FileRoutesById {
   '/insights/$slug': typeof InsightsSlugRoute
   '/insights/glossary': typeof InsightsGlossaryRoute
   '/services/$slug': typeof ServicesSlugRoute
+  '/tools/author-visibility-audit': typeof ToolsAuthorVisibilityAuditRoute
   '/work/$slug': typeof WorkSlugRoute
   '/blog/': typeof BlogIndexRoute
   '/capabilities/': typeof CapabilitiesIndexRoute
@@ -634,6 +644,7 @@ export interface FileRouteTypes {
     | '/insights/$slug'
     | '/insights/glossary'
     | '/services/$slug'
+    | '/tools/author-visibility-audit'
     | '/work/$slug'
     | '/blog/'
     | '/capabilities/'
@@ -700,6 +711,7 @@ export interface FileRouteTypes {
     | '/insights/$slug'
     | '/insights/glossary'
     | '/services/$slug'
+    | '/tools/author-visibility-audit'
     | '/work/$slug'
     | '/blog'
     | '/capabilities'
@@ -766,6 +778,7 @@ export interface FileRouteTypes {
     | '/insights/$slug'
     | '/insights/glossary'
     | '/services/$slug'
+    | '/tools/author-visibility-audit'
     | '/work/$slug'
     | '/blog/'
     | '/capabilities/'
@@ -833,6 +846,7 @@ export interface RootRouteChildren {
   InsightsSlugRoute: typeof InsightsSlugRoute
   InsightsGlossaryRoute: typeof InsightsGlossaryRoute
   ServicesSlugRoute: typeof ServicesSlugRoute
+  ToolsAuthorVisibilityAuditRoute: typeof ToolsAuthorVisibilityAuditRoute
   WorkSlugRoute: typeof WorkSlugRoute
   BlogIndexRoute: typeof BlogIndexRoute
   CapabilitiesIndexRoute: typeof CapabilitiesIndexRoute
@@ -1119,6 +1133,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ServicesSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/tools/author-visibility-audit': {
+      id: '/tools/author-visibility-audit'
+      path: '/tools/author-visibility-audit'
+      fullPath: '/tools/author-visibility-audit'
+      preLoaderRoute: typeof ToolsAuthorVisibilityAuditRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/work/': {
       id: '/work/'
       path: '/work'
@@ -1398,6 +1419,7 @@ const rootRouteChildren: RootRouteChildren = {
   InsightsSlugRoute: InsightsSlugRoute,
   InsightsGlossaryRoute: InsightsGlossaryRoute,
   ServicesSlugRoute: ServicesSlugRoute,
+  ToolsAuthorVisibilityAuditRoute: ToolsAuthorVisibilityAuditRoute,
   WorkSlugRoute: WorkSlugRoute,
   BlogIndexRoute: BlogIndexRoute,
   CapabilitiesIndexRoute: CapabilitiesIndexRoute,

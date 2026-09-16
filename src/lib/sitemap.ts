@@ -13,6 +13,7 @@ export const STATIC_SITEMAP_PATHS = [
   "/services",
   "/industries",
   "/work",
+  "/tools/author-visibility-audit",
   "/book-launch",
   "/faqs",
   "/insights",

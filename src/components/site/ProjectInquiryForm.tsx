@@ -3,7 +3,6 @@ import { z } from "zod";
 import { cn } from "@/lib/utils";
 import { CAPABILITIES } from "@/data/capabilities";
 import { INDUSTRIES } from "@/data/industries";
-import { openBlankLeadTab, navigateLeadTab } from "@/lib/lead-mailto";
 
 const HELP_OPTIONS = CAPABILITIES.map((c) => c.name);
 const BUDGETS = ["Not sure yet", "Under $5k", "$5k – $15k", "$15k – $50k", "$50k+"];
@@ -45,10 +44,6 @@ export function ProjectInquiryForm({
   const [state, setState] = useState<"idle" | "sending" | "done">("idle");
   const [honey, setHoney] = useState("");
 
-  function toggleHelp(v: string) {
-    setHelpWith((cur) => (cur.includes(v) ? cur.filter((x) => x !== v) : [...cur, v]));
-  }
-
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (state === "sending") return;
@@ -78,7 +73,6 @@ export function ProjectInquiryForm({
     }
     setErrors({});
     setState("sending");
-    const mailTab = openBlankLeadTab();
 
     try {
       const res = await fetch("/api/public/inquiry", {
@@ -94,29 +88,11 @@ export function ProjectInquiryForm({
       const body = (await res.json().catch(() => ({}))) as { ok?: boolean };
       if (res.ok && body.ok) {
         setState("done");
-        navigateLeadTab(mailTab, {
-          subject: `New HQ360 inquiry from ${parsed.data.name}`,
-          body: [
-            `Name: ${parsed.data.name}`,
-            `Email: ${parsed.data.email}`,
-            `Company: ${parsed.data.company || "N/A"}`,
-            `Website: ${parsed.data.website || "N/A"}`,
-            `Industry: ${parsed.data.industry || sourceIndustry || "N/A"}`,
-            `Need help with: ${parsed.data.helpWith.join(", ") || "N/A"}`,
-            `Primary goal: ${parsed.data.primaryGoal || "N/A"}`,
-            `Budget: ${parsed.data.budgetRange || "N/A"}`,
-            `Timeline: ${parsed.data.timeline || "N/A"}`,
-            "",
-            `Message: ${parsed.data.message || "N/A"}`,
-          ].join("\n"),
-        });
       } else {
-        mailTab?.close();
         setState("idle");
         setErrors({ form: "We could not send that. Try again, or email us directly." });
       }
     } catch {
-      mailTab?.close();
       setState("idle");
       setErrors({ form: "Network error. Try again, or email us directly." });
     }
@@ -171,102 +147,71 @@ export function ProjectInquiryForm({
           </Field>
         </div>
 
-        <div className={cn("grid gap-5", !compact && "sm:grid-cols-2")}>
-          <Field label="Company" hint="Optional">
-            <input name="company" type="text" autoComplete="organization" className={inputCls} />
-          </Field>
-          <Field label="Website" hint="Optional">
-            <input
-              name="website"
-              type="text"
-              inputMode="url"
-              placeholder="yourbusiness.com"
-              className={inputCls}
-            />
-          </Field>
-        </div>
-
-        <Field label="Industry">
-          <select name="industry" defaultValue={defaultIndustry ?? ""} className={inputCls}>
-            <option value="">Select an industry</option>
-            {INDUSTRIES.map((i) => (
-              <option key={i.slug} value={i.shortName}>
-                {i.shortName}
-              </option>
+        <Field label="What do you need help with?" error={errors.helpWith}>
+          <select
+            className={inputCls}
+            value={helpWith[0] ?? ""}
+            onChange={(event) => setHelpWith(event.target.value ? [event.target.value] : [])}
+          >
+            <option value="">Choose a service</option>
+            {helpOptions.map((option) => (
+              <option key={option}>{option}</option>
             ))}
-            <option value="Other">Other</option>
+            <option>Help me choose</option>
           </select>
         </Field>
-
-        <fieldset>
-          <legend className="text-sm font-medium text-foreground">
-            What do you need help with?
-          </legend>
-          {errors.helpWith ? (
-            <p className="mt-1 text-xs text-destructive">{errors.helpWith}</p>
-          ) : null}
-          <div className="mt-3 grid gap-2 sm:grid-cols-2">
-            {helpOptions.map((opt) => (
-              <label
-                key={opt}
-                className={cn(
-                  // Explicit text-foreground on both states: this form can sit on a
-                  // dark section (e.g. an industry page's final CTA), and without it
-                  // the label inherits that section's light text onto a light pill —
-                  // invisible text.
-                  "flex cursor-pointer items-center gap-2.5 rounded-xl border px-3.5 py-2.5 text-sm text-foreground transition-colors",
-                  helpWith.includes(opt)
-                    ? "border-brand bg-brand-soft"
-                    : "border-border bg-background hover:border-foreground/30",
-                )}
-              >
-                <input
-                  type="checkbox"
-                  checked={helpWith.includes(opt)}
-                  onChange={() => toggleHelp(opt)}
-                  className="size-4 accent-[var(--brand)]"
-                />
-                {opt}
-              </label>
-            ))}
-          </div>
-        </fieldset>
-
-        <Field label="Primary goal" hint="Optional">
-          <input
-            name="primaryGoal"
-            type="text"
-            placeholder="e.g. Book 20 qualified calls a month"
-            className={inputCls}
+        <Field label="Tell us a little about your idea" hint="Optional">
+          <textarea
+            name="message"
+            rows={3}
+            maxLength={4000}
+            placeholder="What would you like to achieve?"
+            className={cn(inputCls, "resize-y")}
           />
         </Field>
-
-        <div className={cn("grid gap-5", !compact && "sm:grid-cols-2")}>
-          <Field label="Approximate budget">
-            <select name="budgetRange" defaultValue="" className={inputCls}>
-              <option value="">Select a range</option>
-              {BUDGETS.map((b) => (
-                <option key={b} value={b}>
-                  {b}
-                </option>
-              ))}
-            </select>
-          </Field>
-          <Field label="Timeline">
-            <select name="timeline" defaultValue="" className={inputCls}>
-              <option value="">Select a timeline</option>
-              {TIMELINES.map((t) => (
-                <option key={t} value={t}>
-                  {t}
-                </option>
-              ))}
-            </select>
-          </Field>
-        </div>
-
-        <Field label="Anything else" hint="Optional">
-          <textarea name="message" rows={4} className={cn(inputCls, "resize-y")} />
-        </Field>
+        <details className="rounded-xl border border-border p-4 text-foreground">
+          <summary className="cursor-pointer text-sm font-medium">
+            Add project details{" "}
+            <span className="font-normal text-muted-foreground">(optional)</span>
+          </summary>
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            <Field label="Industry">
+              <select name="industry" defaultValue={defaultIndustry ?? ""} className={inputCls}>
+                <option value="">Choose industry</option>
+                {INDUSTRIES.map((i) => (
+                  <option key={i.slug} value={i.shortName}>
+                    {i.shortName}
+                  </option>
+                ))}
+                <option>Other</option>
+              </select>
+            </Field>
+            <Field label="Website">
+              <input
+                name="website"
+                maxLength={300}
+                placeholder="yourbusiness.com"
+                className={inputCls}
+              />
+            </Field>
+            <Field label="Budget">
+              <select name="budgetRange" className={inputCls}>
+                <option value="">Not decided yet</option>
+                {BUDGETS.map((v) => (
+                  <option key={v}>{v}</option>
+                ))}
+              </select>
+            </Field>
+            <Field label="Timeline">
+              <select name="timeline" className={inputCls}>
+                <option value="">Choose timing</option>
+                {TIMELINES.map((v) => (
+                  <option key={v}>{v}</option>
+                ))}
+              </select>
+            </Field>
+          </div>
+        </details>
 
         {/* Honeypot */}
         <input

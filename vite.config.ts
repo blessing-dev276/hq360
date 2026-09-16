@@ -47,6 +47,19 @@ export default defineConfig(async ({ command, mode, isPreview }) => {
           },
           "/robots.txt": { headers: { "cache-control": "public, max-age=3600, must-revalidate" } },
         },
+        // @resvg/resvg-js (native .node binary loader) and fontkit (a
+        // @react-pdf/renderer dependency; its shapers load a .trie binary
+        // resource) are genuine CommonJS that reference `__dirname` at
+        // module load — legitimate under Node's real per-module CJS, but
+        // undefined once Rollup inlines that code into the ESM server
+        // bundle. Nitro's built-in externals+trace plugin (driven by
+        // traceDeps, since noExternals isn't set for this preset) keeps
+        // them as real `require()`d CJS *and* copies their files (native
+        // binaries included, via the trailing `*` for a full-package
+        // trace) into the deployed function — a hand-rolled
+        // rollupConfig.external here would only do the first half, since
+        // it intercepts before Nitro's own plugin can trace the files.
+        traceDeps: ["fontkit*", "@resvg/resvg-js*"],
       }),
     );
   }

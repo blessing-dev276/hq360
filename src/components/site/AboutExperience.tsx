@@ -3,7 +3,6 @@ import { Link } from "@tanstack/react-router";
 import { ArrowRight, ArrowUpRight } from "lucide-react";
 import { Container } from "@/components/site/Primitives";
 import { CtaBand } from "@/components/site/CtaBand";
-import { TeamShowcase } from "@/components/site/TeamShowcase";
 import { GROWTH_FRAMEWORK, PRINCIPLES, PROCESS } from "@/data/process";
 import { BRAND, CTAS } from "@/config/brand";
 import "./about.css";
@@ -60,7 +59,7 @@ export function AboutExperience() {
       <Seams />
       <Framework />
       <Principles />
-      <Team />
+      <TeamTeaser />
       <Process />
       <History />
       <Reach />
@@ -351,22 +350,22 @@ function Principles() {
 
 /* -------------------------------------------------------- 5 · team */
 
-function Team() {
+function TeamTeaser() {
   return (
-    <section className="ab-team" id="team">
+    <section className="ab-team-teaser">
       <Container size="wide">
-        <TeamShowcase
-          eyebrow="The team"
-          title={
-            <>
-              The people on your account. <em>Tap a card to see what they own.</em>
-            </>
-          }
-        />
-        <p className="ab-team-line">
-          A small multidisciplinary team &mdash; <em>every discipline in-house</em>, one named lead
-          per engagement.
-        </p>
+        <div className="ab-team-teaser-inner">
+          <div>
+            <p className="ab-eyebrow">
+              <span /> The team
+            </p>
+            <h2>A small multidisciplinary team, every discipline in-house</h2>
+            <p>One named lead per engagement &mdash; no account managers relaying work between vendors.</p>
+          </div>
+          <Link to="/team" className="ab-btn ab-btn-primary">
+            Meet the team <ArrowUpRight aria-hidden="true" />
+          </Link>
+        </div>
       </Container>
     </section>
   );

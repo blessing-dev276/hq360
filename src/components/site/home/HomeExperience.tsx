@@ -628,7 +628,7 @@ function TeamSection() {
             </>
           }
           limit={4}
-          viewAll={{ label: "View the whole team", to: "/about#team" }}
+          viewAll={{ label: "View the whole team", to: "/team" }}
         />
       </Container>
     </section>

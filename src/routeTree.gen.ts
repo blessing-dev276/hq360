@@ -35,6 +35,7 @@ import { Route as ResultsRouteImport } from './routes/results'
 import { Route as ReviewsRouteImport } from './routes/reviews'
 import { Route as RoofersRouteImport } from './routes/roofers'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as TeamRouteImport } from './routes/team'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
@@ -201,6 +202,11 @@ const RoofersRoute = RoofersRouteImport.update({
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TeamRoute = TeamRouteImport.update({
+  id: '/team',
+  path: '/team',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TermsRoute = TermsRouteImport.update({
@@ -420,6 +426,7 @@ export interface FileRoutesByFullPath {
   '/reviews': typeof ReviewsRoute
   '/roofers': typeof RoofersRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/team': typeof TeamRoute
   '/terms': typeof TermsRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/capabilities/$slug': typeof CapabilitiesSlugRoute
@@ -485,6 +492,7 @@ export interface FileRoutesByTo {
   '/reviews': typeof ReviewsRoute
   '/roofers': typeof RoofersRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/team': typeof TeamRoute
   '/terms': typeof TermsRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/capabilities/$slug': typeof CapabilitiesSlugRoute
@@ -551,6 +559,7 @@ export interface FileRoutesById {
   '/reviews': typeof ReviewsRoute
   '/roofers': typeof RoofersRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/team': typeof TeamRoute
   '/terms': typeof TermsRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/capabilities/$slug': typeof CapabilitiesSlugRoute
@@ -618,6 +627,7 @@ export interface FileRouteTypes {
     | '/reviews'
     | '/roofers'
     | '/sitemap.xml'
+    | '/team'
     | '/terms'
     | '/blog/$slug'
     | '/capabilities/$slug'
@@ -683,6 +693,7 @@ export interface FileRouteTypes {
     | '/reviews'
     | '/roofers'
     | '/sitemap.xml'
+    | '/team'
     | '/terms'
     | '/blog/$slug'
     | '/capabilities/$slug'
@@ -748,6 +759,7 @@ export interface FileRouteTypes {
     | '/reviews'
     | '/roofers'
     | '/sitemap.xml'
+    | '/team'
     | '/terms'
     | '/blog/$slug'
     | '/capabilities/$slug'
@@ -814,6 +826,7 @@ export interface RootRouteChildren {
   ReviewsRoute: typeof ReviewsRoute
   RoofersRoute: typeof RoofersRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  TeamRoute: typeof TeamRoute
   TermsRoute: typeof TermsRoute
   BlogSlugRoute: typeof BlogSlugRoute
   CapabilitiesSlugRoute: typeof CapabilitiesSlugRoute
@@ -1027,6 +1040,13 @@ declare module '@tanstack/react-router' {
       path: '/sitemap.xml'
       fullPath: '/sitemap.xml'
       preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/team': {
+      id: '/team'
+      path: '/team'
+      fullPath: '/team'
+      preLoaderRoute: typeof TeamRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/terms': {
@@ -1371,6 +1391,7 @@ const rootRouteChildren: RootRouteChildren = {
   ReviewsRoute: ReviewsRoute,
   RoofersRoute: RoofersRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  TeamRoute: TeamRoute,
   TermsRoute: TermsRoute,
   BlogSlugRoute: BlogSlugRoute,
   CapabilitiesSlugRoute: CapabilitiesSlugRoute,

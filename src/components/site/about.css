@@ -873,6 +873,38 @@
 /* The card grid + flip interaction live in the shared TeamShowcase
    component (components/site/team-showcase.css). */
 
+.ab-team-teaser {
+  background: var(--surface);
+  border-top: 1px solid var(--line);
+  padding-block: clamp(2.5rem, 5vw, 4rem);
+}
+
+.ab-team-teaser-inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem 2.5rem;
+}
+
+.ab-team-teaser-inner > div {
+  max-width: 46ch;
+}
+
+.ab-team-teaser h2 {
+  margin: 0.5rem 0 0;
+  font-size: clamp(1.4rem, 2.6vw, 2rem);
+}
+
+.ab-team-teaser p {
+  margin: 0.75rem 0 0;
+  color: var(--ink-muted);
+}
+
+.ab-team-hero .ab-hero-copy {
+  max-width: 62ch;
+}
+
 /* ================================================ 6 · PROCESS ==== */
 
 .ab-process {

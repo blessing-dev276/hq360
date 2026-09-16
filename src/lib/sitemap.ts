@@ -8,6 +8,7 @@ import { absolute } from "@/lib/seo";
 export const STATIC_SITEMAP_PATHS = [
   "/",
   "/about",
+  "/team",
   "/contact",
   "/capabilities",
   "/industries",

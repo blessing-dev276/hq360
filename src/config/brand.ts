@@ -109,6 +109,7 @@ export const PRIMARY_NAV: {
   { label: "Services", menu: "capabilities" },
   { label: "Work", to: "/work" },
   { label: "About", to: "/about" },
+  { label: "Team", to: "/team" },
   { label: "Insights", to: "/insights" },
 ];
 
@@ -142,6 +143,7 @@ export const FOOTER_NAV: { heading: string; links: { label: string; to: string }
     heading: "Company",
     links: [
       { label: "About", to: "/about" },
+      { label: "Team", to: "/team" },
       { label: "Work", to: "/work" },
       { label: "Insights", to: "/insights" },
       { label: "FAQs", to: "/faqs" },

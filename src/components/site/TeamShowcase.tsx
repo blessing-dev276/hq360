@@ -32,9 +32,9 @@ function initialsFor(name: string) {
  * The team showcase — a grid of portrait cards. Tap/click a photo to reveal
  * what that person owns in a panel below it (no rotation — a plain
  * expand/collapse, since the 3D flip was disorienting on some devices).
- * Shared by the homepage (a `limit` + "view all" link back to /about#team)
- * and the About page (the full roster, no limit). One card design, one
- * interaction, everywhere the team appears.
+ * Shared by the homepage (a `limit` + "view all" link to /team) and the
+ * Team page (the full roster, no limit). One card design, one interaction,
+ * everywhere the team appears.
  *
  * Pulls the admin-managed roster (image + blurb, both editable from
  * /admin > Team) and falls back to the bundled roster if that fails.

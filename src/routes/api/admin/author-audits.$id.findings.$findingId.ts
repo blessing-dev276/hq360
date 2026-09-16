@@ -17,6 +17,7 @@ const schema = z.object({
   observation: z.string().min(1).max(4000).optional(),
   whyItMatters: z.string().max(2000).nullable().optional(),
   recommendation: z.string().max(2000).nullable().optional(),
+  sourceUrls: z.array(z.string().max(2000)).max(10).optional(),
   reviewStatus: z.enum(["ai_research", "needs_verification", "approved", "rejected"]).optional(),
   clientVisible: z.boolean().optional(),
 });
@@ -44,6 +45,7 @@ export const Route = createFileRoute("/api/admin/author-audits/$id/findings/$fin
         if (body.observation !== undefined) update.observation = body.observation;
         if (body.whyItMatters !== undefined) update.why_it_matters = body.whyItMatters;
         if (body.recommendation !== undefined) update.recommendation = body.recommendation;
+        if (body.sourceUrls !== undefined) update.source_urls = body.sourceUrls;
         if (body.reviewStatus !== undefined) update.review_status = body.reviewStatus;
         if (body.clientVisible !== undefined) update.client_visible = body.clientVisible;
         if (Object.keys(update).length === 0) return json({ ok: false, error: "empty" }, 400);

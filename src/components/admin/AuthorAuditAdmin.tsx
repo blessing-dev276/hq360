@@ -1142,6 +1142,7 @@ function FindingCard({
     observation: finding.observation,
     whyItMatters: finding.why_it_matters ?? "",
     recommendation: finding.recommendation ?? "",
+    sourceUrls: finding.source_urls.join("\n"),
   });
   const [saving, setSaving] = useState(false);
 
@@ -1201,11 +1202,22 @@ function FindingCard({
           onChange={(e) => setDraft((d) => ({ ...d, recommendation: e.target.value }))}
         />
       </label>
-      {finding.source_urls.length > 0 ? (
-        <p className="mt-2 text-xs text-muted-foreground">
-          Sources: {finding.source_urls.join(", ")}
-        </p>
-      ) : null}
+      <label className="mt-3 block">
+        <span className="text-xs font-medium text-muted-foreground">
+          Source URLs — one per line
+        </span>
+        <span className="block text-[0.65rem] text-muted-foreground">
+          Required for a needs-attention/critical finding to be client-visible — the quality check
+          blocks anything unsourced.
+        </span>
+        <textarea
+          rows={2}
+          className={cn(input, "mt-1 resize-y")}
+          placeholder="https://…"
+          value={draft.sourceUrls}
+          onChange={(e) => setDraft((d) => ({ ...d, sourceUrls: e.target.value }))}
+        />
+      </label>
 
       <div className="mt-3">
         <button
@@ -1216,6 +1228,10 @@ function FindingCard({
               observation: draft.observation,
               whyItMatters: draft.whyItMatters || null,
               recommendation: draft.recommendation || null,
+              sourceUrls: draft.sourceUrls
+                .split("\n")
+                .map((s) => s.trim())
+                .filter(Boolean),
             })
           }
           className="rounded-full border border-border px-4 py-1.5 text-xs font-medium hover:border-brand hover:text-brand"

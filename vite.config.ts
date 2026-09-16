@@ -59,7 +59,9 @@ export default defineConfig(async ({ command, mode, isPreview }) => {
         // trace) into the deployed function — a hand-rolled
         // rollupConfig.external here would only do the first half, since
         // it intercepts before Nitro's own plugin can trace the files.
-        traceDeps: ["fontkit*", "@resvg/resvg-js*"],
+        // PDFKit's #standard-fonts imports require its original package scope
+        // and the font modules declared by package.json's imports map.
+        traceDeps: ["pdfkit*", "fontkit*", "@resvg/resvg-js*"],
       }),
     );
   }

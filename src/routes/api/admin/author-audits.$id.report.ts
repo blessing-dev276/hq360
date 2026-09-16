@@ -3,8 +3,6 @@ import { isAdminRequest } from "@/lib/admin-auth.server";
 import { asAuditDb } from "@/lib/author-audit/db";
 import { buildReportData } from "@/lib/author-audit/report-data";
 import { runQualityCheck } from "@/lib/author-audit/quality-check";
-import { renderAuditPdf } from "@/lib/author-audit/pdf-report";
-import { renderAuditImage } from "@/lib/author-audit/image-report";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -63,7 +61,9 @@ export const Route = createFileRoute("/api/admin/author-audits/$id/report")({
           }
 
           const bytes =
-            format === "image" ? await renderAuditImage(data) : await renderAuditPdf(data);
+            format === "image"
+              ? await (await import("@/lib/author-audit/image-report")).renderAuditImage(data)
+              : await (await import("@/lib/author-audit/pdf-report")).renderAuditPdf(data);
           const contentType = format === "image" ? "image/png" : "application/pdf";
           const ext = format === "image" ? "png" : "pdf";
           const filenameSlug = data.book.normalized_title.replace(/\s+/g, "-");

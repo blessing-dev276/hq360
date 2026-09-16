@@ -56,23 +56,17 @@ export function AuthorVisibilityAudit() {
       const website = String(form.get("website") ?? "").trim();
       const amazonUrl = String(form.get("amazonUrl") ?? "").trim();
       const goodreadsUrl = String(form.get("goodreadsUrl") ?? "").trim();
-      const response = await fetch("/api/public/growth-audit", {
+      const response = await fetch("/api/public/author-audit", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
-          name: author,
+          authorName: author,
+          bookTitle: book,
           email,
-          website,
-          industry: "Authors & Publishers",
-          auditFocus: [
-            `Book title: ${book}`,
-            amazonUrl ? `Amazon URL: ${amazonUrl}` : "",
-            goodreadsUrl ? `Goodreads URL: ${goodreadsUrl}` : "",
-            "Requested: Author Visibility Audit",
-          ]
-            .filter(Boolean)
-            .join("\n"),
-          sourcePath: "/tools/author-visibility-audit",
+          amazonUrlOrAsin: amazonUrl,
+          websiteUrl: website,
+          goodreadsUrl,
+          consent: true,
           company_url: "",
         }),
       });

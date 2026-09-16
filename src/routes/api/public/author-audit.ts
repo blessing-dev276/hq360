@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
+import { asAuditDb } from "@/lib/author-audit/db";
 
 const schema = z.object({
   authorName: z.string().trim().min(1).max(160),
@@ -32,7 +33,7 @@ export const Route = createFileRoute("/api/public/author-audit")({
         if (body.company_url) return json({ ok: true });
         try {
           const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-          const db = supabaseAdmin as never as { from: (table: string) => any };
+          const db = asAuditDb(supabaseAdmin);
           const { data, error } = await db
             .from("author_audit_leads")
             .insert({
@@ -51,6 +52,32 @@ export const Route = createFileRoute("/api/public/author-audit")({
             console.error("[author-audit] lead insert failed", error?.message);
             return json({ ok: false, error: "storage" }, 500);
           }
+
+          try {
+            const { sendLeadEmail } = await import("@/lib/email.server");
+            const result = await sendLeadEmail({
+              subject: `New Author Visibility Audit request — ${body.authorName}`,
+              replyTo: body.email,
+              text: [
+                "New Author Visibility Audit request. Open it from /admin > Audits.",
+                "",
+                `Author: ${body.authorName}`,
+                `Book: ${body.bookTitle}`,
+                `Email: ${body.email}`,
+                `Amazon: ${body.amazonUrlOrAsin || "N/A"}`,
+                `Website: ${body.websiteUrl || "N/A"}`,
+                `Goodreads: ${body.goodreadsUrl || "N/A"}`,
+              ].join("\n"),
+            });
+            if (!result.sent)
+              console.warn("[author-audit] notification email not sent", result.error);
+          } catch (err) {
+            console.error(
+              "[author-audit] notification email failed",
+              err instanceof Error ? err.message : err,
+            );
+          }
+
           return json({ ok: true, id: data.id }, 201);
         } catch (error) {
           console.error(

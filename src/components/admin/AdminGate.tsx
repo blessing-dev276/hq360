@@ -2,15 +2,17 @@ import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { ArrowRight, LockKeyhole, LogOut } from "lucide-react";
 import { Logo } from "@/components/Logo";
 
-type AuthState = "checking" | "signed-out" | "signed-in" | "unconfigured";
+type AuthState = "signed-out" | "signed-in" | "unconfigured";
 
 export function AdminGate({ children }: { children: ReactNode }) {
-  const [state, setState] = useState<AuthState>("checking");
+  const [state, setState] = useState<AuthState>("signed-out");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    fetch("/api/admin/session", { credentials: "same-origin" })
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), 8000);
+    fetch("/api/admin/session", { credentials: "same-origin", signal: controller.signal })
       .then((response) => response.json())
       .then((result: { authed?: boolean; configured?: boolean }) => {
         setState(
@@ -18,9 +20,13 @@ export function AdminGate({ children }: { children: ReactNode }) {
         );
       })
       .catch(() => {
-        setError("We could not check your session. Please refresh and try again.");
         setState("signed-out");
-      });
+      })
+      .finally(() => window.clearTimeout(timeout));
+    return () => {
+      controller.abort();
+      window.clearTimeout(timeout);
+    };
   }, []);
 
   async function login(event: FormEvent<HTMLFormElement>) {
@@ -49,14 +55,6 @@ export function AdminGate({ children }: { children: ReactNode }) {
   async function logout() {
     await fetch("/api/admin/session", { method: "DELETE", credentials: "same-origin" });
     setState("signed-out");
-  }
-
-  if (state === "checking") {
-    return (
-      <main className="grid min-h-screen place-items-center bg-secondary/40" aria-busy="true">
-        <p className="text-sm text-muted-foreground">Checking secure session…</p>
-      </main>
-    );
   }
 
   if (state !== "signed-in") {

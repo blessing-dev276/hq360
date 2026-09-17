@@ -65,14 +65,24 @@ function TeamHero() {
               {CTAS.primary.label} <ArrowUpRight aria-hidden="true" />
             </Link>
           </div>
-          <ul className="tm-hero-avatars" aria-hidden="true">
+          <ul className="tm-hero-avatars">
             {TEAM.map((member) => (
               <li key={member.name}>
-                {TEAM_PHOTOS[member.photo] ? (
-                  <img src={TEAM_PHOTOS[member.photo]} alt="" loading="eager" decoding="async" />
-                ) : (
-                  <span>{member.initials}</span>
-                )}
+                <button type="button" tabIndex={0}>
+                  {TEAM_PHOTOS[member.photo] ? (
+                    <img
+                      src={TEAM_PHOTOS[member.photo]}
+                      alt={member.name}
+                      loading="eager"
+                      decoding="async"
+                    />
+                  ) : (
+                    <span aria-hidden="true">{member.initials}</span>
+                  )}
+                  <span className="tm-hero-avatar-tip" role="tooltip">
+                    {member.name.split(" ")[0]}
+                  </span>
+                </button>
               </li>
             ))}
           </ul>

@@ -47,36 +47,86 @@
 }
 
 .tm-hero-avatars li {
-  width: 3.5rem;
-  height: 3.5rem;
+  position: relative;
   margin-left: -0.85rem;
-  border-radius: 999px;
-  overflow: hidden;
-  border: 3px solid var(--surface);
-  box-shadow: var(--shadow-editorial);
-  background: var(--carbon);
 }
 
 .tm-hero-avatars li:first-child {
   margin-left: 0;
 }
 
-.tm-hero-avatars img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+.tm-hero-avatars button {
+  all: unset;
+  position: relative;
+  display: block;
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 999px;
+  overflow: visible;
+  cursor: pointer;
+  transition:
+    transform var(--fast, 160ms) var(--ease, ease),
+    z-index 0s;
 }
 
-.tm-hero-avatars span {
-  display: flex;
+.tm-hero-avatars button:hover,
+.tm-hero-avatars button:focus-visible {
+  transform: translateY(-0.4rem) scale(1.08);
+  z-index: 2;
+}
+
+.tm-hero-avatars button:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 3px;
+}
+
+.tm-hero-avatars img,
+.tm-hero-avatars button > span:not(.tm-hero-avatar-tip) {
+  display: block;
   width: 100%;
   height: 100%;
+  border-radius: 999px;
+  overflow: hidden;
+  border: 3px solid var(--surface);
+  box-shadow: var(--shadow-editorial);
+  object-fit: cover;
+  background: var(--carbon);
+}
+
+.tm-hero-avatars button > span:not(.tm-hero-avatar-tip) {
+  display: flex;
   align-items: center;
   justify-content: center;
   font-family: var(--font-display);
   font-weight: 600;
   font-size: 1.1rem;
   color: oklch(0.96 0.003 95);
+}
+
+.tm-hero-avatar-tip {
+  position: absolute;
+  bottom: calc(100% + 0.5rem);
+  left: 50%;
+  translate: -50% 0;
+  padding: 0.3rem 0.65rem;
+  border-radius: 999px;
+  background: var(--carbon);
+  color: oklch(0.97 0.006 90);
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  font-weight: 600;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity var(--fast, 160ms) var(--ease, ease),
+    translate var(--fast, 160ms) var(--ease, ease);
+}
+
+.tm-hero-avatars button:hover .tm-hero-avatar-tip,
+.tm-hero-avatars button:focus-visible .tm-hero-avatar-tip {
+  opacity: 1;
+  translate: -50% -0.25rem;
 }
 
 .tm-stats {

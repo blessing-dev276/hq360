@@ -86,6 +86,7 @@ import { Route as ApiAdminTeamIdRouteImport } from './routes/api/admin/team.$id'
 import { Route as ApiAdminTeamReorderRouteImport } from './routes/api/admin/team.reorder'
 import { Route as ApiAdminTestimonialsIdRouteImport } from './routes/api/admin/testimonials.$id'
 import { Route as ApiAdminTestimonialsReorderRouteImport } from './routes/api/admin/testimonials.reorder'
+import { Route as ApiAdminAuthorAuditsIdBulkImportRouteImport } from './routes/api/admin/author-audits.$id.bulk-import'
 import { Route as ApiAdminAuthorAuditsIdComparablesRouteImport } from './routes/api/admin/author-audits.$id.comparables'
 import { Route as ApiAdminAuthorAuditsIdEvidenceAssetsRouteImport } from './routes/api/admin/author-audits.$id.evidence-assets'
 import { Route as ApiAdminAuthorAuditsIdPublishingRouteImport } from './routes/api/admin/author-audits.$id.publishing'
@@ -494,6 +495,12 @@ const ApiAdminTestimonialsReorderRoute =
     path: '/reorder',
     getParentRoute: () => ApiAdminTestimonialsRoute,
   } as any)
+const ApiAdminAuthorAuditsIdBulkImportRoute =
+  ApiAdminAuthorAuditsIdBulkImportRouteImport.update({
+    id: '/bulk-import',
+    path: '/bulk-import',
+    getParentRoute: () => ApiAdminAuthorAuditsIdRoute,
+  } as any)
 const ApiAdminAuthorAuditsIdComparablesRoute =
   ApiAdminAuthorAuditsIdComparablesRouteImport.update({
     id: '/comparables',
@@ -669,6 +676,7 @@ export interface FileRoutesByFullPath {
   '/api/admin/team/reorder': typeof ApiAdminTeamReorderRoute
   '/api/admin/testimonials/$id': typeof ApiAdminTestimonialsIdRoute
   '/api/admin/testimonials/reorder': typeof ApiAdminTestimonialsReorderRoute
+  '/api/admin/author-audits/$id/bulk-import': typeof ApiAdminAuthorAuditsIdBulkImportRoute
   '/api/admin/author-audits/$id/comparables': typeof ApiAdminAuthorAuditsIdComparablesRouteWithChildren
   '/api/admin/author-audits/$id/evidence-assets': typeof ApiAdminAuthorAuditsIdEvidenceAssetsRouteWithChildren
   '/api/admin/author-audits/$id/publishing': typeof ApiAdminAuthorAuditsIdPublishingRoute
@@ -764,6 +772,7 @@ export interface FileRoutesByTo {
   '/api/admin/team/reorder': typeof ApiAdminTeamReorderRoute
   '/api/admin/testimonials/$id': typeof ApiAdminTestimonialsIdRoute
   '/api/admin/testimonials/reorder': typeof ApiAdminTestimonialsReorderRoute
+  '/api/admin/author-audits/$id/bulk-import': typeof ApiAdminAuthorAuditsIdBulkImportRoute
   '/api/admin/author-audits/$id/comparables': typeof ApiAdminAuthorAuditsIdComparablesRouteWithChildren
   '/api/admin/author-audits/$id/evidence-assets': typeof ApiAdminAuthorAuditsIdEvidenceAssetsRouteWithChildren
   '/api/admin/author-audits/$id/publishing': typeof ApiAdminAuthorAuditsIdPublishingRoute
@@ -860,6 +869,7 @@ export interface FileRoutesById {
   '/api/admin/team/reorder': typeof ApiAdminTeamReorderRoute
   '/api/admin/testimonials/$id': typeof ApiAdminTestimonialsIdRoute
   '/api/admin/testimonials/reorder': typeof ApiAdminTestimonialsReorderRoute
+  '/api/admin/author-audits/$id/bulk-import': typeof ApiAdminAuthorAuditsIdBulkImportRoute
   '/api/admin/author-audits/$id/comparables': typeof ApiAdminAuthorAuditsIdComparablesRouteWithChildren
   '/api/admin/author-audits/$id/evidence-assets': typeof ApiAdminAuthorAuditsIdEvidenceAssetsRouteWithChildren
   '/api/admin/author-audits/$id/publishing': typeof ApiAdminAuthorAuditsIdPublishingRoute
@@ -957,6 +967,7 @@ export interface FileRouteTypes {
     | '/api/admin/team/reorder'
     | '/api/admin/testimonials/$id'
     | '/api/admin/testimonials/reorder'
+    | '/api/admin/author-audits/$id/bulk-import'
     | '/api/admin/author-audits/$id/comparables'
     | '/api/admin/author-audits/$id/evidence-assets'
     | '/api/admin/author-audits/$id/publishing'
@@ -1052,6 +1063,7 @@ export interface FileRouteTypes {
     | '/api/admin/team/reorder'
     | '/api/admin/testimonials/$id'
     | '/api/admin/testimonials/reorder'
+    | '/api/admin/author-audits/$id/bulk-import'
     | '/api/admin/author-audits/$id/comparables'
     | '/api/admin/author-audits/$id/evidence-assets'
     | '/api/admin/author-audits/$id/publishing'
@@ -1147,6 +1159,7 @@ export interface FileRouteTypes {
     | '/api/admin/team/reorder'
     | '/api/admin/testimonials/$id'
     | '/api/admin/testimonials/reorder'
+    | '/api/admin/author-audits/$id/bulk-import'
     | '/api/admin/author-audits/$id/comparables'
     | '/api/admin/author-audits/$id/evidence-assets'
     | '/api/admin/author-audits/$id/publishing'
@@ -1777,6 +1790,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAdminTestimonialsReorderRouteImport
       parentRoute: typeof ApiAdminTestimonialsRoute
     }
+    '/api/admin/author-audits/$id/bulk-import': {
+      id: '/api/admin/author-audits/$id/bulk-import'
+      path: '/bulk-import'
+      fullPath: '/api/admin/author-audits/$id/bulk-import'
+      preLoaderRoute: typeof ApiAdminAuthorAuditsIdBulkImportRouteImport
+      parentRoute: typeof ApiAdminAuthorAuditsIdRoute
+    }
     '/api/admin/author-audits/$id/comparables': {
       id: '/api/admin/author-audits/$id/comparables'
       path: '/comparables'
@@ -1923,6 +1943,7 @@ const ApiAdminAuthorAuditsIdEvidenceAssetsRouteWithChildren =
   )
 
 interface ApiAdminAuthorAuditsIdRouteChildren {
+  ApiAdminAuthorAuditsIdBulkImportRoute: typeof ApiAdminAuthorAuditsIdBulkImportRoute
   ApiAdminAuthorAuditsIdComparablesRoute: typeof ApiAdminAuthorAuditsIdComparablesRouteWithChildren
   ApiAdminAuthorAuditsIdEvidenceAssetsRoute: typeof ApiAdminAuthorAuditsIdEvidenceAssetsRouteWithChildren
   ApiAdminAuthorAuditsIdPublishingRoute: typeof ApiAdminAuthorAuditsIdPublishingRoute
@@ -1941,6 +1962,8 @@ interface ApiAdminAuthorAuditsIdRouteChildren {
 
 const ApiAdminAuthorAuditsIdRouteChildren: ApiAdminAuthorAuditsIdRouteChildren =
   {
+    ApiAdminAuthorAuditsIdBulkImportRoute:
+      ApiAdminAuthorAuditsIdBulkImportRoute,
     ApiAdminAuthorAuditsIdComparablesRoute:
       ApiAdminAuthorAuditsIdComparablesRouteWithChildren,
     ApiAdminAuthorAuditsIdEvidenceAssetsRoute:

@@ -446,6 +446,112 @@ type QualityCheck = {
   warnings: { area: string; message: string }[];
 };
 
+type BulkImportResult = {
+  ok: boolean;
+  error?: string;
+  quality?: QualityCheck;
+  reportReady?: boolean;
+  versionId?: string | null;
+};
+
+/**
+ * One textarea, one button: paste a single JSON payload covering every
+ * report section (findings, strengths, reader journey, comparables, the 3
+ * priority moves, roadmap, evidence assets) and it's inserted pre-approved
+ * and client-visible in one shot — no per-section clicking. If the result
+ * already clears the publish gate, a client version is drafted too, so the
+ * Report tab only needs the QA checklist ticked and Publish clicked.
+ */
+function BulkImportPanel({ auditId, onImported }: { auditId: string; onImported: () => void }) {
+  const [text, setText] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [result, setResult] = useState<BulkImportResult | null>(null);
+
+  async function run() {
+    let payload: unknown;
+    try {
+      payload = JSON.parse(text);
+    } catch {
+      setResult({ ok: false, error: "That isn't valid JSON — check for a missing comma or bracket." });
+      return;
+    }
+    setBusy(true);
+    setResult(null);
+    const { body } = await api<BulkImportResult>(`/api/admin/author-audits/${auditId}/bulk-import`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+    setBusy(false);
+    setResult(body);
+    if (body.ok) {
+      setText("");
+      await onImported();
+    }
+  }
+
+  return (
+    <details className="rounded-2xl border border-dashed border-brand/40 bg-brand-soft/20 p-5">
+      <summary className="cursor-pointer text-sm font-semibold text-foreground">
+        Bulk import (paste JSON) — fills every section and approves it automatically
+      </summary>
+      <div className="mt-4 space-y-3">
+        <p className="text-xs leading-relaxed text-muted-foreground">
+          Paste one JSON object with <code>findings</code>, <code>strengths</code>,{" "}
+          <code>comparables</code> (3–5, each sourced and dated), the 3 <code>moves</code>{" "}
+          (referencing findings by <code>key</code> via <code>basedOnFindingKeys</code>),{" "}
+          <code>evidenceAssets</code>, and optionally <code>readerJourney</code>,{" "}
+          <code>roadmap</code>, <code>executiveAssessment</code> and{" "}
+          <code>preparedByStaffName</code>. Everything lands pre-approved and client-visible, the
+          audit status moves to Completed, and a client version is drafted automatically once the
+          result clears the publish gate — you only need to tick the QA checklist and click
+          Publish in the Report tab.
+        </p>
+        <textarea
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          rows={10}
+          spellCheck={false}
+          placeholder={`{\n  "findings": [{ "key": "f1", "observation": "…", "status": "opportunity_identified", "priority": "high_impact" }],\n  "strengths": [{ "title": "…", "observation": "…" }],\n  "comparables": [{ "author": "…", "whyComparable": "…", "sourceUrls": ["https://…"], "retrievedAt": "2026-09-17" }],\n  "moves": [{ "rank": 1, "title": "…", "whatWeFound": "…", "whatWeWouldChange": "…", "whyFirst": "…", "basedOnFindingKeys": ["f1"] }],\n  "evidenceAssets": [{ "storageUrl": "https://…" }]\n}`}
+          className={cn(input, "font-mono text-xs")}
+        />
+        <div className="flex flex-wrap items-center gap-3">
+          <button
+            type="button"
+            disabled={busy || !text.trim()}
+            onClick={() => void run()}
+            className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {busy ? "Importing…" : "Auto-fill everything"}
+          </button>
+          {result?.ok ? (
+            <span className="text-sm font-semibold text-brand">
+              Imported.{" "}
+              {result.reportReady
+                ? "A client version is drafted and ready to review."
+                : "Saved — check the quality issues below before it can be published."}
+            </span>
+          ) : result && !result.ok ? (
+            <span className="text-sm font-semibold text-destructive">
+              {result.error === "invalid"
+                ? "That JSON didn't match the expected shape — check required fields."
+                : (result.error ?? "Import failed.")}
+            </span>
+          ) : null}
+        </div>
+        {result?.quality && !result.quality.passed ? (
+          <ul className="space-y-1 rounded-xl bg-destructive/10 p-3 text-xs text-destructive">
+            {result.quality.issues.map((issue, index) => (
+              <li key={index}>
+                {issue.area}: {issue.message}
+              </li>
+            ))}
+          </ul>
+        ) : null}
+      </div>
+    </details>
+  );
+}
+
 function AuditWorkspace({ id, onBack }: { id: string; onBack: () => void }) {
   const [stage, setStage] = useState("research");
   const [data, setData] = useState<AuditDetailResponse | null>(null);
@@ -595,6 +701,8 @@ function AuditWorkspace({ id, onBack }: { id: string; onBack: () => void }) {
           ))}
         </select>
       </div>
+
+      <BulkImportPanel auditId={id} onImported={load} />
 
       <div className="audit-next">
         <div>

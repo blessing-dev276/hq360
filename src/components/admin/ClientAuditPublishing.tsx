@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { Ban, Clock, Copy, Eye, EyeOff, Link2, RefreshCw } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { PrivateAuditReport } from "@/components/site/PrivateAuthorAudit";
 import type { ReportData } from "@/lib/author-audit/report-data";
 
@@ -39,6 +41,189 @@ const checks = [
   "Unsupported claims corrected and source appendix cleaned",
   "This exact version has been reviewed as the author",
 ];
+type AccessRecord = PublishingData["access"] & object;
+
+/** The Access panel — link, one-time code, view stats, expiry and the
+ * enable/regenerate/disable/revoke controls. Redesigned as a single card so
+ * the state (live/disabled/revoked) and every action for it live together. */
+function AccessPanel({
+  access,
+  code,
+  busy,
+  expiry,
+  onExpiryChange,
+  onCopy,
+  onAct,
+}: {
+  access: AccessRecord;
+  code: string;
+  busy: boolean;
+  expiry: string;
+  onExpiryChange: (value: string) => void;
+  onCopy: (value: string) => Promise<void>;
+  onAct: (action: string, extra?: Record<string, unknown>) => Promise<void>;
+}) {
+  const live = access.access_enabled && !access.revoked_at;
+  const link =
+    typeof window !== "undefined"
+      ? `${window.location.origin}/author-audit/${access.public_slug}`
+      : `/author-audit/${access.public_slug}`;
+
+  return (
+    <div className="overflow-hidden rounded-2xl border border-border">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border bg-secondary/60 px-5 py-3.5">
+        <span
+          className={cn(
+            "inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold",
+            live
+              ? "bg-emerald-500/15 text-emerald-700"
+              : access.revoked_at
+                ? "bg-destructive/10 text-destructive"
+                : "bg-muted text-muted-foreground",
+          )}
+        >
+          <span
+            className={cn(
+              "size-2 rounded-full",
+              live ? "bg-emerald-500" : access.revoked_at ? "bg-destructive" : "bg-muted-foreground/50",
+            )}
+          />
+          {live ? "Access enabled" : access.revoked_at ? "Access revoked" : "Access disabled"}
+        </span>
+        <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+          <Clock className="size-3.5" aria-hidden="true" />
+          {access.expires_at
+            ? `Expires ${new Date(access.expires_at).toLocaleString()}`
+            : "No expiry set"}
+        </span>
+      </div>
+
+      <div className="space-y-5 p-5">
+        <div>
+          <p className="mb-1.5 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+            Client link
+          </p>
+          <div className="flex items-center gap-2 rounded-xl border border-border bg-background py-2 pr-2 pl-3">
+            <Link2 className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+            <span className="flex-1 truncate text-sm">{link}</span>
+            <button
+              type="button"
+              onClick={() => void onCopy(link)}
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-secondary px-3 py-1.5 text-xs font-semibold transition-colors hover:bg-secondary/70"
+            >
+              <Copy className="size-3.5" aria-hidden="true" />
+              Copy
+            </button>
+          </div>
+        </div>
+
+        {code ? (
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-brand/30 bg-brand-soft/40 p-3.5">
+            <div>
+              <p className="text-xs font-semibold text-brand">One-time access code — shown once</p>
+              <code className="mt-1 block font-mono text-lg tracking-[0.25em] select-all">
+                {code}
+              </code>
+            </div>
+            <button
+              type="button"
+              onClick={() => void onCopy(code)}
+              className="inline-flex items-center gap-1.5 rounded-full bg-primary px-3.5 py-2 text-xs font-semibold text-primary-foreground"
+            >
+              <Copy className="size-3.5" aria-hidden="true" />
+              Copy code
+            </button>
+          </div>
+        ) : (
+          <p className="text-xs text-muted-foreground">
+            Codes are shown once. Regenerate below if you no longer have the original.
+          </p>
+        )}
+
+        <div className="grid gap-3 sm:grid-cols-3">
+          <div className="rounded-xl border border-border bg-secondary/40 p-3">
+            <p className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+              <Eye className="size-3.5" aria-hidden="true" /> Views
+            </p>
+            <p className="mt-1 font-display text-lg">{access.view_count}</p>
+          </div>
+          <div className="rounded-xl border border-border bg-secondary/40 p-3">
+            <p className="text-xs font-semibold text-muted-foreground">First viewed</p>
+            <p className="mt-1 text-sm">
+              {access.first_viewed_at ? new Date(access.first_viewed_at).toLocaleString() : "Not opened"}
+            </p>
+          </div>
+          <div className="rounded-xl border border-border bg-secondary/40 p-3">
+            <p className="text-xs font-semibold text-muted-foreground">Last viewed</p>
+            <p className="mt-1 text-sm">
+              {access.last_viewed_at ? new Date(access.last_viewed_at).toLocaleString() : "Not opened"}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-2 rounded-xl border border-border bg-secondary/40 p-3.5 sm:flex-row sm:items-end sm:justify-between">
+          <label className="text-sm">
+            <span className="mb-1 block text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+              Expiration
+            </span>
+            <input
+              type="datetime-local"
+              value={expiry}
+              onChange={(e) => onExpiryChange(e.target.value)}
+              className="rounded-lg border border-border bg-background px-3 py-2 text-sm"
+            />
+          </label>
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() =>
+              void onAct("expiry", { expiresAt: expiry ? new Date(expiry).toISOString() : null })
+            }
+            className="rounded-full border border-border px-4 py-2 text-xs font-semibold transition-colors hover:border-brand disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Save expiration
+          </button>
+        </div>
+
+        <div className="flex flex-wrap gap-2 border-t border-border pt-4">
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => {
+              if (window.confirm("Replace the code and invalidate existing client sessions?"))
+                void onAct("regenerate");
+            }}
+            className="inline-flex items-center gap-1.5 rounded-full border border-border px-4 py-2 text-xs font-semibold transition-colors hover:border-brand disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <RefreshCw className="size-3.5" aria-hidden="true" />
+            Regenerate code
+          </button>
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => void onAct("disable")}
+            className="inline-flex items-center gap-1.5 rounded-full border border-border px-4 py-2 text-xs font-semibold transition-colors hover:border-brand disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <EyeOff className="size-3.5" aria-hidden="true" />
+            Disable page
+          </button>
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => {
+              if (window.confirm("Revoke the code and all client sessions?")) void onAct("revoke");
+            }}
+            className="inline-flex items-center gap-1.5 rounded-full border border-destructive/40 px-4 py-2 text-xs font-semibold text-destructive transition-colors hover:bg-destructive/10 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <Ban className="size-3.5" aria-hidden="true" />
+            Revoke access
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function ClientAuditPublishing({ auditId }: { auditId: string }) {
   const [data, setData] = useState<PublishingData | null>(null);
   const [message, setMessage] = useState("");
@@ -217,89 +402,15 @@ export function ClientAuditPublishing({ auditId }: { auditId: string }) {
             </div>
           )}
           {data.access && (
-            <div className="space-y-3 rounded-xl bg-secondary p-4">
-              <p className="text-sm font-semibold">
-                {data.access.access_enabled && !data.access.revoked_at
-                  ? "Access enabled"
-                  : "Access disabled / revoked"}
-              </p>
-              <p className="break-all text-sm">
-                {window.location.origin}/author-audit/{data.access.public_slug}
-              </p>
-              <div className="flex flex-wrap gap-4 text-sm">
-                <button
-                  onClick={() =>
-                    void copy(`${window.location.origin}/author-audit/${data.access!.public_slug}`)
-                  }
-                >
-                  Copy link
-                </button>
-                <button
-                  disabled={busy}
-                  onClick={() => {
-                    if (window.confirm("Replace the code and invalidate existing client sessions?"))
-                      void act("regenerate");
-                  }}
-                >
-                  Regenerate code
-                </button>
-                <button disabled={busy} onClick={() => void act("disable")}>
-                  Disable page
-                </button>
-                <button
-                  disabled={busy}
-                  className="text-destructive"
-                  onClick={() => {
-                    if (window.confirm("Revoke the code and all client sessions?"))
-                      void act("revoke");
-                  }}
-                >
-                  Revoke access
-                </button>
-              </div>
-              <p className="text-xs">
-                Codes are shown once. Regenerate if you no longer have the original.
-              </p>
-              {code && (
-                <div className="flex gap-3">
-                  <code className="select-all">{code}</code>
-                  <button onClick={() => void copy(code)}>Copy code</button>
-                </div>
-              )}
-              <label className="block text-sm">
-                Expiration (blank means no expiry)
-                <input
-                  type="datetime-local"
-                  className="ml-2 rounded border p-2"
-                  value={expiry}
-                  onChange={(e) => setExpiry(e.target.value)}
-                />
-              </label>
-              <button
-                disabled={busy}
-                onClick={() =>
-                  void act("expiry", { expiresAt: expiry ? new Date(expiry).toISOString() : null })
-                }
-              >
-                Save expiration
-              </button>
-              <p className="text-xs">
-                Current expiry:{" "}
-                {data.access.expires_at
-                  ? new Date(data.access.expires_at).toLocaleString()
-                  : "None"}
-              </p>
-              <p className="text-sm">
-                Views: {data.access.view_count} · First:{" "}
-                {data.access.first_viewed_at
-                  ? new Date(data.access.first_viewed_at).toLocaleString()
-                  : "Not opened"}{" "}
-                · Last:{" "}
-                {data.access.last_viewed_at
-                  ? new Date(data.access.last_viewed_at).toLocaleString()
-                  : "Not opened"}
-              </p>
-            </div>
+            <AccessPanel
+              access={data.access}
+              code={code}
+              busy={busy}
+              expiry={expiry}
+              onExpiryChange={setExpiry}
+              onCopy={copy}
+              onAct={act}
+            />
           )}
           <details>
             <summary className="cursor-pointer font-semibold">

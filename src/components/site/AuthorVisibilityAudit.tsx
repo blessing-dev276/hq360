@@ -1,5 +1,16 @@
 import { useRef, useState, type FormEvent } from "react";
-import { ArrowRight, BookOpen, CheckCircle2, LockKeyhole, Search } from "lucide-react";
+import {
+  ArrowRight,
+  BookOpen,
+  CalendarClock,
+  CheckCircle2,
+  Compass,
+  LockKeyhole,
+  Ruler,
+  Search,
+  Target,
+  TrendingUp,
+} from "lucide-react";
 import { Container, Section, SectionHeader } from "@/components/site/Primitives";
 import "./author-audit-page.css";
 
@@ -28,6 +39,45 @@ const reportRules = [
   "What cannot be confirmed is marked “Unable to verify.”",
   "Internal notes and service mapping never appear in a public report.",
 ];
+
+const SMART_PILLARS = [
+  {
+    letter: "S",
+    label: "Specific",
+    icon: Target,
+    body: "Every finding becomes a scoped fix tied to your book and platform — never a vague recommendation.",
+  },
+  {
+    letter: "M",
+    label: "Measurable",
+    icon: Ruler,
+    body: "Each phase ships against something checkable: tracking fixed, page live, listing corrected, journey tested.",
+  },
+  {
+    letter: "A",
+    label: "Achievable",
+    icon: Compass,
+    body: "Work is phased and sized to your timeline — foundational fixes first, so nothing stalls waiting on the rest.",
+  },
+  {
+    letter: "R",
+    label: "Relevant",
+    icon: TrendingUp,
+    body: "Every task maps directly back to a finding from your audit. Nothing generic, nothing you didn’t ask for.",
+  },
+  {
+    letter: "T",
+    label: "Time-bound",
+    icon: CalendarClock,
+    body: "A written delivery date for every phase, agreed with you before any work starts.",
+  },
+] as const;
+
+const IMPLEMENTATION_STEPS = [
+  ["01", "Audit", "Your preliminary visibility assessment identifies what to fix and why."],
+  ["02", "Plan", "Findings become a SMART-structured scope: specific tasks, phased and dated."],
+  ["03", "Build", "HQ360 implements the plan and reports progress against the agreed targets."],
+] as const;
 
 export function AuthorVisibilityAudit() {
   const [state, setState] = useState<FormState>("idle");
@@ -417,6 +467,57 @@ export function AuthorVisibilityAudit() {
               </li>
             ))}
           </ul>
+        </div>
+      </Section>
+
+      <Section>
+        <SectionHeader
+          eyebrow="After your audit"
+          title="SMART HQ360 Implementation Services"
+          intro="Findings only matter once they become fixes. HQ360's implementation service turns your audit into a scoped, SMART-structured plan — Specific, Measurable, Achievable, Relevant and Time-bound."
+        />
+        <ul className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+          {SMART_PILLARS.map((pillar) => (
+            <li
+              key={pillar.letter}
+              className="flex flex-col rounded-2xl border border-border bg-card p-5"
+            >
+              <span className="inline-flex size-10 items-center justify-center rounded-full bg-brand-soft font-display text-lg text-[oklch(0.42_0.16_42)]">
+                {pillar.letter}
+              </span>
+              <pillar.icon className="mt-4 size-4 text-brand" aria-hidden="true" />
+              <p className="mt-3 text-sm font-semibold">{pillar.label}</p>
+              <p className="mt-2 flex-1 text-xs leading-relaxed text-muted-foreground">
+                {pillar.body}
+              </p>
+            </li>
+          ))}
+        </ul>
+
+        <ol className="mt-12 grid gap-6 rounded-2xl border border-border bg-secondary/35 p-6 sm:grid-cols-3 sm:p-8">
+          {IMPLEMENTATION_STEPS.map(([number, title, body]) => (
+            <li key={number}>
+              <span className="font-display text-xl text-brand">{number}</span>
+              <p className="mt-2 font-display text-base">{title}</p>
+              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{body}</p>
+            </li>
+          ))}
+        </ol>
+
+        <div className="mt-10 flex flex-col items-start gap-4 rounded-2xl border border-border bg-card p-6 sm:flex-row sm:items-center sm:justify-between sm:p-8">
+          <div>
+            <p className="font-display text-xl">Ready to move from audit to action?</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Once your preliminary audit is reviewed, HQ360 can scope the SMART implementation plan
+              alongside it.
+            </p>
+          </div>
+          <a
+            href="/contact"
+            className="inline-flex shrink-0 items-center justify-center gap-2 rounded-full bg-primary px-6 py-3.5 text-sm font-semibold text-primary-foreground transition hover:-translate-y-0.5"
+          >
+            Start my implementation plan <ArrowRight className="size-4" />
+          </a>
         </div>
       </Section>
 

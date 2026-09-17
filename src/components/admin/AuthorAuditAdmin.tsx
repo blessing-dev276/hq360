@@ -90,8 +90,8 @@ const FINDING_STATUS_LABEL: Record<AuditFindingStatus, string> = {
 };
 
 const FINDING_STATUS_COLOR: Record<AuditFindingStatus, string> = {
-  strong: "bg-emerald-100 text-emerald-800",
-  healthy: "bg-emerald-50 text-emerald-700",
+  strong: "bg-brand text-primary-foreground",
+  healthy: "bg-brand-soft text-[oklch(0.42_0.16_42)]",
   opportunity_identified: "bg-brand-soft text-[oklch(0.42_0.16_42)]",
   needs_attention: "bg-amber-100 text-amber-800",
   critical_issue: "bg-red-100 text-red-800",
@@ -757,7 +757,7 @@ function AuditWorkspace({ id, onBack }: { id: string; onBack: () => void }) {
               <p
                 className={cn(
                   "text-sm font-medium",
-                  quality.passed ? "text-emerald-700" : "text-destructive",
+                  quality.passed ? "text-brand" : "text-destructive",
                 )}
               >
                 {quality.passed

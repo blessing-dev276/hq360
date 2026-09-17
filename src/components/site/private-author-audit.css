@@ -1,7 +1,10 @@
+/* HQ360 private audit — premium research-dossier theme, built on the
+   site's own design tokens (styles.css) so it stays in sync with the
+   brand (HQ Orange) and dark mode, instead of a standalone palette. */
 .private-audit-access,
 .private-audit-report {
-  background: #f7f5ef;
-  color: #192a24;
+  background: var(--background);
+  color: var(--foreground);
   min-height: 100vh;
 }
 .private-audit-access {
@@ -19,11 +22,12 @@
   margin: 1.5rem 0;
 }
 .private-audit-access em {
-  color: #526e56;
+  color: var(--brand);
   font-style: normal;
 }
 .private-audit-access p {
   line-height: 1.7;
+  color: var(--muted-foreground);
 }
 .private-audit-access form {
   margin: 2rem 0;
@@ -35,6 +39,7 @@
   display: block;
   margin-top: 1rem;
   font-size: 0.8rem;
+  color: var(--muted-foreground);
 }
 .private-audit-access input,
 .private-audit-report textarea {
@@ -42,102 +47,210 @@
   width: 100%;
   margin-top: 0.6rem;
   padding: 1rem;
-  border: 1px solid #c9d0c7;
-  border-radius: 0.7rem;
-  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--card);
+  color: var(--foreground);
+  font-size: 0.95rem;
 }
 .private-audit-access button,
 .pa-button,
 .pa-final button,
 .pa-finding form button {
-  background: #20392d;
+  background: var(--gradient-brand);
   color: #fff;
   padding: 0.9rem 1.3rem;
   border-radius: 999px;
   display: inline-block;
   font-weight: 600;
   font-size: 0.85rem;
+  box-shadow: var(--shadow-editorial);
 }
 .pa-eyebrow {
   font-size: 0.66rem;
   letter-spacing: 0.17em;
   text-transform: uppercase;
   font-weight: 700;
+  color: var(--brand);
 }
 .pa-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 1.2rem clamp(1rem, 5vw, 5rem);
-  border-bottom: 1px solid #d9ded4;
+  border-bottom: 1px solid var(--border);
   gap: 1rem;
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  background: color-mix(in oklch, var(--background) 92%, transparent);
+  backdrop-filter: blur(10px);
 }
 .pa-header > span {
   font-size: 0.7rem;
   text-transform: uppercase;
   letter-spacing: 0.1em;
+  color: var(--muted-foreground);
 }
 .pa-header button {
   font-size: 0.8rem;
-  text-decoration: underline;
+  color: var(--brand);
+  font-weight: 600;
 }
 .pa-hero {
-  padding: clamp(2rem, 6vw, 6rem) clamp(1rem, 8vw, 9rem);
-  background: radial-gradient(ellipse at 95% 5%, #dfe9d7, transparent 60%);
+  padding: clamp(2rem, 6vw, 5rem) clamp(1rem, 8vw, 9rem) clamp(1.5rem, 4vw, 3rem);
+  background:
+    radial-gradient(ellipse at 92% 0%, var(--brand-soft), transparent 55%),
+    var(--carbon);
+  color: var(--surface);
 }
-.pa-hero > p {
+.pa-hero .pa-eyebrow {
+  color: var(--brand-strong);
+}
+.pa-hero > p:not(.pa-eyebrow) {
   margin-top: 1.4rem;
+  color: color-mix(in oklch, var(--surface) 70%, transparent);
 }
 .pa-hero h1 {
   font-family: var(--font-display);
-  font-size: clamp(3rem, 7vw, 6rem);
+  font-size: clamp(2.6rem, 6vw, 5rem);
   letter-spacing: -0.05em;
   line-height: 1.05;
   margin: 0.8rem 0;
+  color: var(--surface);
 }
 .pa-hero h2 {
   font-family: var(--font-display);
-  font-size: clamp(1.4rem, 3vw, 2.2rem);
+  font-size: clamp(1.3rem, 2.6vw, 1.9rem);
   max-width: 45rem;
+  color: color-mix(in oklch, var(--surface) 88%, transparent);
+  font-weight: 500;
 }
 .pa-meta {
   display: flex;
   flex-wrap: wrap;
-  gap: 1rem;
+  gap: 0.6rem 1.2rem;
   margin: 1.5rem 0;
   font-size: 0.8rem;
-  color: #4a6255;
+  color: color-mix(in oklch, var(--surface) 65%, transparent);
 }
-.pa-glance {
+.pa-meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+/* Research-depth strip: dynamic, never hardcoded */
+.pa-depth {
   display: flex;
-  gap: 1.2rem;
   flex-wrap: wrap;
-  margin-top: 3rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid #c9d0c7;
-  font-size: 0.85rem;
+  gap: 0.75rem;
+  margin-top: 1.8rem;
 }
-.pa-glance p {
-  width: 100%;
+.pa-depth-stat {
+  padding: 0.7rem 1.1rem;
+  border-radius: var(--radius-xl);
+  background: color-mix(in oklch, var(--surface) 10%, transparent);
+  border: 1px solid color-mix(in oklch, var(--surface) 22%, transparent);
+  min-width: 7.5rem;
+}
+.pa-depth-stat strong {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  color: var(--brand-strong);
+  line-height: 1.1;
+}
+.pa-depth-stat span {
+  font-size: 0.68rem;
   text-transform: uppercase;
-  font-size: 0.65rem;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.07em;
+  color: color-mix(in oklch, var(--surface) 65%, transparent);
 }
+
+/* At-a-glance dashboard: the conclusion, up front */
+.pa-glance {
+  margin: -1.5rem clamp(1rem, 8vw, 9rem) 0;
+  position: relative;
+  z-index: 2;
+  background: var(--card);
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-lift);
+  border: 1px solid var(--border);
+  padding: clamp(1.4rem, 3vw, 2.2rem);
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  gap: 1.2rem;
+}
+.pa-glance-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.pa-glance-item h3 {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted-foreground);
+  font-weight: 700;
+}
+.pa-glance-item p {
+  font-size: 0.85rem;
+  line-height: 1.55;
+  color: var(--foreground);
+}
+.pa-glance-item a {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--brand);
+}
+.pa-glance-conclusion {
+  grid-column: 1 / -1;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 0.2rem;
+}
+.pa-glance-conclusion p {
+  font-family: var(--font-display);
+  font-size: clamp(1.05rem, 1.8vw, 1.35rem);
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--foreground);
+}
+.pa-glance-pill-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+.pa-mini-badge {
+  font-size: 0.68rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  background: var(--brand-soft);
+  color: var(--accent-foreground);
+  font-weight: 600;
+}
+
 .pa-nav {
   position: sticky;
-  top: 0;
+  top: 3.6rem;
   z-index: 20;
   display: flex;
   overflow-x: auto;
-  background: #f7f5eff5;
-  border-block: 1px solid #d9ded4;
-  padding: 1rem;
+  background: color-mix(in oklch, var(--background) 94%, transparent);
+  backdrop-filter: blur(8px);
+  border-block: 1px solid var(--border);
+  padding: 0.9rem clamp(1rem, 5vw, 3rem);
   gap: 1.5rem;
 }
 .pa-nav a {
   white-space: nowrap;
   font-size: 0.75rem;
   font-weight: 600;
+  color: var(--muted-foreground);
+}
+.pa-nav a:hover {
+  color: var(--brand);
 }
 .pa-body {
   max-width: 76rem;
@@ -146,77 +259,99 @@
 }
 .pa-body > section {
   padding: clamp(2.5rem, 6vw, 5rem) 0;
-  border-bottom: 1px solid #d9ded4;
-  scroll-margin-top: 5rem;
+  border-bottom: 1px solid var(--border);
+  scroll-margin-top: 8rem;
 }
 .pa-body h2 {
   font-family: var(--font-display);
-  font-size: clamp(1.9rem, 3vw, 2.7rem);
+  font-size: clamp(1.7rem, 3vw, 2.4rem);
   letter-spacing: -0.03em;
   line-height: 1.15;
   margin: 0.8rem 0 1.5rem;
+  color: var(--foreground);
 }
 .pa-body h3 {
   font-family: var(--font-display);
-  font-size: 1.25rem;
+  font-size: 1.15rem;
   margin: 0.7rem 0;
   line-height: 1.35;
+  color: var(--foreground);
 }
 .pa-body p {
   font-size: 0.9rem;
-  line-height: 1.8;
-  color: #42554a;
+  line-height: 1.75;
+  color: var(--muted-foreground);
   white-space: pre-line;
+}
+.pa-lede {
+  max-width: 42rem;
+  margin-bottom: 0.5rem;
 }
 .pa-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1.2rem;
+  gap: 1.1rem;
   margin-top: 1.5rem;
 }
-.pa-card,
-.pa-finding,
-.pa-journey details {
+.pa-card {
   padding: 1.5rem;
-  border: 1px solid #d9ded4;
-  border-radius: 1rem;
-  background: #fffdf8;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  background: var(--card);
+  box-shadow: var(--shadow-editorial);
 }
 .pa-detail {
-  margin-top: 1.2rem;
+  margin-top: 1.1rem;
 }
 .pa-detail h4 {
-  font-size: 0.65rem;
+  font-size: 0.64rem;
   letter-spacing: 0.09em;
   text-transform: uppercase;
   font-weight: 700;
-  margin-bottom: 0.4rem;
+  margin-bottom: 0.35rem;
+  color: var(--brand);
 }
 .pa-badge {
   display: inline-block;
-  border: 1px solid #cbd6c5;
+  border: 1px solid var(--border);
   border-radius: 999px;
   padding: 0.25rem 0.65rem;
   margin: 0.3rem 0.3rem 0.3rem 0;
   font-size: 0.65rem;
   text-transform: capitalize;
+  color: var(--muted-foreground);
+}
+.pa-badge-brand {
+  border-color: transparent;
+  background: var(--brand-soft);
+  color: var(--accent-foreground);
+  font-weight: 600;
+}
+.pa-badge-attention {
+  border-color: transparent;
+  background: color-mix(in oklch, var(--destructive) 14%, var(--card));
+  color: var(--destructive);
+  font-weight: 600;
 }
 .pa-sources {
   display: flex;
   flex-wrap: wrap;
   gap: 0.7rem;
-  margin-top: 1.2rem;
+  margin-top: 1.1rem;
   font-size: 0.75rem;
 }
 .pa-sources a,
 .pa-body a:not(.pa-button) {
   text-decoration: underline;
   text-underline-offset: 3px;
+  color: var(--brand);
 }
 .pa-sources small {
   width: 100%;
-  color: #5d6d60;
+  color: var(--muted-foreground);
 }
+
+/* Visibility landscape */
 .pa-landscape {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -225,13 +360,15 @@
 }
 .pa-landscape button {
   padding: 1rem;
-  border: 1px solid #cbd6c5;
-  border-radius: 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
   text-align: left;
+  background: var(--card);
 }
 .pa-landscape button[aria-pressed="true"] {
-  background: #20392d;
-  color: #fff;
+  background: var(--ink);
+  color: var(--surface);
+  border-color: var(--ink);
 }
 .pa-landscape strong,
 .pa-landscape small {
@@ -242,39 +379,205 @@
 .pa-landscape small {
   font-size: 0.65rem;
   margin-top: 0.5rem;
+  color: var(--muted-foreground);
 }
-.pa-journey {
+.pa-landscape button[aria-pressed="true"] small {
+  color: color-mix(in oklch, var(--surface) 70%, transparent);
+}
+
+/* Reader journey — visual connected timeline */
+.pa-journey-track {
   display: grid;
-  gap: 0.8rem;
+  gap: 0;
+  margin-top: 1.5rem;
+  border-left: 2px solid var(--border);
+  padding-left: 1.5rem;
 }
-.pa-journey summary {
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-  align-items: center;
+@media (min-width: 900px) {
+  .pa-journey-track {
+    border-left: none;
+    padding-left: 0;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(9rem, 1fr);
+    gap: 0.5rem;
+    align-items: start;
+  }
 }
+.pa-journey-stage {
+  position: relative;
+  padding: 0 0 1.6rem 0;
+}
+.pa-journey-node {
+  position: absolute;
+  left: -1.98rem;
+  top: 0.15rem;
+  width: 1rem;
+  height: 1rem;
+  border-radius: 50%;
+  background: var(--card);
+  border: 2px solid var(--border);
+}
+@media (min-width: 900px) {
+  .pa-journey-node {
+    position: static;
+    margin-bottom: 0.7rem;
+  }
+  .pa-journey-stage::after {
+    content: "";
+    position: absolute;
+    top: 0.5rem;
+    left: 1rem;
+    right: -0.5rem;
+    height: 2px;
+    background: var(--border);
+  }
+  .pa-journey-stage:last-child::after {
+    display: none;
+  }
+}
+.pa-journey-node.is-strong {
+  background: var(--brand);
+  border-color: var(--brand);
+}
+.pa-journey-node.is-attention {
+  background: var(--destructive);
+  border-color: var(--destructive);
+}
+.pa-journey-stage button {
+  display: block;
+  text-align: left;
+  width: 100%;
+}
+.pa-journey-stage strong {
+  font-size: 0.85rem;
+  display: block;
+}
+.pa-journey-stage .pa-badge {
+  margin-top: 0.4rem;
+}
+.pa-journey-panel {
+  margin-top: 1rem;
+  padding: 1.3rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--card);
+}
+
+/* Comparable matrix */
+.pa-matrix-wrap {
+  overflow-x: auto;
+  margin-top: 1.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+}
+.pa-matrix {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+  min-width: 50rem;
+}
+.pa-matrix th,
+.pa-matrix td {
+  padding: 0.9rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+  line-height: 1.5;
+}
+.pa-matrix thead th {
+  background: var(--secondary);
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted-foreground);
+  white-space: nowrap;
+}
+.pa-matrix tbody tr:last-child td {
+  border-bottom: none;
+}
+.pa-matrix td:first-child {
+  font-weight: 650;
+  color: var(--foreground);
+  white-space: nowrap;
+}
+.pa-pattern {
+  margin-top: 1.5rem;
+  padding: 1.3rem 1.5rem;
+  border-radius: var(--radius-xl);
+  background: var(--brand-soft);
+}
+.pa-pattern h4 {
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  color: var(--accent-foreground);
+  margin-bottom: 0.4rem;
+}
+.pa-pattern p {
+  color: var(--accent-foreground);
+}
+
+/* Findings — collapsed by default, progressive disclosure */
 .pa-finding {
-  margin-bottom: 1rem;
-  scroll-margin-top: 5rem;
+  margin-bottom: 0.9rem;
+  scroll-margin-top: 8rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  background: var(--card);
+  overflow: hidden;
 }
 .private-audit-report summary {
   cursor: pointer;
+  list-style: none;
+}
+.private-audit-report summary::-webkit-details-marker {
+  display: none;
+}
+.pa-finding summary {
+  padding: 1.2rem 1.4rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+.pa-finding-summary-text {
+  flex: 1;
+  min-width: 0;
 }
 .pa-finding summary h3 {
-  display: inline;
+  margin: 0 0 0.4rem;
+  font-size: 1.02rem;
 }
-.pa-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-top: 1.3rem;
+.pa-finding-oneliner {
+  font-size: 0.85rem;
+  color: var(--muted-foreground);
+  margin: 0;
+  line-height: 1.6;
 }
-.pa-actions button {
-  padding: 0.65rem 0.9rem;
-  border: 1px solid #cbd6c5;
-  border-radius: 999px;
-  font-size: 0.75rem;
+.pa-finding-chevron {
+  flex-shrink: 0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--brand);
+  white-space: nowrap;
+  padding-top: 0.2rem;
 }
+.pa-finding[open] .pa-finding-chevron::before {
+  content: "Hide finding ↑";
+}
+.pa-finding:not([open]) .pa-finding-chevron::before {
+  content: "View finding →";
+}
+.pa-finding-body {
+  padding: 0 1.4rem 1.4rem;
+  border-top: 1px solid var(--border);
+}
+.pa-finding-body .pa-detail:first-child {
+  margin-top: 1.1rem;
+}
+
+/* Evidence */
 .pa-evidence {
   display: block;
   width: 100%;
@@ -284,38 +587,160 @@
   width: 100%;
   max-height: 22rem;
   object-fit: contain;
-  background: #eee;
-  border-radius: 0.6rem;
+  background: var(--secondary);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
 }
 .pa-evidence span {
   display: block;
   font-size: 0.75rem;
-  text-decoration: underline;
+  color: var(--brand);
+  font-weight: 600;
   margin-top: 0.7rem;
+}
+
+/* The 3 Moves — the strategic conclusion, visually dominant */
+.pa-moves {
+  background: var(--ink);
+  color: var(--surface);
+  border-radius: var(--radius-2xl);
+  margin: clamp(2rem, 5vw, 3rem) 0;
+  padding: clamp(2rem, 5vw, 3.5rem) clamp(1.3rem, 5vw, 3rem);
+  border-bottom: none !important;
+}
+.pa-moves .pa-eyebrow,
+.pa-moves h2 {
+  color: var(--surface);
+}
+.pa-moves .pa-eyebrow {
+  color: var(--brand-strong);
 }
 .pa-move {
   display: grid;
-  grid-template-columns: 4rem 1fr;
-  gap: 1rem;
-  padding: 2rem 0;
-  border-top: 1px solid #cbd6c5;
+  grid-template-columns: 4.5rem 1fr;
+  gap: 1.3rem;
+  padding: 1.8rem 0;
+  border-top: 1px solid color-mix(in oklch, var(--surface) 18%, transparent);
+}
+.pa-move:first-of-type {
+  border-top: none;
 }
 .pa-move-number {
   font-family: var(--font-display);
-  font-size: 3rem;
-  color: #6b805e;
+  font-size: 2.8rem;
+  background: var(--gradient-brand);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  line-height: 1;
+}
+.pa-move h3 {
+  color: var(--surface);
+  font-size: 1.3rem;
+}
+.pa-move .pa-detail h4 {
+  color: var(--brand-strong);
+}
+.pa-move .pa-detail p {
+  color: color-mix(in oklch, var(--surface) 82%, transparent);
+}
+.pa-move a {
+  color: var(--brand-strong) !important;
+}
+
+/* 30-day plan */
+.pa-week-card {
+  padding: 1.3rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  background: var(--card);
+}
+.pa-week-card > h3 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 1rem;
+}
+.pa-week-count {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--brand);
+  background: var(--brand-soft);
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
 }
 .pa-task {
-  margin-top: 1.5rem;
-  padding-top: 1rem;
-  border-top: 1px solid #d9ded4;
+  margin-top: 1rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid var(--border);
 }
 .pa-task h4 {
   font-weight: 650;
+  font-size: 0.9rem;
+  color: var(--foreground);
+}
+
+/* Sources — collapsed summary by default */
+.pa-source-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 0.8rem;
+  margin: 1.3rem 0;
+}
+.pa-source-summary-item {
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--card);
+  text-align: center;
+}
+.pa-source-summary-item strong {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  color: var(--brand);
+}
+.pa-source-summary-item span {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted-foreground);
+}
+.pa-sources-toggle {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--brand);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.pa-source {
+  padding: 1.1rem 0;
+  border-bottom: 1px solid var(--border);
+}
+.pa-sources-full {
+  margin-top: 1rem;
+}
+
+.pa-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1.2rem;
+}
+.pa-actions button {
+  padding: 0.6rem 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 0.75rem;
+  background: var(--card);
+  color: var(--foreground);
+}
+.pa-actions button:hover {
+  border-color: var(--brand);
+  color: var(--brand);
 }
 .pa-source {
   padding: 1.3rem 0;
-  border-bottom: 1px solid #e1e5db;
 }
 .pa-check {
   display: flex;
@@ -324,50 +749,67 @@
   margin: 1rem 0;
   font-size: 0.85rem;
 }
+.pa-final {
+  background: var(--brand-soft);
+  border-radius: var(--radius-2xl);
+  padding: clamp(1.6rem, 4vw, 3rem);
+  margin: 2rem 0;
+  border-bottom: none !important;
+}
+.pa-final h2,
+.pa-final p {
+  color: var(--accent-foreground);
+}
 .pa-final details {
   margin-top: 1.5rem;
 }
 .pa-final summary {
   font-weight: 650;
+  color: var(--accent-foreground);
 }
 .pa-feedback,
 .pa-update {
   position: sticky;
   bottom: 1rem;
   z-index: 25;
-  background: #20392d;
-  color: #fff;
+  background: var(--ink);
+  color: var(--surface);
   padding: 1rem;
-  border-radius: 0.7rem;
+  border-radius: var(--radius-lg);
   font-size: 0.85rem;
   display: flex;
   justify-content: space-between;
   gap: 1rem;
+  box-shadow: var(--shadow-lift);
 }
 .pa-update {
-  top: 0;
+  top: 3.6rem;
   bottom: auto;
   border-radius: 0;
+  background: var(--gradient-brand);
 }
 .pa-body footer {
   padding: 2rem 0;
   font-size: 0.75rem;
-  color: #526557;
+  color: var(--muted-foreground);
 }
 .pa-empty {
   padding: 1.5rem 0;
   font-style: italic;
+  color: var(--muted-foreground);
 }
 .pa-loading {
   padding: 5rem 2rem;
   min-height: 60vh;
-  background: #f7f5ef;
+  background: var(--background);
+  color: var(--foreground);
   text-align: center;
 }
 .pa-loading a {
   display: block;
   margin: 1rem;
   text-decoration: underline;
+  color: var(--brand);
 }
 .private-audit-report button {
   cursor: pointer;
@@ -378,7 +820,7 @@
 }
 .private-audit-report :focus-visible,
 .private-audit-access :focus-visible {
-  outline: 2px solid #52765c;
+  outline: 2px solid var(--brand);
   outline-offset: 4px;
 }
 @media (max-width: 700px) {
@@ -392,9 +834,13 @@
     display: none;
   }
   .pa-move {
-    grid-template-columns: 2rem 1fr;
+    grid-template-columns: 2.6rem 1fr;
   }
   .pa-move-number {
     font-size: 2rem;
+  }
+  .pa-glance {
+    margin-left: 1rem;
+    margin-right: 1rem;
   }
 }

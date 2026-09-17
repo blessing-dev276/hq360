@@ -50,12 +50,17 @@ function withCachePolicy(request: Request, response: Response): Response {
   const privateResponse =
     !["GET", "HEAD"].includes(request.method) ||
     pathname === "/admin" ||
+    pathname.startsWith("/author-audit") ||
+    pathname.startsWith("/api/private-audit") ||
     pathname.startsWith("/api/admin/") ||
     response.headers.has("set-cookie") ||
     response.status >= 400;
   const isDocument = response.headers.get("content-type")?.includes("text/html");
   const excludeFromIndex =
-    pathname === "/admin" || pathname.startsWith("/api/") || response.status >= 400;
+    pathname === "/admin" ||
+    pathname.startsWith("/author-audit") ||
+    pathname.startsWith("/api/") ||
+    response.status >= 400;
   if (!privateResponse && !isDocument && !excludeFromIndex) return response;
   const headers = new Headers(response.headers);
   if (excludeFromIndex) headers.set("x-robots-tag", "noindex");

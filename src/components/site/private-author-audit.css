@@ -1,0 +1,400 @@
+.private-audit-access,
+.private-audit-report {
+  background: #f7f5ef;
+  color: #192a24;
+  min-height: 100vh;
+}
+.private-audit-access {
+  padding: clamp(2rem, 6vw, 5rem);
+}
+.private-audit-access > section {
+  max-width: 34rem;
+  margin: 6vh auto;
+}
+.private-audit-access h1 {
+  font-family: var(--font-display);
+  font-size: clamp(2.6rem, 6vw, 4.5rem);
+  line-height: 1.08;
+  letter-spacing: -0.04em;
+  margin: 1.5rem 0;
+}
+.private-audit-access em {
+  color: #526e56;
+  font-style: normal;
+}
+.private-audit-access p {
+  line-height: 1.7;
+}
+.private-audit-access form {
+  margin: 2rem 0;
+  display: grid;
+  gap: 1rem;
+}
+.private-audit-access small,
+.private-audit-access section > a {
+  display: block;
+  margin-top: 1rem;
+  font-size: 0.8rem;
+}
+.private-audit-access input,
+.private-audit-report textarea {
+  display: block;
+  width: 100%;
+  margin-top: 0.6rem;
+  padding: 1rem;
+  border: 1px solid #c9d0c7;
+  border-radius: 0.7rem;
+  background: #fff;
+}
+.private-audit-access button,
+.pa-button,
+.pa-final button,
+.pa-finding form button {
+  background: #20392d;
+  color: #fff;
+  padding: 0.9rem 1.3rem;
+  border-radius: 999px;
+  display: inline-block;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+.pa-eyebrow {
+  font-size: 0.66rem;
+  letter-spacing: 0.17em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+.pa-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.2rem clamp(1rem, 5vw, 5rem);
+  border-bottom: 1px solid #d9ded4;
+  gap: 1rem;
+}
+.pa-header > span {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+.pa-header button {
+  font-size: 0.8rem;
+  text-decoration: underline;
+}
+.pa-hero {
+  padding: clamp(2rem, 6vw, 6rem) clamp(1rem, 8vw, 9rem);
+  background: radial-gradient(ellipse at 95% 5%, #dfe9d7, transparent 60%);
+}
+.pa-hero > p {
+  margin-top: 1.4rem;
+}
+.pa-hero h1 {
+  font-family: var(--font-display);
+  font-size: clamp(3rem, 7vw, 6rem);
+  letter-spacing: -0.05em;
+  line-height: 1.05;
+  margin: 0.8rem 0;
+}
+.pa-hero h2 {
+  font-family: var(--font-display);
+  font-size: clamp(1.4rem, 3vw, 2.2rem);
+  max-width: 45rem;
+}
+.pa-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin: 1.5rem 0;
+  font-size: 0.8rem;
+  color: #4a6255;
+}
+.pa-glance {
+  display: flex;
+  gap: 1.2rem;
+  flex-wrap: wrap;
+  margin-top: 3rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #c9d0c7;
+  font-size: 0.85rem;
+}
+.pa-glance p {
+  width: 100%;
+  text-transform: uppercase;
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+}
+.pa-nav {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  overflow-x: auto;
+  background: #f7f5eff5;
+  border-block: 1px solid #d9ded4;
+  padding: 1rem;
+  gap: 1.5rem;
+}
+.pa-nav a {
+  white-space: nowrap;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+.pa-body {
+  max-width: 76rem;
+  margin: auto;
+  padding: 0 clamp(1rem, 4vw, 3rem);
+}
+.pa-body > section {
+  padding: clamp(2.5rem, 6vw, 5rem) 0;
+  border-bottom: 1px solid #d9ded4;
+  scroll-margin-top: 5rem;
+}
+.pa-body h2 {
+  font-family: var(--font-display);
+  font-size: clamp(1.9rem, 3vw, 2.7rem);
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  margin: 0.8rem 0 1.5rem;
+}
+.pa-body h3 {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  margin: 0.7rem 0;
+  line-height: 1.35;
+}
+.pa-body p {
+  font-size: 0.9rem;
+  line-height: 1.8;
+  color: #42554a;
+  white-space: pre-line;
+}
+.pa-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.2rem;
+  margin-top: 1.5rem;
+}
+.pa-card,
+.pa-finding,
+.pa-journey details {
+  padding: 1.5rem;
+  border: 1px solid #d9ded4;
+  border-radius: 1rem;
+  background: #fffdf8;
+}
+.pa-detail {
+  margin-top: 1.2rem;
+}
+.pa-detail h4 {
+  font-size: 0.65rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  font-weight: 700;
+  margin-bottom: 0.4rem;
+}
+.pa-badge {
+  display: inline-block;
+  border: 1px solid #cbd6c5;
+  border-radius: 999px;
+  padding: 0.25rem 0.65rem;
+  margin: 0.3rem 0.3rem 0.3rem 0;
+  font-size: 0.65rem;
+  text-transform: capitalize;
+}
+.pa-sources {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+  margin-top: 1.2rem;
+  font-size: 0.75rem;
+}
+.pa-sources a,
+.pa-body a:not(.pa-button) {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.pa-sources small {
+  width: 100%;
+  color: #5d6d60;
+}
+.pa-landscape {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.6rem;
+  margin: 1.5rem 0;
+}
+.pa-landscape button {
+  padding: 1rem;
+  border: 1px solid #cbd6c5;
+  border-radius: 0.7rem;
+  text-align: left;
+}
+.pa-landscape button[aria-pressed="true"] {
+  background: #20392d;
+  color: #fff;
+}
+.pa-landscape strong,
+.pa-landscape small {
+  display: block;
+  font-size: 0.8rem;
+  text-transform: capitalize;
+}
+.pa-landscape small {
+  font-size: 0.65rem;
+  margin-top: 0.5rem;
+}
+.pa-journey {
+  display: grid;
+  gap: 0.8rem;
+}
+.pa-journey summary {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: center;
+}
+.pa-finding {
+  margin-bottom: 1rem;
+  scroll-margin-top: 5rem;
+}
+.private-audit-report summary {
+  cursor: pointer;
+}
+.pa-finding summary h3 {
+  display: inline;
+}
+.pa-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1.3rem;
+}
+.pa-actions button {
+  padding: 0.65rem 0.9rem;
+  border: 1px solid #cbd6c5;
+  border-radius: 999px;
+  font-size: 0.75rem;
+}
+.pa-evidence {
+  display: block;
+  width: 100%;
+  text-align: left;
+}
+.pa-evidence img {
+  width: 100%;
+  max-height: 22rem;
+  object-fit: contain;
+  background: #eee;
+  border-radius: 0.6rem;
+}
+.pa-evidence span {
+  display: block;
+  font-size: 0.75rem;
+  text-decoration: underline;
+  margin-top: 0.7rem;
+}
+.pa-move {
+  display: grid;
+  grid-template-columns: 4rem 1fr;
+  gap: 1rem;
+  padding: 2rem 0;
+  border-top: 1px solid #cbd6c5;
+}
+.pa-move-number {
+  font-family: var(--font-display);
+  font-size: 3rem;
+  color: #6b805e;
+}
+.pa-task {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #d9ded4;
+}
+.pa-task h4 {
+  font-weight: 650;
+}
+.pa-source {
+  padding: 1.3rem 0;
+  border-bottom: 1px solid #e1e5db;
+}
+.pa-check {
+  display: flex;
+  gap: 0.7rem;
+  align-items: flex-start;
+  margin: 1rem 0;
+  font-size: 0.85rem;
+}
+.pa-final details {
+  margin-top: 1.5rem;
+}
+.pa-final summary {
+  font-weight: 650;
+}
+.pa-feedback,
+.pa-update {
+  position: sticky;
+  bottom: 1rem;
+  z-index: 25;
+  background: #20392d;
+  color: #fff;
+  padding: 1rem;
+  border-radius: 0.7rem;
+  font-size: 0.85rem;
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.pa-update {
+  top: 0;
+  bottom: auto;
+  border-radius: 0;
+}
+.pa-body footer {
+  padding: 2rem 0;
+  font-size: 0.75rem;
+  color: #526557;
+}
+.pa-empty {
+  padding: 1.5rem 0;
+  font-style: italic;
+}
+.pa-loading {
+  padding: 5rem 2rem;
+  min-height: 60vh;
+  background: #f7f5ef;
+  text-align: center;
+}
+.pa-loading a {
+  display: block;
+  margin: 1rem;
+  text-decoration: underline;
+}
+.private-audit-report button {
+  cursor: pointer;
+}
+.private-audit-report button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.private-audit-report :focus-visible,
+.private-audit-access :focus-visible {
+  outline: 2px solid #52765c;
+  outline-offset: 4px;
+}
+@media (max-width: 700px) {
+  .pa-grid {
+    grid-template-columns: 1fr;
+  }
+  .pa-landscape {
+    grid-template-columns: 1fr 1fr;
+  }
+  .pa-header > span {
+    display: none;
+  }
+  .pa-move {
+    grid-template-columns: 2rem 1fr;
+  }
+  .pa-move-number {
+    font-size: 2rem;
+  }
+}

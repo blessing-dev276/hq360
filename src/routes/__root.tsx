@@ -5,6 +5,7 @@ import {
   createRootRouteWithContext,
   HeadContent,
   Scripts,
+  useRouterState,
 } from "@tanstack/react-router";
 import { type ReactNode } from "react";
 
@@ -97,6 +98,9 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const privateAudit = useRouterState({
+    select: (state) => state.location.pathname.startsWith("/author-audit"),
+  });
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -107,15 +111,19 @@ function RootComponent() {
       >
         Skip to content
       </a>
-      <SiteHeader />
+      {!privateAudit && <SiteHeader />}
       <main id="main">
         {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
         <Outlet />
       </main>
-      <SiteFooter />
-      <CookieBanner />
-      <LeadPopup />
-      <VoiceMessage />
+      {!privateAudit && (
+        <>
+          <SiteFooter />
+          <CookieBanner />
+          <LeadPopup />
+          <VoiceMessage />
+        </>
+      )}
     </QueryClientProvider>
   );
 }

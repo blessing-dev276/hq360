@@ -38,6 +38,8 @@ import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as TeamRouteImport } from './routes/team'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as TestimonialsRouteImport } from './routes/testimonials'
+import { Route as ApiPrivateAuditRouteImport } from './routes/api/private-audit'
+import { Route as AuthorAuditIndexRouteImport } from './routes/author-audit.index'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as CapabilitiesIndexRouteImport } from './routes/capabilities.index'
@@ -72,6 +74,7 @@ import { Route as ApiPublicResourceRequestRouteImport } from './routes/api/publi
 import { Route as ApiPublicTeamRouteImport } from './routes/api/public/team'
 import { Route as ApiPublicTestimonialsRouteImport } from './routes/api/public/testimonials'
 import { Route as ApiPublicVoiceMessageRouteImport } from './routes/api/public/voice-message'
+import { Route as AuthorAuditAuthorBookRouteImport } from './routes/author-audit.$author.$book'
 import { Route as InsightsAnswersSlugRouteImport } from './routes/insights.answers.$slug'
 import { Route as InsightsGuidesSlugRouteImport } from './routes/insights.guides.$slug'
 import { Route as ApiAdminAuthorAuditsIdRouteImport } from './routes/api/admin/author-audits.$id'
@@ -85,6 +88,7 @@ import { Route as ApiAdminTestimonialsIdRouteImport } from './routes/api/admin/t
 import { Route as ApiAdminTestimonialsReorderRouteImport } from './routes/api/admin/testimonials.reorder'
 import { Route as ApiAdminAuthorAuditsIdComparablesRouteImport } from './routes/api/admin/author-audits.$id.comparables'
 import { Route as ApiAdminAuthorAuditsIdEvidenceAssetsRouteImport } from './routes/api/admin/author-audits.$id.evidence-assets'
+import { Route as ApiAdminAuthorAuditsIdPublishingRouteImport } from './routes/api/admin/author-audits.$id.publishing'
 import { Route as ApiAdminAuthorAuditsIdQualityCheckRouteImport } from './routes/api/admin/author-audits.$id.quality-check'
 import { Route as ApiAdminAuthorAuditsIdReportRouteImport } from './routes/api/admin/author-audits.$id.report'
 import { Route as ApiAdminAuthorAuditsIdResearchRouteImport } from './routes/api/admin/author-audits.$id.research'
@@ -242,6 +246,16 @@ const TermsRoute = TermsRouteImport.update({
 const TestimonialsRoute = TestimonialsRouteImport.update({
   id: '/testimonials',
   path: '/testimonials',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPrivateAuditRoute = ApiPrivateAuditRouteImport.update({
+  id: '/api/private-audit',
+  path: '/api/private-audit',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthorAuditIndexRoute = AuthorAuditIndexRouteImport.update({
+  id: '/author-audit/',
+  path: '/author-audit/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BlogIndexRoute = BlogIndexRouteImport.update({
@@ -417,6 +431,11 @@ const ApiPublicVoiceMessageRoute = ApiPublicVoiceMessageRouteImport.update({
   path: '/api/public/voice-message',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthorAuditAuthorBookRoute = AuthorAuditAuthorBookRouteImport.update({
+  id: '/author-audit/$author/$book',
+  path: '/author-audit/$author/$book',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const InsightsAnswersSlugRoute = InsightsAnswersSlugRouteImport.update({
   id: '/insights/answers/$slug',
   path: '/insights/answers/$slug',
@@ -485,6 +504,12 @@ const ApiAdminAuthorAuditsIdEvidenceAssetsRoute =
   ApiAdminAuthorAuditsIdEvidenceAssetsRouteImport.update({
     id: '/evidence-assets',
     path: '/evidence-assets',
+    getParentRoute: () => ApiAdminAuthorAuditsIdRoute,
+  } as any)
+const ApiAdminAuthorAuditsIdPublishingRoute =
+  ApiAdminAuthorAuditsIdPublishingRouteImport.update({
+    id: '/publishing',
+    path: '/publishing',
     getParentRoute: () => ApiAdminAuthorAuditsIdRoute,
   } as any)
 const ApiAdminAuthorAuditsIdQualityCheckRoute =
@@ -596,6 +621,7 @@ export interface FileRoutesByFullPath {
   '/team': typeof TeamRoute
   '/terms': typeof TermsRoute
   '/testimonials': typeof TestimonialsRoute
+  '/api/private-audit': typeof ApiPrivateAuditRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/capabilities/$slug': typeof CapabilitiesSlugRoute
   '/insights/$slug': typeof InsightsSlugRoute
@@ -605,6 +631,7 @@ export interface FileRoutesByFullPath {
   '/tools/author-visibility-audit': typeof ToolsAuthorVisibilityAuditRoute
   '/tools/website-audit': typeof ToolsWebsiteAuditRoute
   '/work/$slug': typeof WorkSlugRoute
+  '/author-audit/': typeof AuthorAuditIndexRoute
   '/blog/': typeof BlogIndexRoute
   '/capabilities/': typeof CapabilitiesIndexRoute
   '/insights/': typeof InsightsIndexRoute
@@ -630,6 +657,7 @@ export interface FileRoutesByFullPath {
   '/api/public/team': typeof ApiPublicTeamRoute
   '/api/public/testimonials': typeof ApiPublicTestimonialsRoute
   '/api/public/voice-message': typeof ApiPublicVoiceMessageRoute
+  '/author-audit/$author/$book': typeof AuthorAuditAuthorBookRoute
   '/insights/answers/$slug': typeof InsightsAnswersSlugRoute
   '/insights/guides/$slug': typeof InsightsGuidesSlugRoute
   '/api/admin/author-audits/$id': typeof ApiAdminAuthorAuditsIdRouteWithChildren
@@ -643,6 +671,7 @@ export interface FileRoutesByFullPath {
   '/api/admin/testimonials/reorder': typeof ApiAdminTestimonialsReorderRoute
   '/api/admin/author-audits/$id/comparables': typeof ApiAdminAuthorAuditsIdComparablesRouteWithChildren
   '/api/admin/author-audits/$id/evidence-assets': typeof ApiAdminAuthorAuditsIdEvidenceAssetsRouteWithChildren
+  '/api/admin/author-audits/$id/publishing': typeof ApiAdminAuthorAuditsIdPublishingRoute
   '/api/admin/author-audits/$id/quality-check': typeof ApiAdminAuthorAuditsIdQualityCheckRoute
   '/api/admin/author-audits/$id/report': typeof ApiAdminAuthorAuditsIdReportRoute
   '/api/admin/author-audits/$id/research': typeof ApiAdminAuthorAuditsIdResearchRoute
@@ -687,6 +716,7 @@ export interface FileRoutesByTo {
   '/team': typeof TeamRoute
   '/terms': typeof TermsRoute
   '/testimonials': typeof TestimonialsRoute
+  '/api/private-audit': typeof ApiPrivateAuditRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/capabilities/$slug': typeof CapabilitiesSlugRoute
   '/insights/$slug': typeof InsightsSlugRoute
@@ -696,6 +726,7 @@ export interface FileRoutesByTo {
   '/tools/author-visibility-audit': typeof ToolsAuthorVisibilityAuditRoute
   '/tools/website-audit': typeof ToolsWebsiteAuditRoute
   '/work/$slug': typeof WorkSlugRoute
+  '/author-audit': typeof AuthorAuditIndexRoute
   '/blog': typeof BlogIndexRoute
   '/capabilities': typeof CapabilitiesIndexRoute
   '/insights': typeof InsightsIndexRoute
@@ -721,6 +752,7 @@ export interface FileRoutesByTo {
   '/api/public/team': typeof ApiPublicTeamRoute
   '/api/public/testimonials': typeof ApiPublicTestimonialsRoute
   '/api/public/voice-message': typeof ApiPublicVoiceMessageRoute
+  '/author-audit/$author/$book': typeof AuthorAuditAuthorBookRoute
   '/insights/answers/$slug': typeof InsightsAnswersSlugRoute
   '/insights/guides/$slug': typeof InsightsGuidesSlugRoute
   '/api/admin/author-audits/$id': typeof ApiAdminAuthorAuditsIdRouteWithChildren
@@ -734,6 +766,7 @@ export interface FileRoutesByTo {
   '/api/admin/testimonials/reorder': typeof ApiAdminTestimonialsReorderRoute
   '/api/admin/author-audits/$id/comparables': typeof ApiAdminAuthorAuditsIdComparablesRouteWithChildren
   '/api/admin/author-audits/$id/evidence-assets': typeof ApiAdminAuthorAuditsIdEvidenceAssetsRouteWithChildren
+  '/api/admin/author-audits/$id/publishing': typeof ApiAdminAuthorAuditsIdPublishingRoute
   '/api/admin/author-audits/$id/quality-check': typeof ApiAdminAuthorAuditsIdQualityCheckRoute
   '/api/admin/author-audits/$id/report': typeof ApiAdminAuthorAuditsIdReportRoute
   '/api/admin/author-audits/$id/research': typeof ApiAdminAuthorAuditsIdResearchRoute
@@ -779,6 +812,7 @@ export interface FileRoutesById {
   '/team': typeof TeamRoute
   '/terms': typeof TermsRoute
   '/testimonials': typeof TestimonialsRoute
+  '/api/private-audit': typeof ApiPrivateAuditRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/capabilities/$slug': typeof CapabilitiesSlugRoute
   '/insights/$slug': typeof InsightsSlugRoute
@@ -788,6 +822,7 @@ export interface FileRoutesById {
   '/tools/author-visibility-audit': typeof ToolsAuthorVisibilityAuditRoute
   '/tools/website-audit': typeof ToolsWebsiteAuditRoute
   '/work/$slug': typeof WorkSlugRoute
+  '/author-audit/': typeof AuthorAuditIndexRoute
   '/blog/': typeof BlogIndexRoute
   '/capabilities/': typeof CapabilitiesIndexRoute
   '/insights/': typeof InsightsIndexRoute
@@ -813,6 +848,7 @@ export interface FileRoutesById {
   '/api/public/team': typeof ApiPublicTeamRoute
   '/api/public/testimonials': typeof ApiPublicTestimonialsRoute
   '/api/public/voice-message': typeof ApiPublicVoiceMessageRoute
+  '/author-audit/$author/$book': typeof AuthorAuditAuthorBookRoute
   '/insights/answers/$slug': typeof InsightsAnswersSlugRoute
   '/insights/guides/$slug': typeof InsightsGuidesSlugRoute
   '/api/admin/author-audits/$id': typeof ApiAdminAuthorAuditsIdRouteWithChildren
@@ -826,6 +862,7 @@ export interface FileRoutesById {
   '/api/admin/testimonials/reorder': typeof ApiAdminTestimonialsReorderRoute
   '/api/admin/author-audits/$id/comparables': typeof ApiAdminAuthorAuditsIdComparablesRouteWithChildren
   '/api/admin/author-audits/$id/evidence-assets': typeof ApiAdminAuthorAuditsIdEvidenceAssetsRouteWithChildren
+  '/api/admin/author-audits/$id/publishing': typeof ApiAdminAuthorAuditsIdPublishingRoute
   '/api/admin/author-audits/$id/quality-check': typeof ApiAdminAuthorAuditsIdQualityCheckRoute
   '/api/admin/author-audits/$id/report': typeof ApiAdminAuthorAuditsIdReportRoute
   '/api/admin/author-audits/$id/research': typeof ApiAdminAuthorAuditsIdResearchRoute
@@ -872,6 +909,7 @@ export interface FileRouteTypes {
     | '/team'
     | '/terms'
     | '/testimonials'
+    | '/api/private-audit'
     | '/blog/$slug'
     | '/capabilities/$slug'
     | '/insights/$slug'
@@ -881,6 +919,7 @@ export interface FileRouteTypes {
     | '/tools/author-visibility-audit'
     | '/tools/website-audit'
     | '/work/$slug'
+    | '/author-audit/'
     | '/blog/'
     | '/capabilities/'
     | '/insights/'
@@ -906,6 +945,7 @@ export interface FileRouteTypes {
     | '/api/public/team'
     | '/api/public/testimonials'
     | '/api/public/voice-message'
+    | '/author-audit/$author/$book'
     | '/insights/answers/$slug'
     | '/insights/guides/$slug'
     | '/api/admin/author-audits/$id'
@@ -919,6 +959,7 @@ export interface FileRouteTypes {
     | '/api/admin/testimonials/reorder'
     | '/api/admin/author-audits/$id/comparables'
     | '/api/admin/author-audits/$id/evidence-assets'
+    | '/api/admin/author-audits/$id/publishing'
     | '/api/admin/author-audits/$id/quality-check'
     | '/api/admin/author-audits/$id/report'
     | '/api/admin/author-audits/$id/research'
@@ -963,6 +1004,7 @@ export interface FileRouteTypes {
     | '/team'
     | '/terms'
     | '/testimonials'
+    | '/api/private-audit'
     | '/blog/$slug'
     | '/capabilities/$slug'
     | '/insights/$slug'
@@ -972,6 +1014,7 @@ export interface FileRouteTypes {
     | '/tools/author-visibility-audit'
     | '/tools/website-audit'
     | '/work/$slug'
+    | '/author-audit'
     | '/blog'
     | '/capabilities'
     | '/insights'
@@ -997,6 +1040,7 @@ export interface FileRouteTypes {
     | '/api/public/team'
     | '/api/public/testimonials'
     | '/api/public/voice-message'
+    | '/author-audit/$author/$book'
     | '/insights/answers/$slug'
     | '/insights/guides/$slug'
     | '/api/admin/author-audits/$id'
@@ -1010,6 +1054,7 @@ export interface FileRouteTypes {
     | '/api/admin/testimonials/reorder'
     | '/api/admin/author-audits/$id/comparables'
     | '/api/admin/author-audits/$id/evidence-assets'
+    | '/api/admin/author-audits/$id/publishing'
     | '/api/admin/author-audits/$id/quality-check'
     | '/api/admin/author-audits/$id/report'
     | '/api/admin/author-audits/$id/research'
@@ -1054,6 +1099,7 @@ export interface FileRouteTypes {
     | '/team'
     | '/terms'
     | '/testimonials'
+    | '/api/private-audit'
     | '/blog/$slug'
     | '/capabilities/$slug'
     | '/insights/$slug'
@@ -1063,6 +1109,7 @@ export interface FileRouteTypes {
     | '/tools/author-visibility-audit'
     | '/tools/website-audit'
     | '/work/$slug'
+    | '/author-audit/'
     | '/blog/'
     | '/capabilities/'
     | '/insights/'
@@ -1088,6 +1135,7 @@ export interface FileRouteTypes {
     | '/api/public/team'
     | '/api/public/testimonials'
     | '/api/public/voice-message'
+    | '/author-audit/$author/$book'
     | '/insights/answers/$slug'
     | '/insights/guides/$slug'
     | '/api/admin/author-audits/$id'
@@ -1101,6 +1149,7 @@ export interface FileRouteTypes {
     | '/api/admin/testimonials/reorder'
     | '/api/admin/author-audits/$id/comparables'
     | '/api/admin/author-audits/$id/evidence-assets'
+    | '/api/admin/author-audits/$id/publishing'
     | '/api/admin/author-audits/$id/quality-check'
     | '/api/admin/author-audits/$id/report'
     | '/api/admin/author-audits/$id/research'
@@ -1146,6 +1195,7 @@ export interface RootRouteChildren {
   TeamRoute: typeof TeamRoute
   TermsRoute: typeof TermsRoute
   TestimonialsRoute: typeof TestimonialsRoute
+  ApiPrivateAuditRoute: typeof ApiPrivateAuditRoute
   BlogSlugRoute: typeof BlogSlugRoute
   CapabilitiesSlugRoute: typeof CapabilitiesSlugRoute
   InsightsSlugRoute: typeof InsightsSlugRoute
@@ -1155,6 +1205,7 @@ export interface RootRouteChildren {
   ToolsAuthorVisibilityAuditRoute: typeof ToolsAuthorVisibilityAuditRoute
   ToolsWebsiteAuditRoute: typeof ToolsWebsiteAuditRoute
   WorkSlugRoute: typeof WorkSlugRoute
+  AuthorAuditIndexRoute: typeof AuthorAuditIndexRoute
   BlogIndexRoute: typeof BlogIndexRoute
   CapabilitiesIndexRoute: typeof CapabilitiesIndexRoute
   InsightsIndexRoute: typeof InsightsIndexRoute
@@ -1180,6 +1231,7 @@ export interface RootRouteChildren {
   ApiPublicTeamRoute: typeof ApiPublicTeamRoute
   ApiPublicTestimonialsRoute: typeof ApiPublicTestimonialsRoute
   ApiPublicVoiceMessageRoute: typeof ApiPublicVoiceMessageRoute
+  AuthorAuditAuthorBookRoute: typeof AuthorAuditAuthorBookRoute
   InsightsAnswersSlugRoute: typeof InsightsAnswersSlugRoute
   InsightsGuidesSlugRoute: typeof InsightsGuidesSlugRoute
 }
@@ -1387,6 +1439,20 @@ declare module '@tanstack/react-router' {
       path: '/testimonials'
       fullPath: '/testimonials'
       preLoaderRoute: typeof TestimonialsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/private-audit': {
+      id: '/api/private-audit'
+      path: '/api/private-audit'
+      fullPath: '/api/private-audit'
+      preLoaderRoute: typeof ApiPrivateAuditRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/author-audit/': {
+      id: '/author-audit/'
+      path: '/author-audit'
+      fullPath: '/author-audit/'
+      preLoaderRoute: typeof AuthorAuditIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/blog/': {
@@ -1627,6 +1693,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicVoiceMessageRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/author-audit/$author/$book': {
+      id: '/author-audit/$author/$book'
+      path: '/author-audit/$author/$book'
+      fullPath: '/author-audit/$author/$book'
+      preLoaderRoute: typeof AuthorAuditAuthorBookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/insights/answers/$slug': {
       id: '/insights/answers/$slug'
       path: '/insights/answers/$slug'
@@ -1716,6 +1789,13 @@ declare module '@tanstack/react-router' {
       path: '/evidence-assets'
       fullPath: '/api/admin/author-audits/$id/evidence-assets'
       preLoaderRoute: typeof ApiAdminAuthorAuditsIdEvidenceAssetsRouteImport
+      parentRoute: typeof ApiAdminAuthorAuditsIdRoute
+    }
+    '/api/admin/author-audits/$id/publishing': {
+      id: '/api/admin/author-audits/$id/publishing'
+      path: '/publishing'
+      fullPath: '/api/admin/author-audits/$id/publishing'
+      preLoaderRoute: typeof ApiAdminAuthorAuditsIdPublishingRouteImport
       parentRoute: typeof ApiAdminAuthorAuditsIdRoute
     }
     '/api/admin/author-audits/$id/quality-check': {
@@ -1845,6 +1925,7 @@ const ApiAdminAuthorAuditsIdEvidenceAssetsRouteWithChildren =
 interface ApiAdminAuthorAuditsIdRouteChildren {
   ApiAdminAuthorAuditsIdComparablesRoute: typeof ApiAdminAuthorAuditsIdComparablesRouteWithChildren
   ApiAdminAuthorAuditsIdEvidenceAssetsRoute: typeof ApiAdminAuthorAuditsIdEvidenceAssetsRouteWithChildren
+  ApiAdminAuthorAuditsIdPublishingRoute: typeof ApiAdminAuthorAuditsIdPublishingRoute
   ApiAdminAuthorAuditsIdQualityCheckRoute: typeof ApiAdminAuthorAuditsIdQualityCheckRoute
   ApiAdminAuthorAuditsIdReportRoute: typeof ApiAdminAuthorAuditsIdReportRoute
   ApiAdminAuthorAuditsIdResearchRoute: typeof ApiAdminAuthorAuditsIdResearchRoute
@@ -1864,6 +1945,8 @@ const ApiAdminAuthorAuditsIdRouteChildren: ApiAdminAuthorAuditsIdRouteChildren =
       ApiAdminAuthorAuditsIdComparablesRouteWithChildren,
     ApiAdminAuthorAuditsIdEvidenceAssetsRoute:
       ApiAdminAuthorAuditsIdEvidenceAssetsRouteWithChildren,
+    ApiAdminAuthorAuditsIdPublishingRoute:
+      ApiAdminAuthorAuditsIdPublishingRoute,
     ApiAdminAuthorAuditsIdQualityCheckRoute:
       ApiAdminAuthorAuditsIdQualityCheckRoute,
     ApiAdminAuthorAuditsIdReportRoute: ApiAdminAuthorAuditsIdReportRoute,
@@ -1985,6 +2068,7 @@ const rootRouteChildren: RootRouteChildren = {
   TeamRoute: TeamRoute,
   TermsRoute: TermsRoute,
   TestimonialsRoute: TestimonialsRoute,
+  ApiPrivateAuditRoute: ApiPrivateAuditRoute,
   BlogSlugRoute: BlogSlugRoute,
   CapabilitiesSlugRoute: CapabilitiesSlugRoute,
   InsightsSlugRoute: InsightsSlugRoute,
@@ -1994,6 +2078,7 @@ const rootRouteChildren: RootRouteChildren = {
   ToolsAuthorVisibilityAuditRoute: ToolsAuthorVisibilityAuditRoute,
   ToolsWebsiteAuditRoute: ToolsWebsiteAuditRoute,
   WorkSlugRoute: WorkSlugRoute,
+  AuthorAuditIndexRoute: AuthorAuditIndexRoute,
   BlogIndexRoute: BlogIndexRoute,
   CapabilitiesIndexRoute: CapabilitiesIndexRoute,
   InsightsIndexRoute: InsightsIndexRoute,
@@ -2019,6 +2104,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicTeamRoute: ApiPublicTeamRoute,
   ApiPublicTestimonialsRoute: ApiPublicTestimonialsRoute,
   ApiPublicVoiceMessageRoute: ApiPublicVoiceMessageRoute,
+  AuthorAuditAuthorBookRoute: AuthorAuditAuthorBookRoute,
   InsightsAnswersSlugRoute: InsightsAnswersSlugRoute,
   InsightsGuidesSlugRoute: InsightsGuidesSlugRoute,
 }

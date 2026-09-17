@@ -38,7 +38,7 @@ export const Route = createFileRoute("/api/public/voice-message")({
             })
             .safeParse(Object.fromEntries(form));
           const audio = form.get("audio");
-          const audioType = audio instanceof File ? audio.type.split(";")[0].trim() : "";
+          const audioType = audio instanceof File ? (audio.type.split(";")[0] ?? "").trim() : "";
           const extensions: Record<string, string> = {
             "audio/webm": "webm",
             "audio/ogg": "ogg",

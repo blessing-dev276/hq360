@@ -63,7 +63,8 @@ function Tool({ tool }: { tool: (typeof FREE_TOOLS)[number] }) {
         "Measurement & experiments",
       ]
         .map((label, i) => {
-          const amount = i === 3 ? cents - assigned : Math.round((cents * allocation[i]) / 100);
+          const amount =
+            i === 3 ? cents - assigned : Math.round((cents * (allocation[i] ?? 0)) / 100);
           assigned += amount;
           return `${label}: ${allocation[i]}% — ${(amount / 100).toFixed(2)} ${data.get("currency")}`;
         })

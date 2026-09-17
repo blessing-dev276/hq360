@@ -61,7 +61,7 @@ export default defineConfig(async ({ command, mode, isPreview }) => {
         // it intercepts before Nitro's own plugin can trace the files.
         // PDFKit's #standard-fonts imports require its original package scope
         // and the font modules declared by package.json's imports map.
-        traceDeps: ["pdfkit*", "fontkit*", "@resvg/resvg-js*"],
+        traceDeps: ["pdfkit*", "fontkit*", "harfbuzzjs*", "@resvg/resvg-js*"],
       }),
     );
   }

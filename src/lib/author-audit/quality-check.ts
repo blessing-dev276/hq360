@@ -42,6 +42,22 @@ export async function runQualityCheck(
       db.from("audit_roadmap_items").select("*").eq("audit_id", auditId),
     ]);
 
+  if (
+    [findingsRes, strengthsRes, journeyRes, comparablesRes, movesRes, roadmapRes].some(
+      (r) => r.error,
+    )
+  ) {
+    return {
+      passed: false,
+      issues: [
+        {
+          area: "Data",
+          message: "Complete audit records could not be loaded. Try again before publishing.",
+        },
+      ],
+      warnings: [],
+    };
+  }
   const findings = (findingsRes.data ?? []) as AuditFinding[];
   const strengths = (strengthsRes.data ?? []) as AuditStrength[];
   const moves = (movesRes.data ?? []) as AuditPriorityMove[];

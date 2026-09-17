@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import "./audit-workspace.css";
+import { ClientAuditPublishing } from "./ClientAuditPublishing";
 import { uploadAdminMedia } from "@/lib/admin-upload";
 import {
   VERIFICATION_FIELDS,
@@ -739,6 +740,7 @@ function AuditWorkspace({ id, onBack }: { id: string; onBack: () => void }) {
         {roadmap.length > 0 ? <RoadmapSection auditId={id} items={roadmap} onSaved={load} /> : null}
       </div>
       <div hidden={stage !== "report"} className="space-y-6">
+        <ClientAuditPublishing auditId={id} />
         <section className="rounded-2xl border border-border bg-card p-5">
           <div className="flex items-center justify-between">
             <h3 className="font-display text-lg">Quality check</h3>

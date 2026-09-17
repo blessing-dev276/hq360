@@ -68,6 +68,7 @@ export async function buildReportData(
     prepared_by_staff_name: string | null;
     executive_assessment: ExecutiveAssessment | null;
     executive_assessment_client_visible: boolean;
+    executive_assessment_review_status: string;
   };
 
   const [
@@ -109,7 +110,23 @@ export async function buildReportData(
       .eq("verification_status", "verified"),
   ]);
 
-  const findings = (findingsRes.data ?? []) as AuditFinding[];
+  for (const result of [
+    findingsRes,
+    strengthsRes,
+    journeyRes,
+    comparablesRes,
+    movesRes,
+    roadmapRes,
+    assetsRes,
+    sourcesRes,
+    evidenceRes,
+    verificationsRes,
+  ]) {
+    if (result.error) throw new Error("Unable to load complete report data");
+  }
+  const findings = ((findingsRes.data ?? []) as AuditFinding[]).filter(
+    (f) => f.review_status === "approved",
+  );
 
   if (findings.length === 0) return { error: "no_approved_findings" };
 
@@ -128,7 +145,7 @@ export async function buildReportData(
         verificationStatus: "verified",
       })),
     ...evidence
-      .filter((e) => e.url)
+      .filter((e) => e.url && e.verification_status === "verified")
       .map((e) => ({
         name: e.claim.slice(0, 80),
         url: e.url,
@@ -154,15 +171,32 @@ export async function buildReportData(
       month: "long",
       day: "numeric",
     }),
-    executiveAssessment: record.executive_assessment_client_visible
-      ? record.executive_assessment
-      : null,
-    strengths: (strengthsRes.data ?? []) as AuditStrength[],
+    executiveAssessment:
+      record.executive_assessment_client_visible &&
+      record.executive_assessment_review_status === "approved"
+        ? record.executive_assessment
+        : null,
+    strengths: ((strengthsRes.data ?? []) as AuditStrength[]).filter(
+      (x) => x.review_status === "approved",
+    ),
     findings,
-    readerJourney: (journeyRes.data ?? []) as AuditReaderJourneyStep[],
-    comparables: (comparablesRes.data ?? []) as AuditComparable[],
-    moves: (movesRes.data ?? []) as AuditPriorityMove[],
-    roadmap: (roadmapRes.data ?? []) as AuditRoadmapItem[],
+    readerJourney: ((journeyRes.data ?? []) as AuditReaderJourneyStep[]).filter(
+      (x) => x.review_status === "approved",
+    ),
+    comparables: ((comparablesRes.data ?? []) as AuditComparable[]).filter(
+      (x) => x.review_status === "approved",
+    ),
+    moves: ((movesRes.data ?? []) as AuditPriorityMove[]).filter(
+      (x) =>
+        x.review_status === "approved" &&
+        x.based_on_finding_ids.length > 0 &&
+        x.based_on_finding_ids.every((id) =>
+          findings.some((f) => f.id === id && f.status !== "unable_to_verify"),
+        ),
+    ),
+    roadmap: ((roadmapRes.data ?? []) as AuditRoadmapItem[]).filter(
+      (x) => x.review_status === "approved",
+    ),
     evidenceAssets: (assetsRes.data ?? []) as AuditEvidenceAsset[],
     sourcesReviewed,
   };

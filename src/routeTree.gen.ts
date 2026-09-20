@@ -60,8 +60,10 @@ import { Route as ApiAdminAuthorAuditLeadsRouteImport } from './routes/api/admin
 import { Route as ApiAdminAuthorAuditsRouteImport } from './routes/api/admin/author-audits'
 import { Route as ApiAdminCaseStudiesRouteImport } from './routes/api/admin/case-studies'
 import { Route as ApiAdminPortfolioRouteImport } from './routes/api/admin/portfolio'
+import { Route as ApiAdminScoutBatchesRouteImport } from './routes/api/admin/scout-batches'
 import { Route as ApiAdminScoutBooksRouteImport } from './routes/api/admin/scout-books'
 import { Route as ApiAdminScoutDiscoverRouteImport } from './routes/api/admin/scout-discover'
+import { Route as ApiAdminScoutDiscoverCountRouteImport } from './routes/api/admin/scout-discover-count'
 import { Route as ApiAdminScoutExportRouteImport } from './routes/api/admin/scout-export'
 import { Route as ApiAdminScoutProspectsRouteImport } from './routes/api/admin/scout-prospects'
 import { Route as ApiAdminScoutSourcesRouteImport } from './routes/api/admin/scout-sources'
@@ -89,6 +91,7 @@ import { Route as ApiAdminCaseStudiesReorderRouteImport } from './routes/api/adm
 import { Route as ApiAdminPortfolioIdRouteImport } from './routes/api/admin/portfolio.$id'
 import { Route as ApiAdminPortfolioReorderRouteImport } from './routes/api/admin/portfolio.reorder'
 import { Route as ApiAdminScoutAuthorsIdRouteImport } from './routes/api/admin/scout-authors.$id'
+import { Route as ApiAdminScoutBatchesIdRouteImport } from './routes/api/admin/scout-batches.$id'
 import { Route as ApiAdminScoutProspectsIdRouteImport } from './routes/api/admin/scout-prospects.$id'
 import { Route as ApiAdminScoutSourcesSlugRouteImport } from './routes/api/admin/scout-sources.$slug'
 import { Route as ApiAdminTeamIdRouteImport } from './routes/api/admin/team.$id'
@@ -106,6 +109,7 @@ import { Route as ApiAdminAuthorAuditsIdSynthesizeRouteImport } from './routes/a
 import { Route as ApiAdminAuthorAuditsIdSynthesizePlanRouteImport } from './routes/api/admin/author-audits.$id.synthesize-plan'
 import { Route as ApiAdminAuthorAuditsIdVerificationsRouteImport } from './routes/api/admin/author-audits.$id.verifications'
 import { Route as ApiAdminScoutAuthorsIdResearchWebsiteRouteImport } from './routes/api/admin/scout-authors.$id.research-website'
+import { Route as ApiAdminScoutBatchesIdExportRouteImport } from './routes/api/admin/scout-batches.$id.export'
 import { Route as ApiAdminAuthorAuditsIdComparablesComparableIdRouteImport } from './routes/api/admin/author-audits.$id.comparables.$comparableId'
 import { Route as ApiAdminAuthorAuditsIdEvidenceAssetsAssetIdRouteImport } from './routes/api/admin/author-audits.$id.evidence-assets.$assetId'
 import { Route as ApiAdminAuthorAuditsIdFindingsFindingIdRouteImport } from './routes/api/admin/author-audits.$id.findings.$findingId'
@@ -371,6 +375,11 @@ const ApiAdminPortfolioRoute = ApiAdminPortfolioRouteImport.update({
   path: '/api/admin/portfolio',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAdminScoutBatchesRoute = ApiAdminScoutBatchesRouteImport.update({
+  id: '/api/admin/scout-batches',
+  path: '/api/admin/scout-batches',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAdminScoutBooksRoute = ApiAdminScoutBooksRouteImport.update({
   id: '/api/admin/scout-books',
   path: '/api/admin/scout-books',
@@ -381,6 +390,12 @@ const ApiAdminScoutDiscoverRoute = ApiAdminScoutDiscoverRouteImport.update({
   path: '/api/admin/scout-discover',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAdminScoutDiscoverCountRoute =
+  ApiAdminScoutDiscoverCountRouteImport.update({
+    id: '/api/admin/scout-discover-count',
+    path: '/api/admin/scout-discover-count',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiAdminScoutExportRoute = ApiAdminScoutExportRouteImport.update({
   id: '/api/admin/scout-export',
   path: '/api/admin/scout-export',
@@ -519,6 +534,11 @@ const ApiAdminScoutAuthorsIdRoute = ApiAdminScoutAuthorsIdRouteImport.update({
   path: '/api/admin/scout-authors/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAdminScoutBatchesIdRoute = ApiAdminScoutBatchesIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ApiAdminScoutBatchesRoute,
+} as any)
 const ApiAdminScoutProspectsIdRoute =
   ApiAdminScoutProspectsIdRouteImport.update({
     id: '/$id',
@@ -618,6 +638,12 @@ const ApiAdminScoutAuthorsIdResearchWebsiteRoute =
     path: '/research-website',
     getParentRoute: () => ApiAdminScoutAuthorsIdRoute,
   } as any)
+const ApiAdminScoutBatchesIdExportRoute =
+  ApiAdminScoutBatchesIdExportRouteImport.update({
+    id: '/export',
+    path: '/export',
+    getParentRoute: () => ApiAdminScoutBatchesIdRoute,
+  } as any)
 const ApiAdminAuthorAuditsIdComparablesComparableIdRoute =
   ApiAdminAuthorAuditsIdComparablesComparableIdRouteImport.update({
     id: '/$comparableId',
@@ -713,8 +739,10 @@ export interface FileRoutesByFullPath {
   '/api/admin/author-audits': typeof ApiAdminAuthorAuditsRouteWithChildren
   '/api/admin/case-studies': typeof ApiAdminCaseStudiesRouteWithChildren
   '/api/admin/portfolio': typeof ApiAdminPortfolioRouteWithChildren
+  '/api/admin/scout-batches': typeof ApiAdminScoutBatchesRouteWithChildren
   '/api/admin/scout-books': typeof ApiAdminScoutBooksRoute
   '/api/admin/scout-discover': typeof ApiAdminScoutDiscoverRoute
+  '/api/admin/scout-discover-count': typeof ApiAdminScoutDiscoverCountRoute
   '/api/admin/scout-export': typeof ApiAdminScoutExportRoute
   '/api/admin/scout-prospects': typeof ApiAdminScoutProspectsRouteWithChildren
   '/api/admin/scout-sources': typeof ApiAdminScoutSourcesRouteWithChildren
@@ -742,6 +770,7 @@ export interface FileRoutesByFullPath {
   '/api/admin/portfolio/$id': typeof ApiAdminPortfolioIdRoute
   '/api/admin/portfolio/reorder': typeof ApiAdminPortfolioReorderRoute
   '/api/admin/scout-authors/$id': typeof ApiAdminScoutAuthorsIdRouteWithChildren
+  '/api/admin/scout-batches/$id': typeof ApiAdminScoutBatchesIdRouteWithChildren
   '/api/admin/scout-prospects/$id': typeof ApiAdminScoutProspectsIdRoute
   '/api/admin/scout-sources/$slug': typeof ApiAdminScoutSourcesSlugRoute
   '/api/admin/team/$id': typeof ApiAdminTeamIdRoute
@@ -759,6 +788,7 @@ export interface FileRoutesByFullPath {
   '/api/admin/author-audits/$id/synthesize-plan': typeof ApiAdminAuthorAuditsIdSynthesizePlanRoute
   '/api/admin/author-audits/$id/verifications': typeof ApiAdminAuthorAuditsIdVerificationsRoute
   '/api/admin/scout-authors/$id/research-website': typeof ApiAdminScoutAuthorsIdResearchWebsiteRoute
+  '/api/admin/scout-batches/$id/export': typeof ApiAdminScoutBatchesIdExportRoute
   '/api/admin/author-audits/$id/comparables/$comparableId': typeof ApiAdminAuthorAuditsIdComparablesComparableIdRoute
   '/api/admin/author-audits/$id/evidence-assets/$assetId': typeof ApiAdminAuthorAuditsIdEvidenceAssetsAssetIdRoute
   '/api/admin/author-audits/$id/findings/$findingId': typeof ApiAdminAuthorAuditsIdFindingsFindingIdRoute
@@ -819,8 +849,10 @@ export interface FileRoutesByTo {
   '/api/admin/author-audits': typeof ApiAdminAuthorAuditsRouteWithChildren
   '/api/admin/case-studies': typeof ApiAdminCaseStudiesRouteWithChildren
   '/api/admin/portfolio': typeof ApiAdminPortfolioRouteWithChildren
+  '/api/admin/scout-batches': typeof ApiAdminScoutBatchesRouteWithChildren
   '/api/admin/scout-books': typeof ApiAdminScoutBooksRoute
   '/api/admin/scout-discover': typeof ApiAdminScoutDiscoverRoute
+  '/api/admin/scout-discover-count': typeof ApiAdminScoutDiscoverCountRoute
   '/api/admin/scout-export': typeof ApiAdminScoutExportRoute
   '/api/admin/scout-prospects': typeof ApiAdminScoutProspectsRouteWithChildren
   '/api/admin/scout-sources': typeof ApiAdminScoutSourcesRouteWithChildren
@@ -848,6 +880,7 @@ export interface FileRoutesByTo {
   '/api/admin/portfolio/$id': typeof ApiAdminPortfolioIdRoute
   '/api/admin/portfolio/reorder': typeof ApiAdminPortfolioReorderRoute
   '/api/admin/scout-authors/$id': typeof ApiAdminScoutAuthorsIdRouteWithChildren
+  '/api/admin/scout-batches/$id': typeof ApiAdminScoutBatchesIdRouteWithChildren
   '/api/admin/scout-prospects/$id': typeof ApiAdminScoutProspectsIdRoute
   '/api/admin/scout-sources/$slug': typeof ApiAdminScoutSourcesSlugRoute
   '/api/admin/team/$id': typeof ApiAdminTeamIdRoute
@@ -865,6 +898,7 @@ export interface FileRoutesByTo {
   '/api/admin/author-audits/$id/synthesize-plan': typeof ApiAdminAuthorAuditsIdSynthesizePlanRoute
   '/api/admin/author-audits/$id/verifications': typeof ApiAdminAuthorAuditsIdVerificationsRoute
   '/api/admin/scout-authors/$id/research-website': typeof ApiAdminScoutAuthorsIdResearchWebsiteRoute
+  '/api/admin/scout-batches/$id/export': typeof ApiAdminScoutBatchesIdExportRoute
   '/api/admin/author-audits/$id/comparables/$comparableId': typeof ApiAdminAuthorAuditsIdComparablesComparableIdRoute
   '/api/admin/author-audits/$id/evidence-assets/$assetId': typeof ApiAdminAuthorAuditsIdEvidenceAssetsAssetIdRoute
   '/api/admin/author-audits/$id/findings/$findingId': typeof ApiAdminAuthorAuditsIdFindingsFindingIdRoute
@@ -926,8 +960,10 @@ export interface FileRoutesById {
   '/api/admin/author-audits': typeof ApiAdminAuthorAuditsRouteWithChildren
   '/api/admin/case-studies': typeof ApiAdminCaseStudiesRouteWithChildren
   '/api/admin/portfolio': typeof ApiAdminPortfolioRouteWithChildren
+  '/api/admin/scout-batches': typeof ApiAdminScoutBatchesRouteWithChildren
   '/api/admin/scout-books': typeof ApiAdminScoutBooksRoute
   '/api/admin/scout-discover': typeof ApiAdminScoutDiscoverRoute
+  '/api/admin/scout-discover-count': typeof ApiAdminScoutDiscoverCountRoute
   '/api/admin/scout-export': typeof ApiAdminScoutExportRoute
   '/api/admin/scout-prospects': typeof ApiAdminScoutProspectsRouteWithChildren
   '/api/admin/scout-sources': typeof ApiAdminScoutSourcesRouteWithChildren
@@ -955,6 +991,7 @@ export interface FileRoutesById {
   '/api/admin/portfolio/$id': typeof ApiAdminPortfolioIdRoute
   '/api/admin/portfolio/reorder': typeof ApiAdminPortfolioReorderRoute
   '/api/admin/scout-authors/$id': typeof ApiAdminScoutAuthorsIdRouteWithChildren
+  '/api/admin/scout-batches/$id': typeof ApiAdminScoutBatchesIdRouteWithChildren
   '/api/admin/scout-prospects/$id': typeof ApiAdminScoutProspectsIdRoute
   '/api/admin/scout-sources/$slug': typeof ApiAdminScoutSourcesSlugRoute
   '/api/admin/team/$id': typeof ApiAdminTeamIdRoute
@@ -972,6 +1009,7 @@ export interface FileRoutesById {
   '/api/admin/author-audits/$id/synthesize-plan': typeof ApiAdminAuthorAuditsIdSynthesizePlanRoute
   '/api/admin/author-audits/$id/verifications': typeof ApiAdminAuthorAuditsIdVerificationsRoute
   '/api/admin/scout-authors/$id/research-website': typeof ApiAdminScoutAuthorsIdResearchWebsiteRoute
+  '/api/admin/scout-batches/$id/export': typeof ApiAdminScoutBatchesIdExportRoute
   '/api/admin/author-audits/$id/comparables/$comparableId': typeof ApiAdminAuthorAuditsIdComparablesComparableIdRoute
   '/api/admin/author-audits/$id/evidence-assets/$assetId': typeof ApiAdminAuthorAuditsIdEvidenceAssetsAssetIdRoute
   '/api/admin/author-audits/$id/findings/$findingId': typeof ApiAdminAuthorAuditsIdFindingsFindingIdRoute
@@ -1034,8 +1072,10 @@ export interface FileRouteTypes {
     | '/api/admin/author-audits'
     | '/api/admin/case-studies'
     | '/api/admin/portfolio'
+    | '/api/admin/scout-batches'
     | '/api/admin/scout-books'
     | '/api/admin/scout-discover'
+    | '/api/admin/scout-discover-count'
     | '/api/admin/scout-export'
     | '/api/admin/scout-prospects'
     | '/api/admin/scout-sources'
@@ -1063,6 +1103,7 @@ export interface FileRouteTypes {
     | '/api/admin/portfolio/$id'
     | '/api/admin/portfolio/reorder'
     | '/api/admin/scout-authors/$id'
+    | '/api/admin/scout-batches/$id'
     | '/api/admin/scout-prospects/$id'
     | '/api/admin/scout-sources/$slug'
     | '/api/admin/team/$id'
@@ -1080,6 +1121,7 @@ export interface FileRouteTypes {
     | '/api/admin/author-audits/$id/synthesize-plan'
     | '/api/admin/author-audits/$id/verifications'
     | '/api/admin/scout-authors/$id/research-website'
+    | '/api/admin/scout-batches/$id/export'
     | '/api/admin/author-audits/$id/comparables/$comparableId'
     | '/api/admin/author-audits/$id/evidence-assets/$assetId'
     | '/api/admin/author-audits/$id/findings/$findingId'
@@ -1140,8 +1182,10 @@ export interface FileRouteTypes {
     | '/api/admin/author-audits'
     | '/api/admin/case-studies'
     | '/api/admin/portfolio'
+    | '/api/admin/scout-batches'
     | '/api/admin/scout-books'
     | '/api/admin/scout-discover'
+    | '/api/admin/scout-discover-count'
     | '/api/admin/scout-export'
     | '/api/admin/scout-prospects'
     | '/api/admin/scout-sources'
@@ -1169,6 +1213,7 @@ export interface FileRouteTypes {
     | '/api/admin/portfolio/$id'
     | '/api/admin/portfolio/reorder'
     | '/api/admin/scout-authors/$id'
+    | '/api/admin/scout-batches/$id'
     | '/api/admin/scout-prospects/$id'
     | '/api/admin/scout-sources/$slug'
     | '/api/admin/team/$id'
@@ -1186,6 +1231,7 @@ export interface FileRouteTypes {
     | '/api/admin/author-audits/$id/synthesize-plan'
     | '/api/admin/author-audits/$id/verifications'
     | '/api/admin/scout-authors/$id/research-website'
+    | '/api/admin/scout-batches/$id/export'
     | '/api/admin/author-audits/$id/comparables/$comparableId'
     | '/api/admin/author-audits/$id/evidence-assets/$assetId'
     | '/api/admin/author-audits/$id/findings/$findingId'
@@ -1246,8 +1292,10 @@ export interface FileRouteTypes {
     | '/api/admin/author-audits'
     | '/api/admin/case-studies'
     | '/api/admin/portfolio'
+    | '/api/admin/scout-batches'
     | '/api/admin/scout-books'
     | '/api/admin/scout-discover'
+    | '/api/admin/scout-discover-count'
     | '/api/admin/scout-export'
     | '/api/admin/scout-prospects'
     | '/api/admin/scout-sources'
@@ -1275,6 +1323,7 @@ export interface FileRouteTypes {
     | '/api/admin/portfolio/$id'
     | '/api/admin/portfolio/reorder'
     | '/api/admin/scout-authors/$id'
+    | '/api/admin/scout-batches/$id'
     | '/api/admin/scout-prospects/$id'
     | '/api/admin/scout-sources/$slug'
     | '/api/admin/team/$id'
@@ -1292,6 +1341,7 @@ export interface FileRouteTypes {
     | '/api/admin/author-audits/$id/synthesize-plan'
     | '/api/admin/author-audits/$id/verifications'
     | '/api/admin/scout-authors/$id/research-website'
+    | '/api/admin/scout-batches/$id/export'
     | '/api/admin/author-audits/$id/comparables/$comparableId'
     | '/api/admin/author-audits/$id/evidence-assets/$assetId'
     | '/api/admin/author-audits/$id/findings/$findingId'
@@ -1353,8 +1403,10 @@ export interface RootRouteChildren {
   ApiAdminAuthorAuditsRoute: typeof ApiAdminAuthorAuditsRouteWithChildren
   ApiAdminCaseStudiesRoute: typeof ApiAdminCaseStudiesRouteWithChildren
   ApiAdminPortfolioRoute: typeof ApiAdminPortfolioRouteWithChildren
+  ApiAdminScoutBatchesRoute: typeof ApiAdminScoutBatchesRouteWithChildren
   ApiAdminScoutBooksRoute: typeof ApiAdminScoutBooksRoute
   ApiAdminScoutDiscoverRoute: typeof ApiAdminScoutDiscoverRoute
+  ApiAdminScoutDiscoverCountRoute: typeof ApiAdminScoutDiscoverCountRoute
   ApiAdminScoutExportRoute: typeof ApiAdminScoutExportRoute
   ApiAdminScoutProspectsRoute: typeof ApiAdminScoutProspectsRouteWithChildren
   ApiAdminScoutSourcesRoute: typeof ApiAdminScoutSourcesRouteWithChildren
@@ -1738,6 +1790,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAdminPortfolioRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/admin/scout-batches': {
+      id: '/api/admin/scout-batches'
+      path: '/api/admin/scout-batches'
+      fullPath: '/api/admin/scout-batches'
+      preLoaderRoute: typeof ApiAdminScoutBatchesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/admin/scout-books': {
       id: '/api/admin/scout-books'
       path: '/api/admin/scout-books'
@@ -1750,6 +1809,13 @@ declare module '@tanstack/react-router' {
       path: '/api/admin/scout-discover'
       fullPath: '/api/admin/scout-discover'
       preLoaderRoute: typeof ApiAdminScoutDiscoverRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/scout-discover-count': {
+      id: '/api/admin/scout-discover-count'
+      path: '/api/admin/scout-discover-count'
+      fullPath: '/api/admin/scout-discover-count'
+      preLoaderRoute: typeof ApiAdminScoutDiscoverCountRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/admin/scout-export': {
@@ -1941,6 +2007,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAdminScoutAuthorsIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/admin/scout-batches/$id': {
+      id: '/api/admin/scout-batches/$id'
+      path: '/$id'
+      fullPath: '/api/admin/scout-batches/$id'
+      preLoaderRoute: typeof ApiAdminScoutBatchesIdRouteImport
+      parentRoute: typeof ApiAdminScoutBatchesRoute
+    }
     '/api/admin/scout-prospects/$id': {
       id: '/api/admin/scout-prospects/$id'
       path: '/$id'
@@ -2059,6 +2132,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/admin/scout-authors/$id/research-website'
       preLoaderRoute: typeof ApiAdminScoutAuthorsIdResearchWebsiteRouteImport
       parentRoute: typeof ApiAdminScoutAuthorsIdRoute
+    }
+    '/api/admin/scout-batches/$id/export': {
+      id: '/api/admin/scout-batches/$id/export'
+      path: '/export'
+      fullPath: '/api/admin/scout-batches/$id/export'
+      preLoaderRoute: typeof ApiAdminScoutBatchesIdExportRouteImport
+      parentRoute: typeof ApiAdminScoutBatchesIdRoute
     }
     '/api/admin/author-audits/$id/comparables/$comparableId': {
       id: '/api/admin/author-audits/$id/comparables/$comparableId'
@@ -2234,6 +2314,31 @@ const ApiAdminPortfolioRouteChildren: ApiAdminPortfolioRouteChildren = {
 const ApiAdminPortfolioRouteWithChildren =
   ApiAdminPortfolioRoute._addFileChildren(ApiAdminPortfolioRouteChildren)
 
+interface ApiAdminScoutBatchesIdRouteChildren {
+  ApiAdminScoutBatchesIdExportRoute: typeof ApiAdminScoutBatchesIdExportRoute
+}
+
+const ApiAdminScoutBatchesIdRouteChildren: ApiAdminScoutBatchesIdRouteChildren =
+  {
+    ApiAdminScoutBatchesIdExportRoute: ApiAdminScoutBatchesIdExportRoute,
+  }
+
+const ApiAdminScoutBatchesIdRouteWithChildren =
+  ApiAdminScoutBatchesIdRoute._addFileChildren(
+    ApiAdminScoutBatchesIdRouteChildren,
+  )
+
+interface ApiAdminScoutBatchesRouteChildren {
+  ApiAdminScoutBatchesIdRoute: typeof ApiAdminScoutBatchesIdRouteWithChildren
+}
+
+const ApiAdminScoutBatchesRouteChildren: ApiAdminScoutBatchesRouteChildren = {
+  ApiAdminScoutBatchesIdRoute: ApiAdminScoutBatchesIdRouteWithChildren,
+}
+
+const ApiAdminScoutBatchesRouteWithChildren =
+  ApiAdminScoutBatchesRoute._addFileChildren(ApiAdminScoutBatchesRouteChildren)
+
 interface ApiAdminScoutProspectsRouteChildren {
   ApiAdminScoutProspectsIdRoute: typeof ApiAdminScoutProspectsIdRoute
 }
@@ -2353,8 +2458,10 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAdminAuthorAuditsRoute: ApiAdminAuthorAuditsRouteWithChildren,
   ApiAdminCaseStudiesRoute: ApiAdminCaseStudiesRouteWithChildren,
   ApiAdminPortfolioRoute: ApiAdminPortfolioRouteWithChildren,
+  ApiAdminScoutBatchesRoute: ApiAdminScoutBatchesRouteWithChildren,
   ApiAdminScoutBooksRoute: ApiAdminScoutBooksRoute,
   ApiAdminScoutDiscoverRoute: ApiAdminScoutDiscoverRoute,
+  ApiAdminScoutDiscoverCountRoute: ApiAdminScoutDiscoverCountRoute,
   ApiAdminScoutExportRoute: ApiAdminScoutExportRoute,
   ApiAdminScoutProspectsRoute: ApiAdminScoutProspectsRouteWithChildren,
   ApiAdminScoutSourcesRoute: ApiAdminScoutSourcesRouteWithChildren,

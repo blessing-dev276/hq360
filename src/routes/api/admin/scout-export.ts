@@ -2,39 +2,11 @@ import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { isAdminRequest } from "@/lib/admin-auth.server";
 import { asScoutDb } from "@/lib/scout/db";
-import { toCsv } from "@/lib/scout/csv";
+import { toCsv, SCOUT_EXPORT_COLUMNS, buildScoutExportRow } from "@/lib/scout/csv";
 
 const bodySchema = z.object({
   prospectIds: z.array(z.string().uuid()).min(1).max(5000),
 });
-
-const COLUMNS = [
-  { key: "authorName", header: "Author name" },
-  { key: "bookTitle", header: "Book title" },
-  { key: "genre", header: "Genre" },
-  { key: "publicationDate", header: "Publication date" },
-  { key: "googleBooksReviews", header: "Google Books reviews" },
-  { key: "openLibraryReviews", header: "Open Library reviews" },
-  { key: "goodreadsReviews", header: "Goodreads reviews" },
-  { key: "amazonReviews", header: "Amazon reviews" },
-  { key: "authorWebsite", header: "Author website" },
-  { key: "contactEmail", header: "Public professional email" },
-  { key: "contactForm", header: "Contact form" },
-  { key: "bookUrl", header: "Book URL" },
-  { key: "sourceUrls", header: "Source URLs" },
-  { key: "researchNotes", header: "Research notes" },
-  { key: "outreachStatus", header: "Outreach status" },
-  { key: "lastVerifiedAt", header: "Last verification date" },
-];
-
-function reviewsFor(
-  counts: { platform: string; review_count: number | null; verified: boolean }[],
-  platform: string,
-) {
-  const match = counts.find((c) => c.platform === platform);
-  if (!match || match.review_count === null || !match.verified) return "";
-  return String(match.review_count);
-}
 
 export const Route = createFileRoute("/api/admin/scout-export")({
   server: {
@@ -86,29 +58,24 @@ export const Route = createFileRoute("/api/admin/scout-export")({
             } | null;
           };
 
-          const rows = ((data ?? []) as unknown as Row[]).map((row) => {
-            const counts = row.scout_discovered_books?.scout_review_counts ?? [];
-            return {
+          const rows = ((data ?? []) as unknown as Row[]).map((row) =>
+            buildScoutExportRow({
               authorName: row.scout_authors?.name ?? "",
               bookTitle: row.scout_discovered_books?.title ?? "",
-              genre: row.scout_discovered_books?.genre ?? "",
-              publicationDate: row.scout_discovered_books?.publication_date ?? "",
-              googleBooksReviews: reviewsFor(counts, "google_books"),
-              openLibraryReviews: reviewsFor(counts, "open_library"),
-              goodreadsReviews: reviewsFor(counts, "goodreads"),
-              amazonReviews: reviewsFor(counts, "amazon"),
-              authorWebsite: row.scout_authors?.website_url ?? "",
-              contactEmail: row.scout_authors?.contact_email ?? "",
-              contactForm: row.scout_authors?.contact_form_url ?? "",
-              bookUrl: row.scout_discovered_books?.source_url ?? "",
-              sourceUrls: row.scout_discovered_books?.source_url ?? "",
-              researchNotes: row.research_notes ?? "",
+              genre: row.scout_discovered_books?.genre ?? null,
+              publicationDate: row.scout_discovered_books?.publication_date ?? null,
+              reviewCounts: row.scout_discovered_books?.scout_review_counts ?? [],
+              authorWebsite: row.scout_authors?.website_url ?? null,
+              contactEmail: row.scout_authors?.contact_email ?? null,
+              contactForm: row.scout_authors?.contact_form_url ?? null,
+              bookUrl: row.scout_discovered_books?.source_url ?? null,
+              researchNotes: row.research_notes ?? null,
               outreachStatus: row.status,
-              lastVerifiedAt: row.last_verified_at ?? "",
-            };
-          });
+              lastVerifiedAt: row.last_verified_at ?? null,
+            }),
+          );
 
-          const csv = toCsv(rows, COLUMNS);
+          const csv = toCsv(rows, SCOUT_EXPORT_COLUMNS);
           return new Response(csv, {
             status: 200,
             headers: {

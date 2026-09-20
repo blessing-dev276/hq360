@@ -72,6 +72,7 @@ export type ScoutBook = {
   external_id: string | null;
   raw_data: Record<string, unknown>;
   discovered_at: string;
+  batch_id: string | null;
 };
 
 export type ReviewPlatform =
@@ -86,6 +87,18 @@ export type ScoutReviewCount = {
   verified: boolean;
   source_url: string | null;
   retrieved_at: string;
+};
+
+export type ScoutBatch = {
+  id: string;
+  created_at: string;
+  label: string;
+  genre: string | null;
+  query: string | null;
+  sources: string[];
+  requested_max: number | null;
+  total_available: number | null;
+  item_count: number;
 };
 
 export type ScoutSavedSearch = {
@@ -159,7 +172,8 @@ export type ScoutTable =
   | "scout_research_jobs"
   | "scout_prospects"
   | "scout_outreach_drafts"
-  | "scout_research_notes";
+  | "scout_research_notes"
+  | "scout_batches";
 
 export function asScoutDb(supabaseAdmin: SupabaseClient) {
   return supabaseAdmin as unknown as {

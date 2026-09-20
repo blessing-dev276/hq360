@@ -106,10 +106,11 @@ function reviewText(counts: ReviewCount[], platform: string) {
 
 /* ------------------------------------------------------------------- root */
 
-type Tab = "discover" | "prospects" | "sources";
+type Tab = "discover" | "batches" | "prospects" | "sources";
 
 export function ScoutApp() {
   const [tab, setTab] = useState<Tab>("discover");
+  const [focusedBatchId, setFocusedBatchId] = useState<string | null>(null);
 
   return (
     <div className="min-h-[70vh] bg-secondary/40">
@@ -126,7 +127,7 @@ export function ScoutApp() {
         </div>
 
         <div className="mt-6 flex gap-1 rounded-full border border-border bg-card p-1 text-sm">
-          {(["discover", "prospects", "sources"] as const).map((t) => (
+          {(["discover", "batches", "prospects", "sources"] as const).map((t) => (
             <button
               key={t}
               type="button"
@@ -141,7 +142,20 @@ export function ScoutApp() {
           ))}
         </div>
 
-        {tab === "discover" ? <DiscoverPanel /> : null}
+        {tab === "discover" ? (
+          <DiscoverPanel
+            onBatchGenerated={(batchId) => {
+              setFocusedBatchId(batchId);
+              setTab("batches");
+            }}
+          />
+        ) : null}
+        {tab === "batches" ? (
+          <BatchesPanel
+            initialBatchId={focusedBatchId}
+            onConsumedInitial={() => setFocusedBatchId(null)}
+          />
+        ) : null}
         {tab === "prospects" ? <ProspectsPanel /> : null}
         {tab === "sources" ? <SourcesPanel /> : null}
       </div>
@@ -159,9 +173,40 @@ const REVIEW_THRESHOLDS = [
   { label: "0–50", min: "0", max: "50" },
 ];
 
-function DiscoverPanel() {
+const GENRE_OPTIONS = [
+  "Fiction",
+  "Nonfiction",
+  "Fantasy",
+  "Science Fiction",
+  "Mystery",
+  "Thriller",
+  "Romance",
+  "Horror",
+  "Historical Fiction",
+  "Literary Fiction",
+  "Young Adult",
+  "Biography",
+  "Memoir",
+  "Self-Help",
+  "Business",
+  "History",
+  "Poetry",
+  "Children's Books",
+  "Graphic Novels",
+  "Cookbooks",
+  "Travel",
+  "Religion",
+  "Science",
+  "Philosophy",
+  "True Crime",
+];
+
+const AMOUNT_OPTIONS = [10, 20, 40];
+
+function DiscoverPanel({ onBatchGenerated }: { onBatchGenerated: (batchId: string) => void }) {
   const [query, setQuery] = useState("");
   const [genre, setGenre] = useState("");
+  const [amount, setAmount] = useState(20);
   const [sources, setSources] = useState<ScoutSource[]>([]);
   const [searching, setSearching] = useState(false);
   const [error, setError] = useState("");
@@ -178,11 +223,48 @@ function DiscoverPanel() {
   const [publishingType, setPublishingType] = useState("");
   const [contactAvailable, setContactAvailable] = useState("");
 
+  const [availability, setAvailability] = useState<{ total: number | null; checking: boolean }>({
+    total: null,
+    checking: false,
+  });
+  const [lastBatch, setLastBatch] = useState<{ id: string; count: number } | null>(null);
+
   useEffect(() => {
     api<{ ok: boolean; items: ScoutSource[] }>("/api/admin/scout-sources").then(({ body }) => {
       if (body.ok) setSources(body.items);
     });
   }, []);
+
+  // Show how many works/authors the enabled sources report for this
+  // genre/query before committing to a full discovery run.
+  useEffect(() => {
+    if (!query.trim() && !genre.trim()) {
+      setAvailability({ total: null, checking: false });
+      return;
+    }
+    const enabledSlugs = sources.filter((s) => s.enabled).map((s) => s.slug);
+    if (enabledSlugs.length === 0) return;
+    let cancelled = false;
+    setAvailability((prev) => ({ ...prev, checking: true }));
+    const timer = window.setTimeout(async () => {
+      const { body } = await api<{ ok: boolean; total: number | null }>(
+        "/api/admin/scout-discover-count",
+        {
+          method: "POST",
+          body: JSON.stringify({
+            query: query.trim() || undefined,
+            genre: genre || undefined,
+            sources: enabledSlugs,
+          }),
+        },
+      );
+      if (!cancelled) setAvailability({ total: body.ok ? body.total : null, checking: false });
+    }, 500);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [query, genre, sources]);
 
   const loadResults = useCallback(
     async (nextPage: number) => {
@@ -217,18 +299,22 @@ function DiscoverPanel() {
     if (!query.trim() && !genre.trim()) return;
     setSearching(true);
     setError("");
+    setLastBatch(null);
     const enabledSlugs = sources.filter((s) => s.enabled).map((s) => s.slug);
-    const { status, body } = await api<{ ok: boolean; error?: string }>(
-      "/api/admin/scout-discover",
-      {
-        method: "POST",
-        body: JSON.stringify({
-          query: query.trim() || undefined,
-          genre: genre || undefined,
-          sources: enabledSlugs,
-        }),
-      },
-    );
+    const { status, body } = await api<{
+      ok: boolean;
+      error?: string;
+      batchId?: string;
+      count?: number;
+    }>("/api/admin/scout-discover", {
+      method: "POST",
+      body: JSON.stringify({
+        query: query.trim() || undefined,
+        genre: genre || undefined,
+        sources: enabledSlugs,
+        maxResults: amount,
+      }),
+    });
     setSearching(false);
     if (status !== 200 || !body.ok) {
       setError(
@@ -238,6 +324,7 @@ function DiscoverPanel() {
       );
       return;
     }
+    if (body.batchId) setLastBatch({ id: body.batchId, count: body.count ?? 0 });
     await loadResults(0);
   }
 
@@ -274,19 +361,32 @@ function DiscoverPanel() {
   return (
     <div className="mt-6 space-y-6">
       <form onSubmit={runSearch} className="rounded-2xl border border-border bg-card p-5">
-        <div className="grid gap-3 sm:grid-cols-[2fr_1fr_auto]">
+        <div className="grid gap-3 sm:grid-cols-[2fr_1fr_1fr_auto]">
           <input
             className={input}
             placeholder="Title, author, or keyword (optional if genre is set)…"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
-          <input
+          <select className={input} value={genre} onChange={(e) => setGenre(e.target.value)}>
+            <option value="">No genre filter</option>
+            {GENRE_OPTIONS.map((g) => (
+              <option key={g} value={g}>
+                {g}
+              </option>
+            ))}
+          </select>
+          <select
             className={input}
-            placeholder="Genre — browse by genre alone"
-            value={genre}
-            onChange={(e) => setGenre(e.target.value)}
-          />
+            value={amount}
+            onChange={(e) => setAmount(Number(e.target.value))}
+          >
+            {AMOUNT_OPTIONS.map((n) => (
+              <option key={n} value={n}>
+                {n} results
+              </option>
+            ))}
+          </select>
           <button
             type="submit"
             disabled={searching || (!query.trim() && !genre.trim())}
@@ -296,8 +396,28 @@ function DiscoverPanel() {
           </button>
         </div>
         {error ? <p className="mt-2 text-sm text-destructive">{error}</p> : null}
+        {availability.checking ? (
+          <p className="mt-2 text-xs text-muted-foreground">Checking availability…</p>
+        ) : availability.total !== null ? (
+          <p className="mt-2 text-xs text-muted-foreground">
+            {availability.total.toLocaleString()} authors/works listed for this{" "}
+            {query.trim() ? "search" : "genre"} across enabled sources — {amount} will be pulled in.
+          </p>
+        ) : null}
+        {lastBatch ? (
+          <p className="mt-2 rounded-lg bg-brand/10 px-3 py-2 text-xs text-brand">
+            Batch generated with {lastBatch.count} book{lastBatch.count === 1 ? "" : "s"}.{" "}
+            <button
+              type="button"
+              className="font-semibold underline"
+              onClick={() => onBatchGenerated(lastBatch.id)}
+            >
+              View batch to export
+            </button>
+          </p>
+        ) : null}
         <p className="mt-2 text-xs text-muted-foreground">
-          Leave the search box empty and set only a genre to browse authors by genre. Country isn't
+          Leave the search box empty and pick only a genre to browse by genre. Country isn't
           searchable directly — Google Books/Open Library don't expose author nationality, so use
           the country filter below once it's been researched for an author (see the Prospects tab).
         </p>
@@ -466,6 +586,194 @@ function DiscoverPanel() {
             </button>
           </div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+/* ----------------------------------------------------------------- batches */
+
+type ScoutBatch = {
+  id: string;
+  created_at: string;
+  label: string;
+  genre: string | null;
+  query: string | null;
+  sources: string[];
+  requested_max: number | null;
+  total_available: number | null;
+  item_count: number;
+};
+
+function BatchesPanel({
+  initialBatchId,
+  onConsumedInitial,
+}: {
+  initialBatchId: string | null;
+  onConsumedInitial: () => void;
+}) {
+  const [batches, setBatches] = useState<ScoutBatch[]>([]);
+  const [selectedBatchId, setSelectedBatchId] = useState<string | null>(null);
+  const [batchBooks, setBatchBooks] = useState<ScoutBook[]>([]);
+  const [loadingBooks, setLoadingBooks] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const [savingAll, setSavingAll] = useState(false);
+
+  const loadBatches = useCallback(async () => {
+    const { body } = await api<{ ok: boolean; items: ScoutBatch[] }>("/api/admin/scout-batches");
+    if (body.ok) setBatches(body.items);
+  }, []);
+
+  useEffect(() => {
+    loadBatches();
+  }, [loadBatches]);
+
+  useEffect(() => {
+    if (initialBatchId) {
+      setSelectedBatchId(initialBatchId);
+      onConsumedInitial();
+    }
+  }, [initialBatchId, onConsumedInitial]);
+
+  const openBatch = useCallback(async (id: string) => {
+    setSelectedBatchId(id);
+    setLoadingBooks(true);
+    const { body } = await api<{ ok: boolean; items: ScoutBook[] }>(
+      `/api/admin/scout-batches/${id}`,
+    );
+    if (body.ok) setBatchBooks(body.items);
+    setLoadingBooks(false);
+  }, []);
+
+  useEffect(() => {
+    if (selectedBatchId) openBatch(selectedBatchId);
+  }, [selectedBatchId, openBatch]);
+
+  async function exportBatch() {
+    if (!selectedBatchId) return;
+    setExporting(true);
+    const res = await fetch(`/api/admin/scout-batches/${selectedBatchId}/export`, {
+      method: "POST",
+    });
+    setExporting(false);
+    if (!res.ok) return;
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `scout-batch-${selectedBatchId.slice(0, 8)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  async function saveAllToProspects() {
+    if (!selectedBatchId) return;
+    setSavingAll(true);
+    for (const book of batchBooks) {
+      if (!book.scout_authors) continue;
+      await api("/api/admin/scout-prospects", {
+        method: "POST",
+        body: JSON.stringify({ scoutAuthorId: book.scout_authors.id, bookId: book.id }),
+      });
+    }
+    await openBatch(selectedBatchId);
+    setSavingAll(false);
+  }
+
+  const selectedBatch = batches.find((b) => b.id === selectedBatchId) ?? null;
+
+  return (
+    <div className="mt-6 grid gap-4 lg:grid-cols-[280px_1fr]">
+      <div className="divide-y divide-border rounded-2xl border border-border bg-card">
+        {batches.length === 0 ? (
+          <p className="p-6 text-center text-sm text-muted-foreground">
+            No batches yet — run a discovery search to generate one.
+          </p>
+        ) : null}
+        {batches.map((batch) => (
+          <button
+            key={batch.id}
+            type="button"
+            onClick={() => setSelectedBatchId(batch.id)}
+            className={cn(
+              "block w-full p-3 text-left text-sm hover:bg-secondary/50",
+              selectedBatchId === batch.id ? "bg-secondary/60" : "",
+            )}
+          >
+            <p className="font-semibold">{batch.label}</p>
+            <p className="text-xs text-muted-foreground">
+              {batch.item_count} book{batch.item_count === 1 ? "" : "s"}
+              {batch.total_available !== null
+                ? ` of ${batch.total_available.toLocaleString()} listed`
+                : ""}
+              {" · "}
+              {new Date(batch.created_at).toLocaleDateString()}
+            </p>
+          </button>
+        ))}
+      </div>
+
+      <div className="rounded-2xl border border-border bg-card">
+        {!selectedBatch ? (
+          <p className="p-6 text-center text-sm text-muted-foreground">
+            Select a batch to view it.
+          </p>
+        ) : (
+          <>
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border p-4">
+              <div>
+                <p className="text-sm font-semibold">{selectedBatch.label}</p>
+                <p className="text-xs text-muted-foreground">
+                  Sources: {selectedBatch.sources.join(", ")}
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  disabled={savingAll || batchBooks.length === 0}
+                  className={outlineButton}
+                  onClick={saveAllToProspects}
+                >
+                  {savingAll ? "Saving…" : "Save all to prospects"}
+                </button>
+                <button
+                  type="button"
+                  disabled={exporting || batchBooks.length === 0}
+                  className={pillButton}
+                  onClick={exportBatch}
+                >
+                  {exporting ? "Exporting…" : "Export batch to CSV"}
+                </button>
+              </div>
+            </div>
+            <div className="divide-y divide-border">
+              {loadingBooks ? (
+                <p className="p-6 text-center text-sm text-muted-foreground">Loading…</p>
+              ) : null}
+              {!loadingBooks && batchBooks.length === 0 ? (
+                <p className="p-6 text-center text-sm text-muted-foreground">
+                  No books in this batch.
+                </p>
+              ) : null}
+              {batchBooks.map((book) => (
+                <div key={book.id} className="flex flex-wrap items-center gap-3 p-3 text-sm">
+                  <div className="min-w-[220px] flex-1">
+                    <p className="font-semibold">{book.title}</p>
+                    <p className="text-muted-foreground">
+                      {book.scout_authors?.name ?? "Unknown author"}
+                    </p>
+                  </div>
+                  <span className="w-28 text-muted-foreground">{book.genre ?? "—"}</span>
+                  <span className="rounded-full bg-secondary px-2.5 py-1 text-xs font-medium">
+                    {book.scout_prospects && book.scout_prospects.length > 0
+                      ? STATUS_LABEL[book.scout_prospects[0]!.status as ProspectStatus]
+                      : "Not saved"}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

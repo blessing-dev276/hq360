@@ -28,16 +28,21 @@ type VolumeInfo = {
 };
 
 type VolumesResponse = {
+  totalItems?: number;
   items?: { id?: string; volumeInfo?: VolumeInfo }[];
 };
+
+// With no free-text query this is a genre browse -- Google Books' `subject:`
+// qualifier searches by category instead of title/author.
+function searchTermFor(query: DiscoveryQuery): string {
+  return query.query.trim() || (query.genre ? `subject:${query.genre}` : "");
+}
 
 export const googleBooksAdapter: SourceAdapter = {
   slug: "google_books",
   async discover(query: DiscoveryQuery): Promise<DiscoveredBookCandidate[]> {
     const apiKey = process.env.GOOGLE_BOOKS_API_KEY;
-    // With no free-text query this is a genre browse -- Google Books'
-    // `subject:` qualifier searches by category instead of title/author.
-    const searchTerm = query.query.trim() || (query.genre ? `subject:${query.genre}` : "");
+    const searchTerm = searchTermFor(query);
     if (!searchTerm) return [];
     const q = encodeURIComponent(searchTerm);
     const maxResults = Math.min(query.maxResults ?? 20, 40);
@@ -90,5 +95,19 @@ export const googleBooksAdapter: SourceAdapter = {
       });
     }
     return candidates;
+  },
+  async countAvailable(query: DiscoveryQuery): Promise<number | null> {
+    const searchTerm = searchTermFor(query);
+    if (!searchTerm) return null;
+    const apiKey = process.env.GOOGLE_BOOKS_API_KEY;
+    const url = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(searchTerm)}&maxResults=1${
+      apiKey ? `&key=${apiKey}` : ""
+    }`;
+    try {
+      const data = (await readJson(url)) as VolumesResponse;
+      return typeof data.totalItems === "number" ? data.totalItems : null;
+    } catch {
+      return null;
+    }
   },
 };

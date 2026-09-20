@@ -29,7 +29,7 @@ type SubjectWork = {
   authors?: { name?: string }[];
   first_publish_year?: number;
 };
-type SubjectResponse = { works?: SubjectWork[] };
+type SubjectResponse = { works?: SubjectWork[]; work_count?: number };
 
 function subjectSlug(genre: string) {
   return genre
@@ -119,5 +119,24 @@ export const openLibraryAdapter: SourceAdapter = {
       });
     }
     return candidates;
+  },
+  async countAvailable(query: DiscoveryQuery): Promise<number | null> {
+    const trimmed = query.query.trim();
+    try {
+      if (!trimmed && query.genre) {
+        const data = (await readJson(
+          `https://openlibrary.org/subjects/${encodeURIComponent(subjectSlug(query.genre))}.json?limit=0`,
+        )) as SubjectResponse;
+        return typeof data.work_count === "number" ? data.work_count : null;
+      }
+      if (!trimmed) return null;
+      const params = new URLSearchParams({ q: trimmed, limit: "0" });
+      const data = (await readJson(`https://openlibrary.org/search.json?${params}`)) as {
+        numFound?: number;
+      };
+      return typeof data.numFound === "number" ? data.numFound : null;
+    } catch {
+      return null;
+    }
   },
 };

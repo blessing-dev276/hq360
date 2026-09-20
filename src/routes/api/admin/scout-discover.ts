@@ -82,18 +82,23 @@ export const Route = createFileRoute("/api/admin/scout-discover")({
           const results = await Promise.all(
             activeSlugs.map(async (slug) => {
               const adapter = SOURCE_ADAPTERS[slug];
-              if (!adapter) return { slug, candidates: [] as DiscoveredBookCandidate[] };
+              if (!adapter)
+                return { slug, candidates: [] as DiscoveredBookCandidate[], available: null };
+              const discoveryQuery = {
+                query: body.query?.trim() || "",
+                genre: body.genre,
+                maxResults: body.maxResults,
+              };
               try {
-                const candidates = await adapter.discover({
-                  query: body.query?.trim() || "",
-                  genre: body.genre,
-                  maxResults: body.maxResults,
-                });
+                const [candidates, available] = await Promise.all([
+                  adapter.discover(discoveryQuery),
+                  adapter.countAvailable?.(discoveryQuery) ?? Promise.resolve(null),
+                ]);
                 await db
                   .from("scout_sources")
                   .update({ last_synced_at: new Date().toISOString(), last_error: null })
                   .eq("slug", slug);
-                return { slug, candidates };
+                return { slug, candidates, available };
               } catch (err) {
                 await db
                   .from("scout_sources")
@@ -102,10 +107,36 @@ export const Route = createFileRoute("/api/admin/scout-discover")({
                     error_count: 1,
                   })
                   .eq("slug", slug);
-                return { slug, candidates: [] as DiscoveredBookCandidate[] };
+                return { slug, candidates: [] as DiscoveredBookCandidate[], available: null };
               }
             }),
           );
+
+          const availableCounts = results
+            .map((r) => r.available)
+            .filter((n): n is number => typeof n === "number");
+          const totalAvailable =
+            availableCounts.length > 0 ? availableCounts.reduce((a, b) => a + b, 0) : null;
+
+          const label = body.query?.trim()
+            ? body.genre
+              ? `"${body.query.trim()}" in ${body.genre}`
+              : `"${body.query.trim()}"`
+            : `Genre: ${body.genre}`;
+          const { data: batch, error: batchErr } = await db
+            .from("scout_batches")
+            .insert({
+              label,
+              genre: body.genre ?? null,
+              query: body.query?.trim() || null,
+              sources: activeSlugs,
+              requested_max: body.maxResults ?? null,
+              total_available: totalAvailable,
+            })
+            .select("*")
+            .single();
+          if (batchErr || !batch) return json({ ok: false, error: "storage" }, 500);
+          const batchId = (batch as { id: string }).id;
 
           const saved: { author: ScoutAuthor; book: ScoutBook }[] = [];
           // Authors newly created within this same discovery run stay
@@ -166,6 +197,7 @@ export const Route = createFileRoute("/api/admin/scout-discover")({
                     source_url: candidate.sourceUrl ?? null,
                     external_id: candidate.externalId ?? null,
                     raw_data: candidate.rawData,
+                    batch_id: batchId,
                   })
                   .select("*")
                   .single();
@@ -196,7 +228,17 @@ export const Route = createFileRoute("/api/admin/scout-discover")({
           // Dedupe by book id -- the same title can legitimately surface
           // from more than one source in a single query.
           const uniqueByBook = new Map(saved.map((row) => [row.book.id, row]));
-          return json({ ok: true, count: uniqueByBook.size, items: [...uniqueByBook.values()] });
+          await db
+            .from("scout_batches")
+            .update({ item_count: uniqueByBook.size })
+            .eq("id", batchId);
+          return json({
+            ok: true,
+            count: uniqueByBook.size,
+            items: [...uniqueByBook.values()],
+            batchId,
+            totalAvailable,
+          });
         } catch (err) {
           console.error("[admin/scout-discover] POST", err instanceof Error ? err.message : err);
           return json({ ok: false, error: "unavailable" }, 503);

@@ -43,4 +43,8 @@ export type SourceAdapter = {
    * ordinary "no results" or transient failures — return an empty array or
    * partial results and let the caller log the failure against the source. */
   discover(query: DiscoveryQuery): Promise<DiscoveredBookCandidate[]>;
+  /** How many works/authors the source reports for this genre/query in
+   * total, independent of how many discover() actually pulls in. Null when
+   * the source doesn't expose a usable total or the lookup failed. */
+  countAvailable?(query: DiscoveryQuery): Promise<number | null>;
 };

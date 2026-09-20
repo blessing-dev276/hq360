@@ -34,6 +34,7 @@ import { Route as ResourcesRouteImport } from './routes/resources'
 import { Route as ResultsRouteImport } from './routes/results'
 import { Route as ReviewsRouteImport } from './routes/reviews'
 import { Route as RoofersRouteImport } from './routes/roofers'
+import { Route as ScoutRouteImport } from './routes/scout'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as TeamRouteImport } from './routes/team'
 import { Route as TermsRouteImport } from './routes/terms'
@@ -59,6 +60,11 @@ import { Route as ApiAdminAuthorAuditLeadsRouteImport } from './routes/api/admin
 import { Route as ApiAdminAuthorAuditsRouteImport } from './routes/api/admin/author-audits'
 import { Route as ApiAdminCaseStudiesRouteImport } from './routes/api/admin/case-studies'
 import { Route as ApiAdminPortfolioRouteImport } from './routes/api/admin/portfolio'
+import { Route as ApiAdminScoutBooksRouteImport } from './routes/api/admin/scout-books'
+import { Route as ApiAdminScoutDiscoverRouteImport } from './routes/api/admin/scout-discover'
+import { Route as ApiAdminScoutExportRouteImport } from './routes/api/admin/scout-export'
+import { Route as ApiAdminScoutProspectsRouteImport } from './routes/api/admin/scout-prospects'
+import { Route as ApiAdminScoutSourcesRouteImport } from './routes/api/admin/scout-sources'
 import { Route as ApiAdminSessionRouteImport } from './routes/api/admin/session'
 import { Route as ApiAdminTeamRouteImport } from './routes/api/admin/team'
 import { Route as ApiAdminTestimonialsRouteImport } from './routes/api/admin/testimonials'
@@ -82,6 +88,8 @@ import { Route as ApiAdminCaseStudiesIdRouteImport } from './routes/api/admin/ca
 import { Route as ApiAdminCaseStudiesReorderRouteImport } from './routes/api/admin/case-studies.reorder'
 import { Route as ApiAdminPortfolioIdRouteImport } from './routes/api/admin/portfolio.$id'
 import { Route as ApiAdminPortfolioReorderRouteImport } from './routes/api/admin/portfolio.reorder'
+import { Route as ApiAdminScoutProspectsIdRouteImport } from './routes/api/admin/scout-prospects.$id'
+import { Route as ApiAdminScoutSourcesSlugRouteImport } from './routes/api/admin/scout-sources.$slug'
 import { Route as ApiAdminTeamIdRouteImport } from './routes/api/admin/team.$id'
 import { Route as ApiAdminTeamReorderRouteImport } from './routes/api/admin/team.reorder'
 import { Route as ApiAdminTestimonialsIdRouteImport } from './routes/api/admin/testimonials.$id'
@@ -229,6 +237,11 @@ const RoofersRoute = RoofersRouteImport.update({
   path: '/roofers',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ScoutRoute = ScoutRouteImport.update({
+  id: '/scout',
+  path: '/scout',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
@@ -356,6 +369,31 @@ const ApiAdminPortfolioRoute = ApiAdminPortfolioRouteImport.update({
   path: '/api/admin/portfolio',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAdminScoutBooksRoute = ApiAdminScoutBooksRouteImport.update({
+  id: '/api/admin/scout-books',
+  path: '/api/admin/scout-books',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminScoutDiscoverRoute = ApiAdminScoutDiscoverRouteImport.update({
+  id: '/api/admin/scout-discover',
+  path: '/api/admin/scout-discover',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminScoutExportRoute = ApiAdminScoutExportRouteImport.update({
+  id: '/api/admin/scout-export',
+  path: '/api/admin/scout-export',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminScoutProspectsRoute = ApiAdminScoutProspectsRouteImport.update({
+  id: '/api/admin/scout-prospects',
+  path: '/api/admin/scout-prospects',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminScoutSourcesRoute = ApiAdminScoutSourcesRouteImport.update({
+  id: '/api/admin/scout-sources',
+  path: '/api/admin/scout-sources',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAdminSessionRoute = ApiAdminSessionRouteImport.update({
   id: '/api/admin/session',
   path: '/api/admin/session',
@@ -473,6 +511,18 @@ const ApiAdminPortfolioReorderRoute =
     id: '/reorder',
     path: '/reorder',
     getParentRoute: () => ApiAdminPortfolioRoute,
+  } as any)
+const ApiAdminScoutProspectsIdRoute =
+  ApiAdminScoutProspectsIdRouteImport.update({
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => ApiAdminScoutProspectsRoute,
+  } as any)
+const ApiAdminScoutSourcesSlugRoute =
+  ApiAdminScoutSourcesSlugRouteImport.update({
+    id: '/$slug',
+    path: '/$slug',
+    getParentRoute: () => ApiAdminScoutSourcesRoute,
   } as any)
 const ApiAdminTeamIdRoute = ApiAdminTeamIdRouteImport.update({
   id: '/$id',
@@ -624,6 +674,7 @@ export interface FileRoutesByFullPath {
   '/results': typeof ResultsRoute
   '/reviews': typeof ReviewsRoute
   '/roofers': typeof RoofersRoute
+  '/scout': typeof ScoutRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/team': typeof TeamRoute
   '/terms': typeof TermsRoute
@@ -649,6 +700,11 @@ export interface FileRoutesByFullPath {
   '/api/admin/author-audits': typeof ApiAdminAuthorAuditsRouteWithChildren
   '/api/admin/case-studies': typeof ApiAdminCaseStudiesRouteWithChildren
   '/api/admin/portfolio': typeof ApiAdminPortfolioRouteWithChildren
+  '/api/admin/scout-books': typeof ApiAdminScoutBooksRoute
+  '/api/admin/scout-discover': typeof ApiAdminScoutDiscoverRoute
+  '/api/admin/scout-export': typeof ApiAdminScoutExportRoute
+  '/api/admin/scout-prospects': typeof ApiAdminScoutProspectsRouteWithChildren
+  '/api/admin/scout-sources': typeof ApiAdminScoutSourcesRouteWithChildren
   '/api/admin/session': typeof ApiAdminSessionRoute
   '/api/admin/team': typeof ApiAdminTeamRouteWithChildren
   '/api/admin/testimonials': typeof ApiAdminTestimonialsRouteWithChildren
@@ -672,6 +728,8 @@ export interface FileRoutesByFullPath {
   '/api/admin/case-studies/reorder': typeof ApiAdminCaseStudiesReorderRoute
   '/api/admin/portfolio/$id': typeof ApiAdminPortfolioIdRoute
   '/api/admin/portfolio/reorder': typeof ApiAdminPortfolioReorderRoute
+  '/api/admin/scout-prospects/$id': typeof ApiAdminScoutProspectsIdRoute
+  '/api/admin/scout-sources/$slug': typeof ApiAdminScoutSourcesSlugRoute
   '/api/admin/team/$id': typeof ApiAdminTeamIdRoute
   '/api/admin/team/reorder': typeof ApiAdminTeamReorderRoute
   '/api/admin/testimonials/$id': typeof ApiAdminTestimonialsIdRoute
@@ -720,6 +778,7 @@ export interface FileRoutesByTo {
   '/results': typeof ResultsRoute
   '/reviews': typeof ReviewsRoute
   '/roofers': typeof RoofersRoute
+  '/scout': typeof ScoutRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/team': typeof TeamRoute
   '/terms': typeof TermsRoute
@@ -745,6 +804,11 @@ export interface FileRoutesByTo {
   '/api/admin/author-audits': typeof ApiAdminAuthorAuditsRouteWithChildren
   '/api/admin/case-studies': typeof ApiAdminCaseStudiesRouteWithChildren
   '/api/admin/portfolio': typeof ApiAdminPortfolioRouteWithChildren
+  '/api/admin/scout-books': typeof ApiAdminScoutBooksRoute
+  '/api/admin/scout-discover': typeof ApiAdminScoutDiscoverRoute
+  '/api/admin/scout-export': typeof ApiAdminScoutExportRoute
+  '/api/admin/scout-prospects': typeof ApiAdminScoutProspectsRouteWithChildren
+  '/api/admin/scout-sources': typeof ApiAdminScoutSourcesRouteWithChildren
   '/api/admin/session': typeof ApiAdminSessionRoute
   '/api/admin/team': typeof ApiAdminTeamRouteWithChildren
   '/api/admin/testimonials': typeof ApiAdminTestimonialsRouteWithChildren
@@ -768,6 +832,8 @@ export interface FileRoutesByTo {
   '/api/admin/case-studies/reorder': typeof ApiAdminCaseStudiesReorderRoute
   '/api/admin/portfolio/$id': typeof ApiAdminPortfolioIdRoute
   '/api/admin/portfolio/reorder': typeof ApiAdminPortfolioReorderRoute
+  '/api/admin/scout-prospects/$id': typeof ApiAdminScoutProspectsIdRoute
+  '/api/admin/scout-sources/$slug': typeof ApiAdminScoutSourcesSlugRoute
   '/api/admin/team/$id': typeof ApiAdminTeamIdRoute
   '/api/admin/team/reorder': typeof ApiAdminTeamReorderRoute
   '/api/admin/testimonials/$id': typeof ApiAdminTestimonialsIdRoute
@@ -817,6 +883,7 @@ export interface FileRoutesById {
   '/results': typeof ResultsRoute
   '/reviews': typeof ReviewsRoute
   '/roofers': typeof RoofersRoute
+  '/scout': typeof ScoutRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/team': typeof TeamRoute
   '/terms': typeof TermsRoute
@@ -842,6 +909,11 @@ export interface FileRoutesById {
   '/api/admin/author-audits': typeof ApiAdminAuthorAuditsRouteWithChildren
   '/api/admin/case-studies': typeof ApiAdminCaseStudiesRouteWithChildren
   '/api/admin/portfolio': typeof ApiAdminPortfolioRouteWithChildren
+  '/api/admin/scout-books': typeof ApiAdminScoutBooksRoute
+  '/api/admin/scout-discover': typeof ApiAdminScoutDiscoverRoute
+  '/api/admin/scout-export': typeof ApiAdminScoutExportRoute
+  '/api/admin/scout-prospects': typeof ApiAdminScoutProspectsRouteWithChildren
+  '/api/admin/scout-sources': typeof ApiAdminScoutSourcesRouteWithChildren
   '/api/admin/session': typeof ApiAdminSessionRoute
   '/api/admin/team': typeof ApiAdminTeamRouteWithChildren
   '/api/admin/testimonials': typeof ApiAdminTestimonialsRouteWithChildren
@@ -865,6 +937,8 @@ export interface FileRoutesById {
   '/api/admin/case-studies/reorder': typeof ApiAdminCaseStudiesReorderRoute
   '/api/admin/portfolio/$id': typeof ApiAdminPortfolioIdRoute
   '/api/admin/portfolio/reorder': typeof ApiAdminPortfolioReorderRoute
+  '/api/admin/scout-prospects/$id': typeof ApiAdminScoutProspectsIdRoute
+  '/api/admin/scout-sources/$slug': typeof ApiAdminScoutSourcesSlugRoute
   '/api/admin/team/$id': typeof ApiAdminTeamIdRoute
   '/api/admin/team/reorder': typeof ApiAdminTeamReorderRoute
   '/api/admin/testimonials/$id': typeof ApiAdminTestimonialsIdRoute
@@ -915,6 +989,7 @@ export interface FileRouteTypes {
     | '/results'
     | '/reviews'
     | '/roofers'
+    | '/scout'
     | '/sitemap.xml'
     | '/team'
     | '/terms'
@@ -940,6 +1015,11 @@ export interface FileRouteTypes {
     | '/api/admin/author-audits'
     | '/api/admin/case-studies'
     | '/api/admin/portfolio'
+    | '/api/admin/scout-books'
+    | '/api/admin/scout-discover'
+    | '/api/admin/scout-export'
+    | '/api/admin/scout-prospects'
+    | '/api/admin/scout-sources'
     | '/api/admin/session'
     | '/api/admin/team'
     | '/api/admin/testimonials'
@@ -963,6 +1043,8 @@ export interface FileRouteTypes {
     | '/api/admin/case-studies/reorder'
     | '/api/admin/portfolio/$id'
     | '/api/admin/portfolio/reorder'
+    | '/api/admin/scout-prospects/$id'
+    | '/api/admin/scout-sources/$slug'
     | '/api/admin/team/$id'
     | '/api/admin/team/reorder'
     | '/api/admin/testimonials/$id'
@@ -1011,6 +1093,7 @@ export interface FileRouteTypes {
     | '/results'
     | '/reviews'
     | '/roofers'
+    | '/scout'
     | '/sitemap.xml'
     | '/team'
     | '/terms'
@@ -1036,6 +1119,11 @@ export interface FileRouteTypes {
     | '/api/admin/author-audits'
     | '/api/admin/case-studies'
     | '/api/admin/portfolio'
+    | '/api/admin/scout-books'
+    | '/api/admin/scout-discover'
+    | '/api/admin/scout-export'
+    | '/api/admin/scout-prospects'
+    | '/api/admin/scout-sources'
     | '/api/admin/session'
     | '/api/admin/team'
     | '/api/admin/testimonials'
@@ -1059,6 +1147,8 @@ export interface FileRouteTypes {
     | '/api/admin/case-studies/reorder'
     | '/api/admin/portfolio/$id'
     | '/api/admin/portfolio/reorder'
+    | '/api/admin/scout-prospects/$id'
+    | '/api/admin/scout-sources/$slug'
     | '/api/admin/team/$id'
     | '/api/admin/team/reorder'
     | '/api/admin/testimonials/$id'
@@ -1107,6 +1197,7 @@ export interface FileRouteTypes {
     | '/results'
     | '/reviews'
     | '/roofers'
+    | '/scout'
     | '/sitemap.xml'
     | '/team'
     | '/terms'
@@ -1132,6 +1223,11 @@ export interface FileRouteTypes {
     | '/api/admin/author-audits'
     | '/api/admin/case-studies'
     | '/api/admin/portfolio'
+    | '/api/admin/scout-books'
+    | '/api/admin/scout-discover'
+    | '/api/admin/scout-export'
+    | '/api/admin/scout-prospects'
+    | '/api/admin/scout-sources'
     | '/api/admin/session'
     | '/api/admin/team'
     | '/api/admin/testimonials'
@@ -1155,6 +1251,8 @@ export interface FileRouteTypes {
     | '/api/admin/case-studies/reorder'
     | '/api/admin/portfolio/$id'
     | '/api/admin/portfolio/reorder'
+    | '/api/admin/scout-prospects/$id'
+    | '/api/admin/scout-sources/$slug'
     | '/api/admin/team/$id'
     | '/api/admin/team/reorder'
     | '/api/admin/testimonials/$id'
@@ -1204,6 +1302,7 @@ export interface RootRouteChildren {
   ResultsRoute: typeof ResultsRoute
   ReviewsRoute: typeof ReviewsRoute
   RoofersRoute: typeof RoofersRoute
+  ScoutRoute: typeof ScoutRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TeamRoute: typeof TeamRoute
   TermsRoute: typeof TermsRoute
@@ -1229,6 +1328,11 @@ export interface RootRouteChildren {
   ApiAdminAuthorAuditsRoute: typeof ApiAdminAuthorAuditsRouteWithChildren
   ApiAdminCaseStudiesRoute: typeof ApiAdminCaseStudiesRouteWithChildren
   ApiAdminPortfolioRoute: typeof ApiAdminPortfolioRouteWithChildren
+  ApiAdminScoutBooksRoute: typeof ApiAdminScoutBooksRoute
+  ApiAdminScoutDiscoverRoute: typeof ApiAdminScoutDiscoverRoute
+  ApiAdminScoutExportRoute: typeof ApiAdminScoutExportRoute
+  ApiAdminScoutProspectsRoute: typeof ApiAdminScoutProspectsRouteWithChildren
+  ApiAdminScoutSourcesRoute: typeof ApiAdminScoutSourcesRouteWithChildren
   ApiAdminSessionRoute: typeof ApiAdminSessionRoute
   ApiAdminTeamRoute: typeof ApiAdminTeamRouteWithChildren
   ApiAdminTestimonialsRoute: typeof ApiAdminTestimonialsRouteWithChildren
@@ -1426,6 +1530,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RoofersRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/scout': {
+      id: '/scout'
+      path: '/scout'
+      fullPath: '/scout'
+      preLoaderRoute: typeof ScoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/sitemap.xml': {
       id: '/sitemap.xml'
       path: '/sitemap.xml'
@@ -1601,6 +1712,41 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAdminPortfolioRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/admin/scout-books': {
+      id: '/api/admin/scout-books'
+      path: '/api/admin/scout-books'
+      fullPath: '/api/admin/scout-books'
+      preLoaderRoute: typeof ApiAdminScoutBooksRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/scout-discover': {
+      id: '/api/admin/scout-discover'
+      path: '/api/admin/scout-discover'
+      fullPath: '/api/admin/scout-discover'
+      preLoaderRoute: typeof ApiAdminScoutDiscoverRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/scout-export': {
+      id: '/api/admin/scout-export'
+      path: '/api/admin/scout-export'
+      fullPath: '/api/admin/scout-export'
+      preLoaderRoute: typeof ApiAdminScoutExportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/scout-prospects': {
+      id: '/api/admin/scout-prospects'
+      path: '/api/admin/scout-prospects'
+      fullPath: '/api/admin/scout-prospects'
+      preLoaderRoute: typeof ApiAdminScoutProspectsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/scout-sources': {
+      id: '/api/admin/scout-sources'
+      path: '/api/admin/scout-sources'
+      fullPath: '/api/admin/scout-sources'
+      preLoaderRoute: typeof ApiAdminScoutSourcesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/admin/session': {
       id: '/api/admin/session'
       path: '/api/admin/session'
@@ -1761,6 +1907,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/admin/portfolio/reorder'
       preLoaderRoute: typeof ApiAdminPortfolioReorderRouteImport
       parentRoute: typeof ApiAdminPortfolioRoute
+    }
+    '/api/admin/scout-prospects/$id': {
+      id: '/api/admin/scout-prospects/$id'
+      path: '/$id'
+      fullPath: '/api/admin/scout-prospects/$id'
+      preLoaderRoute: typeof ApiAdminScoutProspectsIdRouteImport
+      parentRoute: typeof ApiAdminScoutProspectsRoute
+    }
+    '/api/admin/scout-sources/$slug': {
+      id: '/api/admin/scout-sources/$slug'
+      path: '/$slug'
+      fullPath: '/api/admin/scout-sources/$slug'
+      preLoaderRoute: typeof ApiAdminScoutSourcesSlugRouteImport
+      parentRoute: typeof ApiAdminScoutSourcesRoute
     }
     '/api/admin/team/$id': {
       id: '/api/admin/team/$id'
@@ -2034,6 +2194,31 @@ const ApiAdminPortfolioRouteChildren: ApiAdminPortfolioRouteChildren = {
 const ApiAdminPortfolioRouteWithChildren =
   ApiAdminPortfolioRoute._addFileChildren(ApiAdminPortfolioRouteChildren)
 
+interface ApiAdminScoutProspectsRouteChildren {
+  ApiAdminScoutProspectsIdRoute: typeof ApiAdminScoutProspectsIdRoute
+}
+
+const ApiAdminScoutProspectsRouteChildren: ApiAdminScoutProspectsRouteChildren =
+  {
+    ApiAdminScoutProspectsIdRoute: ApiAdminScoutProspectsIdRoute,
+  }
+
+const ApiAdminScoutProspectsRouteWithChildren =
+  ApiAdminScoutProspectsRoute._addFileChildren(
+    ApiAdminScoutProspectsRouteChildren,
+  )
+
+interface ApiAdminScoutSourcesRouteChildren {
+  ApiAdminScoutSourcesSlugRoute: typeof ApiAdminScoutSourcesSlugRoute
+}
+
+const ApiAdminScoutSourcesRouteChildren: ApiAdminScoutSourcesRouteChildren = {
+  ApiAdminScoutSourcesSlugRoute: ApiAdminScoutSourcesSlugRoute,
+}
+
+const ApiAdminScoutSourcesRouteWithChildren =
+  ApiAdminScoutSourcesRoute._addFileChildren(ApiAdminScoutSourcesRouteChildren)
+
 interface ApiAdminTeamRouteChildren {
   ApiAdminTeamIdRoute: typeof ApiAdminTeamIdRoute
   ApiAdminTeamReorderRoute: typeof ApiAdminTeamReorderRoute
@@ -2087,6 +2272,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResultsRoute: ResultsRoute,
   ReviewsRoute: ReviewsRoute,
   RoofersRoute: RoofersRoute,
+  ScoutRoute: ScoutRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TeamRoute: TeamRoute,
   TermsRoute: TermsRoute,
@@ -2112,6 +2298,11 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAdminAuthorAuditsRoute: ApiAdminAuthorAuditsRouteWithChildren,
   ApiAdminCaseStudiesRoute: ApiAdminCaseStudiesRouteWithChildren,
   ApiAdminPortfolioRoute: ApiAdminPortfolioRouteWithChildren,
+  ApiAdminScoutBooksRoute: ApiAdminScoutBooksRoute,
+  ApiAdminScoutDiscoverRoute: ApiAdminScoutDiscoverRoute,
+  ApiAdminScoutExportRoute: ApiAdminScoutExportRoute,
+  ApiAdminScoutProspectsRoute: ApiAdminScoutProspectsRouteWithChildren,
+  ApiAdminScoutSourcesRoute: ApiAdminScoutSourcesRouteWithChildren,
   ApiAdminSessionRoute: ApiAdminSessionRoute,
   ApiAdminTeamRoute: ApiAdminTeamRouteWithChildren,
   ApiAdminTestimonialsRoute: ApiAdminTestimonialsRouteWithChildren,

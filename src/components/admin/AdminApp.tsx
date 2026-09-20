@@ -144,11 +144,19 @@ export function AdminApp() {
   return (
     <div className="min-h-[70vh] bg-secondary/40">
       <div className="mx-auto max-w-5xl px-5 py-12 sm:px-6">
-        <div>
-          <p className="text-xs font-semibold tracking-[0.18em] text-brand uppercase">
-            HQ360 admin
-          </p>
-          <h1 className="mt-1 font-display text-2xl">{TAB_TITLE[tab]}</h1>
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="text-xs font-semibold tracking-[0.18em] text-brand uppercase">
+              HQ360 admin
+            </p>
+            <h1 className="mt-1 font-display text-2xl">{TAB_TITLE[tab]}</h1>
+          </div>
+          <a
+            href="/scout"
+            className="mt-1 rounded-full border border-border px-4 py-1.5 text-xs font-medium hover:border-brand hover:text-brand"
+          >
+            Scout — author prospecting
+          </a>
         </div>
 
         <div className="mt-6 flex gap-1 rounded-full border border-border bg-card p-1 text-sm">

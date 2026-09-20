@@ -289,6 +289,10 @@ function DiscoverPanel() {
           </button>
         </div>
         {error ? <p className="mt-2 text-sm text-destructive">{error}</p> : null}
+        <p className="mt-2 text-xs text-muted-foreground">
+          Authors already discovered in an earlier search are skipped — see the Prospects tab for
+          authors you've already found.
+        </p>
         <div className="mt-3 flex flex-wrap gap-1.5 text-xs text-muted-foreground">
           Sources:
           {sources.map((s) => (

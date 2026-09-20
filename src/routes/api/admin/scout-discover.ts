@@ -98,24 +98,38 @@ export const Route = createFileRoute("/api/admin/scout-discover")({
           );
 
           const saved: { author: ScoutAuthor; book: ScoutBook }[] = [];
+          // Authors newly created within this same discovery run stay
+          // eligible for their other candidate books; an author that
+          // already existed before this run (found in a prior search) is
+          // skipped entirely rather than resurfaced.
+          const newAuthorsThisRun = new Map<string, ScoutAuthor>();
+          const skippedAuthors = new Set<string>();
           for (const { slug, candidates } of results) {
             for (const candidate of candidates) {
               const authorNorm = normalizedName(candidate.authorName);
-              let { data: author } = await db
-                .from("scout_authors")
-                .select("*")
-                .eq("normalized_name", authorNorm)
-                .maybeSingle();
-              if (!author) {
+              if (skippedAuthors.has(authorNorm)) continue;
+
+              let authorRow = newAuthorsThisRun.get(authorNorm);
+              if (!authorRow) {
+                const { data: existingAuthor } = await db
+                  .from("scout_authors")
+                  .select("*")
+                  .eq("normalized_name", authorNorm)
+                  .maybeSingle();
+                if (existingAuthor) {
+                  skippedAuthors.add(authorNorm);
+                  continue;
+                }
+
                 const { data: created, error: authorErr } = await db
                   .from("scout_authors")
                   .insert({ name: candidate.authorName, normalized_name: authorNorm })
                   .select("*")
                   .single();
                 if (authorErr || !created) continue;
-                author = created;
+                authorRow = created as ScoutAuthor;
+                newAuthorsThisRun.set(authorNorm, authorRow);
               }
-              const authorRow = author as ScoutAuthor;
 
               const titleNorm = normalizedTitle(candidate.title);
               let { data: book } = await db

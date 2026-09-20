@@ -11,12 +11,22 @@ function json(body: unknown, status = 200) {
   });
 }
 
-const discoverSchema = z.object({
-  query: z.string().trim().min(1).max(200),
-  genre: z.string().trim().max(80).optional(),
-  sources: z.array(z.string()).optional(),
-  maxResults: z.number().int().positive().max(40).optional(),
-});
+const discoverSchema = z
+  .object({
+    query: z.string().trim().max(200).optional(),
+    genre: z.string().trim().max(80).optional(),
+    sources: z.array(z.string()).optional(),
+    maxResults: z.number().int().positive().max(40).optional(),
+  })
+  // A genre alone is a valid discovery query (browse by genre); at least
+  // one of query/genre must be given so the adapters have something to
+  // search on. Country isn't offered here -- Google Books/Open Library
+  // don't expose author nationality, so it can only be applied as a filter
+  // on already-discovered/researched authors (see scout-books.ts), not as
+  // a discovery-time query.
+  .refine((v) => Boolean(v.query?.trim() || v.genre?.trim()), {
+    message: "query_or_genre_required",
+  });
 
 function normalizedTitle(value: string) {
   return value.trim().replace(/\s+/g, " ").toLocaleLowerCase();
@@ -75,7 +85,7 @@ export const Route = createFileRoute("/api/admin/scout-discover")({
               if (!adapter) return { slug, candidates: [] as DiscoveredBookCandidate[] };
               try {
                 const candidates = await adapter.discover({
-                  query: body.query,
+                  query: body.query?.trim() || "",
                   genre: body.genre,
                   maxResults: body.maxResults,
                 });

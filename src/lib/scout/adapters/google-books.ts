@@ -35,7 +35,11 @@ export const googleBooksAdapter: SourceAdapter = {
   slug: "google_books",
   async discover(query: DiscoveryQuery): Promise<DiscoveredBookCandidate[]> {
     const apiKey = process.env.GOOGLE_BOOKS_API_KEY;
-    const q = encodeURIComponent(query.query);
+    // With no free-text query this is a genre browse -- Google Books'
+    // `subject:` qualifier searches by category instead of title/author.
+    const searchTerm = query.query.trim() || (query.genre ? `subject:${query.genre}` : "");
+    if (!searchTerm) return [];
+    const q = encodeURIComponent(searchTerm);
     const maxResults = Math.min(query.maxResults ?? 20, 40);
     const url = `https://www.googleapis.com/books/v1/volumes?q=${q}&maxResults=${maxResults}${
       apiKey ? `&key=${apiKey}` : ""

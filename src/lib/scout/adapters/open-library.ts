@@ -23,13 +23,60 @@ type Doc = {
 
 type SearchResponse = { docs?: Doc[] };
 
+type SubjectWork = {
+  key?: string;
+  title?: string;
+  authors?: { name?: string }[];
+  first_publish_year?: number;
+};
+type SubjectResponse = { works?: SubjectWork[] };
+
+function subjectSlug(genre: string) {
+  return genre
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "");
+}
+
+/** Genre-only browsing: Open Library's subjects endpoint lists works for a
+ * subject/genre directly, with no title/author search term needed. */
+async function discoverBySubject(genre: string, limit: number): Promise<DiscoveredBookCandidate[]> {
+  let data: SubjectResponse;
+  try {
+    data = (await readJson(
+      `https://openlibrary.org/subjects/${encodeURIComponent(subjectSlug(genre))}.json?limit=${limit}`,
+    )) as SubjectResponse;
+  } catch {
+    return [];
+  }
+  const candidates: DiscoveredBookCandidate[] = [];
+  for (const work of data.works ?? []) {
+    const authorName = work.authors?.[0]?.name;
+    if (!work.title || !authorName) continue;
+    candidates.push({
+      authorName,
+      title: work.title,
+      genre,
+      publicationDate: work.first_publish_year ? String(work.first_publish_year) : undefined,
+      bookFormat: "unknown",
+      sourceUrl: work.key ? `https://openlibrary.org${work.key}` : undefined,
+      externalId: work.key,
+      rawData: work as unknown as Record<string, unknown>,
+    });
+  }
+  return candidates;
+}
+
 export const openLibraryAdapter: SourceAdapter = {
   slug: "open_library",
   async discover(query: DiscoveryQuery): Promise<DiscoveredBookCandidate[]> {
-    const params = new URLSearchParams({
-      q: query.query,
-      limit: String(Math.min(query.maxResults ?? 20, 40)),
-    });
+    const trimmed = query.query.trim();
+    const limit = Math.min(query.maxResults ?? 20, 40);
+    if (!trimmed && query.genre) return discoverBySubject(query.genre, limit);
+    if (!trimmed) return [];
+
+    const params = new URLSearchParams({ q: trimmed, limit: String(limit) });
     let data: SearchResponse;
     try {
       data = (await readJson(`https://openlibrary.org/search.json?${params}`)) as SearchResponse;

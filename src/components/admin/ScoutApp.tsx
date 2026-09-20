@@ -18,6 +18,9 @@ type ScoutAuthor = {
   website_url: string | null;
   contact_email: string | null;
   contact_form_url: string | null;
+  contact_verification_status: string;
+  bio: string | null;
+  bio_source_url: string | null;
 };
 
 type ScoutBook = {
@@ -211,7 +214,7 @@ function DiscoverPanel() {
 
   async function runSearch(event: FormEvent) {
     event.preventDefault();
-    if (!query.trim()) return;
+    if (!query.trim() && !genre.trim()) return;
     setSearching(true);
     setError("");
     const enabledSlugs = sources.filter((s) => s.enabled).map((s) => s.slug);
@@ -219,7 +222,11 @@ function DiscoverPanel() {
       "/api/admin/scout-discover",
       {
         method: "POST",
-        body: JSON.stringify({ query, genre: genre || undefined, sources: enabledSlugs }),
+        body: JSON.stringify({
+          query: query.trim() || undefined,
+          genre: genre || undefined,
+          sources: enabledSlugs,
+        }),
       },
     );
     setSearching(false);
@@ -270,19 +277,19 @@ function DiscoverPanel() {
         <div className="grid gap-3 sm:grid-cols-[2fr_1fr_auto]">
           <input
             className={input}
-            placeholder="Search by title, author, or keyword…"
+            placeholder="Title, author, or keyword (optional if genre is set)…"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
           <input
             className={input}
-            placeholder="Genre (optional)"
+            placeholder="Genre — browse by genre alone"
             value={genre}
             onChange={(e) => setGenre(e.target.value)}
           />
           <button
             type="submit"
-            disabled={searching}
+            disabled={searching || (!query.trim() && !genre.trim())}
             className={cn(pillButton, "px-6 py-2.5 text-sm")}
           >
             {searching ? "Searching…" : "Discover"}
@@ -290,6 +297,11 @@ function DiscoverPanel() {
         </div>
         {error ? <p className="mt-2 text-sm text-destructive">{error}</p> : null}
         <p className="mt-2 text-xs text-muted-foreground">
+          Leave the search box empty and set only a genre to browse authors by genre. Country isn't
+          searchable directly — Google Books/Open Library don't expose author nationality, so use
+          the country filter below once it's been researched for an author (see the Prospects tab).
+        </p>
+        <p className="mt-1 text-xs text-muted-foreground">
           Authors already discovered in an earlier search are skipped — see the Prospects tab for
           authors you've already found.
         </p>
@@ -467,6 +479,7 @@ function ProspectsPanel() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -615,9 +628,139 @@ function ProspectsPanel() {
             >
               Outreach draft — coming soon
             </span>
+            <button
+              type="button"
+              className={outlineButton}
+              onClick={() => setExpandedId(expandedId === prospect.id ? null : prospect.id)}
+            >
+              {expandedId === prospect.id ? "Hide research" : "Research author"}
+            </button>
+            {expandedId === prospect.id ? (
+              <AuthorResearchPanel author={prospect.scout_authors} onUpdated={load} />
+            ) : null}
           </div>
         ))}
       </div>
+    </div>
+  );
+}
+
+/** Country, publishing type, and website contact info aren't provided by
+ * Google Books/Open Library -- staff enter them manually, or trigger a
+ * single-URL fetch of the author's own site (never a directory crawl). */
+function AuthorResearchPanel({
+  author,
+  onUpdated,
+}: {
+  author: ScoutAuthor;
+  onUpdated: () => Promise<void>;
+}) {
+  const [country, setCountry] = useState(author.country ?? "");
+  const [publishingType, setPublishingType] = useState(author.publishing_type ?? "unknown");
+  const [websiteUrl, setWebsiteUrl] = useState(author.website_url ?? "");
+  const [saving, setSaving] = useState(false);
+  const [researching, setResearching] = useState(false);
+  const [note, setNote] = useState("");
+
+  async function saveDetails() {
+    setSaving(true);
+    await api(`/api/admin/scout-authors/${author.id}`, {
+      method: "PATCH",
+      body: JSON.stringify({
+        country: country.trim() || null,
+        publishingType,
+        websiteUrl: websiteUrl.trim() || null,
+      }),
+    });
+    setSaving(false);
+    await onUpdated();
+  }
+
+  async function researchWebsite() {
+    if (!websiteUrl.trim()) return;
+    setResearching(true);
+    setNote("");
+    const { body } = await api<{
+      ok: boolean;
+      error?: string;
+      research?: { status: string; contactEmail?: string; contactFormUrl?: string };
+    }>(`/api/admin/scout-authors/${author.id}/research-website`, {
+      method: "POST",
+      body: JSON.stringify({ websiteUrl: websiteUrl.trim() }),
+    });
+    setResearching(false);
+    if (!body.ok) {
+      setNote("Could not reach that website.");
+    } else if (body.research?.status === "retrieved") {
+      setNote(
+        body.research.contactEmail
+          ? `Found contact email: ${body.research.contactEmail}`
+          : body.research.contactFormUrl
+            ? "Found a contact form."
+            : "Page fetched — no email or contact form detected.",
+      );
+    } else {
+      setNote("Site could not be fetched.");
+    }
+    await onUpdated();
+  }
+
+  return (
+    <div className="w-full rounded-xl border border-dashed border-border bg-secondary/30 p-3">
+      <div className="grid gap-2 sm:grid-cols-4">
+        <input
+          className={input}
+          placeholder="Country"
+          value={country}
+          onChange={(e) => setCountry(e.target.value)}
+        />
+        <select
+          className={input}
+          value={publishingType}
+          onChange={(e) => setPublishingType(e.target.value)}
+        >
+          <option value="unknown">Publishing type unknown</option>
+          <option value="traditional">Traditional</option>
+          <option value="independent">Independent</option>
+          <option value="hybrid">Hybrid</option>
+        </select>
+        <input
+          className={input}
+          placeholder="Author's own website URL"
+          value={websiteUrl}
+          onChange={(e) => setWebsiteUrl(e.target.value)}
+        />
+        <div className="flex gap-2">
+          <button type="button" disabled={saving} className={outlineButton} onClick={saveDetails}>
+            {saving ? "Saving…" : "Save"}
+          </button>
+          <button
+            type="button"
+            disabled={researching || !websiteUrl.trim()}
+            className={outlineButton}
+            onClick={researchWebsite}
+          >
+            {researching ? "Fetching…" : "Fetch site"}
+          </button>
+        </div>
+      </div>
+      {note ? <p className="mt-2 text-xs text-muted-foreground">{note}</p> : null}
+      {author.contact_email || author.contact_form_url ? (
+        <p className="mt-2 text-xs text-muted-foreground">
+          Contact on file: {author.contact_email ?? author.contact_form_url} (
+          {author.contact_verification_status})
+        </p>
+      ) : null}
+      {author.bio ? (
+        <p className="mt-1 text-xs text-muted-foreground">
+          Bio: {author.bio}{" "}
+          {author.bio_source_url ? (
+            <a href={author.bio_source_url} target="_blank" rel="noreferrer" className="text-brand">
+              source
+            </a>
+          ) : null}
+        </p>
+      ) : null}
     </div>
   );
 }

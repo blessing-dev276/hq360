@@ -106,7 +106,7 @@ function reviewText(counts: ReviewCount[], platform: string) {
 
 /* ------------------------------------------------------------------- root */
 
-type Tab = "discover" | "batches" | "prospects" | "sources";
+type Tab = "discover" | "batches" | "manual" | "prospects" | "sources";
 
 export function ScoutApp() {
   const [tab, setTab] = useState<Tab>("discover");
@@ -127,7 +127,7 @@ export function ScoutApp() {
         </div>
 
         <div className="mt-6 flex gap-1 rounded-full border border-border bg-card p-1 text-sm">
-          {(["discover", "batches", "prospects", "sources"] as const).map((t) => (
+          {(["discover", "batches", "manual", "prospects", "sources"] as const).map((t) => (
             <button
               key={t}
               type="button"
@@ -137,7 +137,7 @@ export function ScoutApp() {
                 tab === t ? "bg-primary text-primary-foreground" : "text-muted-foreground",
               )}
             >
-              {t}
+              {t === "manual" ? "Manual ingest" : t}
             </button>
           ))}
         </div>
@@ -154,6 +154,14 @@ export function ScoutApp() {
           <BatchesPanel
             initialBatchId={focusedBatchId}
             onConsumedInitial={() => setFocusedBatchId(null)}
+          />
+        ) : null}
+        {tab === "manual" ? (
+          <ManualIngestPanel
+            onIngested={(batchId) => {
+              setFocusedBatchId(batchId);
+              setTab("batches");
+            }}
           />
         ) : null}
         {tab === "prospects" ? <ProspectsPanel /> : null}
@@ -587,6 +595,193 @@ function DiscoverPanel({ onBatchGenerated }: { onBatchGenerated: (batchId: strin
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------ manual ingest */
+
+const manualFieldClass = input;
+
+/** For sources with no safe automated path (Reedsy Discovery -- no public
+ * API, its listing pages are a client-rendered SPA with nothing to
+ * collect, and its sitemap already returns 403 to bare requests -- plus
+ * any future source in the same position): staff paste the one page
+ * they're looking at and enter what's on it by hand. Nothing here fetches
+ * or parses that page automatically. */
+function ManualIngestPanel({ onIngested }: { onIngested: (batchId: string) => void }) {
+  const [sources, setSources] = useState<ScoutSource[]>([]);
+  const [sourceSlug, setSourceSlug] = useState("");
+  const [sourceUrl, setSourceUrl] = useState("");
+  const [authorName, setAuthorName] = useState("");
+  const [bookTitle, setBookTitle] = useState("");
+  const [genre, setGenre] = useState("");
+  const [description, setDescription] = useState("");
+  const [publicationDate, setPublicationDate] = useState("");
+  const [authorProfileUrl, setAuthorProfileUrl] = useState("");
+  const [bookUrl, setBookUrl] = useState("");
+  const [authorWebsiteUrl, setAuthorWebsiteUrl] = useState("");
+  const [identityConfirmed, setIdentityConfirmed] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    api<{ ok: boolean; items: ScoutSource[] }>("/api/admin/scout-sources").then(({ body }) => {
+      if (body.ok) {
+        const manualSources = body.items.filter((s) => s.kind !== "api");
+        setSources(manualSources);
+        setSourceSlug((prev) => prev || manualSources[0]?.slug || "");
+      }
+    });
+  }, []);
+
+  async function submit(event: FormEvent) {
+    event.preventDefault();
+    setSubmitting(true);
+    setError("");
+    setMessage("");
+    const { status, body } = await api<{ ok: boolean; error?: string; batchId?: string }>(
+      "/api/admin/scout-manual-ingest",
+      {
+        method: "POST",
+        body: JSON.stringify({
+          sourceSlug,
+          sourceUrl: sourceUrl.trim(),
+          authorName: authorName.trim(),
+          bookTitle: bookTitle.trim(),
+          genre: genre.trim() || undefined,
+          description: description.trim() || undefined,
+          publicationDate: publicationDate.trim() || undefined,
+          authorProfileUrl: authorProfileUrl.trim() || undefined,
+          bookUrl: bookUrl.trim() || undefined,
+          authorWebsiteUrl: authorWebsiteUrl.trim() || undefined,
+          identityConfirmed: authorWebsiteUrl.trim() ? identityConfirmed : undefined,
+        }),
+      },
+    );
+    setSubmitting(false);
+    if (status !== 200 || !body.ok) {
+      setError(
+        body.error === "source_is_automated"
+          ? "That source already has automated discovery — use the Discover tab instead."
+          : "Could not save this entry.",
+      );
+      return;
+    }
+    setMessage("Saved.");
+    setAuthorName("");
+    setBookTitle("");
+    setGenre("");
+    setDescription("");
+    setPublicationDate("");
+    setAuthorProfileUrl("");
+    setBookUrl("");
+    setAuthorWebsiteUrl("");
+    setIdentityConfirmed(false);
+    setSourceUrl("");
+    if (body.batchId) onIngested(body.batchId);
+  }
+
+  return (
+    <div className="mt-6 rounded-2xl border border-border bg-card p-5">
+      <p className="text-sm text-muted-foreground">
+        For sources without a safe automated path (Reedsy Discovery, independent publishers). Paste
+        the specific page you're looking at and enter what's on it — nothing is fetched or scraped
+        automatically.
+      </p>
+      <form onSubmit={submit} className="mt-4 grid gap-3 sm:grid-cols-2">
+        <select
+          className={manualFieldClass}
+          value={sourceSlug}
+          onChange={(e) => setSourceSlug(e.target.value)}
+          required
+        >
+          {sources.map((s) => (
+            <option key={s.slug} value={s.slug}>
+              {s.name}
+            </option>
+          ))}
+        </select>
+        <input
+          className={manualFieldClass}
+          placeholder="Source page URL (required)"
+          value={sourceUrl}
+          onChange={(e) => setSourceUrl(e.target.value)}
+          required
+        />
+        <input
+          className={manualFieldClass}
+          placeholder="Author name"
+          value={authorName}
+          onChange={(e) => setAuthorName(e.target.value)}
+          required
+        />
+        <input
+          className={manualFieldClass}
+          placeholder="Book title"
+          value={bookTitle}
+          onChange={(e) => setBookTitle(e.target.value)}
+          required
+        />
+        <input
+          className={manualFieldClass}
+          placeholder="Genre"
+          value={genre}
+          onChange={(e) => setGenre(e.target.value)}
+        />
+        <input
+          className={manualFieldClass}
+          placeholder="Publication date (YYYY-MM-DD or YYYY)"
+          value={publicationDate}
+          onChange={(e) => setPublicationDate(e.target.value)}
+        />
+        <input
+          className={manualFieldClass}
+          placeholder="Author profile URL"
+          value={authorProfileUrl}
+          onChange={(e) => setAuthorProfileUrl(e.target.value)}
+        />
+        <input
+          className={manualFieldClass}
+          placeholder="Book page URL"
+          value={bookUrl}
+          onChange={(e) => setBookUrl(e.target.value)}
+        />
+        <textarea
+          className={cn(manualFieldClass, "sm:col-span-2")}
+          placeholder="Description (as shown on the page)"
+          rows={3}
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+        />
+        <input
+          className={manualFieldClass}
+          placeholder="Author's website, if publicly shown"
+          value={authorWebsiteUrl}
+          onChange={(e) => setAuthorWebsiteUrl(e.target.value)}
+        />
+        <label className="flex items-center gap-2 text-xs text-muted-foreground">
+          <input
+            type="checkbox"
+            checked={identityConfirmed}
+            disabled={!authorWebsiteUrl.trim()}
+            onChange={(e) => setIdentityConfirmed(e.target.checked)}
+            className="size-4"
+          />
+          I've confirmed this website belongs to this author (otherwise it's saved as an unverified
+          lead to check later)
+        </label>
+        {error ? <p className="text-sm text-destructive sm:col-span-2">{error}</p> : null}
+        {message ? <p className="text-sm text-brand sm:col-span-2">{message}</p> : null}
+        <button
+          type="submit"
+          disabled={submitting || !sourceSlug}
+          className={cn(pillButton, "sm:col-span-2 justify-self-start px-6 py-2.5 text-sm")}
+        >
+          {submitting ? "Saving…" : "Save entry"}
+        </button>
+      </form>
     </div>
   );
 }

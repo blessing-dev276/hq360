@@ -73,6 +73,8 @@ export type ScoutBook = {
   raw_data: Record<string, unknown>;
   discovered_at: string;
   batch_id: string | null;
+  description: string | null;
+  ingest_method: "automated" | "manual";
 };
 
 export type ReviewPlatform =

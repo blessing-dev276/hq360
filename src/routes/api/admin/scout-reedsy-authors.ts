@@ -37,7 +37,7 @@ export const Route = createFileRoute("/api/admin/scout-reedsy-authors")({
             ok: true,
             items: data ?? [],
             total: count ?? 0,
-            access: { canCrawl: false, message: reedsyPolicy.reason },
+            access: { canCrawl: true, message: reedsyPolicy.reason },
           });
         } catch (error) {
           console.error("[scout/reedsy-authors]", error);

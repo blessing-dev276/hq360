@@ -86,6 +86,8 @@ export function TestimonialStrip({
                         <video
                           src={it.media_url}
                           poster={it.thumbnail_url ?? undefined}
+                          controlsList="nodownload"
+                          onContextMenu={(event) => event.preventDefault()}
                           muted
                           playsInline
                           preload="metadata"
@@ -149,6 +151,8 @@ function TestimonialViewer({ item, onClose }: { item: Testimonial; onClose: () =
               src={item.media_url}
               poster={item.thumbnail_url ?? undefined}
               controls
+              controlsList="nodownload"
+              onContextMenu={(event) => event.preventDefault()}
               autoPlay
               playsInline
               className="tst-viewer-img"

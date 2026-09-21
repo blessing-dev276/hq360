@@ -29,6 +29,8 @@ export const Route = createFileRoute("/api/admin/scout-sources/$slug")({
       PATCH: async ({ request, params }) => {
         if (!(await isAdminRequest(request)))
           return json({ ok: false, error: "unauthorized" }, 401);
+        if (params.slug !== "reedsy_discovery")
+          return json({ ok: false, error: "Scout now uses Reedsy only." }, 409);
         let body: z.infer<typeof patchSchema>;
         try {
           body = patchSchema.parse(await request.json());
@@ -50,7 +52,7 @@ export const Route = createFileRoute("/api/admin/scout-sources/$slug")({
           if (
             body.enabled &&
             (!["allowed", "limited"].includes(existing.source_access_status) ||
-              existing.kind !== "api")
+              !["api", "web"].includes(existing.kind))
           )
             return json({ ok: false, error: "source_not_implemented" }, 409);
 

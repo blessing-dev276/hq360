@@ -19,6 +19,7 @@ export async function crawlSource(
   scheduled = false,
   batchId?: string,
 ) {
+  if (slug !== "reedsy_discovery") throw new Error("Scout now uses Reedsy only.");
   const adapter = SOURCE_ADAPTERS[slug];
   if (!adapter) throw new Error("Source has no approved automated adapter");
   const { data: token, error: claimError } = await db().rpc("scout_claim_source", {
@@ -100,6 +101,7 @@ export async function crawlSource(
           maxResults: pageSize,
           offset: page * 40,
           fetchJson: transport.fetchJson,
+          fetchPage: transport.fetchPage,
         });
         if (!candidates.length) break;
         let fresh = 0;
@@ -128,7 +130,7 @@ export async function crawlSource(
           if (row.authorAdded) await queueIdentityReview(row.author, normalized);
           await qualifyAuthor(row.author);
         }
-        if (!fresh) break;
+        if (!fresh || slug === "reedsy_discovery") break;
       }
     } finally {
       pages = transport.pages;
@@ -281,7 +283,7 @@ export async function runScheduledCrawl() {
     .eq("enabled", true)
     .in("source_access_status", ["allowed", "limited"])
     .in("sync_schedule", ["daily", "weekly"])
-    .neq("slug", "open_library")
+    .eq("slug", "reedsy_discovery")
     .or(`next_crawl_at.is.null,next_crawl_at.lte.${new Date().toISOString()}`)
     .order("next_crawl_at", { nullsFirst: true })
     .limit(1);

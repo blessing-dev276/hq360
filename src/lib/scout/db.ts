@@ -5,7 +5,7 @@
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-export type SourceKind = "api" | "manual" | "unimplemented";
+export type SourceKind = "api" | "web" | "manual" | "unimplemented";
 
 export type ScoutSource = {
   source_access_status: "allowed" | "limited" | "manual_only" | "blocked" | "unknown";

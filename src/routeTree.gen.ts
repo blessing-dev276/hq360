@@ -70,6 +70,7 @@ import { Route as ApiAdminScoutExportRouteImport } from './routes/api/admin/scou
 import { Route as ApiAdminScoutIdentityRouteImport } from './routes/api/admin/scout-identity'
 import { Route as ApiAdminScoutManualIngestRouteImport } from './routes/api/admin/scout-manual-ingest'
 import { Route as ApiAdminScoutProspectsRouteImport } from './routes/api/admin/scout-prospects'
+import { Route as ApiAdminScoutReedsyAuthorsRouteImport } from './routes/api/admin/scout-reedsy-authors'
 import { Route as ApiAdminScoutSourcesRouteImport } from './routes/api/admin/scout-sources'
 import { Route as ApiAdminSessionRouteImport } from './routes/api/admin/session'
 import { Route as ApiAdminTeamRouteImport } from './routes/api/admin/team'
@@ -433,6 +434,12 @@ const ApiAdminScoutProspectsRoute = ApiAdminScoutProspectsRouteImport.update({
   path: '/api/admin/scout-prospects',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAdminScoutReedsyAuthorsRoute =
+  ApiAdminScoutReedsyAuthorsRouteImport.update({
+    id: '/api/admin/scout-reedsy-authors',
+    path: '/api/admin/scout-reedsy-authors',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiAdminScoutSourcesRoute = ApiAdminScoutSourcesRouteImport.update({
   id: '/api/admin/scout-sources',
   path: '/api/admin/scout-sources',
@@ -781,6 +788,7 @@ export interface FileRoutesByFullPath {
   '/api/admin/scout-identity': typeof ApiAdminScoutIdentityRoute
   '/api/admin/scout-manual-ingest': typeof ApiAdminScoutManualIngestRoute
   '/api/admin/scout-prospects': typeof ApiAdminScoutProspectsRouteWithChildren
+  '/api/admin/scout-reedsy-authors': typeof ApiAdminScoutReedsyAuthorsRoute
   '/api/admin/scout-sources': typeof ApiAdminScoutSourcesRouteWithChildren
   '/api/admin/session': typeof ApiAdminSessionRoute
   '/api/admin/team': typeof ApiAdminTeamRouteWithChildren
@@ -896,6 +904,7 @@ export interface FileRoutesByTo {
   '/api/admin/scout-identity': typeof ApiAdminScoutIdentityRoute
   '/api/admin/scout-manual-ingest': typeof ApiAdminScoutManualIngestRoute
   '/api/admin/scout-prospects': typeof ApiAdminScoutProspectsRouteWithChildren
+  '/api/admin/scout-reedsy-authors': typeof ApiAdminScoutReedsyAuthorsRoute
   '/api/admin/scout-sources': typeof ApiAdminScoutSourcesRouteWithChildren
   '/api/admin/session': typeof ApiAdminSessionRoute
   '/api/admin/team': typeof ApiAdminTeamRouteWithChildren
@@ -1012,6 +1021,7 @@ export interface FileRoutesById {
   '/api/admin/scout-identity': typeof ApiAdminScoutIdentityRoute
   '/api/admin/scout-manual-ingest': typeof ApiAdminScoutManualIngestRoute
   '/api/admin/scout-prospects': typeof ApiAdminScoutProspectsRouteWithChildren
+  '/api/admin/scout-reedsy-authors': typeof ApiAdminScoutReedsyAuthorsRoute
   '/api/admin/scout-sources': typeof ApiAdminScoutSourcesRouteWithChildren
   '/api/admin/session': typeof ApiAdminSessionRoute
   '/api/admin/team': typeof ApiAdminTeamRouteWithChildren
@@ -1129,6 +1139,7 @@ export interface FileRouteTypes {
     | '/api/admin/scout-identity'
     | '/api/admin/scout-manual-ingest'
     | '/api/admin/scout-prospects'
+    | '/api/admin/scout-reedsy-authors'
     | '/api/admin/scout-sources'
     | '/api/admin/session'
     | '/api/admin/team'
@@ -1244,6 +1255,7 @@ export interface FileRouteTypes {
     | '/api/admin/scout-identity'
     | '/api/admin/scout-manual-ingest'
     | '/api/admin/scout-prospects'
+    | '/api/admin/scout-reedsy-authors'
     | '/api/admin/scout-sources'
     | '/api/admin/session'
     | '/api/admin/team'
@@ -1359,6 +1371,7 @@ export interface FileRouteTypes {
     | '/api/admin/scout-identity'
     | '/api/admin/scout-manual-ingest'
     | '/api/admin/scout-prospects'
+    | '/api/admin/scout-reedsy-authors'
     | '/api/admin/scout-sources'
     | '/api/admin/session'
     | '/api/admin/team'
@@ -1475,6 +1488,7 @@ export interface RootRouteChildren {
   ApiAdminScoutIdentityRoute: typeof ApiAdminScoutIdentityRoute
   ApiAdminScoutManualIngestRoute: typeof ApiAdminScoutManualIngestRoute
   ApiAdminScoutProspectsRoute: typeof ApiAdminScoutProspectsRouteWithChildren
+  ApiAdminScoutReedsyAuthorsRoute: typeof ApiAdminScoutReedsyAuthorsRoute
   ApiAdminScoutSourcesRoute: typeof ApiAdminScoutSourcesRouteWithChildren
   ApiAdminSessionRoute: typeof ApiAdminSessionRoute
   ApiAdminTeamRoute: typeof ApiAdminTeamRouteWithChildren
@@ -1925,6 +1939,13 @@ declare module '@tanstack/react-router' {
       path: '/api/admin/scout-prospects'
       fullPath: '/api/admin/scout-prospects'
       preLoaderRoute: typeof ApiAdminScoutProspectsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/scout-reedsy-authors': {
+      id: '/api/admin/scout-reedsy-authors'
+      path: '/api/admin/scout-reedsy-authors'
+      fullPath: '/api/admin/scout-reedsy-authors'
+      preLoaderRoute: typeof ApiAdminScoutReedsyAuthorsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/admin/scout-sources': {
@@ -2570,6 +2591,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAdminScoutIdentityRoute: ApiAdminScoutIdentityRoute,
   ApiAdminScoutManualIngestRoute: ApiAdminScoutManualIngestRoute,
   ApiAdminScoutProspectsRoute: ApiAdminScoutProspectsRouteWithChildren,
+  ApiAdminScoutReedsyAuthorsRoute: ApiAdminScoutReedsyAuthorsRoute,
   ApiAdminScoutSourcesRoute: ApiAdminScoutSourcesRouteWithChildren,
   ApiAdminSessionRoute: ApiAdminSessionRoute,
   ApiAdminTeamRoute: ApiAdminTeamRouteWithChildren,

@@ -12,6 +12,7 @@ export type DiscoveryQuery = {
   genre?: string | undefined;
   maxResults?: number | undefined;
   offset?: number | undefined;
+  fetchPage?: ((url: string) => Promise<string>) | undefined;
   fetchJson?: ((url: string) => Promise<unknown>) | undefined;
 };
 

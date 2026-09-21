@@ -18,7 +18,11 @@ export const Route = createFileRoute("/api/admin/scout-sources")({
         try {
           const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
           const db = asScoutDb(supabaseAdmin);
-          const { data, error } = await db.from("scout_sources").select("*").order("slug");
+          const { data, error } = await db
+            .from("scout_sources")
+            .select("*")
+            .eq("slug", "reedsy_discovery")
+            .order("slug");
           if (error) return json({ ok: false, error: "storage" }, 500);
           return json({ ok: true, items: (data ?? []) as ScoutSource[] });
         } catch (err) {

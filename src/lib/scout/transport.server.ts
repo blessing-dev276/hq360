@@ -1,3 +1,4 @@
+import { load } from "cheerio";
 import robotsParser from "robots-parser";
 import { asScoutDb, type ScoutSource } from "./db";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
@@ -10,6 +11,7 @@ export class AccessError extends Error {
   }
 }
 export const SOURCE_HOSTS: Record<string, string[]> = {
+  reedsy_discovery: ["reedsy.com"],
   google_books: ["www.googleapis.com"],
   open_library: ["openlibrary.org"],
 };
@@ -68,7 +70,7 @@ export function createTransport(
     )
       throw new AccessError("Source disabled, restricted or lease lost");
   }
-  async function request(url: URL, isRobots = false): Promise<string> {
+  async function request(url: URL, isRobots = false, html = false): Promise<string> {
     await checkActive();
     const cacheKey = new URL(url);
     cacheKey.searchParams.delete("key");
@@ -90,7 +92,7 @@ export function createTransport(
         signal: AbortSignal.timeout(15000),
         headers: {
           "user-agent": `HQ360Scout/1.0${process.env.SCOUT_CONTACT_EMAIL ? ` (${process.env.SCOUT_CONTACT_EMAIL})` : ""}`,
-          accept: isRobots ? "text/plain" : "application/json",
+          accept: isRobots ? "text/plain" : html ? "text/html" : "application/json",
         },
       });
       if (response.status === 404 && isRobots) return "";
@@ -130,12 +132,21 @@ export function createTransport(
       }
       body += decoder.decode();
       if (
-        !isRobots &&
+        !isRobots && !html &&
         !/application\/(?:[\w.+-]*\+)?json/i.test(response.headers.get("content-type") ?? "")
       )
         throw new AccessError("Unexpected non-JSON response; possible access challenge");
       if (isRobots && /<html|<!doctype/i.test(body))
         throw new AccessError("Robots response is an access challenge");
+      if(html) {
+        if(!/text\/html/i.test(response.headers.get("content-type")??"")) throw new AccessError("Expected a public HTML page");
+        const $=load(body);
+        if(/\b(noindex|none)\b/i.test($('meta[name="robots"],meta[name="HQ360Scout"]').map((_,e)=>$(e).attr('content')??'').get().join(','))) throw new AccessError("Page excludes collection");
+        if(/just a moment|access denied|verify you are human|captcha/i.test($('title').text())) throw new AccessError("Public page requires an access challenge");
+        // No scripts are executed and no anonymous form tokens are retained in cache.
+        $('form,script:not([type="application/ld+json"]),style,d-app-config').remove();
+        body=$.html();
+      }
       const { error } = await db.from("scout_page_cache").upsert({
         url: cacheKey.toString(),
         body,
@@ -147,11 +158,7 @@ export function createTransport(
     }
     throw new Error("Retries exhausted");
   }
-  return {
-    get pages() {
-      return pages;
-    },
-    async fetchJson(raw: string): Promise<unknown> {
+  async function fetchPage(raw: string, html: boolean): Promise<string> {
       const url = assertSourceUrl(raw, hosts);
       if (!robots.has(url.origin)) {
         const robotUrl = new URL("/robots.txt", url);
@@ -179,7 +186,7 @@ export function createTransport(
       if (pages >= source.max_pages) throw new Error("Page limit reached");
       pages++;
       try {
-        return JSON.parse(await request(url));
+        return await request(url, false, html);
       } catch (error) {
         await log(
           error instanceof Error ? error.message : "Request failed",
@@ -187,6 +194,6 @@ export function createTransport(
         );
         throw error;
       }
-    },
-  };
+  }
+  return {get pages(){return pages;}, fetchPage:(raw:string)=>fetchPage(raw,true), fetchJson:async(raw:string):Promise<unknown>=>JSON.parse(await fetchPage(raw,false))};
 }

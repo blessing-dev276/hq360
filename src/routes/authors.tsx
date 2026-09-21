@@ -22,6 +22,7 @@ function RouteComponent() {
           {/* Admin-managed from /admin > Testimonials (filtered to this
               industry, video only). Add more, or edit these, from there. */}
           <TestimonialStrip
+            id="client-stories"
             industry={industry.slug}
             mediaType="video"
             eyebrow="Client stories"

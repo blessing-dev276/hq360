@@ -24,6 +24,7 @@ type Testimonial = {
  * /admin > Testimonials. Renders nothing when there is nothing to show.
  */
 export function TestimonialStrip({
+  id,
   industry,
   capability,
   mediaType,
@@ -31,6 +32,7 @@ export function TestimonialStrip({
   title = "Testimonials",
   tone = "base",
 }: {
+  id?: string;
   industry?: string;
   capability?: string;
   /** Show only screenshots or only videos. Omit to show both. */
@@ -58,7 +60,7 @@ export function TestimonialStrip({
   if (items?.length === 0) return null;
 
   return (
-    <Section tone={tone}>
+    <Section id={id} tone={tone}>
       <SectionHeader eyebrow={eyebrow} title={title} />
       {query.isPending ? (
         <div role="status" aria-busy="true">

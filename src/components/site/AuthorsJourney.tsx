@@ -115,8 +115,8 @@ function Hero({ onFindStage }: { onFindStage: () => void }) {
               your book.
             </p>
             <div className="aj-actions">
-              <a href="#start" className="aj-btn aj-btn-primary">
-                Build my author growth system <ArrowUpRight aria-hidden="true" />
+              <a href="#client-stories" className="aj-btn aj-btn-primary">
+                Client stories <ArrowDown aria-hidden="true" />
               </a>
               <button type="button" onClick={onFindStage} className="aj-btn aj-btn-ghost">
                 Find my starting point <ArrowRight aria-hidden="true" />

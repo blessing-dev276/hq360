@@ -6,17 +6,11 @@ function mapFormat(printType?: string): BookFormat {
   return "unknown";
 }
 
-async function readJson(url: string): Promise<unknown> {
-  const response = await fetch(url, {
-    headers: { accept: "application/json", "user-agent": "HQ360Scout/1.0" },
-    signal: AbortSignal.timeout(15_000),
-  });
-  if (!response.ok) throw new Error(`Google Books returned ${response.status}`);
-  return response.json() as Promise<unknown>;
-}
-
 type VolumeInfo = {
   title?: string;
+  subtitle?: string;
+  description?: string;
+  imageLinks?: { thumbnail?: string };
   authors?: string[];
   categories?: string[];
   publishedDate?: string;
@@ -46,15 +40,10 @@ export const googleBooksAdapter: SourceAdapter = {
     if (!searchTerm) return [];
     const q = encodeURIComponent(searchTerm);
     const maxResults = Math.min(query.maxResults ?? 20, 40);
-    const url = `https://www.googleapis.com/books/v1/volumes?q=${q}&maxResults=${maxResults}${
+    const url = `https://www.googleapis.com/books/v1/volumes?q=${q}&orderBy=newest&startIndex=${query.offset ?? 0}&maxResults=${maxResults}${
       apiKey ? `&key=${apiKey}` : ""
     }`;
-    let data: VolumesResponse;
-    try {
-      data = (await readJson(url)) as VolumesResponse;
-    } catch {
-      return [];
-    }
+    const data = (await query.fetchJson!(url)) as VolumesResponse;
 
     const candidates: DiscoveredBookCandidate[] = [];
     for (const item of data.items ?? []) {
@@ -75,6 +64,10 @@ export const googleBooksAdapter: SourceAdapter = {
       candidates.push({
         authorName,
         title: info.title,
+        subtitle: info.subtitle,
+        description: info.description,
+        categories: info.categories,
+        coverImageUrl: info.imageLinks?.thumbnail,
         genre: info.categories?.[0],
         publicationDate: info.publishedDate,
         bookFormat: mapFormat(info.printType),
@@ -103,11 +96,7 @@ export const googleBooksAdapter: SourceAdapter = {
     const url = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(searchTerm)}&maxResults=1${
       apiKey ? `&key=${apiKey}` : ""
     }`;
-    try {
-      const data = (await readJson(url)) as VolumesResponse;
-      return typeof data.totalItems === "number" ? data.totalItems : null;
-    } catch {
-      return null;
-    }
+    const data = (await query.fetchJson!(url)) as VolumesResponse;
+    return typeof data.totalItems === "number" ? data.totalItems : null;
   },
 };

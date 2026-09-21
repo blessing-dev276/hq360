@@ -32,9 +32,9 @@ export const Route = createFileRoute("/api/admin/scout-batches/$id")({
           const { data: books, error } = await db
             .from("scout_discovered_books")
             .select(
-              "*, scout_authors(*), scout_review_counts(platform, review_count, rating, verified), scout_prospects(id, status)",
+              "*, scout_batch_books!inner(batch_id), scout_authors(*), scout_review_counts(platform, review_count, rating, verified), scout_prospects(id, status)",
             )
-            .eq("batch_id", params.id)
+            .eq("scout_batch_books.batch_id", params.id)
             .order("discovered_at", { ascending: false });
           if (error) return json({ ok: false, error: "storage" }, 500);
 

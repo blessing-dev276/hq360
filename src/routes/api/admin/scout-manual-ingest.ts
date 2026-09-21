@@ -1,3 +1,4 @@
+import { canonicalUrl } from "@/lib/scout/normalize";
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { isAdminRequest } from "@/lib/admin-auth.server";
@@ -78,16 +79,27 @@ export const Route = createFileRoute("/api/admin/scout-manual-ingest")({
           if ((source as { kind: string }).kind === "api")
             return json({ ok: false, error: "source_is_automated" }, 400);
 
+          const sourceUrl = canonicalUrl(body.sourceUrl);
+          if (!sourceUrl) return json({ ok: false, error: "invalid_source_url" }, 400);
+          const profileUrl = canonicalUrl(body.authorProfileUrl);
           const authorNorm = normalizedName(body.authorName);
           let { data: author } = await db
             .from("scout_authors")
             .select("*")
-            .eq("normalized_name", authorNorm)
+            .eq("source_slug", body.sourceSlug)
+            .eq(profileUrl ? "author_profile_url" : "source_url", profileUrl ?? sourceUrl)
+            .is("merged_into", null)
             .maybeSingle();
           if (!author) {
             const { data: created, error: authorErr } = await db
               .from("scout_authors")
-              .insert({ name: body.authorName, normalized_name: authorNorm })
+              .insert({
+                name: body.authorName,
+                normalized_name: authorNorm,
+                source_slug: body.sourceSlug,
+                source_url: sourceUrl,
+                author_profile_url: profileUrl,
+              })
               .select("*")
               .single();
             if (authorErr || !created) return json({ ok: false, error: "storage" }, 500);
@@ -113,7 +125,7 @@ export const Route = createFileRoute("/api/admin/scout-manual-ingest")({
               await db.from("scout_research_notes").insert({
                 scout_author_id: authorRow.id,
                 note: `Candidate website from manual ingest (identity not confirmed by staff): ${body.authorWebsiteUrl}`,
-                source_url: body.sourceUrl,
+                source_url: sourceUrl,
                 verification_status: "unverified",
                 retrieved_at: new Date().toISOString(),
                 added_by: "scout_manual_ingest",
@@ -160,7 +172,7 @@ export const Route = createFileRoute("/api/admin/scout-manual-ingest")({
                 publication_year: parsedDate?.year ?? null,
                 book_format: "unknown",
                 source_slug: body.sourceSlug,
-                source_url: body.sourceUrl,
+                source_url: sourceUrl,
                 description: body.description ?? null,
                 ingest_method: "manual",
                 raw_data: {
@@ -176,6 +188,10 @@ export const Route = createFileRoute("/api/admin/scout-manual-ingest")({
             book = created;
           }
 
+          const { error: membershipError } = await db
+            .from("scout_batch_books")
+            .upsert({ batch_id: batchId, book_id: book.id });
+          if (membershipError) throw membershipError;
           return json({
             ok: true,
             item: { author: authorForResponse, book: book as ScoutBook },

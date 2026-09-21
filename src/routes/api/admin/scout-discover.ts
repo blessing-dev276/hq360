@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { isAdminRequest } from "@/lib/admin-auth.server";
-import { asScoutDb, normalizedName, type ScoutAuthor, type ScoutBook } from "@/lib/scout/db";
-import { SOURCE_ADAPTERS, type DiscoveredBookCandidate } from "@/lib/scout/adapters";
+import { asScoutDb, type ScoutAuthor, type ScoutBook } from "@/lib/scout/db";
+import { SOURCE_ADAPTERS } from "@/lib/scout/adapters";
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -28,24 +28,6 @@ const discoverSchema = z
     message: "query_or_genre_required",
   });
 
-function normalizedTitle(value: string) {
-  return value.trim().replace(/\s+/g, " ").toLocaleLowerCase();
-}
-
-/** Sources vary in date precision -- Google Books can give "YYYY-MM-DD",
- * "YYYY-MM", or just "YYYY"; Open Library only ever gives a year. Only a
- * full date goes into the `date` column; a bare year goes into
- * publication_year instead of being padded into a fabricated date. */
-function parsePublicationDate(value: string | undefined): {
-  date: string | null;
-  year: number | null;
-} {
-  if (!value) return { date: null, year: null };
-  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return { date: value, year: Number(value.slice(0, 4)) };
-  const year = value.match(/^\d{4}$/)?.[0];
-  return { date: null, year: year ? Number(year) : null };
-}
-
 export const Route = createFileRoute("/api/admin/scout-discover")({
   server: {
     handlers: {
@@ -63,181 +45,54 @@ export const Route = createFileRoute("/api/admin/scout-discover")({
           const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
           const db = asScoutDb(supabaseAdmin);
 
-          const { data: sourceRows } = await db
-            .from("scout_sources")
-            .select("slug, enabled, kind")
-            .in(
-              "slug",
-              body.sources && body.sources.length > 0 ? body.sources : Object.keys(SOURCE_ADAPTERS),
-            );
-          const enabledSlugs = new Set(
-            ((sourceRows ?? []) as { slug: string; enabled: boolean }[])
-              .filter((s) => s.enabled)
-              .map((s) => s.slug),
-          );
-          const activeSlugs = Object.keys(SOURCE_ADAPTERS).filter((slug) => enabledSlugs.has(slug));
-          if (activeSlugs.length === 0)
-            return json({ ok: false, error: "no_enabled_sources" }, 400);
-
-          const results = await Promise.all(
-            activeSlugs.map(async (slug) => {
-              const adapter = SOURCE_ADAPTERS[slug];
-              if (!adapter)
-                return { slug, candidates: [] as DiscoveredBookCandidate[], available: null };
-              const discoveryQuery = {
-                query: body.query?.trim() || "",
-                genre: body.genre,
-                maxResults: body.maxResults,
-              };
-              try {
-                const [candidates, available] = await Promise.all([
-                  adapter.discover(discoveryQuery),
-                  adapter.countAvailable?.(discoveryQuery) ?? Promise.resolve(null),
-                ]);
-                await db
-                  .from("scout_sources")
-                  .update({ last_synced_at: new Date().toISOString(), last_error: null })
-                  .eq("slug", slug);
-                return { slug, candidates, available };
-              } catch (err) {
-                await db
-                  .from("scout_sources")
-                  .update({
-                    last_error: err instanceof Error ? err.message : "Unknown adapter error",
-                    error_count: 1,
-                  })
-                  .eq("slug", slug);
-                return { slug, candidates: [] as DiscoveredBookCandidate[], available: null };
-              }
-            }),
-          );
-
-          const availableCounts = results
-            .map((r) => r.available)
-            .filter((n): n is number => typeof n === "number");
-          const totalAvailable =
-            availableCounts.length > 0 ? availableCounts.reduce((a, b) => a + b, 0) : null;
-
-          const label = body.query?.trim()
-            ? body.genre
-              ? `"${body.query.trim()}" in ${body.genre}`
-              : `"${body.query.trim()}"`
-            : `Genre: ${body.genre}`;
-          const { data: batch, error: batchErr } = await db
+          const { crawlSource } = await import("@/lib/scout/crawler.server");
+          const slugs = body.sources?.length ? body.sources : Object.keys(SOURCE_ADAPTERS);
+          const { data: batch, error } = await db
             .from("scout_batches")
             .insert({
-              label,
+              label: body.query || `Genre: ${body.genre}`,
+              sources: slugs,
+              query: body.query ?? null,
               genre: body.genre ?? null,
-              query: body.query?.trim() || null,
-              sources: activeSlugs,
-              requested_max: body.maxResults ?? null,
-              total_available: totalAvailable,
+              requested_max: body.maxResults ?? 40,
             })
-            .select("*")
+            .select("id")
             .single();
-          if (batchErr || !batch) return json({ ok: false, error: "storage" }, 500);
-          const batchId = (batch as { id: string }).id;
-
-          const saved: { author: ScoutAuthor; book: ScoutBook }[] = [];
-          // Authors newly created within this same discovery run stay
-          // eligible for their other candidate books; an author that
-          // already existed before this run (found in a prior search) is
-          // skipped entirely rather than resurfaced.
-          const newAuthorsThisRun = new Map<string, ScoutAuthor>();
-          const skippedAuthors = new Set<string>();
-          for (const { slug, candidates } of results) {
-            for (const candidate of candidates) {
-              const authorNorm = normalizedName(candidate.authorName);
-              if (skippedAuthors.has(authorNorm)) continue;
-
-              let authorRow = newAuthorsThisRun.get(authorNorm);
-              if (!authorRow) {
-                const { data: existingAuthor } = await db
-                  .from("scout_authors")
-                  .select("*")
-                  .eq("normalized_name", authorNorm)
-                  .maybeSingle();
-                if (existingAuthor) {
-                  skippedAuthors.add(authorNorm);
-                  continue;
-                }
-
-                const { data: created, error: authorErr } = await db
-                  .from("scout_authors")
-                  .insert({ name: candidate.authorName, normalized_name: authorNorm })
-                  .select("*")
-                  .single();
-                if (authorErr || !created) continue;
-                authorRow = created as ScoutAuthor;
-                newAuthorsThisRun.set(authorNorm, authorRow);
-              }
-
-              const titleNorm = normalizedTitle(candidate.title);
-              let { data: book } = await db
-                .from("scout_discovered_books")
-                .select("*")
-                .eq("scout_author_id", authorRow.id)
-                .eq("normalized_title", titleNorm)
-                .maybeSingle();
-              if (!book) {
-                const { date, year } = parsePublicationDate(candidate.publicationDate);
-                const { data: created, error: bookErr } = await db
-                  .from("scout_discovered_books")
-                  .insert({
-                    scout_author_id: authorRow.id,
-                    title: candidate.title,
-                    normalized_title: titleNorm,
-                    genre: candidate.genre ?? null,
-                    publication_date: date,
-                    publication_year: year,
-                    book_format: candidate.bookFormat ?? "unknown",
-                    publisher: candidate.publisher ?? null,
-                    isbn: candidate.isbn ?? null,
-                    source_slug: slug,
-                    source_url: candidate.sourceUrl ?? null,
-                    external_id: candidate.externalId ?? null,
-                    raw_data: candidate.rawData,
-                    batch_id: batchId,
-                  })
-                  .select("*")
-                  .single();
-                if (bookErr || !created) continue;
-                book = created;
-              }
-              const bookRow = book as ScoutBook;
-
-              if (candidate.reviewSignal) {
-                await db.from("scout_review_counts").upsert(
-                  {
-                    book_id: bookRow.id,
-                    platform: candidate.reviewSignal.platform,
-                    review_count: candidate.reviewSignal.reviewCount,
-                    rating: candidate.reviewSignal.rating,
-                    verified: candidate.reviewSignal.verified,
-                    source_url: candidate.sourceUrl ?? null,
-                    retrieved_at: new Date().toISOString(),
-                  },
-                  { onConflict: "book_id,platform" },
-                );
-              }
-
-              saved.push({ author: authorRow, book: bookRow });
+          if (error) throw error;
+          const items: { author: ScoutAuthor; book: ScoutBook }[] = [];
+          const results = [];
+          for (const slug of slugs) {
+            if (!SOURCE_ADAPTERS[slug]) continue;
+            try {
+              const result = await crawlSource(
+                slug,
+                { query: body.query ?? "", genre: body.genre, maxResults: body.maxResults },
+                false,
+                batch.id,
+              );
+              results.push(result);
+              items.push(...result.items);
+            } catch (error) {
+              results.push({
+                slug,
+                status: "failed",
+                error: error instanceof Error ? error.message : "Crawl failed",
+              });
             }
           }
-
-          // Dedupe by book id -- the same title can legitimately surface
-          // from more than one source in a single query.
-          const uniqueByBook = new Map(saved.map((row) => [row.book.id, row]));
-          await db
+          const unique = [...new Map(items.map((i) => [i.book.id, i])).values()];
+          const { error: updateError } = await db
             .from("scout_batches")
-            .update({ item_count: uniqueByBook.size })
-            .eq("id", batchId);
+            .update({ item_count: unique.length })
+            .eq("id", batch.id);
+          if (updateError) throw updateError;
           return json({
             ok: true,
-            count: uniqueByBook.size,
-            items: [...uniqueByBook.values()],
-            batchId,
-            totalAvailable,
+            items: unique,
+            count: unique.length,
+            batchId: batch.id,
+            totalAvailable: null,
+            results,
           });
         } catch (err) {
           console.error("[admin/scout-discover] POST", err instanceof Error ? err.message : err);

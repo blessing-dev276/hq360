@@ -62,9 +62,12 @@ import { Route as ApiAdminCaseStudiesRouteImport } from './routes/api/admin/case
 import { Route as ApiAdminPortfolioRouteImport } from './routes/api/admin/portfolio'
 import { Route as ApiAdminScoutBatchesRouteImport } from './routes/api/admin/scout-batches'
 import { Route as ApiAdminScoutBooksRouteImport } from './routes/api/admin/scout-books'
+import { Route as ApiAdminScoutCrawlRouteImport } from './routes/api/admin/scout-crawl'
+import { Route as ApiAdminScoutCrawlHistoryRouteImport } from './routes/api/admin/scout-crawl-history'
 import { Route as ApiAdminScoutDiscoverRouteImport } from './routes/api/admin/scout-discover'
 import { Route as ApiAdminScoutDiscoverCountRouteImport } from './routes/api/admin/scout-discover-count'
 import { Route as ApiAdminScoutExportRouteImport } from './routes/api/admin/scout-export'
+import { Route as ApiAdminScoutIdentityRouteImport } from './routes/api/admin/scout-identity'
 import { Route as ApiAdminScoutManualIngestRouteImport } from './routes/api/admin/scout-manual-ingest'
 import { Route as ApiAdminScoutProspectsRouteImport } from './routes/api/admin/scout-prospects'
 import { Route as ApiAdminScoutSourcesRouteImport } from './routes/api/admin/scout-sources'
@@ -73,6 +76,7 @@ import { Route as ApiAdminTeamRouteImport } from './routes/api/admin/team'
 import { Route as ApiAdminTestimonialsRouteImport } from './routes/api/admin/testimonials'
 import { Route as ApiAdminUploadRouteImport } from './routes/api/admin/upload'
 import { Route as ApiAdminUploadUrlRouteImport } from './routes/api/admin/upload-url'
+import { Route as ApiCronScoutRouteImport } from './routes/api/cron/scout'
 import { Route as ApiPublicAuthorAuditRouteImport } from './routes/api/public/author-audit'
 import { Route as ApiPublicCaseStudiesRouteImport } from './routes/api/public/case-studies'
 import { Route as ApiPublicGrowthAuditRouteImport } from './routes/api/public/growth-audit'
@@ -386,6 +390,17 @@ const ApiAdminScoutBooksRoute = ApiAdminScoutBooksRouteImport.update({
   path: '/api/admin/scout-books',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAdminScoutCrawlRoute = ApiAdminScoutCrawlRouteImport.update({
+  id: '/api/admin/scout-crawl',
+  path: '/api/admin/scout-crawl',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminScoutCrawlHistoryRoute =
+  ApiAdminScoutCrawlHistoryRouteImport.update({
+    id: '/api/admin/scout-crawl-history',
+    path: '/api/admin/scout-crawl-history',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiAdminScoutDiscoverRoute = ApiAdminScoutDiscoverRouteImport.update({
   id: '/api/admin/scout-discover',
   path: '/api/admin/scout-discover',
@@ -400,6 +415,11 @@ const ApiAdminScoutDiscoverCountRoute =
 const ApiAdminScoutExportRoute = ApiAdminScoutExportRouteImport.update({
   id: '/api/admin/scout-export',
   path: '/api/admin/scout-export',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminScoutIdentityRoute = ApiAdminScoutIdentityRouteImport.update({
+  id: '/api/admin/scout-identity',
+  path: '/api/admin/scout-identity',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiAdminScoutManualIngestRoute =
@@ -441,6 +461,11 @@ const ApiAdminUploadRoute = ApiAdminUploadRouteImport.update({
 const ApiAdminUploadUrlRoute = ApiAdminUploadUrlRouteImport.update({
   id: '/api/admin/upload-url',
   path: '/api/admin/upload-url',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiCronScoutRoute = ApiCronScoutRouteImport.update({
+  id: '/api/cron/scout',
+  path: '/api/cron/scout',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicAuthorAuditRoute = ApiPublicAuthorAuditRouteImport.update({
@@ -748,9 +773,12 @@ export interface FileRoutesByFullPath {
   '/api/admin/portfolio': typeof ApiAdminPortfolioRouteWithChildren
   '/api/admin/scout-batches': typeof ApiAdminScoutBatchesRouteWithChildren
   '/api/admin/scout-books': typeof ApiAdminScoutBooksRoute
+  '/api/admin/scout-crawl': typeof ApiAdminScoutCrawlRoute
+  '/api/admin/scout-crawl-history': typeof ApiAdminScoutCrawlHistoryRoute
   '/api/admin/scout-discover': typeof ApiAdminScoutDiscoverRoute
   '/api/admin/scout-discover-count': typeof ApiAdminScoutDiscoverCountRoute
   '/api/admin/scout-export': typeof ApiAdminScoutExportRoute
+  '/api/admin/scout-identity': typeof ApiAdminScoutIdentityRoute
   '/api/admin/scout-manual-ingest': typeof ApiAdminScoutManualIngestRoute
   '/api/admin/scout-prospects': typeof ApiAdminScoutProspectsRouteWithChildren
   '/api/admin/scout-sources': typeof ApiAdminScoutSourcesRouteWithChildren
@@ -759,6 +787,7 @@ export interface FileRoutesByFullPath {
   '/api/admin/testimonials': typeof ApiAdminTestimonialsRouteWithChildren
   '/api/admin/upload': typeof ApiAdminUploadRoute
   '/api/admin/upload-url': typeof ApiAdminUploadUrlRoute
+  '/api/cron/scout': typeof ApiCronScoutRoute
   '/api/public/author-audit': typeof ApiPublicAuthorAuditRoute
   '/api/public/case-studies': typeof ApiPublicCaseStudiesRoute
   '/api/public/growth-audit': typeof ApiPublicGrowthAuditRoute
@@ -859,9 +888,12 @@ export interface FileRoutesByTo {
   '/api/admin/portfolio': typeof ApiAdminPortfolioRouteWithChildren
   '/api/admin/scout-batches': typeof ApiAdminScoutBatchesRouteWithChildren
   '/api/admin/scout-books': typeof ApiAdminScoutBooksRoute
+  '/api/admin/scout-crawl': typeof ApiAdminScoutCrawlRoute
+  '/api/admin/scout-crawl-history': typeof ApiAdminScoutCrawlHistoryRoute
   '/api/admin/scout-discover': typeof ApiAdminScoutDiscoverRoute
   '/api/admin/scout-discover-count': typeof ApiAdminScoutDiscoverCountRoute
   '/api/admin/scout-export': typeof ApiAdminScoutExportRoute
+  '/api/admin/scout-identity': typeof ApiAdminScoutIdentityRoute
   '/api/admin/scout-manual-ingest': typeof ApiAdminScoutManualIngestRoute
   '/api/admin/scout-prospects': typeof ApiAdminScoutProspectsRouteWithChildren
   '/api/admin/scout-sources': typeof ApiAdminScoutSourcesRouteWithChildren
@@ -870,6 +902,7 @@ export interface FileRoutesByTo {
   '/api/admin/testimonials': typeof ApiAdminTestimonialsRouteWithChildren
   '/api/admin/upload': typeof ApiAdminUploadRoute
   '/api/admin/upload-url': typeof ApiAdminUploadUrlRoute
+  '/api/cron/scout': typeof ApiCronScoutRoute
   '/api/public/author-audit': typeof ApiPublicAuthorAuditRoute
   '/api/public/case-studies': typeof ApiPublicCaseStudiesRoute
   '/api/public/growth-audit': typeof ApiPublicGrowthAuditRoute
@@ -971,9 +1004,12 @@ export interface FileRoutesById {
   '/api/admin/portfolio': typeof ApiAdminPortfolioRouteWithChildren
   '/api/admin/scout-batches': typeof ApiAdminScoutBatchesRouteWithChildren
   '/api/admin/scout-books': typeof ApiAdminScoutBooksRoute
+  '/api/admin/scout-crawl': typeof ApiAdminScoutCrawlRoute
+  '/api/admin/scout-crawl-history': typeof ApiAdminScoutCrawlHistoryRoute
   '/api/admin/scout-discover': typeof ApiAdminScoutDiscoverRoute
   '/api/admin/scout-discover-count': typeof ApiAdminScoutDiscoverCountRoute
   '/api/admin/scout-export': typeof ApiAdminScoutExportRoute
+  '/api/admin/scout-identity': typeof ApiAdminScoutIdentityRoute
   '/api/admin/scout-manual-ingest': typeof ApiAdminScoutManualIngestRoute
   '/api/admin/scout-prospects': typeof ApiAdminScoutProspectsRouteWithChildren
   '/api/admin/scout-sources': typeof ApiAdminScoutSourcesRouteWithChildren
@@ -982,6 +1018,7 @@ export interface FileRoutesById {
   '/api/admin/testimonials': typeof ApiAdminTestimonialsRouteWithChildren
   '/api/admin/upload': typeof ApiAdminUploadRoute
   '/api/admin/upload-url': typeof ApiAdminUploadUrlRoute
+  '/api/cron/scout': typeof ApiCronScoutRoute
   '/api/public/author-audit': typeof ApiPublicAuthorAuditRoute
   '/api/public/case-studies': typeof ApiPublicCaseStudiesRoute
   '/api/public/growth-audit': typeof ApiPublicGrowthAuditRoute
@@ -1084,9 +1121,12 @@ export interface FileRouteTypes {
     | '/api/admin/portfolio'
     | '/api/admin/scout-batches'
     | '/api/admin/scout-books'
+    | '/api/admin/scout-crawl'
+    | '/api/admin/scout-crawl-history'
     | '/api/admin/scout-discover'
     | '/api/admin/scout-discover-count'
     | '/api/admin/scout-export'
+    | '/api/admin/scout-identity'
     | '/api/admin/scout-manual-ingest'
     | '/api/admin/scout-prospects'
     | '/api/admin/scout-sources'
@@ -1095,6 +1135,7 @@ export interface FileRouteTypes {
     | '/api/admin/testimonials'
     | '/api/admin/upload'
     | '/api/admin/upload-url'
+    | '/api/cron/scout'
     | '/api/public/author-audit'
     | '/api/public/case-studies'
     | '/api/public/growth-audit'
@@ -1195,9 +1236,12 @@ export interface FileRouteTypes {
     | '/api/admin/portfolio'
     | '/api/admin/scout-batches'
     | '/api/admin/scout-books'
+    | '/api/admin/scout-crawl'
+    | '/api/admin/scout-crawl-history'
     | '/api/admin/scout-discover'
     | '/api/admin/scout-discover-count'
     | '/api/admin/scout-export'
+    | '/api/admin/scout-identity'
     | '/api/admin/scout-manual-ingest'
     | '/api/admin/scout-prospects'
     | '/api/admin/scout-sources'
@@ -1206,6 +1250,7 @@ export interface FileRouteTypes {
     | '/api/admin/testimonials'
     | '/api/admin/upload'
     | '/api/admin/upload-url'
+    | '/api/cron/scout'
     | '/api/public/author-audit'
     | '/api/public/case-studies'
     | '/api/public/growth-audit'
@@ -1306,9 +1351,12 @@ export interface FileRouteTypes {
     | '/api/admin/portfolio'
     | '/api/admin/scout-batches'
     | '/api/admin/scout-books'
+    | '/api/admin/scout-crawl'
+    | '/api/admin/scout-crawl-history'
     | '/api/admin/scout-discover'
     | '/api/admin/scout-discover-count'
     | '/api/admin/scout-export'
+    | '/api/admin/scout-identity'
     | '/api/admin/scout-manual-ingest'
     | '/api/admin/scout-prospects'
     | '/api/admin/scout-sources'
@@ -1317,6 +1365,7 @@ export interface FileRouteTypes {
     | '/api/admin/testimonials'
     | '/api/admin/upload'
     | '/api/admin/upload-url'
+    | '/api/cron/scout'
     | '/api/public/author-audit'
     | '/api/public/case-studies'
     | '/api/public/growth-audit'
@@ -1418,9 +1467,12 @@ export interface RootRouteChildren {
   ApiAdminPortfolioRoute: typeof ApiAdminPortfolioRouteWithChildren
   ApiAdminScoutBatchesRoute: typeof ApiAdminScoutBatchesRouteWithChildren
   ApiAdminScoutBooksRoute: typeof ApiAdminScoutBooksRoute
+  ApiAdminScoutCrawlRoute: typeof ApiAdminScoutCrawlRoute
+  ApiAdminScoutCrawlHistoryRoute: typeof ApiAdminScoutCrawlHistoryRoute
   ApiAdminScoutDiscoverRoute: typeof ApiAdminScoutDiscoverRoute
   ApiAdminScoutDiscoverCountRoute: typeof ApiAdminScoutDiscoverCountRoute
   ApiAdminScoutExportRoute: typeof ApiAdminScoutExportRoute
+  ApiAdminScoutIdentityRoute: typeof ApiAdminScoutIdentityRoute
   ApiAdminScoutManualIngestRoute: typeof ApiAdminScoutManualIngestRoute
   ApiAdminScoutProspectsRoute: typeof ApiAdminScoutProspectsRouteWithChildren
   ApiAdminScoutSourcesRoute: typeof ApiAdminScoutSourcesRouteWithChildren
@@ -1429,6 +1481,7 @@ export interface RootRouteChildren {
   ApiAdminTestimonialsRoute: typeof ApiAdminTestimonialsRouteWithChildren
   ApiAdminUploadRoute: typeof ApiAdminUploadRoute
   ApiAdminUploadUrlRoute: typeof ApiAdminUploadUrlRoute
+  ApiCronScoutRoute: typeof ApiCronScoutRoute
   ApiPublicAuthorAuditRoute: typeof ApiPublicAuthorAuditRoute
   ApiPublicCaseStudiesRoute: typeof ApiPublicCaseStudiesRoute
   ApiPublicGrowthAuditRoute: typeof ApiPublicGrowthAuditRoute
@@ -1818,6 +1871,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAdminScoutBooksRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/admin/scout-crawl': {
+      id: '/api/admin/scout-crawl'
+      path: '/api/admin/scout-crawl'
+      fullPath: '/api/admin/scout-crawl'
+      preLoaderRoute: typeof ApiAdminScoutCrawlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/scout-crawl-history': {
+      id: '/api/admin/scout-crawl-history'
+      path: '/api/admin/scout-crawl-history'
+      fullPath: '/api/admin/scout-crawl-history'
+      preLoaderRoute: typeof ApiAdminScoutCrawlHistoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/admin/scout-discover': {
       id: '/api/admin/scout-discover'
       path: '/api/admin/scout-discover'
@@ -1837,6 +1904,13 @@ declare module '@tanstack/react-router' {
       path: '/api/admin/scout-export'
       fullPath: '/api/admin/scout-export'
       preLoaderRoute: typeof ApiAdminScoutExportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/scout-identity': {
+      id: '/api/admin/scout-identity'
+      path: '/api/admin/scout-identity'
+      fullPath: '/api/admin/scout-identity'
+      preLoaderRoute: typeof ApiAdminScoutIdentityRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/admin/scout-manual-ingest': {
@@ -1893,6 +1967,13 @@ declare module '@tanstack/react-router' {
       path: '/api/admin/upload-url'
       fullPath: '/api/admin/upload-url'
       preLoaderRoute: typeof ApiAdminUploadUrlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/cron/scout': {
+      id: '/api/cron/scout'
+      path: '/api/cron/scout'
+      fullPath: '/api/cron/scout'
+      preLoaderRoute: typeof ApiCronScoutRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/author-audit': {
@@ -2481,9 +2562,12 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAdminPortfolioRoute: ApiAdminPortfolioRouteWithChildren,
   ApiAdminScoutBatchesRoute: ApiAdminScoutBatchesRouteWithChildren,
   ApiAdminScoutBooksRoute: ApiAdminScoutBooksRoute,
+  ApiAdminScoutCrawlRoute: ApiAdminScoutCrawlRoute,
+  ApiAdminScoutCrawlHistoryRoute: ApiAdminScoutCrawlHistoryRoute,
   ApiAdminScoutDiscoverRoute: ApiAdminScoutDiscoverRoute,
   ApiAdminScoutDiscoverCountRoute: ApiAdminScoutDiscoverCountRoute,
   ApiAdminScoutExportRoute: ApiAdminScoutExportRoute,
+  ApiAdminScoutIdentityRoute: ApiAdminScoutIdentityRoute,
   ApiAdminScoutManualIngestRoute: ApiAdminScoutManualIngestRoute,
   ApiAdminScoutProspectsRoute: ApiAdminScoutProspectsRouteWithChildren,
   ApiAdminScoutSourcesRoute: ApiAdminScoutSourcesRouteWithChildren,
@@ -2492,6 +2576,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAdminTestimonialsRoute: ApiAdminTestimonialsRouteWithChildren,
   ApiAdminUploadRoute: ApiAdminUploadRoute,
   ApiAdminUploadUrlRoute: ApiAdminUploadUrlRoute,
+  ApiCronScoutRoute: ApiCronScoutRoute,
   ApiPublicAuthorAuditRoute: ApiPublicAuthorAuditRoute,
   ApiPublicCaseStudiesRoute: ApiPublicCaseStudiesRoute,
   ApiPublicGrowthAuditRoute: ApiPublicGrowthAuditRoute,

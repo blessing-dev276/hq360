@@ -26,9 +26,9 @@ export const Route = createFileRoute("/api/admin/scout-batches/$id/export")({
           const { data, error } = await db
             .from("scout_discovered_books")
             .select(
-              "*, scout_authors(*), scout_review_counts(platform, review_count, verified), scout_prospects(status, research_notes, last_verified_at)",
+              "*, scout_batch_books!inner(batch_id), scout_authors(*), scout_review_counts(platform, review_count, verified), scout_prospects(status, research_notes, last_verified_at)",
             )
-            .eq("batch_id", params.id);
+            .eq("scout_batch_books.batch_id", params.id);
           if (error) return json({ ok: false, error: "storage" }, 500);
 
           type Row = {

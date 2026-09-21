@@ -1,36 +1,13 @@
 import type { DiscoveredBookCandidate, DiscoveryQuery, SourceAdapter } from "./types";
-
-async function readJson(url: string): Promise<unknown> {
-  const response = await fetch(url, {
-    headers: { accept: "application/json", "user-agent": "HQ360Scout/1.0" },
-    signal: AbortSignal.timeout(15_000),
-  });
-  if (!response.ok) throw new Error(`Open Library returned ${response.status}`);
-  return response.json() as Promise<unknown>;
-}
-
-type Doc = {
-  key?: string;
-  title?: string;
-  author_name?: string[];
-  first_publish_year?: number;
-  subject?: string[];
-  publisher?: string[];
-  isbn?: string[];
-  ratings_count?: number;
-  ratings_average?: number;
-};
-
-type SearchResponse = { docs?: Doc[] };
-
 type SubjectWork = {
   key?: string;
   title?: string;
-  authors?: { name?: string }[];
+  authors?: { name?: string; key?: string }[];
   first_publish_year?: number;
+  cover_id?: number;
+  subject?: string[];
 };
 type SubjectResponse = { works?: SubjectWork[]; work_count?: number };
-
 function subjectSlug(genre: string) {
   return genre
     .trim()
@@ -38,105 +15,56 @@ function subjectSlug(genre: string) {
     .replace(/[^a-z0-9]+/g, "_")
     .replace(/^_+|_+$/g, "");
 }
-
-/** Genre-only browsing: Open Library's subjects endpoint lists works for a
- * subject/genre directly, with no title/author search term needed. */
-async function discoverBySubject(genre: string, limit: number): Promise<DiscoveredBookCandidate[]> {
-  let data: SubjectResponse;
-  try {
-    data = (await readJson(
-      `https://openlibrary.org/subjects/${encodeURIComponent(subjectSlug(genre))}.json?limit=${limit}`,
-    )) as SubjectResponse;
-  } catch {
-    return [];
-  }
-  const candidates: DiscoveredBookCandidate[] = [];
-  for (const work of data.works ?? []) {
-    const authorName = work.authors?.[0]?.name;
-    if (!work.title || !authorName) continue;
-    candidates.push({
-      authorName,
-      title: work.title,
-      genre,
-      publicationDate: work.first_publish_year ? String(work.first_publish_year) : undefined,
-      bookFormat: "unknown",
-      sourceUrl: work.key ? `https://openlibrary.org${work.key}` : undefined,
-      externalId: work.key,
-      rawData: work as unknown as Record<string, unknown>,
-    });
-  }
-  return candidates;
-}
-
+/** Public Subjects API. The site's current robots rules prohibit /search,
+ * including /search.json; never switch to that endpoint for keyword queries. */
 export const openLibraryAdapter: SourceAdapter = {
   slug: "open_library",
   async discover(query: DiscoveryQuery): Promise<DiscoveredBookCandidate[]> {
-    const trimmed = query.query.trim();
+    if (!query.genre?.trim())
+      throw new Error(
+        "Open Library requires a genre: robots.txt excludes keyword search. Use subject browsing.",
+      );
+    const slug = subjectSlug(query.genre);
+    if (!slug) throw new Error("Invalid Open Library subject");
     const limit = Math.min(query.maxResults ?? 20, 40);
-    if (!trimmed && query.genre) return discoverBySubject(query.genre, limit);
-    if (!trimmed) return [];
-
-    const params = new URLSearchParams({ q: trimmed, limit: String(limit) });
-    let data: SearchResponse;
-    try {
-      data = (await readJson(`https://openlibrary.org/search.json?${params}`)) as SearchResponse;
-    } catch {
-      return [];
-    }
-
+    const data = (await query.fetchJson!(
+      `https://openlibrary.org/subjects/${encodeURIComponent(slug)}.json?limit=${limit}&offset=${query.offset ?? 0}`,
+    )) as SubjectResponse;
     const candidates: DiscoveredBookCandidate[] = [];
-    for (const doc of data.docs ?? []) {
-      const authorName = doc.author_name?.[0];
-      if (!doc.title || !authorName) continue;
+    for (const work of data.works ?? []) {
+      const authorName = work.authors?.[0]?.name;
+      if (!work.title || !authorName || !work.key) continue;
+      // Search text, if supplied alongside genre, is only a local filter on this permitted subject page.
       if (
-        query.genre &&
-        !(doc.subject ?? []).some((s) => s.toLowerCase().includes(query.genre!.toLowerCase()))
+        query.query.trim() &&
+        !`${work.title} ${authorName}`.toLowerCase().includes(query.query.trim().toLowerCase())
       )
         continue;
-      // Open Library rarely exposes ratings_count reliably; only attach a
-      // review signal when the field is actually present, otherwise the
-      // caller correctly leaves this platform's count as unknown.
       candidates.push({
+        title: work.title,
         authorName,
-        title: doc.title,
-        genre: doc.subject?.[0],
-        publicationDate: doc.first_publish_year ? String(doc.first_publish_year) : undefined,
+        genre: query.genre,
+        categories: work.subject,
+        authorProfileUrl: work.authors?.[0]?.key
+          ? `https://openlibrary.org${work.authors[0].key}`
+          : undefined,
+        publicationDate: work.first_publish_year ? String(work.first_publish_year) : undefined,
+        coverImageUrl: work.cover_id
+          ? `https://covers.openlibrary.org/b/id/${work.cover_id}-M.jpg`
+          : undefined,
+        sourceUrl: `https://openlibrary.org${work.key}`,
+        externalId: work.key,
         bookFormat: "unknown",
-        publisher: doc.publisher?.[0],
-        isbn: doc.isbn?.[0],
-        sourceUrl: doc.key ? `https://openlibrary.org${doc.key}` : undefined,
-        externalId: doc.key,
-        rawData: doc as unknown as Record<string, unknown>,
-        reviewSignal:
-          typeof doc.ratings_count === "number"
-            ? {
-                platform: "open_library",
-                reviewCount: doc.ratings_count,
-                rating: doc.ratings_average ?? null,
-                verified: true,
-              }
-            : undefined,
+        rawData: work as Record<string, unknown>,
       });
     }
     return candidates;
   },
-  async countAvailable(query: DiscoveryQuery): Promise<number | null> {
-    const trimmed = query.query.trim();
-    try {
-      if (!trimmed && query.genre) {
-        const data = (await readJson(
-          `https://openlibrary.org/subjects/${encodeURIComponent(subjectSlug(query.genre))}.json?limit=0`,
-        )) as SubjectResponse;
-        return typeof data.work_count === "number" ? data.work_count : null;
-      }
-      if (!trimmed) return null;
-      const params = new URLSearchParams({ q: trimmed, limit: "0" });
-      const data = (await readJson(`https://openlibrary.org/search.json?${params}`)) as {
-        numFound?: number;
-      };
-      return typeof data.numFound === "number" ? data.numFound : null;
-    } catch {
-      return null;
-    }
+  async countAvailable(query: DiscoveryQuery) {
+    if (!query.genre?.trim() || query.query.trim()) return null;
+    const data = (await query.fetchJson!(
+      `https://openlibrary.org/subjects/${encodeURIComponent(subjectSlug(query.genre))}.json?limit=0`,
+    )) as SubjectResponse;
+    return typeof data.work_count === "number" ? data.work_count : null;
   },
 };

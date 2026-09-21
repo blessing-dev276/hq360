@@ -146,3 +146,6 @@ bun dev            # http://localhost:8080
 `bun run build` produces a nitro bundle in `.output/` (Cloudflare preset by
 default — change it in `vite.config.ts` for another host). Deployed builds need
 the Supabase env vars from `.env.example` set in the host environment.
+
+Scout source architecture, crawl controls, scheduling, identity review, migration steps,
+and future-source onboarding are documented in [docs/scout-sources.md](docs/scout-sources.md).

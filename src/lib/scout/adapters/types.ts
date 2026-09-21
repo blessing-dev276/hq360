@@ -11,10 +11,20 @@ export type DiscoveryQuery = {
   query: string;
   genre?: string | undefined;
   maxResults?: number | undefined;
+  offset?: number | undefined;
+  fetchJson?: ((url: string) => Promise<unknown>) | undefined;
 };
 
 export type DiscoveredBookCandidate = {
   authorName: string;
+  authorProfileUrl?: string | undefined;
+  authorWebsite?: string | undefined;
+  bio?: string | undefined;
+  socialLinks?: string[] | undefined;
+  subtitle?: string | undefined;
+  categories?: string[] | undefined;
+  description?: string | undefined;
+  coverImageUrl?: string | undefined;
   title: string;
   genre?: string | undefined;
   publicationDate?: string | undefined;
@@ -39,9 +49,7 @@ export type DiscoveredBookCandidate = {
 
 export type SourceAdapter = {
   slug: string;
-  /** Runs a discovery query against the live source. Must not throw for
-   * ordinary "no results" or transient failures — return an empty array or
-   * partial results and let the caller log the failure against the source. */
+  /** Runs a discovery query against the live source. Returns [] for no results; throws on access or transport failures so the runner logs them. */
   discover(query: DiscoveryQuery): Promise<DiscoveredBookCandidate[]>;
   /** How many works/authors the source reports for this genre/query in
    * total, independent of how many discover() actually pulls in. Null when

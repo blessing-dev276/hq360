@@ -8,6 +8,17 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 export type SourceKind = "api" | "manual" | "unimplemented";
 
 export type ScoutSource = {
+  source_access_status: "allowed" | "limited" | "manual_only" | "blocked" | "unknown";
+  robots_status: string;
+  max_pages: number;
+  max_records: number;
+  crawl_delay_ms: number;
+  next_crawl_at: string | null;
+  crawl_token: string | null;
+  records_discovered: number;
+  books_added: number;
+  authors_added: number;
+  daily_records: number;
   slug: string;
   name: string;
   kind: SourceKind;
@@ -43,6 +54,15 @@ export type ScoutAuthor = {
   bio: string | null;
   bio_source_url: string | null;
   linked_author_id: string | null;
+  source_slug: string | null;
+  source_url: string | null;
+  author_profile_url: string | null;
+  social_links: string[];
+  confidence_score: number;
+  identity_status: "needs_review" | "verified" | "rejected" | "merged";
+  verified_at: string | null;
+  merged_into: string | null;
+  qualification: Record<string, unknown>;
 };
 
 export type BookFormat = "ebook" | "paperback" | "hardcover" | "audiobook" | "unknown";
@@ -166,6 +186,11 @@ export type ScoutResearchNote = {
 };
 
 export type ScoutTable =
+  | "scout_batch_books"
+  | "scout_crawl_runs"
+  | "scout_page_cache"
+  | "scout_book_sources"
+  | "scout_identity_reviews"
   | "scout_sources"
   | "scout_authors"
   | "scout_discovered_books"
@@ -179,6 +204,7 @@ export type ScoutTable =
 
 export function asScoutDb(supabaseAdmin: SupabaseClient) {
   return supabaseAdmin as unknown as {
+    rpc: (name: string, args?: Record<string, unknown>) => ReturnType<SupabaseClient["rpc"]>;
     from: (table: ScoutTable) => ReturnType<SupabaseClient["from"]>;
   };
 }

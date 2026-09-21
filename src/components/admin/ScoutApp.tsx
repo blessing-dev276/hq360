@@ -1,3 +1,4 @@
+import { ScoutSources } from "./ScoutSources";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { cn } from "@/lib/utils";
 
@@ -165,7 +166,7 @@ export function ScoutApp() {
           />
         ) : null}
         {tab === "prospects" ? <ProspectsPanel /> : null}
-        {tab === "sources" ? <SourcesPanel /> : null}
+        {tab === "sources" ? <ScoutSources /> : null}
       </div>
     </div>
   );
@@ -314,6 +315,13 @@ function DiscoverPanel({ onBatchGenerated }: { onBatchGenerated: (batchId: strin
       error?: string;
       batchId?: string;
       count?: number;
+      results?: {
+        slug: string;
+        status?: string;
+        reason?: string;
+        error?: string;
+        errors?: { message: string }[];
+      }[];
     }>("/api/admin/scout-discover", {
       method: "POST",
       body: JSON.stringify({
@@ -332,6 +340,15 @@ function DiscoverPanel({ onBatchGenerated }: { onBatchGenerated: (batchId: strin
       );
       return;
     }
+    const issues = body.results?.filter(
+      (r) => r.status === "failed" || r.status === "blocked" || r.reason || r.error,
+    );
+    if (issues?.length)
+      setError(
+        issues
+          .map((r) => `${r.slug}: ${r.reason || r.error || r.errors?.at(-1)?.message || r.status}`)
+          .join("; "),
+      );
     if (body.batchId) setLastBatch({ id: body.batchId, count: body.count ?? 0 });
     await loadResults(0);
   }
@@ -603,12 +620,7 @@ function DiscoverPanel({ onBatchGenerated }: { onBatchGenerated: (batchId: strin
 
 const manualFieldClass = input;
 
-/** For sources with no safe automated path (Reedsy Discovery -- no public
- * API, its listing pages are a client-rendered SPA with nothing to
- * collect, and its sitemap already returns 403 to bare requests -- plus
- * any future source in the same position): staff paste the one page
- * they're looking at and enter what's on it by hand. Nothing here fetches
- * or parses that page automatically. */
+/** Staff-entered factual metadata for sources without a permitted automated adapter. */
 function ManualIngestPanel({ onIngested }: { onIngested: (batchId: string) => void }) {
   const [sources, setSources] = useState<ScoutSource[]>([]);
   const [sourceSlug, setSourceSlug] = useState("");
@@ -1264,88 +1276,6 @@ function AuthorResearchPanel({
           ) : null}
         </p>
       ) : null}
-    </div>
-  );
-}
-
-/* ---------------------------------------------------------------- sources */
-
-function SourcesPanel() {
-  const [items, setItems] = useState<ScoutSource[]>([]);
-  const [busy, setBusy] = useState<string | null>(null);
-  const [error, setError] = useState("");
-
-  const load = useCallback(async () => {
-    const { body } = await api<{ ok: boolean; items: ScoutSource[] }>("/api/admin/scout-sources");
-    if (body.ok) setItems(body.items);
-  }, []);
-
-  useEffect(() => {
-    load();
-  }, [load]);
-
-  async function toggle(source: ScoutSource) {
-    setBusy(source.slug);
-    setError("");
-    const { status, body } = await api<{ ok: boolean; error?: string }>(
-      `/api/admin/scout-sources/${source.slug}`,
-      {
-        method: "PATCH",
-        body: JSON.stringify({ enabled: !source.enabled }),
-      },
-    );
-    if (status !== 200 || !body.ok) {
-      setError(
-        body.error === "source_not_implemented"
-          ? `${source.name} has no authorized programmatic access yet — it can't be enabled until an adapter ships.`
-          : "Could not update source.",
-      );
-    }
-    await load();
-    setBusy(null);
-  }
-
-  return (
-    <div className="mt-6 space-y-3">
-      {error ? <p className="text-sm text-destructive">{error}</p> : null}
-      <div className="divide-y divide-border rounded-2xl border border-border bg-card">
-        {items.map((source) => (
-          <div key={source.slug} className="flex flex-wrap items-center gap-3 p-4 text-sm">
-            <div className="min-w-[200px] flex-1">
-              <p className="font-semibold">{source.name}</p>
-              <p className="text-xs text-muted-foreground capitalize">
-                {source.kind.replace("_", " ")}
-              </p>
-            </div>
-            {source.last_error ? (
-              <span className="rounded-full bg-destructive/10 px-2.5 py-1 text-xs text-destructive">
-                {source.last_error}
-              </span>
-            ) : null}
-            <span
-              className={cn(
-                "rounded-full px-2.5 py-1 text-xs font-medium",
-                source.enabled ? "bg-brand/10 text-brand" : "bg-secondary text-muted-foreground",
-              )}
-            >
-              {source.enabled ? "Enabled" : "Disabled"}
-            </span>
-            <button
-              type="button"
-              disabled={busy === source.slug || source.kind === "unimplemented"}
-              className={outlineButton}
-              onClick={() => toggle(source)}
-              title={
-                source.kind === "unimplemented"
-                  ? "No authorized API — implement an adapter first"
-                  : undefined
-              }
-            >
-              {source.enabled ? "Disable" : "Enable"}
-            </button>
-          </div>
-        ))}
-      </div>
     </div>
   );
 }

@@ -295,6 +295,10 @@ export const AUTHOR_STAGES: AuthorStage[] = [
             blurb: "Getting the book correctly set up on the platforms that sell it.",
           },
           {
+            name: "Author Central Page Setup",
+            blurb: "Setting up the Amazon author profile with a bio, photo and linked books.",
+          },
+          {
             name: "Algorithmic indexing & taxonomy optimization",
             blurb: "Categories and keywords set so the book is found, not buried.",
           },
@@ -376,6 +380,11 @@ export const AUTHOR_STAGES: AuthorStage[] = [
             blurb: "Getting the book into reviewers' hands with enough runway before release.",
           },
           {
+            name: "NetGalley Campaigns",
+            blurb:
+              "Planning and managing NetGalley campaigns to connect advance copies with reviewers and book professionals.",
+          },
+          {
             name: "High-conversion launch asset suite",
             blurb: "The graphics, copy and pages a launch actually needs, ready in advance.",
           },
@@ -395,6 +404,11 @@ export const AUTHOR_STAGES: AuthorStage[] = [
           {
             name: "Author interview placement",
             blurb: "Securing interview opportunities that put the author in front of readers.",
+          },
+          {
+            name: "Goodreads News & Interviews",
+            blurb:
+              "Preparing news pitches and interview materials for relevant Goodreads editorial opportunities.",
           },
           {
             name: "Book review outreach",
@@ -426,6 +440,11 @@ export const AUTHOR_STAGES: AuthorStage[] = [
             name: "ARC team mobilization",
             blurb: "Recruiting and coordinating a launch team of early readers.",
           },
+          {
+            name: "Book Club Outreach",
+            blurb:
+              "Connecting with relevant book clubs using reading guides, discussion prompts and author event pitches.",
+          },
         ],
       },
       {
@@ -434,6 +453,11 @@ export const AUTHOR_STAGES: AuthorStage[] = [
           {
             name: "Paid visibility & ad funnel scaling",
             blurb: "Paid campaigns that scale once the organic launch signal is proven.",
+          },
+          {
+            name: "Billboard Campaigns where commercially appropriate",
+            blurb:
+              "Planning billboard creative and placements when the audience, location and budget support the campaign.",
           },
         ],
       },
@@ -498,6 +522,11 @@ export const AUTHOR_STAGES: AuthorStage[] = [
           {
             name: "Short-form video traffic engines",
             blurb: "Repeatable short-form video systems driving traffic on BookTok and Reels.",
+          },
+          {
+            name: "Pinterest Book Marketing",
+            blurb:
+              "Building book-focused pins, boards and content campaigns that lead readers to book pages and author websites.",
           },
           {
             name: "Book trailer & cinematic content distribution",

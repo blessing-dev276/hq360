@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
-import { Bookmark, Check, ExternalLink, Loader2, Search } from "lucide-react";
+import { Bookmark, Check, Download, ExternalLink, Loader2, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { canonicalUrl } from "@/lib/scout/normalize";
 
@@ -24,6 +24,7 @@ const MARKETS = [
 type Book = {
   id: string;
   title: string;
+  asin: string | null;
   genre: string | null;
   source_url: string | null;
   scout_authors: { id: string; name: string; country: string | null } | null;
@@ -71,9 +72,17 @@ function PublicLink({ url, children }: { url: string | null; children: React.Rea
   ) : null;
 }
 
+function csvCell(value: string | number | null | undefined) {
+  let text = String(value ?? "");
+  if (/^[=+\-@]/.test(text)) text = `'${text}`;
+  return `"${text.replaceAll('"', '""')}"`;
+}
+
 export function ScoutApp() {
   const [genre, setGenre] = useState<(typeof GENRES)[number]>("Horror");
   const [marketIndex, setMarketIndex] = useState(0);
+  const [ratingMin, setRatingMin] = useState(1);
+  const [ratingMax, setRatingMax] = useState(49);
   const [savedOnly, setSavedOnly] = useState(false);
   const [books, setBooks] = useState<Book[]>([]);
   const [loading, setLoading] = useState(true);
@@ -83,8 +92,9 @@ export function ScoutApp() {
   const [refresh, setRefresh] = useState(0);
   const market = MARKETS[marketIndex]!;
   const googleQuery = useMemo(
-    () => `site:${market.domain} ${genre.toLowerCase()} ${market.country} "ratings"`,
-    [genre, market.country, market.domain],
+    () =>
+      `site:${market.domain} ${genre.toLowerCase()} ${market.country} (${ratingMin}..${ratingMax} ratings)`,
+    [genre, market.country, market.domain, ratingMax, ratingMin],
   );
   const googleUrl = `https://www.google.com/search?q=${encodeURIComponent(googleQuery)}`;
 
@@ -96,8 +106,8 @@ export function ScoutApp() {
         source: "amazon_books",
         genre,
         platform: "amazon",
-        reviewMin: "1",
-        reviewMax: "49",
+        reviewMin: String(ratingMin),
+        reviewMax: String(ratingMax),
       });
       return api<{ items: Book[] }>(`/api/admin/scout-books?${params}`, undefined, signal)
         .then((data) => setBooks(data.items))
@@ -109,7 +119,7 @@ export function ScoutApp() {
           if (!signal?.aborted) setLoading(false);
         });
     },
-    [genre],
+    [genre, ratingMax, ratingMin],
   );
 
   useEffect(() => {
@@ -136,7 +146,9 @@ export function ScoutApp() {
         genre,
       });
       formElement.reset();
-      setNotice("Amazon book imported and its 1–49 ratings qualification recorded.");
+      setNotice(
+        `Amazon book imported and its ${ratingMin}–${ratingMax} ratings qualification recorded.`,
+      );
       setRefresh((value) => value + 1);
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Could not import this book.");
@@ -164,6 +176,28 @@ export function ScoutApp() {
 
   const visibleBooks = savedOnly ? books.filter((book) => book.scout_prospects.length > 0) : books;
 
+  function exportCsv() {
+    const header = ["Author name", "Book title", "Amazon ratings", "Genre", "ASIN", "Amazon URL"];
+    const rows = visibleBooks.map((book) => {
+      const ratings = book.scout_review_counts.find((item) => item.platform === "amazon");
+      return [
+        book.scout_authors?.name,
+        book.title,
+        ratings?.review_count,
+        book.genre,
+        book.asin,
+        book.source_url,
+      ];
+    });
+    const csv = [header, ...rows].map((row) => row.map(csvCell).join(",")).join("\r\n");
+    const url = URL.createObjectURL(new Blob([`\uFEFF${csv}`], { type: "text/csv;charset=utf-8" }));
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `hq360-${genre.toLowerCase().replaceAll(/[^a-z0-9]+/g, "-")}-authors.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
   return (
     <div className="min-h-[70vh] bg-secondary/30">
       <div className="mx-auto max-w-5xl px-5 py-10 sm:px-6">
@@ -176,7 +210,7 @@ export function ScoutApp() {
 
         <section className="mt-7 rounded-2xl border border-border bg-card p-5">
           <h2 className="font-semibold">1. Build the search</h2>
-          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <label className="text-sm font-medium" htmlFor="scout-genre">
               Genre
               <select
@@ -189,6 +223,34 @@ export function ScoutApp() {
                   <option key={item}>{item}</option>
                 ))}
               </select>
+            </label>
+            <label className="text-sm font-medium" htmlFor="scout-rating-min">
+              Minimum ratings
+              <input
+                id="scout-rating-min"
+                type="number"
+                min="1"
+                max={ratingMax}
+                value={ratingMin}
+                onChange={(event) =>
+                  setRatingMin(Math.min(ratingMax, Math.max(1, Number(event.target.value) || 1)))
+                }
+                className="mt-2 w-full rounded-xl border border-border bg-background px-4 py-3"
+              />
+            </label>
+            <label className="text-sm font-medium" htmlFor="scout-rating-max">
+              Maximum ratings
+              <input
+                id="scout-rating-max"
+                type="number"
+                min={ratingMin}
+                max="49"
+                value={ratingMax}
+                onChange={(event) =>
+                  setRatingMax(Math.min(49, Math.max(ratingMin, Number(event.target.value) || 49)))
+                }
+                className="mt-2 w-full rounded-xl border border-border bg-background px-4 py-3"
+              />
             </label>
             <label className="text-sm font-medium" htmlFor="scout-market">
               Amazon market
@@ -260,8 +322,8 @@ export function ScoutApp() {
                 name="reviewCount"
                 required
                 type="number"
-                min="1"
-                max="49"
+                min={ratingMin}
+                max={ratingMax}
                 className="mt-2 w-full rounded-xl border bg-background px-4 py-3"
               />
             </label>
@@ -288,7 +350,7 @@ export function ScoutApp() {
           </p>
         )}
 
-        <div className="mt-7 flex items-center justify-between gap-3">
+        <div className="mt-7 flex flex-wrap items-center justify-between gap-3">
           <div className="flex gap-1 rounded-full border bg-card p-1">
             {[false, true].map((saved) => (
               <button
@@ -305,7 +367,17 @@ export function ScoutApp() {
               </button>
             ))}
           </div>
-          <p className="text-sm text-muted-foreground">{visibleBooks.length} books</p>
+          <div className="flex items-center gap-3">
+            <p className="text-sm text-muted-foreground">{visibleBooks.length} books</p>
+            <button
+              type="button"
+              disabled={visibleBooks.length === 0}
+              onClick={exportCsv}
+              className="inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium disabled:opacity-40"
+            >
+              <Download className="h-4 w-4" /> Export CSV
+            </button>
+          </div>
         </div>
 
         {loading ? (

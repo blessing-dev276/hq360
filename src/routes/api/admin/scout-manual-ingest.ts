@@ -1,4 +1,5 @@
 import { canonicalUrl } from "@/lib/scout/normalize";
+import { amazonProduct } from "@/lib/scout/amazon-url";
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { isAdminRequest } from "@/lib/admin-auth.server";
@@ -67,23 +68,11 @@ async function withDatabaseRetry<T>(operation: () => PromiseLike<T>): Promise<T>
       continue;
     }
     const error = (result as { error?: unknown } | null)?.error;
-    if (!error || !transientDatabaseError(error) || attempt === 3) return result;
+    if (!error) return result;
+    if (!transientDatabaseError(error) || attempt === 3) throw error;
     await new Promise((resolve) => setTimeout(resolve, 500 * 2 ** attempt));
   }
   throw new Error("Database retry exhausted");
-}
-
-function amazonAsin(value: string) {
-  try {
-    const url = new URL(value);
-    if (!/(^|\.)amazon\.(com|de|co\.uk|ca|com\.au)$/.test(url.hostname.toLowerCase())) return null;
-    return (
-      url.pathname.match(/\/(?:dp|gp\/product)\/([A-Z0-9]{10})(?:[/?]|$)/i)?.[1]?.toUpperCase() ??
-      null
-    );
-  } catch {
-    return null;
-  }
 }
 
 const FULL_DATE = /^\d{4}-\d{2}-\d{2}$/;
@@ -108,6 +97,24 @@ export const Route = createFileRoute("/api/admin/scout-manual-ingest")({
           return json({ ok: false, error: "invalid" }, 400);
         }
 
+        let sourceUrl = canonicalUrl(body.sourceUrl);
+        let asin: string | null = null;
+        if (body.sourceSlug === "amazon_books") {
+          try {
+            const product = amazonProduct(body.sourceUrl);
+            sourceUrl = product.url;
+            asin = product.asin;
+            if (body.amazonReviewCount === undefined)
+              throw new Error("Enter the Amazon rating count from the book page.");
+          } catch (error) {
+            return json(
+              { ok: false, error: "invalid_amazon_book", message: (error as Error).message },
+              400,
+            );
+          }
+        }
+        if (!sourceUrl) return json({ ok: false, error: "invalid_source_url" }, 400);
+
         try {
           const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
           const db = asScoutDb(supabaseAdmin);
@@ -122,15 +129,6 @@ export const Route = createFileRoute("/api/admin/scout-manual-ingest")({
           if ((source as { kind: string }).kind === "api")
             return json({ ok: false, error: "source_is_automated" }, 400);
 
-          const sourceUrl = canonicalUrl(body.sourceUrl);
-          if (!sourceUrl) return json({ ok: false, error: "invalid_source_url" }, 400);
-          const asin = body.sourceSlug === "amazon_books" ? amazonAsin(sourceUrl) : null;
-          if (
-            body.sourceSlug === "amazon_books" &&
-            (!asin || body.amazonReviewCount === undefined)
-          ) {
-            return json({ ok: false, error: "invalid_amazon_book" }, 400);
-          }
           const profileUrl = canonicalUrl(body.authorProfileUrl);
           const authorNorm = normalizedName(body.authorName);
           let { data: author } = await withDatabaseRetry(() =>

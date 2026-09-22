@@ -2,6 +2,8 @@ import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react
 import { Bookmark, Check, Download, ExternalLink, Loader2, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { canonicalUrl } from "@/lib/scout/normalize";
+import { amazonProduct } from "@/lib/scout/amazon-url";
+import { z } from "zod";
 
 const GENRES = [
   "Horror",
@@ -34,18 +36,21 @@ type Book = {
 };
 
 const LOCAL_BOOKS_KEY = "hq360-scout-amazon-books";
-
-function asinFromUrl(value: string) {
-  try {
-    return (
-      new URL(value).pathname
-        .match(/\/(?:dp|gp\/product)\/([A-Z0-9]{10})(?:[/?]|$)/i)?.[1]
-        ?.toUpperCase() ?? null
-    );
-  } catch {
-    return null;
-  }
-}
+const localBookSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  asin: z.string().nullable(),
+  genre: z.string().nullable(),
+  source_url: z.string().nullable(),
+  localOnly: z.boolean().optional(),
+  scout_authors: z
+    .object({ id: z.string(), name: z.string(), country: z.string().nullable() })
+    .nullable(),
+  scout_review_counts: z.array(
+    z.object({ platform: z.string(), review_count: z.number().nullable() }),
+  ),
+  scout_prospects: z.array(z.object({ id: z.string(), status: z.string() })),
+});
 
 async function api<T>(url: string, body?: unknown, signal?: AbortSignal): Promise<T> {
   const response = await fetch(url, {
@@ -56,7 +61,9 @@ async function api<T>(url: string, body?: unknown, signal?: AbortSignal): Promis
           headers: { "content-type": "application/json" },
           body: JSON.stringify(body),
         }),
-    ...(signal ? { signal } : {}),
+    signal: signal
+      ? AbortSignal.any([signal, AbortSignal.timeout(20000)])
+      : AbortSignal.timeout(20000),
   });
   const result = await response.json();
   if (!response.ok || !result.ok) {
@@ -64,9 +71,11 @@ async function api<T>(url: string, body?: unknown, signal?: AbortSignal): Promis
       invalid_amazon_book:
         "Use a direct Amazon URL containing /dp/ or /gp/product/, and enter 1–49 ratings.",
       storage: "The book could not be saved. Please try again.",
+      unauthorized:
+        "Your sign-in has expired. Refresh and sign in again. Your browser copy can still be exported.",
     };
     throw new Error(
-      messages[result.error] ?? result.message ?? "Scout could not complete that request.",
+      result.message ?? messages[result.error] ?? "Scout could not complete that request.",
     );
   }
   return result;
@@ -147,39 +156,67 @@ export function ScoutApp() {
   useEffect(() => {
     try {
       const stored = JSON.parse(localStorage.getItem(LOCAL_BOOKS_KEY) ?? "[]");
-      if (Array.isArray(stored)) setLocalBooks(stored as Book[]);
+      if (Array.isArray(stored))
+        setLocalBooks(
+          stored.flatMap((item) => {
+            const result = localBookSchema.safeParse(item);
+            return result.success ? [result.data] : [];
+          }),
+        );
     } catch {
-      localStorage.removeItem(LOCAL_BOOKS_KEY);
+      setNotice(
+        "Browser storage is unavailable or unreadable. Export your entries before leaving this page.",
+      );
     }
   }, []);
 
   function storeLocalBook(book: Book) {
-    setLocalBooks((current) => {
-      const next = [book, ...current.filter((item) => item.source_url !== book.source_url)];
+    const next = [book, ...localBooks.filter((item) => item.source_url !== book.source_url)];
+    setLocalBooks(next);
+    try {
       localStorage.setItem(LOCAL_BOOKS_KEY, JSON.stringify(next));
-      return next;
-    });
+    } catch {
+      setNotice(
+        "Entry is ready to export, but browser storage is unavailable. Export before leaving this page.",
+      );
+    }
   }
 
   function removeLocalBook(sourceUrl: string) {
-    setLocalBooks((current) => {
-      const next = current.filter((item) => item.source_url !== sourceUrl);
+    const next = localBooks.filter((item) => item.source_url !== sourceUrl);
+    setLocalBooks(next);
+    try {
       localStorage.setItem(LOCAL_BOOKS_KEY, JSON.stringify(next));
-      return next;
-    });
+    } catch {
+      /* The server copy has already been saved. */
+    }
   }
 
   async function importBook(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const formElement = event.currentTarget;
     const form = new FormData(formElement);
-    const amazonUrl = String(form.get("amazonUrl") ?? "");
-    const authorName = String(form.get("authorName") ?? "");
-    const bookTitle = String(form.get("bookTitle") ?? "");
+    let product;
+    try {
+      product = amazonProduct(String(form.get("amazonUrl") ?? ""));
+    } catch (caught) {
+      setError((caught as Error).message);
+      return;
+    }
+    const { url: amazonUrl, asin } = product;
+    const authorName = String(form.get("authorName") ?? "").trim();
+    const bookTitle = String(form.get("bookTitle") ?? "").trim();
     const reviewCount = Number(form.get("reviewCount"));
-    const asin = asinFromUrl(amazonUrl);
-    if (!asin) {
-      setError("Use a direct Amazon URL containing /dp/ or /gp/product/.");
+    if (
+      !authorName ||
+      !bookTitle ||
+      !Number.isInteger(reviewCount) ||
+      reviewCount < ratingMin ||
+      reviewCount > ratingMax
+    ) {
+      setError(
+        "Enter an author, book title and whole-number rating count within the selected range.",
+      );
       return;
     }
     const localBook: Book = {
@@ -195,27 +232,48 @@ export function ScoutApp() {
     };
     storeLocalBook(localBook);
     formElement.reset();
-    setBusy("import");
+    setSavedOnly(false);
+    await syncBook(localBook);
+  }
+
+  async function syncBook(book: Book) {
+    setBusy(book.id);
     setError("");
-    setNotice("");
+    setNotice("Entry is ready to export. Saving to your account…");
     try {
-      await api("/api/admin/scout-manual-ingest", {
+      const result = await api<{
+        item: {
+          book: Omit<Book, "scout_authors" | "scout_review_counts" | "scout_prospects">;
+          author: NonNullable<Book["scout_authors"]>;
+        };
+      }>("/api/admin/scout-manual-ingest", {
         sourceSlug: "amazon_books",
-        sourceUrl: amazonUrl,
-        bookUrl: amazonUrl,
-        authorName,
-        bookTitle,
-        amazonReviewCount: reviewCount,
-        genre,
+        sourceUrl: book.source_url,
+        bookUrl: book.source_url,
+        authorName: book.scout_authors?.name,
+        bookTitle: book.title,
+        amazonReviewCount: book.scout_review_counts[0]?.review_count,
+        genre: book.genre,
       });
-      removeLocalBook(amazonUrl);
-      setNotice(
-        `Amazon book imported and its ${ratingMin}–${ratingMax} ratings qualification recorded.`,
-      );
-      setRefresh((value) => value + 1);
+      const savedBook: Book = {
+        ...book,
+        ...result.item.book,
+        scout_authors: result.item.author,
+        localOnly: false,
+      };
+      setBooks((current) => [
+        savedBook,
+        ...current.filter((item) => item.source_url !== book.source_url),
+      ]);
+      removeLocalBook(book.source_url!);
+      setNotice("Book saved to your account and ready to export.");
     } catch (caught) {
       setNotice("Saved in this browser and ready to export. Database synchronization is pending.");
-      setError(caught instanceof Error ? caught.message : "Database synchronization failed.");
+      setError(
+        caught instanceof Error && caught.name !== "TimeoutError"
+          ? caught.message
+          : "Saving timed out. Export now or use Retry sync to try again.",
+      );
     } finally {
       setBusy("");
     }
@@ -276,8 +334,10 @@ export function ScoutApp() {
     const link = document.createElement("a");
     link.href = url;
     link.download = `hq360-${genre.toLowerCase().replaceAll(/[^a-z0-9]+/g, "-")}-authors.csv`;
+    document.body.append(link);
     link.click();
-    URL.revokeObjectURL(url);
+    link.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 
   return (
@@ -362,7 +422,8 @@ export function ScoutApp() {
             <Search className="h-4 w-4" /> Search Google
           </a>
           <p className="mt-3 text-xs text-muted-foreground">
-            Google finds candidates; confirm the rating count on the Amazon product page.
+            Search opens Google in another tab. Results are not automatically collected. Open each
+            book's Amazon page, then add its details below to export them.
           </p>
         </section>
 
@@ -410,10 +471,10 @@ export function ScoutApp() {
               />
             </label>
             <button
-              disabled={busy === "import"}
+              disabled={Boolean(busy)}
               className="self-end rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground disabled:opacity-50"
             >
-              {busy === "import" ? "Importing…" : "Import author"}
+              {busy ? "Saving…" : "Import author"}
             </button>
           </form>
         </section>
@@ -462,7 +523,7 @@ export function ScoutApp() {
           </div>
         </div>
 
-        {loading ? (
+        {loading && visibleBooks.length === 0 ? (
           <div role="status" className="flex justify-center py-16">
             <Loader2 className="h-6 w-6 animate-spin" />
             <span className="sr-only">Loading authors</span>
@@ -489,8 +550,8 @@ export function ScoutApp() {
                       <p className="mt-1 text-sm font-medium">{book.title}</p>
                     </div>
                     <button
-                      disabled={book.localOnly || saved || Boolean(busy)}
-                      onClick={() => save(book)}
+                      disabled={saved || Boolean(busy)}
+                      onClick={() => (book.localOnly ? syncBook(book) : save(book))}
                       className="inline-flex items-center gap-1 rounded-full border px-3 py-1.5 text-xs disabled:opacity-60"
                     >
                       {saved ? (
@@ -499,7 +560,9 @@ export function ScoutApp() {
                         <Bookmark className="h-3.5 w-3.5" />
                       )}
                       {book.localOnly
-                        ? "Sync pending"
+                        ? busy === book.id
+                          ? "Syncing…"
+                          : "Retry sync"
                         : saved
                           ? "Saved"
                           : busy === book.id

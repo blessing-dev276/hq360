@@ -43,6 +43,36 @@ function normalizedTitle(value: string) {
   return value.trim().replace(/\s+/g, " ").toLocaleLowerCase();
 }
 
+function transientDatabaseError(error: unknown) {
+  const value = error as { status?: number; message?: string } | null;
+  const message = value?.message?.toLowerCase() ?? "";
+  return (
+    value?.status === 522 ||
+    message.includes("522") ||
+    message.includes("timed out") ||
+    message.includes("timeout") ||
+    message.includes("fetch failed") ||
+    message.includes("connection")
+  );
+}
+
+async function withDatabaseRetry<T>(operation: () => PromiseLike<T>): Promise<T> {
+  let result: T;
+  for (let attempt = 0; attempt < 4; attempt += 1) {
+    try {
+      result = await operation();
+    } catch (error) {
+      if (!transientDatabaseError(error) || attempt === 3) throw error;
+      await new Promise((resolve) => setTimeout(resolve, 500 * 2 ** attempt));
+      continue;
+    }
+    const error = (result as { error?: unknown } | null)?.error;
+    if (!error || !transientDatabaseError(error) || attempt === 3) return result;
+    await new Promise((resolve) => setTimeout(resolve, 500 * 2 ** attempt));
+  }
+  throw new Error("Database retry exhausted");
+}
+
 function amazonAsin(value: string) {
   try {
     const url = new URL(value);
@@ -82,11 +112,9 @@ export const Route = createFileRoute("/api/admin/scout-manual-ingest")({
           const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
           const db = asScoutDb(supabaseAdmin);
 
-          const { data: source } = await db
-            .from("scout_sources")
-            .select("slug, kind")
-            .eq("slug", body.sourceSlug)
-            .maybeSingle();
+          const { data: source } = await withDatabaseRetry(() =>
+            db.from("scout_sources").select("slug, kind").eq("slug", body.sourceSlug).maybeSingle(),
+          );
           if (!source) return json({ ok: false, error: "unknown_source" }, 400);
           // Automated (kind: 'api') sources go through discovery, not this
           // form -- manual ingest is only for sources without a safe
@@ -105,26 +133,32 @@ export const Route = createFileRoute("/api/admin/scout-manual-ingest")({
           }
           const profileUrl = canonicalUrl(body.authorProfileUrl);
           const authorNorm = normalizedName(body.authorName);
-          let { data: author } = await db
-            .from("scout_authors")
-            .select("*")
-            .eq("source_slug", body.sourceSlug)
-            .eq(profileUrl ? "author_profile_url" : "source_url", profileUrl ?? sourceUrl)
-            .is("merged_into", null)
-            .maybeSingle();
-          if (!author) {
-            const { data: created, error: authorErr } = await db
+          let { data: author } = await withDatabaseRetry(() =>
+            db
               .from("scout_authors")
-              .insert({
-                name: body.authorName,
-                normalized_name: authorNorm,
-                source_slug: body.sourceSlug,
-                source_url: sourceUrl,
-                author_profile_url: profileUrl,
-                country: body.country ?? null,
-              })
               .select("*")
-              .single();
+              .eq("source_slug", body.sourceSlug)
+              .eq(profileUrl ? "author_profile_url" : "source_url", profileUrl ?? sourceUrl)
+              .is("merged_into", null)
+              .maybeSingle(),
+          );
+          if (!author) {
+            const authorId = crypto.randomUUID();
+            const { data: created, error: authorErr } = await withDatabaseRetry(() =>
+              db
+                .from("scout_authors")
+                .upsert({
+                  id: authorId,
+                  name: body.authorName,
+                  normalized_name: authorNorm,
+                  source_slug: body.sourceSlug,
+                  source_url: sourceUrl,
+                  author_profile_url: profileUrl,
+                  country: body.country ?? null,
+                })
+                .select("*")
+                .single(),
+            );
             if (authorErr || !created) return json({ ok: false, error: "storage" }, 500);
             author = created;
           }
@@ -157,77 +191,89 @@ export const Route = createFileRoute("/api/admin/scout-manual-ingest")({
           }
 
           const titleNorm = normalizedTitle(body.bookTitle);
-          let { data: book } = await db
-            .from("scout_discovered_books")
-            .select("*")
-            .eq("scout_author_id", authorRow.id)
-            .eq("normalized_title", titleNorm)
-            .maybeSingle();
+          let { data: book } = await withDatabaseRetry(() =>
+            db
+              .from("scout_discovered_books")
+              .select("*")
+              .eq("scout_author_id", authorRow.id)
+              .eq("normalized_title", titleNorm)
+              .maybeSingle(),
+          );
 
           const publicationDate = body.publicationDate?.trim();
           const parsedDate = publicationDate ? parseManualDate(publicationDate) : null;
 
-          const { data: batch, error: batchErr } = await db
-            .from("scout_batches")
-            .insert({
-              label: `Manual: ${source.slug} — "${body.bookTitle}"`,
-              genre: body.genre ?? null,
-              query: null,
-              sources: [body.sourceSlug],
-              requested_max: 1,
-              total_available: null,
-              item_count: book ? 0 : 1,
-            })
-            .select("*")
-            .single();
+          const newBatchId = crypto.randomUUID();
+          const { data: batch, error: batchErr } = await withDatabaseRetry(() =>
+            db
+              .from("scout_batches")
+              .upsert({
+                id: newBatchId,
+                label: `Manual: ${source.slug} — "${body.bookTitle}"`,
+                genre: body.genre ?? null,
+                query: null,
+                sources: [body.sourceSlug],
+                requested_max: 1,
+                total_available: null,
+                item_count: book ? 0 : 1,
+              })
+              .select("*")
+              .single(),
+          );
           if (batchErr || !batch) return json({ ok: false, error: "storage" }, 500);
           const batchId = (batch as { id: string }).id;
 
           if (!book) {
-            const { data: created, error: bookErr } = await db
-              .from("scout_discovered_books")
-              .insert({
-                scout_author_id: authorRow.id,
-                title: body.bookTitle,
-                normalized_title: titleNorm,
-                genre: body.genre ?? null,
-                publication_date: parsedDate?.date ?? null,
-                publication_year: parsedDate?.year ?? null,
-                book_format: "unknown",
-                source_slug: body.sourceSlug,
-                source_url: sourceUrl,
-                asin,
-                description: body.description ?? null,
-                ingest_method: "manual",
-                raw_data: {
-                  manual: true,
-                  authorProfileUrl: body.authorProfileUrl ?? null,
-                  bookUrl: body.bookUrl ?? null,
-                },
-                batch_id: batchId,
-              })
-              .select("*")
-              .single();
+            const bookId = crypto.randomUUID();
+            const { data: created, error: bookErr } = await withDatabaseRetry(() =>
+              db
+                .from("scout_discovered_books")
+                .upsert({
+                  id: bookId,
+                  scout_author_id: authorRow.id,
+                  title: body.bookTitle,
+                  normalized_title: titleNorm,
+                  genre: body.genre ?? null,
+                  publication_date: parsedDate?.date ?? null,
+                  publication_year: parsedDate?.year ?? null,
+                  book_format: "unknown",
+                  source_slug: body.sourceSlug,
+                  source_url: sourceUrl,
+                  asin,
+                  description: body.description ?? null,
+                  ingest_method: "manual",
+                  raw_data: {
+                    manual: true,
+                    authorProfileUrl: body.authorProfileUrl ?? null,
+                    bookUrl: body.bookUrl ?? null,
+                  },
+                  batch_id: batchId,
+                })
+                .select("*")
+                .single(),
+            );
             if (bookErr || !created) return json({ ok: false, error: "storage" }, 500);
             book = created;
           }
 
-          const { error: membershipError } = await db
-            .from("scout_batch_books")
-            .upsert({ batch_id: batchId, book_id: book.id });
+          const { error: membershipError } = await withDatabaseRetry(() =>
+            db.from("scout_batch_books").upsert({ batch_id: batchId, book_id: book.id }),
+          );
           if (membershipError) throw membershipError;
 
           if (body.sourceSlug === "amazon_books" && body.amazonReviewCount !== undefined) {
-            const { error: reviewError } = await db.from("scout_review_counts").upsert(
-              {
-                book_id: book.id,
-                platform: "amazon",
-                review_count: body.amazonReviewCount,
-                verified: true,
-                source_url: sourceUrl,
-                retrieved_at: new Date().toISOString(),
-              },
-              { onConflict: "book_id,platform" },
+            const { error: reviewError } = await withDatabaseRetry(() =>
+              db.from("scout_review_counts").upsert(
+                {
+                  book_id: book.id,
+                  platform: "amazon",
+                  review_count: body.amazonReviewCount,
+                  verified: true,
+                  source_url: sourceUrl,
+                  retrieved_at: new Date().toISOString(),
+                },
+                { onConflict: "book_id,platform" },
+              ),
             );
             if (reviewError) throw reviewError;
           }
@@ -241,7 +287,16 @@ export const Route = createFileRoute("/api/admin/scout-manual-ingest")({
             "[admin/scout-manual-ingest] POST",
             err instanceof Error ? err.message : err,
           );
-          return json({ ok: false, error: "unavailable" }, 503);
+          return json(
+            {
+              ok: false,
+              error: "unavailable",
+              message: transientDatabaseError(err)
+                ? "The database is temporarily unavailable. Please wait a moment and try again."
+                : "The book could not be saved. Please try again.",
+            },
+            503,
+          );
         }
       },
     },

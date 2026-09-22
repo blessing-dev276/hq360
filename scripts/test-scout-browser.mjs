@@ -23,6 +23,27 @@ await context.route("**/api/admin/session", (route) =>
 await context.route("**/api/admin/scout-books?*", (route) =>
   route.fulfill({ status: 503, json: { ok: false, message: "Fixture database unavailable" } }),
 );
+await context.route("**/api/admin/scout-amazon-search", (route) =>
+  route.fulfill({
+    json: {
+      ok: true,
+      searched: 18,
+      qualifying: 1,
+      skippedWithoutAuthor: 0,
+      items: [
+        {
+          asin: "B012345678",
+          title,
+          authorName: name,
+          reviewCount: 12,
+          sourceUrl: "https://www.amazon.de/dp/B012345678",
+          genre: "Horror",
+          country: "Germany",
+        },
+      ],
+    },
+  }),
+);
 await context.route("**/api/admin/scout-manual-ingest", (route) => {
   imports++;
   if (unavailable)
@@ -39,17 +60,14 @@ await context.route("**/api/admin/scout-manual-ingest", (route) => {
           asin: "B012345678",
           source_url: body.sourceUrl,
         },
-        author: { id: "server-author", name: body.authorName, country: null },
+        author: { id: "server-author", name: body.authorName, country: body.country },
       },
     },
   });
 });
-async function fill(url) {
-  await page.getByLabel("Author name", { exact: true }).fill(name);
-  await page.getByLabel("Book title", { exact: true }).fill(title);
-  await page.getByLabel("Direct Amazon product URL").fill(url);
-  await page.getByLabel("Amazon ratings", { exact: true }).fill("12");
-  await page.getByRole("button", { name: "Import author", exact: true }).click();
+async function search() {
+  await page.getByRole("button", { name: "Search Amazon and save results" }).click();
+  await expect(page.getByRole("heading", { name, exact: true })).toBeVisible();
 }
 async function checkCsv() {
   const downloadEvent = page.waitForEvent("download");
@@ -57,38 +75,28 @@ async function checkCsv() {
   const download = await downloadEvent;
   const csv = await readFile(await download.path(), "utf8");
   expect(csv).toContain('"Test Author, ""Quoted""","Test Book, ""Quoted""","12"');
-  expect(csv).toContain('"B012345678","https://www.amazon.ca/dp/B012345678"');
+  expect(csv).toContain('"B012345678","https://www.amazon.de/dp/B012345678"');
   expect(await download.failure()).toBeNull();
 }
 try {
   await page.goto(`${process.env.SCOUT_TEST_URL || "http://localhost:8081"}/scout`);
-  await fill(
-    "https://www.google.com/search?q=site%3Aamazon.ca%20horror%20Canada%20(1..49%20ratings)",
-  );
-  await expect(page.getByRole("alert")).toContainText("This is a Google search link");
-  expect(imports).toBe(0);
-  await expect(page.getByRole("button", { name: "Export CSV" })).toBeDisabled();
-  console.log("PASS: Google results URL rejected clearly without a save request.");
-
-  await fill("https://www.amazon.ca/Test/dp/B012345678/ref=test?tag=tracking");
+  await search();
   await expect(page.getByRole("button", { name: "Retry sync" })).toBeVisible();
   await checkCsv();
   await page.reload();
   await expect(page.getByRole("heading", { name, exact: true })).toBeVisible();
   await checkCsv();
-  console.log("PASS: failed save remains visible, survives reload, and downloads correct CSV.");
+  console.log("PASS: automatic search collects data, survives a failed save and downloads CSV.");
 
   unavailable = false;
   await page.getByRole("button", { name: "Retry sync" }).click();
   await expect(
     page.getByText("Book saved to your account and ready to export.", { exact: true }),
   ).toBeVisible();
-  await expect(page.getByRole("heading", { name, exact: true })).toBeVisible();
   await checkCsv();
   expect(imports).toBe(2);
-  console.log(
-    "PASS: retry uses the saved entry; successful save stays visible despite list API failure.",
-  );
+  console.log("PASS: retry saves the automatically collected result and keeps it exportable.");
+
   await page.evaluate(() => localStorage.clear());
   await context.addInitScript(() => {
     Storage.prototype.setItem = () => {
@@ -97,10 +105,9 @@ try {
   });
   unavailable = true;
   await page.reload();
-  await fill("https://www.amazon.ca/dp/B012345678");
-  await expect(page.getByRole("button", { name: "Retry sync" })).toBeVisible();
+  await search();
   await checkCsv();
-  console.log("PASS: blocked browser storage does not crash the form or prevent CSV export.");
+  console.log("PASS: blocked browser storage does not prevent automatic search or CSV export.");
   expect(errors).toEqual([]);
 } finally {
   await browser.close();

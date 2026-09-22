@@ -1,8 +1,7 @@
-import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Bookmark, Check, Download, ExternalLink, Loader2, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { canonicalUrl } from "@/lib/scout/normalize";
-import { amazonProduct } from "@/lib/scout/amazon-url";
 import { z } from "zod";
 
 const GENRES = [
@@ -63,7 +62,7 @@ async function api<T>(url: string, body?: unknown, signal?: AbortSignal): Promis
         }),
     signal: signal
       ? AbortSignal.any([signal, AbortSignal.timeout(20000)])
-      : AbortSignal.timeout(20000),
+      : AbortSignal.timeout(60000),
   });
   const result = await response.json();
   if (!response.ok || !result.ok) {
@@ -116,12 +115,6 @@ export function ScoutApp() {
   const [notice, setNotice] = useState("");
   const [refresh, setRefresh] = useState(0);
   const market = MARKETS[marketIndex]!;
-  const googleQuery = useMemo(
-    () =>
-      `site:${market.domain} ${genre.toLowerCase()} ${market.country} (${ratingMin}..${ratingMax} ratings)`,
-    [genre, market.country, market.domain, ratingMax, ratingMin],
-  );
-  const googleUrl = `https://www.google.com/search?q=${encodeURIComponent(googleQuery)}`;
 
   const loadBooks = useCallback(
     (signal?: AbortSignal) => {
@@ -171,96 +164,61 @@ export function ScoutApp() {
   }, []);
 
   function storeLocalBook(book: Book) {
-    const next = [book, ...localBooks.filter((item) => item.source_url !== book.source_url)];
-    setLocalBooks(next);
-    try {
-      localStorage.setItem(LOCAL_BOOKS_KEY, JSON.stringify(next));
-    } catch {
-      setNotice(
-        "Entry is ready to export, but browser storage is unavailable. Export before leaving this page.",
-      );
-    }
+    setLocalBooks((current) => {
+      const next = [book, ...current.filter((item) => item.source_url !== book.source_url)];
+      try {
+        localStorage.setItem(LOCAL_BOOKS_KEY, JSON.stringify(next));
+      } catch {
+        setNotice(
+          "Entry is ready to export, but browser storage is unavailable. Export before leaving this page.",
+        );
+      }
+      return next;
+    });
   }
 
   function removeLocalBook(sourceUrl: string) {
-    const next = localBooks.filter((item) => item.source_url !== sourceUrl);
-    setLocalBooks(next);
-    try {
-      localStorage.setItem(LOCAL_BOOKS_KEY, JSON.stringify(next));
-    } catch {
-      /* The server copy has already been saved. */
-    }
+    setLocalBooks((current) => {
+      const next = current.filter((item) => item.source_url !== sourceUrl);
+      try {
+        localStorage.setItem(LOCAL_BOOKS_KEY, JSON.stringify(next));
+      } catch {
+        /* The server copy has already been saved. */
+      }
+      return next;
+    });
   }
 
-  async function importBook(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const formElement = event.currentTarget;
-    const form = new FormData(formElement);
-    let product;
-    try {
-      product = amazonProduct(String(form.get("amazonUrl") ?? ""));
-    } catch (caught) {
-      setError((caught as Error).message);
-      return;
-    }
-    const { url: amazonUrl, asin } = product;
-    const authorName = String(form.get("authorName") ?? "").trim();
-    const bookTitle = String(form.get("bookTitle") ?? "").trim();
-    const reviewCount = Number(form.get("reviewCount"));
-    if (
-      !authorName ||
-      !bookTitle ||
-      !Number.isInteger(reviewCount) ||
-      reviewCount < ratingMin ||
-      reviewCount > ratingMax
-    ) {
-      setError(
-        "Enter an author, book title and whole-number rating count within the selected range.",
-      );
-      return;
-    }
-    const localBook: Book = {
-      id: `local-${asin}`,
-      title: bookTitle,
-      asin,
-      genre,
-      source_url: amazonUrl,
-      scout_authors: { id: `local-${asin}`, name: authorName, country: null },
-      scout_review_counts: [{ platform: "amazon", review_count: reviewCount }],
-      scout_prospects: [],
-      localOnly: true,
-    };
-    storeLocalBook(localBook);
-    formElement.reset();
-    setSavedOnly(false);
-    await syncBook(localBook);
+  async function ingestBook(book: Book) {
+    const result = await api<{
+      item: {
+        book: Omit<Book, "scout_authors" | "scout_review_counts" | "scout_prospects">;
+        author: NonNullable<Book["scout_authors"]>;
+      };
+    }>("/api/admin/scout-manual-ingest", {
+      sourceSlug: "amazon_books",
+      sourceUrl: book.source_url,
+      bookUrl: book.source_url,
+      authorName: book.scout_authors?.name,
+      bookTitle: book.title,
+      amazonReviewCount: book.scout_review_counts[0]?.review_count,
+      genre: book.genre,
+      country: book.scout_authors?.country ?? undefined,
+    });
+    return {
+      ...book,
+      ...result.item.book,
+      scout_authors: result.item.author,
+      localOnly: false,
+    } satisfies Book;
   }
 
   async function syncBook(book: Book) {
     setBusy(book.id);
     setError("");
-    setNotice("Entry is ready to export. Saving to your account…");
+    setNotice("Saving this search result to your account…");
     try {
-      const result = await api<{
-        item: {
-          book: Omit<Book, "scout_authors" | "scout_review_counts" | "scout_prospects">;
-          author: NonNullable<Book["scout_authors"]>;
-        };
-      }>("/api/admin/scout-manual-ingest", {
-        sourceSlug: "amazon_books",
-        sourceUrl: book.source_url,
-        bookUrl: book.source_url,
-        authorName: book.scout_authors?.name,
-        bookTitle: book.title,
-        amazonReviewCount: book.scout_review_counts[0]?.review_count,
-        genre: book.genre,
-      });
-      const savedBook: Book = {
-        ...book,
-        ...result.item.book,
-        scout_authors: result.item.author,
-        localOnly: false,
-      };
+      const savedBook = await ingestBook(book);
       setBooks((current) => [
         savedBook,
         ...current.filter((item) => item.source_url !== book.source_url),
@@ -274,6 +232,87 @@ export function ScoutApp() {
           ? caught.message
           : "Saving timed out. Export now or use Retry sync to try again.",
       );
+    } finally {
+      setBusy("");
+    }
+  }
+
+  async function runSearch() {
+    setBusy("search");
+    setError("");
+    setNotice("Searching Amazon and collecting qualifying author details…");
+    try {
+      const result = await api<{
+        items: Array<{
+          asin: string;
+          title: string;
+          authorName: string;
+          reviewCount: number;
+          sourceUrl: string;
+          genre: string;
+          country: string;
+        }>;
+        searched: number;
+        qualifying: number;
+        skippedWithoutAuthor: number;
+      }>("/api/admin/scout-amazon-search", {
+        genre,
+        amazonDomain: market.domain,
+        country: market.country,
+        ratingMin,
+        ratingMax,
+      });
+      const candidates: Book[] = result.items.map((item) => ({
+        id: `local-${item.asin}`,
+        title: item.title,
+        asin: item.asin,
+        genre: item.genre,
+        source_url: item.sourceUrl,
+        scout_authors: {
+          id: `local-${item.asin}`,
+          name: item.authorName,
+          country: item.country,
+        },
+        scout_review_counts: [{ platform: "amazon", review_count: item.reviewCount }],
+        scout_prospects: [],
+        localOnly: true,
+      }));
+      setSavedOnly(false);
+      candidates.forEach(storeLocalBook);
+      const settled = await Promise.allSettled(candidates.map(ingestBook));
+      const saved = settled.flatMap((item) => (item.status === "fulfilled" ? [item.value] : []));
+      const failedUrls = new Set(
+        settled.flatMap((item, index) =>
+          item.status === "rejected" ? [candidates[index]!.source_url] : [],
+        ),
+      );
+      setBooks((current) => [
+        ...saved,
+        ...current.filter((book) => !saved.some((item) => item.source_url === book.source_url)),
+      ]);
+      setLocalBooks((current) => {
+        const savedUrls = new Set(saved.map((book) => book.source_url));
+        const next = current.filter((book) => !savedUrls.has(book.source_url));
+        try {
+          localStorage.setItem(LOCAL_BOOKS_KEY, JSON.stringify(next));
+        } catch {
+          /* Results remain available in memory for export. */
+        }
+        return next;
+      });
+      const skipped = result.skippedWithoutAuthor;
+      setNotice(
+        `${candidates.length} qualifying books found; ${saved.length} saved to your account` +
+          `${failedUrls.size ? ` and ${failedUrls.size} kept in this browser for export` : ""}` +
+          `${skipped ? `. ${skipped} skipped because the author could not be verified` : ""}.`,
+      );
+      if (candidates.length === 0)
+        setNotice(
+          `No books with ${ratingMin}–${ratingMax} ratings and a verified author were found in the first ${result.searched} Amazon results.`,
+        );
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Automatic Amazon search failed.");
+      setNotice("");
     } finally {
       setBusy("");
     }
@@ -346,12 +385,12 @@ export function ScoutApp() {
         <p className="text-xs font-semibold tracking-widest text-brand uppercase">HQ360 Scout</p>
         <h1 className="mt-2 font-display text-3xl">Find emerging authors on Amazon</h1>
         <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
-          Search Google for Amazon books, verify the listing, then import authors whose books have
-          between 1 and 49 ratings.
+          Search Amazon automatically, collect the book and author details, and save every result
+          within your selected rating range for CSV export.
         </p>
 
         <section className="mt-7 rounded-2xl border border-border bg-card p-5">
-          <h2 className="font-semibold">1. Build the search</h2>
+          <h2 className="font-semibold">Search and save authors</h2>
           <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <label className="text-sm font-medium" htmlFor="scout-genre">
               Genre
@@ -410,73 +449,23 @@ export function ScoutApp() {
               </select>
             </label>
           </div>
-          <div className="mt-4 rounded-xl bg-secondary px-4 py-3 font-mono text-xs text-muted-foreground">
-            {googleQuery}
-          </div>
-          <a
-            href={googleUrl}
-            target="_blank"
-            rel="noreferrer"
+          <button
+            type="button"
+            disabled={Boolean(busy)}
+            onClick={runSearch}
             className="mt-4 inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground"
           >
-            <Search className="h-4 w-4" /> Search Google
-          </a>
+            {busy === "search" ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Search className="h-4 w-4" />
+            )}
+            {busy === "search" ? "Searching and saving…" : "Search Amazon and save results"}
+          </button>
           <p className="mt-3 text-xs text-muted-foreground">
-            Search opens Google in another tab. Results are not automatically collected. Open each
-            book's Amazon page, then add its details below to export them.
+            The search collects the title, author, ASIN, Amazon URL, and rating count. Only books
+            inside the selected rating range are saved.
           </p>
-        </section>
-
-        <section className="mt-5 rounded-2xl border border-border bg-card p-5">
-          <h2 className="font-semibold">2. Import a qualified Amazon book</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Open a result, confirm its author and rating count, then enter the listing below.
-          </p>
-          <form onSubmit={importBook} className="mt-4 grid gap-3 sm:grid-cols-2">
-            <label className="text-sm font-medium">
-              Author name
-              <input
-                name="authorName"
-                required
-                className="mt-2 w-full rounded-xl border bg-background px-4 py-3"
-              />
-            </label>
-            <label className="text-sm font-medium">
-              Book title
-              <input
-                name="bookTitle"
-                required
-                className="mt-2 w-full rounded-xl border bg-background px-4 py-3"
-              />
-            </label>
-            <label className="text-sm font-medium sm:col-span-2">
-              Direct Amazon product URL
-              <input
-                name="amazonUrl"
-                required
-                type="url"
-                placeholder={`https://www.${market.domain}/dp/XXXXXXXXXX`}
-                className="mt-2 w-full rounded-xl border bg-background px-4 py-3"
-              />
-            </label>
-            <label className="text-sm font-medium">
-              Amazon ratings
-              <input
-                name="reviewCount"
-                required
-                type="number"
-                min={ratingMin}
-                max={ratingMax}
-                className="mt-2 w-full rounded-xl border bg-background px-4 py-3"
-              />
-            </label>
-            <button
-              disabled={Boolean(busy)}
-              className="self-end rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground disabled:opacity-50"
-            >
-              {busy ? "Saving…" : "Import author"}
-            </button>
-          </form>
         </section>
 
         {error && (
@@ -532,7 +521,7 @@ export function ScoutApp() {
           <div className="mt-5 rounded-2xl border border-dashed p-12 text-center">
             <h2 className="font-semibold">No qualifying Amazon authors imported yet</h2>
             <p className="mt-2 text-sm text-muted-foreground">
-              Run the Google search and import the first verified listing above.
+              Choose the market and rating range, then run the automatic Amazon search above.
             </p>
           </div>
         ) : (

@@ -30,7 +30,22 @@ type Book = {
   scout_authors: { id: string; name: string; country: string | null } | null;
   scout_review_counts: { platform: string; review_count: number | null }[];
   scout_prospects: { id: string; status: string }[];
+  localOnly?: boolean;
 };
+
+const LOCAL_BOOKS_KEY = "hq360-scout-amazon-books";
+
+function asinFromUrl(value: string) {
+  try {
+    return (
+      new URL(value).pathname
+        .match(/\/(?:dp|gp\/product)\/([A-Z0-9]{10})(?:[/?]|$)/i)?.[1]
+        ?.toUpperCase() ?? null
+    );
+  } catch {
+    return null;
+  }
+}
 
 async function api<T>(url: string, body?: unknown, signal?: AbortSignal): Promise<T> {
   const response = await fetch(url, {
@@ -85,6 +100,7 @@ export function ScoutApp() {
   const [ratingMax, setRatingMax] = useState(49);
   const [savedOnly, setSavedOnly] = useState(false);
   const [books, setBooks] = useState<Book[]>([]);
+  const [localBooks, setLocalBooks] = useState<Book[]>([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
@@ -128,30 +144,78 @@ export function ScoutApp() {
     return () => controller.abort();
   }, [loadBooks, refresh]);
 
+  useEffect(() => {
+    try {
+      const stored = JSON.parse(localStorage.getItem(LOCAL_BOOKS_KEY) ?? "[]");
+      if (Array.isArray(stored)) setLocalBooks(stored as Book[]);
+    } catch {
+      localStorage.removeItem(LOCAL_BOOKS_KEY);
+    }
+  }, []);
+
+  function storeLocalBook(book: Book) {
+    setLocalBooks((current) => {
+      const next = [book, ...current.filter((item) => item.source_url !== book.source_url)];
+      localStorage.setItem(LOCAL_BOOKS_KEY, JSON.stringify(next));
+      return next;
+    });
+  }
+
+  function removeLocalBook(sourceUrl: string) {
+    setLocalBooks((current) => {
+      const next = current.filter((item) => item.source_url !== sourceUrl);
+      localStorage.setItem(LOCAL_BOOKS_KEY, JSON.stringify(next));
+      return next;
+    });
+  }
+
   async function importBook(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const formElement = event.currentTarget;
     const form = new FormData(formElement);
+    const amazonUrl = String(form.get("amazonUrl") ?? "");
+    const authorName = String(form.get("authorName") ?? "");
+    const bookTitle = String(form.get("bookTitle") ?? "");
+    const reviewCount = Number(form.get("reviewCount"));
+    const asin = asinFromUrl(amazonUrl);
+    if (!asin) {
+      setError("Use a direct Amazon URL containing /dp/ or /gp/product/.");
+      return;
+    }
+    const localBook: Book = {
+      id: `local-${asin}`,
+      title: bookTitle,
+      asin,
+      genre,
+      source_url: amazonUrl,
+      scout_authors: { id: `local-${asin}`, name: authorName, country: null },
+      scout_review_counts: [{ platform: "amazon", review_count: reviewCount }],
+      scout_prospects: [],
+      localOnly: true,
+    };
+    storeLocalBook(localBook);
+    formElement.reset();
     setBusy("import");
     setError("");
     setNotice("");
     try {
       await api("/api/admin/scout-manual-ingest", {
         sourceSlug: "amazon_books",
-        sourceUrl: String(form.get("amazonUrl") ?? ""),
-        bookUrl: String(form.get("amazonUrl") ?? ""),
-        authorName: String(form.get("authorName") ?? ""),
-        bookTitle: String(form.get("bookTitle") ?? ""),
-        amazonReviewCount: Number(form.get("reviewCount")),
+        sourceUrl: amazonUrl,
+        bookUrl: amazonUrl,
+        authorName,
+        bookTitle,
+        amazonReviewCount: reviewCount,
         genre,
       });
-      formElement.reset();
+      removeLocalBook(amazonUrl);
       setNotice(
         `Amazon book imported and its ${ratingMin}–${ratingMax} ratings qualification recorded.`,
       );
       setRefresh((value) => value + 1);
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "Could not import this book.");
+      setNotice("Saved in this browser and ready to export. Database synchronization is pending.");
+      setError(caught instanceof Error ? caught.message : "Database synchronization failed.");
     } finally {
       setBusy("");
     }
@@ -174,7 +238,25 @@ export function ScoutApp() {
     }
   }
 
-  const visibleBooks = savedOnly ? books.filter((book) => book.scout_prospects.length > 0) : books;
+  const allBooks = [
+    ...localBooks.filter((localBook) => {
+      const ratings = localBook.scout_review_counts.find(
+        (item) => item.platform === "amazon",
+      )?.review_count;
+      return (
+        localBook.genre === genre &&
+        ratings !== null &&
+        ratings !== undefined &&
+        ratings >= ratingMin &&
+        ratings <= ratingMax &&
+        !books.some((book) => book.source_url === localBook.source_url)
+      );
+    }),
+    ...books,
+  ];
+  const visibleBooks = savedOnly
+    ? allBooks.filter((book) => book.scout_prospects.length > 0)
+    : allBooks;
 
   function exportCsv() {
     const header = ["Author name", "Book title", "Amazon ratings", "Genre", "ASIN", "Amazon URL"];
@@ -407,7 +489,7 @@ export function ScoutApp() {
                       <p className="mt-1 text-sm font-medium">{book.title}</p>
                     </div>
                     <button
-                      disabled={saved || Boolean(busy)}
+                      disabled={book.localOnly || saved || Boolean(busy)}
                       onClick={() => save(book)}
                       className="inline-flex items-center gap-1 rounded-full border px-3 py-1.5 text-xs disabled:opacity-60"
                     >
@@ -416,12 +498,23 @@ export function ScoutApp() {
                       ) : (
                         <Bookmark className="h-3.5 w-3.5" />
                       )}
-                      {saved ? "Saved" : busy === book.id ? "Saving…" : "Save"}
+                      {book.localOnly
+                        ? "Sync pending"
+                        : saved
+                          ? "Saved"
+                          : busy === book.id
+                            ? "Saving…"
+                            : "Save"}
                     </button>
                   </div>
                   <p className="mt-3 text-sm text-muted-foreground">
                     {book.genre} · {amazonReviews?.review_count} verified Amazon ratings
                   </p>
+                  {book.localOnly ? (
+                    <p className="mt-2 text-xs text-muted-foreground">
+                      Stored in this browser and included in CSV export.
+                    </p>
+                  ) : null}
                   <div className="mt-4">
                     <PublicLink url={book.source_url}>View Amazon listing</PublicLink>
                   </div>

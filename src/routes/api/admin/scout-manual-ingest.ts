@@ -13,7 +13,7 @@ function json(body: unknown, status = 200) {
 
 /**
  * Manual, staff-supplied ingestion: one specific page a staff member is
- * already looking at (a Reedsy book page, an independent publisher's
+ * already looking at (an Amazon book page, an independent publisher's
  * catalog entry, etc.), with fields they read off that page by hand.
  * Nothing here fetches or parses the source page automatically -- this is
  * the reusable alternative for any source without a safe automated path,
@@ -24,12 +24,14 @@ const bodySchema = z.object({
   sourceUrl: z.string().trim().min(1).max(2000),
   authorName: z.string().trim().min(1).max(160),
   bookTitle: z.string().trim().min(1).max(300),
+  country: z.string().trim().max(80).optional(),
   genre: z.string().trim().max(80).optional(),
   description: z.string().trim().max(4000).optional(),
   publicationDate: z.string().trim().max(40).optional(),
   authorProfileUrl: z.string().trim().max(2000).optional(),
   bookUrl: z.string().trim().max(2000).optional(),
   authorWebsiteUrl: z.string().trim().max(2000).optional(),
+  amazonReviewCount: z.number().int().min(1).max(49).optional(),
   // Staff must explicitly say "yes, this website belongs to this author" --
   // a name/URL pairing found on a listing page is not itself proof of
   // identity, so an unconfirmed website is recorded as a lead to verify,
@@ -39,6 +41,19 @@ const bodySchema = z.object({
 
 function normalizedTitle(value: string) {
   return value.trim().replace(/\s+/g, " ").toLocaleLowerCase();
+}
+
+function amazonAsin(value: string) {
+  try {
+    const url = new URL(value);
+    if (!/(^|\.)amazon\.(com|de|co\.uk|ca|com\.au)$/.test(url.hostname.toLowerCase())) return null;
+    return (
+      url.pathname.match(/\/(?:dp|gp\/product)\/([A-Z0-9]{10})(?:[/?]|$)/i)?.[1]?.toUpperCase() ??
+      null
+    );
+  } catch {
+    return null;
+  }
 }
 
 const FULL_DATE = /^\d{4}-\d{2}-\d{2}$/;
@@ -81,6 +96,13 @@ export const Route = createFileRoute("/api/admin/scout-manual-ingest")({
 
           const sourceUrl = canonicalUrl(body.sourceUrl);
           if (!sourceUrl) return json({ ok: false, error: "invalid_source_url" }, 400);
+          const asin = body.sourceSlug === "amazon_books" ? amazonAsin(sourceUrl) : null;
+          if (
+            body.sourceSlug === "amazon_books" &&
+            (!asin || body.amazonReviewCount === undefined)
+          ) {
+            return json({ ok: false, error: "invalid_amazon_book" }, 400);
+          }
           const profileUrl = canonicalUrl(body.authorProfileUrl);
           const authorNorm = normalizedName(body.authorName);
           let { data: author } = await db
@@ -99,6 +121,7 @@ export const Route = createFileRoute("/api/admin/scout-manual-ingest")({
                 source_slug: body.sourceSlug,
                 source_url: sourceUrl,
                 author_profile_url: profileUrl,
+                country: body.country ?? null,
               })
               .select("*")
               .single();
@@ -173,6 +196,7 @@ export const Route = createFileRoute("/api/admin/scout-manual-ingest")({
                 book_format: "unknown",
                 source_slug: body.sourceSlug,
                 source_url: sourceUrl,
+                asin,
                 description: body.description ?? null,
                 ingest_method: "manual",
                 raw_data: {
@@ -192,6 +216,21 @@ export const Route = createFileRoute("/api/admin/scout-manual-ingest")({
             .from("scout_batch_books")
             .upsert({ batch_id: batchId, book_id: book.id });
           if (membershipError) throw membershipError;
+
+          if (body.sourceSlug === "amazon_books" && body.amazonReviewCount !== undefined) {
+            const { error: reviewError } = await db.from("scout_review_counts").upsert(
+              {
+                book_id: book.id,
+                platform: "amazon",
+                review_count: body.amazonReviewCount,
+                verified: true,
+                source_url: sourceUrl,
+                retrieved_at: new Date().toISOString(),
+              },
+              { onConflict: "book_id,platform" },
+            );
+            if (reviewError) throw reviewError;
+          }
           return json({
             ok: true,
             item: { author: authorForResponse, book: book as ScoutBook },

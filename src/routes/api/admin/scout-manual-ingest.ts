@@ -33,6 +33,11 @@ const bodySchema = z.object({
   bookUrl: z.string().trim().max(2000).optional(),
   authorWebsiteUrl: z.string().trim().max(2000).optional(),
   amazonReviewCount: z.number().int().min(1).max(49).optional(),
+  // Non-Amazon sources don't share Amazon's "rating count" semantics (e.g.
+  // Reedsy Discovery's editorial verdict is a 1-5 score, not a count), so
+  // they use this generic pair instead of amazonReviewCount.
+  reviewPlatform: z.string().trim().min(1).max(40).optional(),
+  reviewCount: z.number().int().min(0).max(999).optional(),
   // Staff must explicitly say "yes, this website belongs to this author" --
   // a name/URL pairing found on a listing page is not itself proof of
   // identity, so an unconfirmed website is recorded as a lead to verify,
@@ -266,6 +271,22 @@ export const Route = createFileRoute("/api/admin/scout-manual-ingest")({
                   book_id: book.id,
                   platform: "amazon",
                   review_count: body.amazonReviewCount,
+                  verified: true,
+                  source_url: sourceUrl,
+                  retrieved_at: new Date().toISOString(),
+                },
+                { onConflict: "book_id,platform" },
+              ),
+            );
+            if (reviewError) throw reviewError;
+          }
+          if (body.reviewPlatform && body.reviewCount !== undefined) {
+            const { error: reviewError } = await withDatabaseRetry(() =>
+              db.from("scout_review_counts").upsert(
+                {
+                  book_id: book.id,
+                  platform: body.reviewPlatform,
+                  review_count: body.reviewCount,
                   verified: true,
                   source_url: sourceUrl,
                   retrieved_at: new Date().toISOString(),

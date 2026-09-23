@@ -48,6 +48,7 @@ type Book = {
   asin: string | null;
   genre: string | null;
   source_url: string | null;
+  source_slug: string;
   scout_authors: { id: string; name: string; country: string | null } | null;
   scout_review_counts: { platform: string; review_count: number | null }[];
   scout_prospects: { id: string; status: string }[];
@@ -55,10 +56,10 @@ type Book = {
 };
 
 type UnqualifiedResult = {
-  asin: string;
+  key: string;
   title: string;
   authorName: string | null;
-  reviewCount: number | null;
+  ratingLabel: string;
   sourceUrl: string;
   genre: string;
   reasons: string[];
@@ -71,6 +72,7 @@ const localBookSchema = z.object({
   asin: z.string().nullable(),
   genre: z.string().nullable(),
   source_url: z.string().nullable(),
+  source_slug: z.string(),
   localOnly: z.boolean().optional(),
   scout_authors: z
     .object({ id: z.string(), name: z.string(), country: z.string().nullable() })
@@ -141,7 +143,12 @@ export function ScoutApp() {
     useState<(typeof PUBLISHED_WITHIN_OPTIONS)[number]["value"]>("any");
   const [debutOnly, setDebutOnly] = useState(false);
   const [savedOnly, setSavedOnly] = useState(false);
-  const [unqualified, setUnqualified] = useState<UnqualifiedResult[]>([]);
+  const [amazonUnqualified, setAmazonUnqualified] = useState<UnqualifiedResult[]>([]);
+  const [reedsyMinRating, setReedsyMinRating] = useState(1);
+  const [reedsyBooks, setReedsyBooks] = useState<Book[]>([]);
+  const [reedsyUnqualified, setReedsyUnqualified] = useState<UnqualifiedResult[]>([]);
+  const [reedsySavedOnly, setReedsySavedOnly] = useState(false);
+  const [reedsyLoading, setReedsyLoading] = useState(true);
   const [books, setBooks] = useState<Book[]>([]);
   const [localBooks, setLocalBooks] = useState<Book[]>([]);
   const [loading, setLoading] = useState(true);
@@ -180,6 +187,29 @@ export function ScoutApp() {
     void loadBooks(controller.signal);
     return () => controller.abort();
   }, [loadBooks, refresh]);
+
+  const loadReedsyBooks = useCallback(
+    (signal?: AbortSignal) => {
+      setReedsyLoading(true);
+      const params = new URLSearchParams({ source: "reedsy_discovery", genre });
+      return api<{ items: Book[] }>(`/api/admin/scout-books?${params}`, undefined, signal)
+        .then((data) => setReedsyBooks(data.items))
+        .catch((caught) => {
+          if (!signal?.aborted)
+            setError(caught instanceof Error ? caught.message : "Could not load Reedsy books.");
+        })
+        .finally(() => {
+          if (!signal?.aborted) setReedsyLoading(false);
+        });
+    },
+    [genre],
+  );
+
+  useEffect(() => {
+    const controller = new AbortController();
+    void loadReedsyBooks(controller.signal);
+    return () => controller.abort();
+  }, [loadReedsyBooks, refresh]);
 
   useEffect(() => {
     try {
@@ -225,20 +255,25 @@ export function ScoutApp() {
   }
 
   async function ingestBook(book: Book) {
+    const reviewEntry = book.scout_review_counts[0];
     const result = await api<{
       item: {
         book: Omit<Book, "scout_authors" | "scout_review_counts" | "scout_prospects">;
         author: NonNullable<Book["scout_authors"]>;
       };
     }>("/api/admin/scout-manual-ingest", {
-      sourceSlug: "amazon_books",
+      sourceSlug: book.source_slug,
       sourceUrl: book.source_url,
       bookUrl: book.source_url,
       authorName: book.scout_authors?.name,
       bookTitle: book.title,
-      amazonReviewCount: book.scout_review_counts[0]?.review_count,
       genre: book.genre,
       country: book.scout_authors?.country ?? undefined,
+      ...(book.source_slug === "amazon_books"
+        ? { amazonReviewCount: reviewEntry?.review_count ?? undefined }
+        : reviewEntry && reviewEntry.review_count !== null
+          ? { reviewPlatform: reviewEntry.platform, reviewCount: reviewEntry.review_count }
+          : {}),
     });
     return {
       ...book,
@@ -311,6 +346,7 @@ export function ScoutApp() {
         asin: item.asin,
         genre: item.genre,
         source_url: item.sourceUrl,
+        source_slug: "amazon_books",
         scout_authors: {
           id: `local-${item.asin}`,
           name: item.authorName!,
@@ -322,12 +358,13 @@ export function ScoutApp() {
       }));
       setSavedOnly(false);
       candidates.forEach(storeLocalBook);
-      setUnqualified(
+      setAmazonUnqualified(
         unqualifiedItems.map((item) => ({
-          asin: item.asin,
+          key: item.asin,
           title: item.title,
           authorName: item.authorName,
-          reviewCount: item.reviewCount,
+          ratingLabel:
+            item.reviewCount === null ? "no rating count found" : `${item.reviewCount} ratings`,
           sourceUrl: item.sourceUrl,
           genre: item.genre,
           reasons: item.reasons,
@@ -362,6 +399,83 @@ export function ScoutApp() {
       );
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Automatic Amazon search failed.");
+      setNotice("");
+    } finally {
+      setBusy("");
+    }
+  }
+
+  async function runReedsySearch() {
+    setBusy("reedsy-search");
+    setError("");
+    setNotice("Searching Reedsy Discovery and checking each result against your filters…");
+    try {
+      const result = await api<{
+        items: Array<{
+          title: string;
+          authorName: string | null;
+          sourceUrl: string;
+          verdictRating: number | null;
+          genre: string;
+          qualified: boolean;
+          reasons: string[];
+        }>;
+        searched: number;
+        qualifying: number;
+      }>("/api/admin/scout-reedsy-search", {
+        genre,
+        limit: resultLimit,
+        minVerdictRating: reedsyMinRating,
+        debutOnly,
+      });
+      const qualifiedItems = result.items.filter((item) => item.qualified);
+      const unqualifiedItems = result.items.filter((item) => !item.qualified);
+
+      const candidates: Book[] = qualifiedItems.map((item, index) => ({
+        id: `local-reedsy-${index}-${item.sourceUrl}`,
+        title: item.title,
+        asin: null,
+        genre: item.genre,
+        source_url: item.sourceUrl,
+        source_slug: "reedsy_discovery",
+        scout_authors: {
+          id: `local-reedsy-${index}-${item.sourceUrl}`,
+          name: item.authorName!,
+          country: null,
+        },
+        scout_review_counts:
+          item.verdictRating === null
+            ? []
+            : [{ platform: "reedsy", review_count: item.verdictRating }],
+        scout_prospects: [],
+        localOnly: true,
+      }));
+      setReedsySavedOnly(false);
+      setReedsyUnqualified(
+        unqualifiedItems.map((item, index) => ({
+          key: `${index}-${item.sourceUrl}`,
+          title: item.title,
+          authorName: item.authorName,
+          ratingLabel:
+            item.verdictRating === null ? "no review score found" : `${item.verdictRating}/5`,
+          sourceUrl: item.sourceUrl,
+          genre: item.genre,
+          reasons: item.reasons,
+        })),
+      );
+      const settled = await Promise.allSettled(candidates.map(ingestBook));
+      const saved = settled.flatMap((item) => (item.status === "fulfilled" ? [item.value] : []));
+      setReedsyBooks((current) => [
+        ...saved,
+        ...current.filter((book) => !saved.some((item) => item.source_url === book.source_url)),
+      ]);
+      setNotice(
+        `${result.items.length} Reedsy results checked: ${candidates.length} qualified` +
+          ` (${saved.length} saved to your account) and ${unqualifiedItems.length} did not qualify.` +
+          ` All results are available to export below.`,
+      );
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Reedsy search failed.");
       setNotice("");
     } finally {
       setBusy("");
@@ -405,23 +519,40 @@ export function ScoutApp() {
     ? allBooks.filter((book) => book.scout_prospects.length > 0)
     : allBooks;
 
-  function exportCsv() {
+  const reedsyAllBooks = reedsyBooks;
+  const reedsyVisibleBooks = reedsySavedOnly
+    ? reedsyAllBooks.filter((book) => book.scout_prospects.length > 0)
+    : reedsyAllBooks;
+
+  function downloadCsv(rows: (string | number | null | undefined)[][], filenameSuffix: string) {
     const header = [
       "Author name",
       "Book title",
-      "Amazon ratings",
+      "Rating",
       "Genre",
-      "ASIN",
-      "Amazon URL",
+      "Reference",
+      "URL",
       "Qualified",
       "Notes",
     ];
+    const csv = [header, ...rows].map((row) => row.map(csvCell).join(",")).join("\r\n");
+    const url = URL.createObjectURL(new Blob([`\uFEFF${csv}`], { type: "text/csv;charset=utf-8" }));
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `hq360-${genre.toLowerCase().replaceAll(/[^a-z0-9]+/g, "-")}-${filenameSuffix}.csv`;
+    document.body.append(link);
+    link.click();
+    link.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  function exportAmazonCsv() {
     const qualifiedRows = allBooks.map((book) => {
       const ratings = book.scout_review_counts.find((item) => item.platform === "amazon");
       return [
         book.scout_authors?.name,
         book.title,
-        ratings?.review_count,
+        ratings?.review_count ?? null,
         book.genre,
         book.asin,
         book.source_url,
@@ -429,26 +560,46 @@ export function ScoutApp() {
         "",
       ];
     });
-    const unqualifiedRows = unqualified.map((item) => [
+    const unqualifiedRows = amazonUnqualified.map((item) => [
       item.authorName,
       item.title,
-      item.reviewCount,
+      item.ratingLabel,
       item.genre,
-      item.asin,
+      null,
       item.sourceUrl,
       "No",
       item.reasons.join("; "),
     ]);
-    const rows = [...qualifiedRows, ...unqualifiedRows];
-    const csv = [header, ...rows].map((row) => row.map(csvCell).join(",")).join("\r\n");
-    const url = URL.createObjectURL(new Blob([`\uFEFF${csv}`], { type: "text/csv;charset=utf-8" }));
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `hq360-${genre.toLowerCase().replaceAll(/[^a-z0-9]+/g, "-")}-authors.csv`;
-    document.body.append(link);
-    link.click();
-    link.remove();
-    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+    downloadCsv([...qualifiedRows, ...unqualifiedRows], "amazon-authors");
+  }
+
+  function exportReedsyCsv() {
+    const qualifiedRows = reedsyAllBooks.map((book) => {
+      const rating = book.scout_review_counts.find((item) => item.platform === "reedsy");
+      return [
+        book.scout_authors?.name,
+        book.title,
+        rating?.review_count === undefined || rating.review_count === null
+          ? null
+          : `${rating.review_count}/5`,
+        book.genre,
+        null,
+        book.source_url,
+        "Yes",
+        "",
+      ];
+    });
+    const unqualifiedRows = reedsyUnqualified.map((item) => [
+      item.authorName,
+      item.title,
+      item.ratingLabel,
+      item.genre,
+      null,
+      item.sourceUrl,
+      "No",
+      item.reasons.join("; "),
+    ]);
+    downloadCsv([...qualifiedRows, ...unqualifiedRows], "reedsy-authors");
   }
 
   return (
@@ -617,21 +768,21 @@ export function ScoutApp() {
                     : "text-muted-foreground",
                 )}
               >
-                {saved ? "Saved authors" : "Imported authors"}
+                {saved ? "Saved Amazon authors" : "Imported Amazon authors"}
               </button>
             ))}
           </div>
           <div className="flex items-center gap-3">
             <p className="text-sm text-muted-foreground">
-              {visibleBooks.length} qualified · {unqualified.length} not qualified
+              {visibleBooks.length} qualified · {amazonUnqualified.length} not qualified
             </p>
             <button
               type="button"
-              disabled={allBooks.length === 0 && unqualified.length === 0}
-              onClick={exportCsv}
+              disabled={allBooks.length === 0 && amazonUnqualified.length === 0}
+              onClick={exportAmazonCsv}
               className="inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium disabled:opacity-40"
             >
-              <Download className="h-4 w-4" /> Export all (CSV)
+              <Download className="h-4 w-4" /> Export Amazon results (CSV)
             </button>
           </div>
         </div>
@@ -700,7 +851,7 @@ export function ScoutApp() {
           </div>
         )}
 
-        {unqualified.length > 0 && (
+        {amazonUnqualified.length > 0 && (
           <div className="mt-10">
             <h2 className="font-semibold">Not qualified from the last search</h2>
             <p className="mt-1 text-sm text-muted-foreground">
@@ -708,22 +859,218 @@ export function ScoutApp() {
               nothing found is hidden.
             </p>
             <div className="mt-4 grid gap-4 sm:grid-cols-2">
-              {unqualified.map((item) => (
+              {amazonUnqualified.map((item) => (
                 <article
-                  key={item.asin}
+                  key={item.key}
                   className="rounded-2xl border border-dashed border-border bg-card/60 p-5"
                 >
                   <h3 className="text-lg font-semibold">{item.authorName ?? "Unknown author"}</h3>
                   <p className="mt-1 text-sm font-medium">{item.title}</p>
                   <p className="mt-3 text-sm text-muted-foreground">
-                    {item.genre} ·{" "}
-                    {item.reviewCount === null
-                      ? "no rating count found"
-                      : `${item.reviewCount} ratings`}
+                    {item.genre} · {item.ratingLabel}
                   </p>
                   <p className="mt-2 text-xs text-destructive">{item.reasons.join("; ")}</p>
                   <div className="mt-4">
                     <PublicLink url={item.sourceUrl}>View Amazon listing</PublicLink>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <section className="mt-12 rounded-2xl border border-border bg-card p-5">
+          <h2 className="font-semibold">Search Reedsy Discovery and save qualified authors</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Reedsy Discovery only features self-published and indie authors who submitted a book for
+            editorial review — the pool is inherently new/aspiring authors, not filtered by an
+            Amazon-style rating count. Each book gets one reviewer's 1–5 score instead.
+          </p>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <label className="text-sm font-medium" htmlFor="reedsy-genre">
+              Genre
+              <select
+                id="reedsy-genre"
+                value={genre}
+                onChange={(event) => setGenre(event.target.value as (typeof GENRES)[number])}
+                className="mt-2 w-full rounded-xl border border-border bg-background px-4 py-3"
+              >
+                {GENRES.map((item) => (
+                  <option key={item}>{item}</option>
+                ))}
+              </select>
+            </label>
+            <label className="text-sm font-medium" htmlFor="reedsy-limit">
+              Authors to find
+              <input
+                id="reedsy-limit"
+                type="number"
+                min="1"
+                max="50"
+                value={resultLimit}
+                onChange={(event) =>
+                  setResultLimit(Math.min(50, Math.max(1, Number(event.target.value) || 1)))
+                }
+                className="mt-2 w-full rounded-xl border border-border bg-background px-4 py-3"
+              />
+            </label>
+            <label className="text-sm font-medium" htmlFor="reedsy-min-rating">
+              Minimum Reedsy score
+              <select
+                id="reedsy-min-rating"
+                value={reedsyMinRating}
+                onChange={(event) => setReedsyMinRating(Number(event.target.value))}
+                className="mt-2 w-full rounded-xl border border-border bg-background px-4 py-3"
+              >
+                <option value={1}>Any score</option>
+                <option value={2}>2/5 or higher</option>
+                <option value={3}>3/5 or higher</option>
+                <option value={4}>4/5 or higher</option>
+                <option value={5}>5/5 only</option>
+              </select>
+            </label>
+            <label className="flex items-center gap-2 self-end pb-3 text-sm font-medium">
+              <input
+                type="checkbox"
+                checked={debutOnly}
+                onChange={(event) => setDebutOnly(event.target.checked)}
+                className="h-4 w-4 rounded border-border"
+              />
+              Debut authors only
+            </label>
+          </div>
+          <button
+            type="button"
+            disabled={Boolean(busy)}
+            onClick={runReedsySearch}
+            className="mt-4 inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground"
+          >
+            {busy === "reedsy-search" ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Search className="h-4 w-4" />
+            )}
+            {busy === "reedsy-search" ? "Searching and saving…" : "Search Reedsy"}
+          </button>
+          <p className="mt-3 text-xs text-muted-foreground">
+            Genre and "Debut authors only" are shared with the Amazon search above. Every result is
+            shown, whether it qualifies or not.
+          </p>
+        </section>
+
+        <div className="mt-7 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex gap-1 rounded-full border bg-card p-1">
+            {[false, true].map((saved) => (
+              <button
+                key={String(saved)}
+                onClick={() => setReedsySavedOnly(saved)}
+                className={cn(
+                  "rounded-full px-4 py-2 text-sm",
+                  reedsySavedOnly === saved
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground",
+                )}
+              >
+                {saved ? "Saved Reedsy authors" : "Imported Reedsy authors"}
+              </button>
+            ))}
+          </div>
+          <div className="flex items-center gap-3">
+            <p className="text-sm text-muted-foreground">
+              {reedsyVisibleBooks.length} qualified · {reedsyUnqualified.length} not qualified
+            </p>
+            <button
+              type="button"
+              disabled={reedsyAllBooks.length === 0 && reedsyUnqualified.length === 0}
+              onClick={exportReedsyCsv}
+              className="inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium disabled:opacity-40"
+            >
+              <Download className="h-4 w-4" /> Export Reedsy results (CSV)
+            </button>
+          </div>
+        </div>
+
+        {reedsyLoading && reedsyVisibleBooks.length === 0 ? (
+          <div role="status" className="flex justify-center py-16">
+            <Loader2 className="h-6 w-6 animate-spin" />
+            <span className="sr-only">Loading Reedsy authors</span>
+          </div>
+        ) : reedsyVisibleBooks.length === 0 ? (
+          <div className="mt-5 rounded-2xl border border-dashed p-12 text-center">
+            <h2 className="font-semibold">No qualifying Reedsy authors imported yet</h2>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Choose the genre above, then run the Reedsy search.
+            </p>
+          </div>
+        ) : (
+          <div className="mt-5 grid gap-4 sm:grid-cols-2">
+            {reedsyVisibleBooks.map((book) => {
+              const saved = book.scout_prospects.length > 0;
+              const rating = book.scout_review_counts.find((item) => item.platform === "reedsy");
+              return (
+                <article key={book.id} className="rounded-2xl border border-border bg-card p-5">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <h2 className="text-lg font-semibold">{book.scout_authors?.name}</h2>
+                      <p className="mt-1 text-sm font-medium">{book.title}</p>
+                    </div>
+                    <button
+                      disabled={saved || Boolean(busy)}
+                      onClick={() => (book.localOnly ? syncBook(book) : save(book))}
+                      className="inline-flex items-center gap-1 rounded-full border px-3 py-1.5 text-xs disabled:opacity-60"
+                    >
+                      {saved ? (
+                        <Check className="h-3.5 w-3.5" />
+                      ) : (
+                        <Bookmark className="h-3.5 w-3.5" />
+                      )}
+                      {book.localOnly
+                        ? busy === book.id
+                          ? "Syncing…"
+                          : "Retry sync"
+                        : saved
+                          ? "Saved"
+                          : busy === book.id
+                            ? "Saving…"
+                            : "Save"}
+                    </button>
+                  </div>
+                  <p className="mt-3 text-sm text-muted-foreground">
+                    {book.genre} ·{" "}
+                    {rating?.review_count === undefined || rating.review_count === null
+                      ? "no Reedsy score on file"
+                      : `${rating.review_count}/5 Reedsy score`}
+                  </p>
+                  <div className="mt-4">
+                    <PublicLink url={book.source_url}>View Reedsy listing</PublicLink>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        )}
+
+        {reedsyUnqualified.length > 0 && (
+          <div className="mt-10">
+            <h2 className="font-semibold">Not qualified from the last Reedsy search</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              These didn't meet your filters, but are shown here and included in the export so
+              nothing found is hidden.
+            </p>
+            <div className="mt-4 grid gap-4 sm:grid-cols-2">
+              {reedsyUnqualified.map((item) => (
+                <article
+                  key={item.key}
+                  className="rounded-2xl border border-dashed border-border bg-card/60 p-5"
+                >
+                  <h3 className="text-lg font-semibold">{item.authorName ?? "Unknown author"}</h3>
+                  <p className="mt-1 text-sm font-medium">{item.title}</p>
+                  <p className="mt-3 text-sm text-muted-foreground">
+                    {item.genre} · {item.ratingLabel}
+                  </p>
+                  <p className="mt-2 text-xs text-destructive">{item.reasons.join("; ")}</p>
+                  <div className="mt-4">
+                    <PublicLink url={item.sourceUrl}>View Reedsy listing</PublicLink>
                   </div>
                 </article>
               ))}

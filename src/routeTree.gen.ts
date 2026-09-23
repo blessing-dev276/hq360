@@ -68,6 +68,7 @@ import { Route as ApiAdminScoutExportRouteImport } from './routes/api/admin/scou
 import { Route as ApiAdminScoutIdentityRouteImport } from './routes/api/admin/scout-identity'
 import { Route as ApiAdminScoutManualIngestRouteImport } from './routes/api/admin/scout-manual-ingest'
 import { Route as ApiAdminScoutProspectsRouteImport } from './routes/api/admin/scout-prospects'
+import { Route as ApiAdminScoutReedsySearchRouteImport } from './routes/api/admin/scout-reedsy-search'
 import { Route as ApiAdminSessionRouteImport } from './routes/api/admin/session'
 import { Route as ApiAdminTeamRouteImport } from './routes/api/admin/team'
 import { Route as ApiAdminTestimonialsRouteImport } from './routes/api/admin/testimonials'
@@ -418,6 +419,12 @@ const ApiAdminScoutProspectsRoute = ApiAdminScoutProspectsRouteImport.update({
   path: '/api/admin/scout-prospects',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAdminScoutReedsySearchRoute =
+  ApiAdminScoutReedsySearchRouteImport.update({
+    id: '/api/admin/scout-reedsy-search',
+    path: '/api/admin/scout-reedsy-search',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiAdminSessionRoute = ApiAdminSessionRouteImport.update({
   id: '/api/admin/session',
   path: '/api/admin/session',
@@ -748,6 +755,7 @@ export interface FileRoutesByFullPath {
   '/api/admin/scout-identity': typeof ApiAdminScoutIdentityRoute
   '/api/admin/scout-manual-ingest': typeof ApiAdminScoutManualIngestRoute
   '/api/admin/scout-prospects': typeof ApiAdminScoutProspectsRouteWithChildren
+  '/api/admin/scout-reedsy-search': typeof ApiAdminScoutReedsySearchRoute
   '/api/admin/session': typeof ApiAdminSessionRoute
   '/api/admin/team': typeof ApiAdminTeamRouteWithChildren
   '/api/admin/testimonials': typeof ApiAdminTestimonialsRouteWithChildren
@@ -858,6 +866,7 @@ export interface FileRoutesByTo {
   '/api/admin/scout-identity': typeof ApiAdminScoutIdentityRoute
   '/api/admin/scout-manual-ingest': typeof ApiAdminScoutManualIngestRoute
   '/api/admin/scout-prospects': typeof ApiAdminScoutProspectsRouteWithChildren
+  '/api/admin/scout-reedsy-search': typeof ApiAdminScoutReedsySearchRoute
   '/api/admin/session': typeof ApiAdminSessionRoute
   '/api/admin/team': typeof ApiAdminTeamRouteWithChildren
   '/api/admin/testimonials': typeof ApiAdminTestimonialsRouteWithChildren
@@ -969,6 +978,7 @@ export interface FileRoutesById {
   '/api/admin/scout-identity': typeof ApiAdminScoutIdentityRoute
   '/api/admin/scout-manual-ingest': typeof ApiAdminScoutManualIngestRoute
   '/api/admin/scout-prospects': typeof ApiAdminScoutProspectsRouteWithChildren
+  '/api/admin/scout-reedsy-search': typeof ApiAdminScoutReedsySearchRoute
   '/api/admin/session': typeof ApiAdminSessionRoute
   '/api/admin/team': typeof ApiAdminTeamRouteWithChildren
   '/api/admin/testimonials': typeof ApiAdminTestimonialsRouteWithChildren
@@ -1081,6 +1091,7 @@ export interface FileRouteTypes {
     | '/api/admin/scout-identity'
     | '/api/admin/scout-manual-ingest'
     | '/api/admin/scout-prospects'
+    | '/api/admin/scout-reedsy-search'
     | '/api/admin/session'
     | '/api/admin/team'
     | '/api/admin/testimonials'
@@ -1191,6 +1202,7 @@ export interface FileRouteTypes {
     | '/api/admin/scout-identity'
     | '/api/admin/scout-manual-ingest'
     | '/api/admin/scout-prospects'
+    | '/api/admin/scout-reedsy-search'
     | '/api/admin/session'
     | '/api/admin/team'
     | '/api/admin/testimonials'
@@ -1301,6 +1313,7 @@ export interface FileRouteTypes {
     | '/api/admin/scout-identity'
     | '/api/admin/scout-manual-ingest'
     | '/api/admin/scout-prospects'
+    | '/api/admin/scout-reedsy-search'
     | '/api/admin/session'
     | '/api/admin/team'
     | '/api/admin/testimonials'
@@ -1412,6 +1425,7 @@ export interface RootRouteChildren {
   ApiAdminScoutIdentityRoute: typeof ApiAdminScoutIdentityRoute
   ApiAdminScoutManualIngestRoute: typeof ApiAdminScoutManualIngestRoute
   ApiAdminScoutProspectsRoute: typeof ApiAdminScoutProspectsRouteWithChildren
+  ApiAdminScoutReedsySearchRoute: typeof ApiAdminScoutReedsySearchRoute
   ApiAdminSessionRoute: typeof ApiAdminSessionRoute
   ApiAdminTeamRoute: typeof ApiAdminTeamRouteWithChildren
   ApiAdminTestimonialsRoute: typeof ApiAdminTestimonialsRouteWithChildren
@@ -1846,6 +1860,13 @@ declare module '@tanstack/react-router' {
       path: '/api/admin/scout-prospects'
       fullPath: '/api/admin/scout-prospects'
       preLoaderRoute: typeof ApiAdminScoutProspectsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/scout-reedsy-search': {
+      id: '/api/admin/scout-reedsy-search'
+      path: '/api/admin/scout-reedsy-search'
+      fullPath: '/api/admin/scout-reedsy-search'
+      preLoaderRoute: typeof ApiAdminScoutReedsySearchRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/admin/session': {
@@ -2457,6 +2478,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAdminScoutIdentityRoute: ApiAdminScoutIdentityRoute,
   ApiAdminScoutManualIngestRoute: ApiAdminScoutManualIngestRoute,
   ApiAdminScoutProspectsRoute: ApiAdminScoutProspectsRouteWithChildren,
+  ApiAdminScoutReedsySearchRoute: ApiAdminScoutReedsySearchRoute,
   ApiAdminSessionRoute: ApiAdminSessionRoute,
   ApiAdminTeamRoute: ApiAdminTeamRouteWithChildren,
   ApiAdminTestimonialsRoute: ApiAdminTestimonialsRouteWithChildren,

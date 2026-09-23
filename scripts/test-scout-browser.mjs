@@ -84,7 +84,7 @@ async function search() {
 }
 async function checkCsv() {
   const downloadEvent = page.waitForEvent("download");
-  await page.getByRole("button", { name: "Export all (CSV)" }).click();
+  await page.getByRole("button", { name: "Export Amazon results (CSV)" }).click();
   const download = await downloadEvent;
   const csv = await readFile(await download.path(), "utf8");
   expect(csv).toContain('"Test Author, ""Quoted""","Test Book, ""Quoted""","12"');

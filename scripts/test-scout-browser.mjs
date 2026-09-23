@@ -23,14 +23,24 @@ await context.route("**/api/admin/session", (route) =>
 await context.route("**/api/admin/scout-books?*", (route) =>
   route.fulfill({ status: 503, json: { ok: false, message: "Fixture database unavailable" } }),
 );
-await context.route("**/api/admin/scout-amazon-lookup", (route) =>
+await context.route("**/api/admin/scout-amazon-search", (route) =>
   route.fulfill({
     json: {
       ok: true,
-      asin: "B012345678",
-      sourceUrl: "https://www.amazon.de/dp/B012345678",
-      title,
-      authorName: name,
+      searched: 18,
+      qualifying: 1,
+      skippedWithoutAuthor: 0,
+      items: [
+        {
+          asin: "B012345678",
+          title,
+          authorName: name,
+          reviewCount: 12,
+          sourceUrl: "https://www.amazon.de/dp/B012345678",
+          genre: "Horror",
+          country: "Germany",
+        },
+      ],
     },
   }),
 );
@@ -56,14 +66,7 @@ await context.route("**/api/admin/scout-manual-ingest", (route) => {
   });
 });
 async function search() {
-  await page
-    .getByPlaceholder("https://www.amazon.de/dp/XXXXXXXXXX")
-    .fill("https://www.amazon.de/dp/B012345678");
-  await page.getByRole("button", { name: "Look up" }).click();
-  await expect(page.getByLabel("Author name")).toHaveValue(name);
-  await expect(page.getByLabel("Book title")).toHaveValue(title);
-  await page.getByLabel("Amazon ratings").fill("12");
-  await page.getByRole("button", { name: "Import author" }).click();
+  await page.getByRole("button", { name: "Search Amazon and save results" }).click();
   await expect(page.getByRole("heading", { name, exact: true })).toBeVisible();
 }
 async function checkCsv() {

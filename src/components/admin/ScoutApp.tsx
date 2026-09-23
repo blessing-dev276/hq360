@@ -129,6 +129,7 @@ export function ScoutApp() {
   const [resultLimit, setResultLimit] = useState(20);
   const [publishedWithin, setPublishedWithin] =
     useState<(typeof PUBLISHED_WITHIN_OPTIONS)[number]["value"]>("any");
+  const [debutOnly, setDebutOnly] = useState(false);
   const [savedOnly, setSavedOnly] = useState(false);
   const [books, setBooks] = useState<Book[]>([]);
   const [localBooks, setLocalBooks] = useState<Book[]>([]);
@@ -280,6 +281,7 @@ export function ScoutApp() {
         qualifying: number;
         skippedWithoutAuthor: number;
         skippedTooOld: number;
+        skippedNotDebut: number;
       }>("/api/admin/scout-amazon-search", {
         genre,
         amazonDomain: market.domain,
@@ -288,6 +290,7 @@ export function ScoutApp() {
         ratingMax,
         limit: resultLimit,
         publishedWithin,
+        debutOnly,
       });
       const candidates: Book[] = result.items.map((item) => ({
         id: `local-${item.asin}`,
@@ -329,16 +332,19 @@ export function ScoutApp() {
       });
       const skipped = result.skippedWithoutAuthor;
       const tooOld = result.skippedTooOld;
+      const notDebut = result.skippedNotDebut;
       setNotice(
         `${candidates.length} qualifying books found; ${saved.length} saved to your account` +
           `${failedUrls.size ? ` and ${failedUrls.size} kept in this browser for export` : ""}` +
           `${skipped ? `. ${skipped} skipped because the author could not be verified` : ""}` +
-          `${tooOld ? `. ${tooOld} skipped as outside the publish-date window` : ""}.`,
+          `${tooOld ? `. ${tooOld} skipped as outside the publish-date window` : ""}` +
+          `${notDebut ? `. ${notDebut} skipped as not a debut author` : ""}.`,
       );
       if (candidates.length === 0)
         setNotice(
           `No books with ${ratingMin}–${ratingMax} ratings, a verified author` +
-            `${publishedWithin === "any" ? "" : " and a confirmed publish date in range"} were found in the first ${result.searched} Amazon results.`,
+            `${publishedWithin === "any" ? "" : ", a confirmed publish date in range"}` +
+            `${debutOnly ? ", and a debut author" : ""} were found in the first ${result.searched} Amazon results.`,
         );
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Automatic Amazon search failed.");
@@ -511,6 +517,15 @@ export function ScoutApp() {
                 ))}
               </select>
             </label>
+            <label className="flex items-center gap-2 self-end pb-3 text-sm font-medium">
+              <input
+                type="checkbox"
+                checked={debutOnly}
+                onChange={(event) => setDebutOnly(event.target.checked)}
+                className="h-4 w-4 rounded border-border"
+              />
+              Debut authors only
+            </label>
           </div>
           <button
             type="button"
@@ -531,7 +546,10 @@ export function ScoutApp() {
             aspiring and newly published authors over established ones. A "Published" window
             cross-checks each book's publish date against Google Books' catalog — an obscure debut
             without a Google Books entry may be skipped when a window narrower than "Any time" is
-            selected.
+            selected. "Debut authors only" keeps authors with 1–2 books in Google Books' catalog
+            under that name and drops the rest — a useful signal, not a certainty: pen names,
+            same-name authors and books missing from Google Books can throw it off in either
+            direction.
           </p>
         </section>
 

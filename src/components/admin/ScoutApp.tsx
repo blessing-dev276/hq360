@@ -389,6 +389,7 @@ export function ScoutApp() {
   const [reedsyBooks, setReedsyBooks] = useState<Book[]>([]);
   const [reedsyUnqualified, setReedsyUnqualified] = useState<UnqualifiedResult[]>([]);
   const [view, setView] = useState<View>("imported");
+  const [selectedBatchId, setSelectedBatchId] = useState<string | null>(null);
   const [reedsyLoading, setReedsyLoading] = useState(true);
   const [reedsyGenres, setReedsyGenres] = useState<ReedsyGenre[]>([]);
   const [reedsyGenreId, setReedsyGenreId] = useState<number | null>(null);
@@ -838,7 +839,10 @@ export function ScoutApp() {
             ).map(([value, label]) => (
               <button
                 key={value}
-                onClick={() => setView(value)}
+                onClick={() => {
+                  setView(value);
+                  setSelectedBatchId(null);
+                }}
                 className={cn(
                   "rounded-full px-4 py-2 text-sm",
                   view === value ? "bg-primary text-primary-foreground" : "text-muted-foreground",
@@ -876,43 +880,74 @@ export function ScoutApp() {
                 Choose the genre above, then run the Reedsy search.
               </p>
             </div>
-          ) : (
-            reedsyBatchGroups.map((group) => (
-              <div key={group.batchId} className="mt-8">
-                <div className="flex flex-wrap items-center justify-between gap-2">
+          ) : selectedBatchId === null ? (
+            <div className="mt-5 divide-y divide-border rounded-2xl border border-border bg-card">
+              {reedsyBatchGroups.map((group) => (
+                <button
+                  type="button"
+                  key={group.batchId}
+                  onClick={() => setSelectedBatchId(group.batchId)}
+                  className="flex w-full items-center justify-between gap-3 px-5 py-4 text-left hover:bg-secondary"
+                >
                   <div>
-                    <h2 className="font-semibold">{group.label}</h2>
-                    <p className="text-xs text-muted-foreground">{group.books.length} authors</p>
+                    <p className="font-medium">{group.label}</p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      {group.books.length} authors
+                      {group.createdAt ? ` · ${formatDiscoveredAt(group.createdAt)}` : ""}
+                    </p>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      exportReedsyCsv(group.books, `reedsy-batch-${group.batchId}`, false)
-                    }
-                    className="inline-flex items-center gap-1 rounded-full border px-3 py-1.5 text-xs"
-                  >
-                    <Download className="h-3.5 w-3.5" /> Export this batch
-                  </button>
-                </div>
-                <div className="mt-3 grid gap-4 sm:grid-cols-2">
-                  {group.books.map((book) => (
-                    <BookCard
-                      key={book.id}
-                      book={book}
-                      busy={busy}
-                      contactBusy={contactBusy}
-                      verifyBusy={verifyBusy}
-                      contactResult={
-                        book.scout_authors ? contactResults[book.scout_authors.id] : undefined
+                  <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                </button>
+              ))}
+            </div>
+          ) : (
+            (() => {
+              const group = reedsyBatchGroups.find((item) => item.batchId === selectedBatchId);
+              if (!group) return null;
+              return (
+                <div className="mt-5">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedBatchId(null)}
+                        className="text-sm text-brand hover:underline"
+                      >
+                        ← All batches
+                      </button>
+                      <h2 className="mt-1 font-semibold">{group.label}</h2>
+                      <p className="text-xs text-muted-foreground">{group.books.length} authors</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        exportReedsyCsv(group.books, `reedsy-batch-${group.batchId}`, false)
                       }
-                      onSave={save}
-                      onFindContact={findContact}
-                      onVerifyContact={verifyContact}
-                    />
-                  ))}
+                      className="inline-flex items-center gap-1 rounded-full border px-3 py-1.5 text-xs"
+                    >
+                      <Download className="h-3.5 w-3.5" /> Export this batch
+                    </button>
+                  </div>
+                  <div className="mt-3 grid gap-4 sm:grid-cols-2">
+                    {group.books.map((book) => (
+                      <BookCard
+                        key={book.id}
+                        book={book}
+                        busy={busy}
+                        contactBusy={contactBusy}
+                        verifyBusy={verifyBusy}
+                        contactResult={
+                          book.scout_authors ? contactResults[book.scout_authors.id] : undefined
+                        }
+                        onSave={save}
+                        onFindContact={findContact}
+                        onVerifyContact={verifyContact}
+                      />
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ))
+              );
+            })()
           )
         ) : (
           <>

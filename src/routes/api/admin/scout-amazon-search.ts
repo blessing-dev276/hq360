@@ -9,13 +9,36 @@ function json(body: unknown, status = 200) {
   });
 }
 
+const AMAZON_DOMAINS = [
+  "amazon.com",
+  "amazon.ca",
+  "amazon.com.mx",
+  "amazon.com.br",
+  "amazon.co.uk",
+  "amazon.de",
+  "amazon.fr",
+  "amazon.it",
+  "amazon.es",
+  "amazon.nl",
+  "amazon.se",
+  "amazon.pl",
+  "amazon.com.au",
+  "amazon.co.jp",
+  "amazon.in",
+  "amazon.sg",
+  "amazon.ae",
+] as const;
+
 const schema = z.object({
   genre: z.string().trim().min(1).max(80),
-  amazonDomain: z.enum(["amazon.com", "amazon.ca", "amazon.de", "amazon.co.uk", "amazon.com.au"]),
+  amazonDomain: z.enum(AMAZON_DOMAINS),
   country: z.string().trim().min(1).max(80),
   ratingMin: z.number().int().min(1).max(49),
   ratingMax: z.number().int().min(1).max(49),
+  limit: z.number().int().min(1).max(50),
 });
+
+const MAX_SEARCH_PAGES = 5;
 
 type AmazonResult = {
   asin?: string;
@@ -79,35 +102,48 @@ export const Route = createFileRoute("/api/admin/scout-amazon-search")({
             503,
           );
 
-        const { genre, amazonDomain, country, ratingMin, ratingMax } = parsed.data;
+        const { genre, amazonDomain, country, ratingMin, ratingMax, limit } = parsed.data;
         try {
-          const controller = new AbortController();
-          const timeout = setTimeout(() => controller.abort(), 45_000);
-          const url = new URL("https://serpapi.com/search.json");
-          url.searchParams.set("engine", "amazon");
-          url.searchParams.set("amazon_domain", amazonDomain);
-          url.searchParams.set("k", `${genre} books`);
-          url.searchParams.set("api_key", apiKey);
-          const response = await fetch(url, { signal: controller.signal }).finally(() =>
-            clearTimeout(timeout),
-          );
-          const data = (await response.json()) as {
-            error?: string;
-            organic_results?: AmazonResult[];
-          };
-          if (!response.ok || data.error)
-            throw new Error(data.error || `Search failed (${response.status})`);
+          const seenAsins = new Set<string>();
+          const qualifying: AmazonResult[] = [];
+          let searched = 0;
+          for (let page = 1; page <= MAX_SEARCH_PAGES && qualifying.length < limit; page += 1) {
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), 45_000);
+            const url = new URL("https://serpapi.com/search.json");
+            url.searchParams.set("engine", "amazon");
+            url.searchParams.set("amazon_domain", amazonDomain);
+            url.searchParams.set("k", `${genre} books`);
+            url.searchParams.set("page", String(page));
+            url.searchParams.set("api_key", apiKey);
+            const response = await fetch(url, { signal: controller.signal }).finally(() =>
+              clearTimeout(timeout),
+            );
+            const data = (await response.json()) as {
+              error?: string;
+              organic_results?: AmazonResult[];
+            };
+            if (!response.ok || data.error)
+              throw new Error(data.error || `Search failed (${response.status})`);
 
-          const qualifying = (data.organic_results ?? [])
-            .filter(
-              (item) =>
-                item.asin &&
-                item.title &&
-                Number.isInteger(item.reviews) &&
-                item.reviews! >= ratingMin &&
-                item.reviews! <= ratingMax,
-            )
-            .slice(0, 20);
+            const pageResults = data.organic_results ?? [];
+            searched += pageResults.length;
+            if (pageResults.length === 0) break;
+
+            for (const item of pageResults) {
+              if (qualifying.length >= limit) break;
+              if (!item.asin || seenAsins.has(item.asin)) continue;
+              if (
+                !item.title ||
+                !Number.isInteger(item.reviews) ||
+                item.reviews! < ratingMin ||
+                item.reviews! > ratingMax
+              )
+                continue;
+              seenAsins.add(item.asin);
+              qualifying.push(item);
+            }
+          }
           const items = (
             await Promise.all(
               qualifying.map(async (item) => {
@@ -133,7 +169,7 @@ export const Route = createFileRoute("/api/admin/scout-amazon-search")({
           return json({
             ok: true,
             items,
-            searched: data.organic_results?.length ?? 0,
+            searched,
             qualifying: qualifying.length,
             skippedWithoutAuthor: qualifying.length - items.length,
           });

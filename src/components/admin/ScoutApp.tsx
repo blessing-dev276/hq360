@@ -15,11 +15,23 @@ const GENRES = [
   "Young Adult",
 ] as const;
 const MARKETS = [
-  { country: "Germany", domain: "amazon.de" },
   { country: "United States", domain: "amazon.com" },
-  { country: "United Kingdom", domain: "amazon.co.uk" },
   { country: "Canada", domain: "amazon.ca" },
+  { country: "Mexico", domain: "amazon.com.mx" },
+  { country: "Brazil", domain: "amazon.com.br" },
+  { country: "United Kingdom", domain: "amazon.co.uk" },
+  { country: "Germany", domain: "amazon.de" },
+  { country: "France", domain: "amazon.fr" },
+  { country: "Italy", domain: "amazon.it" },
+  { country: "Spain", domain: "amazon.es" },
+  { country: "Netherlands", domain: "amazon.nl" },
+  { country: "Sweden", domain: "amazon.se" },
+  { country: "Poland", domain: "amazon.pl" },
   { country: "Australia", domain: "amazon.com.au" },
+  { country: "Japan", domain: "amazon.co.jp" },
+  { country: "India", domain: "amazon.in" },
+  { country: "Singapore", domain: "amazon.sg" },
+  { country: "United Arab Emirates", domain: "amazon.ae" },
 ] as const;
 
 type Book = {
@@ -106,6 +118,7 @@ export function ScoutApp() {
   const [marketIndex, setMarketIndex] = useState(0);
   const [ratingMin, setRatingMin] = useState(1);
   const [ratingMax, setRatingMax] = useState(49);
+  const [resultLimit, setResultLimit] = useState(20);
   const [savedOnly, setSavedOnly] = useState(false);
   const [books, setBooks] = useState<Book[]>([]);
   const [localBooks, setLocalBooks] = useState<Book[]>([]);
@@ -261,6 +274,7 @@ export function ScoutApp() {
         country: market.country,
         ratingMin,
         ratingMax,
+        limit: resultLimit,
       });
       const candidates: Book[] = result.items.map((item) => ({
         id: `local-${item.asin}`,
@@ -447,6 +461,20 @@ export function ScoutApp() {
                   </option>
                 ))}
               </select>
+            </label>
+            <label className="text-sm font-medium" htmlFor="scout-limit">
+              Authors to find
+              <input
+                id="scout-limit"
+                type="number"
+                min="1"
+                max="50"
+                value={resultLimit}
+                onChange={(event) =>
+                  setResultLimit(Math.min(50, Math.max(1, Number(event.target.value) || 1)))
+                }
+                className="mt-2 w-full rounded-xl border border-border bg-background px-4 py-3"
+              />
             </label>
           </div>
           <button

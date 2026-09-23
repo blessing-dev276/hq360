@@ -104,7 +104,12 @@ function buildGenreSections(genres: ReedsyGenre[]) {
   return sections;
 }
 
-async function api<T>(url: string, body?: unknown, signal?: AbortSignal): Promise<T> {
+async function api<T>(
+  url: string,
+  body?: unknown,
+  signal?: AbortSignal,
+  fallbackMessage = "Scout could not complete that request.",
+): Promise<T> {
   const response = await fetch(url, {
     ...(body === undefined
       ? {}
@@ -120,13 +125,10 @@ async function api<T>(url: string, body?: unknown, signal?: AbortSignal): Promis
   const result = await response.json();
   if (!response.ok || !result.ok) {
     const messages: Record<string, string> = {
-      storage: "The book could not be saved. Please try again.",
       unauthorized:
         "Your sign-in has expired. Refresh and sign in again. Your browser copy can still be exported.",
     };
-    throw new Error(
-      result.message ?? messages[result.error] ?? "Scout could not complete that request.",
-    );
+    throw new Error(result.message ?? messages[result.error] ?? fallbackMessage);
   }
   return result;
 }
@@ -402,7 +404,12 @@ export function ScoutApp() {
 
   useEffect(() => {
     const controller = new AbortController();
-    api<{ genres: ReedsyGenre[] }>("/api/admin/scout-reedsy-genres", undefined, controller.signal)
+    api<{ genres: ReedsyGenre[] }>(
+      "/api/admin/scout-reedsy-genres",
+      undefined,
+      controller.signal,
+      "Could not load Reedsy genres.",
+    )
       .then((data) => {
         setReedsyGenres(data.genres);
         setReedsyGenreId((current) => current ?? data.genres[0]?.id ?? null);
@@ -419,7 +426,12 @@ export function ScoutApp() {
       if (!reedsyGenre) return Promise.resolve();
       setReedsyLoading(true);
       const params = new URLSearchParams({ source: "reedsy_discovery", genre: reedsyGenre.name });
-      return api<{ items: Book[] }>(`/api/admin/scout-books?${params}`, undefined, signal)
+      return api<{ items: Book[] }>(
+        `/api/admin/scout-books?${params}`,
+        undefined,
+        signal,
+        "Could not load Reedsy books.",
+      )
         .then((data) => setReedsyBooks(data.items))
         .catch((caught) => {
           if (!signal?.aborted)
@@ -445,20 +457,25 @@ export function ScoutApp() {
         book: Omit<Book, "scout_authors" | "scout_review_counts" | "scout_prospects">;
         author: NonNullable<Book["scout_authors"]>;
       };
-    }>("/api/admin/scout-manual-ingest", {
-      sourceSlug: book.source_slug,
-      sourceUrl: book.source_url,
-      bookUrl: book.source_url,
-      authorName: book.scout_authors?.name,
-      bookTitle: book.title,
-      genre: book.genre,
-      description: book.description ?? undefined,
-      country: book.scout_authors?.country ?? undefined,
-      ...(reviewEntry && reviewEntry.review_count !== null
-        ? { reviewPlatform: reviewEntry.platform, reviewCount: reviewEntry.review_count }
-        : {}),
-      ...(batch ? { batchId: batch.id, batchLabel: batch.label } : {}),
-    });
+    }>(
+      "/api/admin/scout-manual-ingest",
+      {
+        sourceSlug: book.source_slug,
+        sourceUrl: book.source_url,
+        bookUrl: book.source_url,
+        authorName: book.scout_authors?.name,
+        bookTitle: book.title,
+        genre: book.genre,
+        description: book.description ?? undefined,
+        country: book.scout_authors?.country ?? undefined,
+        ...(reviewEntry && reviewEntry.review_count !== null
+          ? { reviewPlatform: reviewEntry.platform, reviewCount: reviewEntry.review_count }
+          : {}),
+        ...(batch ? { batchId: batch.id, batchLabel: batch.label } : {}),
+      },
+      undefined,
+      "The book could not be saved. Please try again.",
+    );
     return {
       ...book,
       ...result.item.book,
@@ -489,13 +506,18 @@ export function ScoutApp() {
         }>;
         searched: number;
         qualifying: number;
-      }>("/api/admin/scout-reedsy-search", {
-        genreId: reedsyGenre.id,
-        genreName: reedsyGenre.name,
-        limit: resultLimit,
-        minVerdictRating: reedsyMinRating,
-        debutOnly,
-      });
+      }>(
+        "/api/admin/scout-reedsy-search",
+        {
+          genreId: reedsyGenre.id,
+          genreName: reedsyGenre.name,
+          limit: resultLimit,
+          minVerdictRating: reedsyMinRating,
+          debutOnly,
+        },
+        undefined,
+        "Reedsy search failed.",
+      );
       const qualifiedItems = result.items.filter((item) => item.qualified);
       const unqualifiedItems = result.items.filter((item) => !item.qualified);
 
@@ -576,10 +598,12 @@ export function ScoutApp() {
     setBusy(book.id);
     setError("");
     try {
-      await api("/api/admin/scout-prospects", {
-        scoutAuthorId: book.scout_authors.id,
-        bookId: book.id,
-      });
+      await api(
+        "/api/admin/scout-prospects",
+        { scoutAuthorId: book.scout_authors.id, bookId: book.id },
+        undefined,
+        "Could not save this author.",
+      );
       setRefresh((value) => value + 1);
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Could not save this author.");
@@ -595,6 +619,8 @@ export function ScoutApp() {
       const result = await api<ContactResult>(
         `/api/admin/scout-authors/${authorId}/find-contact`,
         {},
+        undefined,
+        "Could not search for this author's contact info.",
       );
       setContactResults((current) => ({ ...current, [authorId]: result }));
     } catch (caught) {
@@ -612,11 +638,16 @@ export function ScoutApp() {
     setVerifyBusy(authorId);
     setError("");
     try {
-      await api(`/api/admin/scout-authors/${authorId}/confirm-contact`, {
-        candidateUrl: result.candidateUrl,
-        contactEmail: result.contactEmail ?? undefined,
-        contactFormUrl: result.contactFormUrl ?? undefined,
-      });
+      await api(
+        `/api/admin/scout-authors/${authorId}/confirm-contact`,
+        {
+          candidateUrl: result.candidateUrl,
+          contactEmail: result.contactEmail ?? undefined,
+          contactFormUrl: result.contactFormUrl ?? undefined,
+        },
+        undefined,
+        "Could not confirm this contact info.",
+      );
       setContactResults((current) => ({
         ...current,
         [authorId]: { ...result, verified: true },

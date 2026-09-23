@@ -38,7 +38,7 @@ export const Route = createFileRoute("/api/admin/scout-books")({
           let query = db
             .from("scout_discovered_books")
             .select(
-              "*, scout_authors(id, name, country, publishing_type, website_url, contact_email, contact_form_url), scout_review_counts(platform, review_count, rating, verified, retrieved_at), scout_prospects(id, status), scout_batches(id, label, created_at)",
+              "*, scout_authors(id, name, country, publishing_type, website_url, contact_email, contact_form_url), scout_review_counts(platform, review_count, rating, verified, retrieved_at), scout_prospects(id, status), scout_batches!batch_id(id, label, created_at)",
               { count: "exact" },
             )
             .order("discovered_at", { ascending: false })

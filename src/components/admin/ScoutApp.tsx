@@ -14,6 +14,14 @@ const GENRES = [
   "Thriller & Suspense",
   "Young Adult",
 ] as const;
+const PUBLISHED_WITHIN_OPTIONS = [
+  { value: "any", label: "Any time" },
+  { value: "30", label: "Last 30 days" },
+  { value: "90", label: "Last 90 days" },
+  { value: "180", label: "Last 6 months" },
+  { value: "365", label: "Last 12 months" },
+] as const;
+
 const MARKETS = [
   { country: "United States", domain: "amazon.com" },
   { country: "Canada", domain: "amazon.ca" },
@@ -119,6 +127,8 @@ export function ScoutApp() {
   const [ratingMin, setRatingMin] = useState(1);
   const [ratingMax, setRatingMax] = useState(49);
   const [resultLimit, setResultLimit] = useState(20);
+  const [publishedWithin, setPublishedWithin] =
+    useState<(typeof PUBLISHED_WITHIN_OPTIONS)[number]["value"]>("any");
   const [savedOnly, setSavedOnly] = useState(false);
   const [books, setBooks] = useState<Book[]>([]);
   const [localBooks, setLocalBooks] = useState<Book[]>([]);
@@ -264,10 +274,12 @@ export function ScoutApp() {
           sourceUrl: string;
           genre: string;
           country: string;
+          publishedDate?: string;
         }>;
         searched: number;
         qualifying: number;
         skippedWithoutAuthor: number;
+        skippedTooOld: number;
       }>("/api/admin/scout-amazon-search", {
         genre,
         amazonDomain: market.domain,
@@ -275,6 +287,7 @@ export function ScoutApp() {
         ratingMin,
         ratingMax,
         limit: resultLimit,
+        publishedWithin,
       });
       const candidates: Book[] = result.items.map((item) => ({
         id: `local-${item.asin}`,
@@ -315,14 +328,17 @@ export function ScoutApp() {
         return next;
       });
       const skipped = result.skippedWithoutAuthor;
+      const tooOld = result.skippedTooOld;
       setNotice(
         `${candidates.length} qualifying books found; ${saved.length} saved to your account` +
           `${failedUrls.size ? ` and ${failedUrls.size} kept in this browser for export` : ""}` +
-          `${skipped ? `. ${skipped} skipped because the author could not be verified` : ""}.`,
+          `${skipped ? `. ${skipped} skipped because the author could not be verified` : ""}` +
+          `${tooOld ? `. ${tooOld} skipped as outside the publish-date window` : ""}.`,
       );
       if (candidates.length === 0)
         setNotice(
-          `No books with ${ratingMin}–${ratingMax} ratings and a verified author were found in the first ${result.searched} Amazon results.`,
+          `No books with ${ratingMin}–${ratingMax} ratings, a verified author` +
+            `${publishedWithin === "any" ? "" : " and a confirmed publish date in range"} were found in the first ${result.searched} Amazon results.`,
         );
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Automatic Amazon search failed.");
@@ -405,7 +421,7 @@ export function ScoutApp() {
 
         <section className="mt-7 rounded-2xl border border-border bg-card p-5">
           <h2 className="font-semibold">Search and save authors</h2>
-          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <label className="text-sm font-medium" htmlFor="scout-genre">
               Genre
               <select
@@ -476,6 +492,25 @@ export function ScoutApp() {
                 className="mt-2 w-full rounded-xl border border-border bg-background px-4 py-3"
               />
             </label>
+            <label className="text-sm font-medium" htmlFor="scout-published-within">
+              Published
+              <select
+                id="scout-published-within"
+                value={publishedWithin}
+                onChange={(event) =>
+                  setPublishedWithin(
+                    event.target.value as (typeof PUBLISHED_WITHIN_OPTIONS)[number]["value"],
+                  )
+                }
+                className="mt-2 w-full rounded-xl border border-border bg-background px-4 py-3"
+              >
+                {PUBLISHED_WITHIN_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
           </div>
           <button
             type="button"
@@ -491,8 +526,12 @@ export function ScoutApp() {
             {busy === "search" ? "Searching and saving…" : "Search Amazon and save results"}
           </button>
           <p className="mt-3 text-xs text-muted-foreground">
-            The search collects the title, author, ASIN, Amazon URL, and rating count. Only books
-            inside the selected rating range are saved.
+            Results are sorted by Amazon's newest arrivals first. Only books inside the selected
+            rating range are saved, and a low rating range (1–49) already biases toward niche,
+            aspiring and newly published authors over established ones. A "Published" window
+            cross-checks each book's publish date against Google Books' catalog — an obscure debut
+            without a Google Books entry may be skipped when a window narrower than "Any time" is
+            selected.
           </p>
         </section>
 

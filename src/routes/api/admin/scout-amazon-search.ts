@@ -29,6 +29,8 @@ const AMAZON_DOMAINS = [
   "amazon.ae",
 ] as const;
 
+const PUBLISHED_WITHIN_DAYS = { any: 0, "30": 30, "90": 90, "180": 180, "365": 365 } as const;
+
 const schema = z.object({
   genre: z.string().trim().min(1).max(80),
   amazonDomain: z.enum(AMAZON_DOMAINS),
@@ -36,6 +38,7 @@ const schema = z.object({
   ratingMin: z.number().int().min(1).max(49),
   ratingMax: z.number().int().min(1).max(49),
   limit: z.number().int().min(1).max(50),
+  publishedWithin: z.enum(["any", "30", "90", "180", "365"]).default("any"),
 });
 
 const MAX_SEARCH_PAGES = 5;
@@ -61,25 +64,42 @@ function embeddedAuthor(result: AmazonResult) {
   return result.author?.trim() || undefined;
 }
 
-async function googleBooksAuthor(title: string, signal: AbortSignal) {
+async function googleBooksLookup(
+  title: string,
+  signal: AbortSignal,
+): Promise<{ author: string | undefined; publishedDate: string | undefined }> {
   const url = new URL("https://www.googleapis.com/books/v1/volumes");
   url.searchParams.set("q", `intitle:"${cleanTitle(title)}"`);
   url.searchParams.set("maxResults", "5");
   url.searchParams.set("printType", "books");
-  url.searchParams.set("fields", "items(volumeInfo(title,authors))");
+  url.searchParams.set("fields", "items(volumeInfo(title,authors,publishedDate))");
   if (process.env.GOOGLE_BOOKS_API_KEY)
     url.searchParams.set("key", process.env.GOOGLE_BOOKS_API_KEY);
   const response = await fetch(url, { signal });
-  if (!response.ok) return undefined;
+  if (!response.ok) return { author: undefined, publishedDate: undefined };
   const data = (await response.json()) as {
-    items?: Array<{ volumeInfo?: { title?: string; authors?: string[] } }>;
+    items?: Array<{
+      volumeInfo?: { title?: string; authors?: string[]; publishedDate?: string };
+    }>;
   };
   const wanted = cleanTitle(title).toLocaleLowerCase();
   const match = data.items?.find(({ volumeInfo }) => {
     const candidate = cleanTitle(volumeInfo?.title ?? "").toLocaleLowerCase();
     return candidate === wanted || candidate.includes(wanted) || wanted.includes(candidate);
   });
-  return match?.volumeInfo?.authors?.[0]?.trim();
+  return {
+    author: match?.volumeInfo?.authors?.[0]?.trim(),
+    publishedDate: match?.volumeInfo?.publishedDate,
+  };
+}
+
+function publishedWithinWindow(publishedDate: string | undefined, maxAgeDays: number): boolean {
+  if (maxAgeDays === 0) return true;
+  if (!publishedDate) return false;
+  const parsed = new Date(/^\d{4}$/.test(publishedDate) ? `${publishedDate}-01-01` : publishedDate);
+  if (Number.isNaN(parsed.getTime())) return false;
+  const ageDays = (Date.now() - parsed.getTime()) / (1000 * 60 * 60 * 24);
+  return ageDays <= maxAgeDays;
 }
 
 export const Route = createFileRoute("/api/admin/scout-amazon-search")({
@@ -102,7 +122,9 @@ export const Route = createFileRoute("/api/admin/scout-amazon-search")({
             503,
           );
 
-        const { genre, amazonDomain, country, ratingMin, ratingMax, limit } = parsed.data;
+        const { genre, amazonDomain, country, ratingMin, ratingMax, limit, publishedWithin } =
+          parsed.data;
+        const maxAgeDays = PUBLISHED_WITHIN_DAYS[publishedWithin];
         try {
           const seenAsins = new Set<string>();
           const qualifying: AmazonResult[] = [];
@@ -115,6 +137,7 @@ export const Route = createFileRoute("/api/admin/scout-amazon-search")({
             url.searchParams.set("amazon_domain", amazonDomain);
             url.searchParams.set("k", `${genre} books`);
             url.searchParams.set("page", String(page));
+            url.searchParams.set("s", "date-desc-rank");
             url.searchParams.set("api_key", apiKey);
             const response = await fetch(url, { signal: controller.signal }).finally(() =>
               clearTimeout(timeout),
@@ -144,15 +167,24 @@ export const Route = createFileRoute("/api/admin/scout-amazon-search")({
               qualifying.push(item);
             }
           }
+          let skippedTooOld = 0;
           const items = (
             await Promise.all(
               qualifying.map(async (item) => {
-                const authorName =
-                  embeddedAuthor(item) ??
-                  (await googleBooksAuthor(item.title!, AbortSignal.timeout(10_000)).catch(
-                    () => undefined,
-                  ));
+                const embedded = embeddedAuthor(item);
+                const needsLookup = !embedded || maxAgeDays > 0;
+                const lookup = needsLookup
+                  ? await googleBooksLookup(item.title!, AbortSignal.timeout(10_000)).catch(() => ({
+                      author: undefined,
+                      publishedDate: undefined,
+                    }))
+                  : { author: undefined, publishedDate: undefined };
+                const authorName = embedded ?? lookup.author;
                 if (!authorName) return null;
+                if (!publishedWithinWindow(lookup.publishedDate, maxAgeDays)) {
+                  skippedTooOld += 1;
+                  return null;
+                }
                 return {
                   asin: item.asin!,
                   title: cleanTitle(item.title!),
@@ -161,6 +193,7 @@ export const Route = createFileRoute("/api/admin/scout-amazon-search")({
                   sourceUrl: `https://www.${amazonDomain}/dp/${item.asin}`,
                   genre,
                   country,
+                  publishedDate: lookup.publishedDate,
                 };
               }),
             )
@@ -171,7 +204,8 @@ export const Route = createFileRoute("/api/admin/scout-amazon-search")({
             items,
             searched,
             qualifying: qualifying.length,
-            skippedWithoutAuthor: qualifying.length - items.length,
+            skippedWithoutAuthor: qualifying.length - items.length - skippedTooOld,
+            skippedTooOld,
           });
         } catch (error) {
           console.error("[admin/scout-amazon-search] POST", error);

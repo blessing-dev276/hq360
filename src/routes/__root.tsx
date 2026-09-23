@@ -99,7 +99,10 @@ function RootShell({ children }: { children: ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const privateAudit = useRouterState({
-    select: (state) => state.location.pathname.startsWith("/author-audit"),
+    select: (state) =>
+      ["/author-audit", "/admin", "/scout", "/pay/"].some((path) =>
+        state.location.pathname.startsWith(path),
+      ),
   });
 
   return (

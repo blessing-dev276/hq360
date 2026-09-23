@@ -6,6 +6,22 @@ import { uploadAdminMedia, type AdminBucket } from "@/lib/admin-upload";
 import type { SerializedCaseStudy } from "@/lib/case-study-shape";
 import { AuthorAuditAdmin } from "@/components/admin/AuthorAuditAdmin";
 
+import {
+  LayoutDashboard,
+  BriefcaseBusiness,
+  Users,
+  MessageSquareQuote,
+  ScanSearch,
+  CreditCard,
+  ArrowUpRight,
+  LogOut,
+  ChevronRight,
+  Command,
+} from "lucide-react";
+import { PaymentsAdmin } from "./PaymentsAdmin";
+import { AdminOverview } from "./AdminOverview";
+import "./admin-workspace.css";
+
 /* ------------------------------------------------------------------ types */
 
 type MediaType = "image" | "video";
@@ -121,99 +137,201 @@ function UploadField({
 
 /* ------------------------------------------------------------------- root */
 
-type Tab = "work" | "team" | "testimonials" | "audits";
-/** "Work" merges what used to be two separate tabs (case studies + the
- * lightweight service portfolio) — both are "work we've done", just at
- * different depths, so they live under one roof with a sub-switcher. */
+type Tab = "overview" | "payments" | "work" | "team" | "testimonials" | "audits";
 type WorkView = "cases" | "gallery";
-
-const TAB_TITLE: Record<Tab, string> = {
-  work: "Work",
-  team: "Team",
-  testimonials: "Testimonials",
-  audits: "Audits",
-};
-
+const NAV = [
+  {
+    id: "overview",
+    label: "Overview",
+    icon: LayoutDashboard,
+    description: "A clear view of your business, all in one place.",
+  },
+  {
+    id: "payments",
+    label: "Payments",
+    icon: CreditCard,
+    description: "From the first invoice to the final payment.",
+  },
+  {
+    id: "work",
+    label: "Work & portfolio",
+    icon: BriefcaseBusiness,
+    description: "Showcase the work that makes HQ360 stand out.",
+  },
+  { id: "team", label: "Team", icon: Users, description: "The people behind your brand." },
+  {
+    id: "testimonials",
+    label: "Testimonials",
+    icon: MessageSquareQuote,
+    description: "Client stories that build confidence.",
+  },
+  {
+    id: "audits",
+    label: "Author audits",
+    icon: ScanSearch,
+    description: "Turn research into a clear growth direction.",
+  },
+] as const;
 const input =
   "w-full rounded-xl border border-border bg-background px-3.5 py-2.5 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
 export function AdminApp() {
-  const [tab, setTab] = useState<Tab>("work");
+  const [tab, setTab] = useState<Tab>("overview");
   const [workView, setWorkView] = useState<WorkView>("cases");
-
+  const [logoutError, setLogoutError] = useState("");
+  const current = NAV.find((item) => item.id === tab)!;
+  useEffect(() => {
+    const sync = () => {
+      const value = window.location.hash.slice(1);
+      if (NAV.some((item) => item.id === value)) setTab(value as Tab);
+    };
+    sync();
+    window.addEventListener("hashchange", sync);
+    return () => window.removeEventListener("hashchange", sync);
+  }, []);
+  function navigate(value: Tab) {
+    setTab(value);
+    window.location.hash = value;
+  }
   return (
-    <div className="min-h-[70vh] bg-secondary/40">
-      <div className="mx-auto max-w-5xl px-5 py-12 sm:px-6">
-        <div className="flex items-start justify-between gap-4">
+    <div className="admin-workspace">
+      <aside className="admin-sidebar">
+        <a href="/admin" className="admin-wordmark">
+          <span className="admin-brand-icon">
+            <Command size={21} />
+          </span>{" "}
+          HQ360<span className="admin-wordmark-dot">.</span>
+        </a>
+        <div className="admin-workspace-label">
+          <span className="admin-workspace-avatar">HQ</span>
           <div>
-            <p className="text-xs font-semibold tracking-[0.18em] text-brand uppercase">
-              HQ360 admin
-            </p>
-            <h1 className="mt-1 font-display text-2xl">{TAB_TITLE[tab]}</h1>
+            HQ360 workspace<small>Administration</small>
           </div>
-          <a
-            href="/scout"
-            className="mt-1 rounded-full border border-border px-4 py-1.5 text-xs font-medium hover:border-brand hover:text-brand"
-          >
-            Scout — author prospecting
-          </a>
+          <ChevronRight size={14} />
         </div>
-
-        <div className="mt-6 flex gap-1 rounded-full border border-border bg-card p-1 text-sm">
-          {(["work", "team", "testimonials", "audits"] as const).map((t) => (
+        <p className="admin-nav-label">WORKSPACE</p>
+        <nav aria-label="Admin navigation">
+          {NAV.map(({ id, label, icon: Icon }) => (
             <button
-              key={t}
-              type="button"
-              onClick={() => setTab(t)}
-              className={cn(
-                "rounded-full px-4 py-1.5 font-medium capitalize transition",
-                tab === t ? "bg-primary text-primary-foreground" : "text-muted-foreground",
-              )}
+              key={id}
+              onClick={() => navigate(id)}
+              className={cn("admin-nav-item", tab === id && "active")}
+              aria-current={tab === id ? "page" : undefined}
             >
-              {t}
+              <Icon size={18} />
+              <span>{label}</span>
+              {id === "payments" && <span className="admin-new">NEW</span>}
             </button>
           ))}
-        </div>
-
-        {tab === "work" ? (
-          <div className="mt-4 flex gap-1 text-sm">
-            {(
-              [
-                { id: "cases", label: "Case studies" },
-                { id: "gallery", label: "Quick gallery items" },
-              ] as const
-            ).map((v) => (
-              <button
-                key={v.id}
-                type="button"
-                onClick={() => setWorkView(v.id)}
-                className={cn(
-                  "rounded-full border px-3.5 py-1.5 font-medium transition",
-                  workView === v.id
-                    ? "border-brand text-brand"
-                    : "border-transparent text-muted-foreground hover:text-foreground",
-                )}
-              >
-                {v.label}
-              </button>
-            ))}
+        </nav>
+        <p className="admin-nav-label mt-8">DISCOVER</p>
+        <a href="/scout" className="admin-nav-item">
+          <ScanSearch size={18} />
+          <span>Scout prospecting</span>
+          <ArrowUpRight size={14} />
+        </a>
+        <div className="admin-sidebar-bottom">
+          <div className="admin-sidebar-note">
+            <span className="admin-live-dot" /> Your next chapter starts here.
+            <p>
+              Create exceptional work.
+              <br />
+              Build lasting relationships.
+            </p>
           </div>
-        ) : null}
-
-        <div className="mt-8">
-          {tab === "work" ? (
-            workView === "cases" ? (
-              <CaseStudyDashboard />
-            ) : (
-              <PortfolioDashboard />
-            )
-          ) : tab === "team" ? (
-            <TeamDashboard />
-          ) : tab === "testimonials" ? (
-            <TestimonialDashboard />
+          <a href="/" target="_blank" rel="noreferrer" className="admin-nav-item">
+            <ArrowUpRight size={18} />
+            View website
+          </a>
+          <button
+            className="admin-nav-item"
+            onClick={async () => {
+              try {
+                const result = await fetch("/api/admin/session", { method: "DELETE" });
+                if (!result.ok) throw new Error();
+                window.location.assign("/admin");
+              } catch {
+                setLogoutError("Could not sign out. Please try again.");
+              }
+            }}
+          >
+            <LogOut size={18} />
+            Sign out
+          </button>
+          {logoutError && <p role="alert">{logoutError}</p>}
+        </div>
+      </aside>
+      <div className="admin-main">
+        <header className="admin-topbar">
+          <div className="admin-breadcrumb">
+            Workspace <ChevronRight size={14} />
+            <strong>{current.label}</strong>
+          </div>
+          <div className="admin-account">
+            <span className="admin-account-label">
+              HQ360 Administrator<small>Workspace owner</small>
+            </span>
+            <span className="admin-user-avatar">HQ</span>
+          </div>
+        </header>
+        <div className="admin-page">
+          <div className="admin-page-heading">
+            <div>
+              <p className="admin-eyebrow">YOUR BUSINESS, IN FOCUS</p>
+              <h1>{current.label === "Overview" ? "Welcome to your workspace" : current.label}</h1>
+              <p>{current.description}</p>
+            </div>
+            <span className="admin-date">
+              {new Date().toLocaleDateString("en-GB", {
+                day: "numeric",
+                month: "long",
+                year: "numeric",
+              })}
+            </span>
+          </div>
+          {tab === "overview" ? (
+            <AdminOverview onNavigate={navigate} />
+          ) : tab === "payments" ? (
+            <PaymentsAdmin />
           ) : (
-            <AuthorAuditAdmin />
+            <section className="admin-content-panel">
+              {tab === "work" && (
+                <div className="admin-segmented mb-7">
+                  {(
+                    [
+                      { id: "cases", label: "Case studies" },
+                      { id: "gallery", label: "Gallery" },
+                    ] as const
+                  ).map((v) => (
+                    <button
+                      key={v.id}
+                      onClick={() => setWorkView(v.id)}
+                      className={workView === v.id ? "active" : ""}
+                    >
+                      {v.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+              {tab === "work" ? (
+                workView === "cases" ? (
+                  <CaseStudyDashboard />
+                ) : (
+                  <PortfolioDashboard />
+                )
+              ) : tab === "team" ? (
+                <TeamDashboard />
+              ) : tab === "testimonials" ? (
+                <TestimonialDashboard />
+              ) : (
+                <AuthorAuditAdmin />
+              )}
+            </section>
           )}
+          <footer className="admin-footer">
+            <span>HQ360 · Built for what’s next.</span>
+            <span>Private workspace</span>
+          </footer>
         </div>
       </div>
     </div>

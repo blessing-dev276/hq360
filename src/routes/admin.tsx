@@ -5,7 +5,7 @@ import { AdminGate } from "@/components/admin/AdminGate";
 export const Route = createFileRoute("/admin")({
   head: () => ({
     meta: [
-      { title: "Admin — Portfolio, Work & Team | HQ360" },
+      { title: "Admin — Workspace & Payments | HQ360" },
       { name: "robots", content: "noindex, nofollow" },
     ],
   }),

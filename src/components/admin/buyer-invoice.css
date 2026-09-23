@@ -1,0 +1,184 @@
+.buyer-invoice-page {
+  min-height: 100vh;
+  background: #f3f5f2;
+  color: #233c31;
+  padding: 35px 20px;
+  font-family: Inter, sans-serif;
+}
+.buyer-invoice-page > header {
+  max-width: 720px;
+  margin: 0 auto 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.buyer-wordmark {
+  font-size: 26px;
+  font-weight: 750;
+  letter-spacing: -1.4px;
+}
+.buyer-wordmark span {
+  color: #88a585;
+}
+.buyer-invoice-page > header > span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #839184;
+  font-size: 10px;
+}
+.buyer-invoice-card {
+  max-width: 720px;
+  margin: auto;
+  background: white;
+  border: 1px solid #e0e6df;
+  padding: 42px;
+  border-radius: 14px;
+  box-shadow: 0 20px 60px #2b3d3106;
+}
+.buyer-invoice-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  align-items: flex-start;
+}
+.buyer-invoice-heading h1 {
+  font-size: 25px;
+  letter-spacing: -0.8px;
+  font-weight: 550;
+  max-width: 320px;
+  margin-top: 12px;
+  line-height: 1.35;
+}
+.buyer-total {
+  background: #f3f6f0;
+  padding: 26px;
+  border-radius: 9px;
+  margin: 30px 0;
+}
+.buyer-total > span {
+  font-size: 11px;
+  color: #7a907b;
+}
+.buyer-total strong {
+  display: block;
+  font-size: clamp(28px, 6vw, 42px);
+  letter-spacing: -1.8px;
+  font-weight: 550;
+  margin: 9px 0;
+}
+.buyer-total small {
+  font-size: 10px;
+  color: #8b9b87;
+}
+.buyer-details {
+  display: grid;
+  gap: 18px;
+  font-size: 12px;
+}
+.buyer-details > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+}
+.buyer-details dt {
+  color: #8c978b;
+}
+.buyer-description {
+  margin: 25px 0;
+  padding-block: 25px;
+  border-block: 1px solid #edf0e9;
+}
+.buyer-description h2 {
+  font-size: 10px;
+  color: #8b9989;
+  margin-bottom: 10px;
+}
+.buyer-description p {
+  font-size: 13px;
+  line-height: 1.8;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.buyer-actions {
+  display: grid;
+  gap: 18px;
+}
+.buyer-actions > button:first-child {
+  padding: 15px;
+  font-size: 12px;
+}
+.buyer-invoice-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+  margin-top: 30px;
+}
+.buyer-invoice-foot > span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #97a08f;
+  font-size: 9px;
+}
+.buyer-invoice-page > footer {
+  font-size: 11px;
+  color: #86927f;
+  text-align: center;
+  padding-top: 28px;
+}
+.buyer-invoice-page > footer a {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.buyer-test {
+  background: #fff5df;
+  color: #9e812d;
+  font-size: 9px;
+  letter-spacing: 0.5px;
+  padding: 10px;
+  margin-bottom: 25px;
+  border-radius: 5px;
+  text-align: center;
+}
+.buyer-paid {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 20px;
+  background: #edf6eb;
+  color: #508345;
+  font-size: 13px;
+  border-radius: 8px;
+}
+@media (max-width: 540px) {
+  .buyer-invoice-card {
+    padding: 25px 20px;
+  }
+  .buyer-invoice-heading {
+    flex-direction: column;
+  }
+  .buyer-invoice-foot {
+    flex-direction: column;
+  }
+  .buyer-invoice-page {
+    padding-inline: 13px;
+  }
+}
+@media print {
+  .buyer-invoice-page {
+    background: white;
+    padding: 0;
+  }
+  .buyer-invoice-card {
+    box-shadow: none;
+    border: none;
+    padding: 20px 0;
+  }
+  .buyer-actions,
+  .buyer-invoice-foot,
+  .buyer-invoice-page > footer {
+    display: none;
+  }
+}

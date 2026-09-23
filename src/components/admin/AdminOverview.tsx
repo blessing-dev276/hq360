@@ -101,7 +101,7 @@ export function AdminOverview({
           <div className="admin-feature-orbit" aria-hidden="true">
             <CreditCard size={62} strokeWidth={1} />
           </div>
-          <span className="admin-feature-foot">POWERED BY REMITA</span>
+          <span className="admin-feature-foot">POWERED BY NOWPAYMENTS</span>
         </section>
         <section className="admin-panel">
           <div className="admin-panel-heading">

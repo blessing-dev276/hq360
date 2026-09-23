@@ -22,42 +22,12 @@ type PaymentData = {
     amount_minor: number;
     due_date: string;
     status: string;
-    rrr: string;
+    provider_invoice_id: string;
+    provider_status: string | null;
     environment: string;
   };
-  checkout: { publicKey: string; script: string };
+  checkout: { url: string };
 };
-type RemitaEngine = {
-  init: (options: Record<string, unknown>) => { showPaymentWidget: () => void };
-};
-let checkoutLoader: Promise<void> | undefined;
-let checkoutSource = "";
-function loadCheckout(src: string) {
-  if (checkoutLoader && checkoutSource === src) return checkoutLoader;
-  checkoutSource = src;
-  checkoutLoader = new Promise<void>((resolve, reject) => {
-    const script = document.createElement("script");
-    script.src = src;
-    script.async = true;
-    const timeout = window.setTimeout(() => {
-      script.remove();
-      checkoutLoader = undefined;
-      reject(new Error("Payment checkout took too long to load. Please try again."));
-    }, 20000);
-    script.onload = () => {
-      window.clearTimeout(timeout);
-      resolve();
-    };
-    script.onerror = () => {
-      window.clearTimeout(timeout);
-      script.remove();
-      checkoutLoader = undefined;
-      reject(new Error("Could not load Remita checkout. Please try again."));
-    };
-    document.body.appendChild(script);
-  });
-  return checkoutLoader;
-}
 function BuyerInvoice() {
   const { token } = Route.useParams();
   const [data, setData] = useState<PaymentData | null>(null);
@@ -94,41 +64,17 @@ function BuyerInvoice() {
     setLoading(true);
     void load();
   }, [load]);
+  useEffect(() => {
+    if (data?.invoice.status !== "pending") return;
+    const timer = window.setInterval(() => {
+      if (document.visibilityState === "visible") void load();
+    }, 15000);
+    return () => window.clearInterval(timer);
+  }, [data?.invoice.status, load]);
   async function verify() {
     setBusy(true);
     await load(true);
     setBusy(false);
-  }
-  async function pay() {
-    if (!data) return;
-    setBusy(true);
-    setError("");
-    setNotice("");
-    try {
-      await loadCheckout(data.checkout.script);
-      const engine = (window as unknown as { RmPaymentEngine?: RemitaEngine }).RmPaymentEngine;
-      if (!engine) throw new Error("Remita checkout is unavailable. Please try again.");
-      engine
-        .init({
-          key: data.checkout.publicKey,
-          processRrr: true,
-          extendedData: { customFields: [{ name: "rrr", value: data.invoice.rrr }] },
-          onSuccess: () => {
-            void verify();
-          },
-          onError: () => {
-            setError(
-              "Payment could not be completed. If you were debited, check payment status before trying again.",
-            );
-            setBusy(false);
-          },
-          onClose: () => setBusy(false),
-        })
-        .showPaymentWidget();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to open checkout.");
-      setBusy(false);
-    }
   }
   return (
     <div className="buyer-invoice-page">
@@ -167,7 +113,11 @@ function BuyerInvoice() {
                 </h1>
               </div>
               <span className={`admin-status ${data.invoice.status}`}>
-                {data.invoice.status === "paid" ? "Paid" : "Awaiting payment"}
+                {data.invoice.status === "paid"
+                  ? "Paid"
+                  : data.invoice.status === "refunded"
+                    ? "Refunded"
+                    : "Awaiting payment"}
               </span>
             </div>
             <div className="buyer-total">
@@ -191,8 +141,8 @@ function BuyerInvoice() {
                 </dd>
               </div>
               <div>
-                <dt>Remita reference</dt>
-                <dd>{data.invoice.rrr}</dd>
+                <dt>NOWPayments reference</dt>
+                <dd>{data.invoice.provider_invoice_id}</dd>
               </div>
             </dl>
             <div className="buyer-description">
@@ -211,18 +161,28 @@ function BuyerInvoice() {
             )}
             {data.invoice.status === "paid" ? (
               <div className="buyer-paid">
-                <CheckCircle2 size={22} /> Payment confirmed by Remita
+                <CheckCircle2 size={22} /> Payment confirmed by NOWPayments
               </div>
             ) : (
               <div className="buyer-actions">
-                <button
-                  className="admin-button admin-button-primary"
-                  disabled={busy}
-                  onClick={() => void pay()}
-                >
-                  {busy ? "Please wait…" : "Pay securely with Remita"}
-                  <ArrowUpRight size={17} />
-                </button>
+                {data.invoice.status !== "refunded" && (
+                  <a
+                    className="admin-button admin-button-primary"
+                    href={data.checkout.url}
+                    rel="noreferrer"
+                  >
+                    Pay with crypto via NOWPayments <ArrowUpRight size={17} />
+                  </a>
+                )}
+                <p className="admin-form-note">
+                  Choose your cryptocurrency and network at checkout. Payment is confirmed after
+                  processing completes.
+                </p>
+                {data.invoice.provider_status && (
+                  <p className="admin-form-note">
+                    Payment status: {data.invoice.provider_status.replaceAll("_", " ")}
+                  </p>
+                )}
                 <button className="admin-text-button" disabled={busy} onClick={() => void verify()}>
                   <RefreshCw size={14} />
                   I’ve paid — check status
@@ -231,7 +191,7 @@ function BuyerInvoice() {
             )}
             <div className="buyer-invoice-foot">
               <span>
-                <LockKeyhole size={12} /> Payments processed securely by Remita
+                <LockKeyhole size={12} /> Payments processed securely by NOWPayments
               </span>
               <button className="admin-text-button" onClick={() => window.print()}>
                 <Printer size={14} />

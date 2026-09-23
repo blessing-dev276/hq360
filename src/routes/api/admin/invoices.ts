@@ -7,7 +7,7 @@ export const Route = createFileRoute("/api/admin/invoices")({
       GET: async ({ request }) => {
         const { paymentJson, listInvoices } = await import("@/lib/payments/invoices.server");
         if (!(await isAdminRequest(request))) return paymentJson({ error: "Unauthorized" }, 401);
-        const { paymentSetup } = await import("@/lib/payments/remita.server");
+        const { paymentSetup } = await import("@/lib/payments/nowpayments.server");
         try {
           return paymentJson({ invoices: await listInvoices(), setup: paymentSetup() });
         } catch {

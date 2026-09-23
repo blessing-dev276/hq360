@@ -88,7 +88,7 @@ export function PaymentsAdmin() {
           : action === "issue"
             ? "Invoice issued. Your buyer’s payment link is ready."
             : data.invoice.status === "paid"
-              ? "Payment verified by Remita."
+              ? "Payment verified by NOWPayments."
               : "Payment is not confirmed yet. You can check again shortly.",
       );
     } catch (err) {
@@ -125,7 +125,7 @@ export function PaymentsAdmin() {
   const visible = invoices.filter(
     (i) =>
       (filter === "all" || invoiceStatus(i) === filter) &&
-      `${i.number} ${i.buyer_name} ${i.buyer_email} ${i.rrr || ""}`
+      `${i.number} ${i.buyer_name} ${i.buyer_email} ${i.provider_invoice_id || ""}`
         .toLowerCase()
         .includes(search.toLowerCase()),
   );
@@ -135,7 +135,7 @@ export function PaymentsAdmin() {
     const escape = (value: string) =>
       `"${(/^[=+@\-\t\r]/.test(value) ? "'" + value : value).replaceAll('"', '""')}"`;
     const rows = [
-      ["Invoice", "Buyer", "Email", "Amount (NGN)", "Due date", "Status", "RRR"],
+      ["Invoice", "Buyer", "Email", "Amount (NGN)", "Due date", "Status", "Provider invoice"],
       ...visible.map((i) => [
         i.number,
         i.buyer_name,
@@ -143,7 +143,7 @@ export function PaymentsAdmin() {
         (i.amount_minor / 100).toFixed(2),
         i.due_date,
         invoiceStatus(i),
-        i.rrr || "",
+        i.provider_invoice_id || "",
       ]),
     ];
     const url = URL.createObjectURL(
@@ -177,9 +177,9 @@ export function PaymentsAdmin() {
     <>
       <div className="admin-payment-toolbar">
         <div className="admin-provider">
-          <span className="admin-remita-mark">r</span>
+          <span className="admin-provider-mark">N</span>
           <div>
-            Remita <small>{setup?.configured ? "Connected" : "Setup required"}</small>
+            NOWPayments <small>{setup?.configured ? "Configured" : "Setup required"}</small>
           </div>
           <span className={`admin-status ${setup?.environment === "live" ? "paid" : "draft"}`}>
             {setup?.environment === "live" ? "Live mode" : "Test mode"}
@@ -211,12 +211,12 @@ export function PaymentsAdmin() {
           <div>
             <strong>Your payment workspace is ready.</strong>
             <p>
-              You can save drafts now. Connect your Remita merchant credentials to issue invoices
-              and accept payments.
+              You can save drafts now. Connect your NOWPayments merchant credentials to issue
+              invoices and accept payments.
             </p>
           </div>
-          <a href="https://devs.remita.net/" target="_blank" rel="noreferrer">
-            Remita setup <ArrowUpRight size={15} />
+          <a href="https://account.nowpayments.io/" target="_blank" rel="noreferrer">
+            NOWPayments setup <ArrowUpRight size={15} />
           </a>
         </div>
       )}
@@ -270,7 +270,7 @@ export function PaymentsAdmin() {
         </div>
         <div className="admin-table-toolbar">
           <div className="admin-filters" aria-label="Filter invoices">
-            {["all", "draft", "pending", "paid", "overdue"].map((value) => (
+            {["all", "draft", "pending", "paid", "overdue", "refunded"].map((value) => (
               <button
                 key={value}
                 aria-pressed={filter === value}
@@ -497,8 +497,12 @@ export function PaymentsAdmin() {
                   <dd>{selected.due_date}</dd>
                 </div>
                 <div>
-                  <dt>Remita reference</dt>
-                  <dd>{selected.rrr || "Not issued yet"}</dd>
+                  <dt>NOWPayments reference</dt>
+                  <dd>{selected.provider_invoice_id || "Not issued yet"}</dd>
+                </div>
+                <div>
+                  <dt>Provider status</dt>
+                  <dd>{selected.provider_status?.replaceAll("_", " ") || "No payment yet"}</dd>
                 </div>
                 <div>
                   <dt>Environment</dt>
@@ -506,13 +510,13 @@ export function PaymentsAdmin() {
                 </div>
               </dl>
               <div className="admin-button-row flex-wrap">
-                {!selected.rrr ? (
+                {!selected.provider_invoice_id ? (
                   <button
                     className="admin-button admin-button-primary"
                     disabled={!!busy || !setup?.configured}
                     onClick={() => void action(selected, "issue")}
                   >
-                    {busy === "issue" ? "Issuing…" : "Issue with Remita"}
+                    {busy === "issue" ? "Issuing…" : "Issue with NOWPayments"}
                     <ArrowUpRight size={16} />
                   </button>
                 ) : (
@@ -542,7 +546,7 @@ export function PaymentsAdmin() {
                     >
                       View invoice <ArrowUpRight size={15} />
                     </a>
-                    {selected.status !== "paid" && (
+                    {!["paid", "refunded"].includes(selected.status) && (
                       <>
                         <button
                           className="admin-button admin-button-primary"

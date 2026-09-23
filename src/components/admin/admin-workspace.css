@@ -528,6 +528,7 @@
   background: #fff5df;
   color: #a88a3c;
 }
+.admin-status.refunded,
 .admin-status.overdue {
   background: #fcf0ee;
   color: #b66c61;
@@ -590,7 +591,7 @@
 .admin-provider .admin-status {
   margin-left: 8px;
 }
-.admin-remita-mark {
+.admin-provider-mark {
   width: 34px;
   height: 34px;
   border-radius: 9px;

@@ -8,8 +8,12 @@ export type Invoice = {
   amount_minor: number;
   currency: "NGN";
   due_date: string;
-  status: "draft" | "pending" | "paid";
-  rrr: string | null;
+  status: "draft" | "pending" | "paid" | "refunded";
+  provider: "nowpayments" | "remita";
+  provider_invoice_id: string | null;
+  checkout_url: string | null;
+  payment_id: string | null;
+  provider_status: string | null;
   payment_token: string;
   environment: "demo" | "live";
   created_at: string;

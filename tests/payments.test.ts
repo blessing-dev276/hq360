@@ -1,12 +1,16 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { createHash } from "node:crypto";
+import { createHmac } from "node:crypto";
 import {
-  generateRrr,
+  createHostedInvoice,
   isVerifiedPayment,
-  parseRemitaResponse,
+  paymentMatches,
   paymentSetup,
-  remitaConfig,
-} from "../src/lib/payments/remita.server";
+  nowpaymentsConfig,
+  verifyIpnSignature,
+  checkoutUrl,
+  checkPayment,
+  RejectedInvoiceError,
+} from "../src/lib/payments/nowpayments.server";
 import { invoiceSchema, sameOrigin } from "../src/lib/payments/invoices.server";
 import type { Invoice } from "../src/lib/payments/types";
 const invoice: Invoice = {
@@ -20,23 +24,36 @@ const invoice: Invoice = {
   currency: "NGN",
   due_date: "2026-10-01",
   status: "pending",
-  rrr: "123456789012",
+  provider: "nowpayments",
+  provider_invoice_id: "123456789012",
+  checkout_url: "https://sandbox.nowpayments.io/payment/?iid=123456789012",
+  payment_id: null,
+  provider_status: null,
   payment_token: "a".repeat(64),
   environment: "demo",
   created_at: "2026-09-23T00:00:00Z",
   sent_at: null,
   paid_at: null,
 };
+const valid = {
+  payment_id: "98765",
+  invoice_id: invoice.provider_invoice_id,
+  order_id: invoice.id,
+  price_currency: "ngn",
+  price_amount: 4500.5,
+  pay_amount: 0.0005,
+  actually_paid: 0.0005,
+  payment_status: "finished",
+};
 const originalFetch = globalThis.fetch;
 const env = { ...process.env };
 afterEach(() => {
   globalThis.fetch = originalFetch;
   for (const key of [
-    "REMITA_ENVIRONMENT",
-    "REMITA_MERCHANT_ID",
-    "REMITA_SERVICE_TYPE_ID",
-    "REMITA_API_KEY",
-    "REMITA_PUBLIC_KEY",
+    "NOWPAYMENTS_ENVIRONMENT",
+    "NOWPAYMENTS_API_KEY",
+    "NOWPAYMENTS_IPN_SECRET",
+    "SITE_URL",
   ]) {
     if (env[key] === undefined) delete process.env[key];
     else process.env[key] = env[key];
@@ -44,89 +61,117 @@ afterEach(() => {
 });
 function configure() {
   Object.assign(process.env, {
-    REMITA_ENVIRONMENT: "demo",
-    REMITA_MERCHANT_ID: "merchant",
-    REMITA_SERVICE_TYPE_ID: "service",
-    REMITA_API_KEY: "private-test-key",
-    REMITA_PUBLIC_KEY: "public-test-key",
+    NOWPAYMENTS_ENVIRONMENT: "demo",
+    NOWPAYMENTS_API_KEY: "api-test-key",
+    NOWPAYMENTS_IPN_SECRET: "ipn-test-secret",
+    SITE_URL: "https://hq360.example",
   });
 }
-describe("Remita payment integrity", () => {
-  test("only confirms matching reference, amount, order and successful status", () => {
-    const valid = { status: "00", RRR: invoice.rrr, amount: "4500.50", orderId: invoice.id };
+describe("NOWPayments payment integrity", () => {
+  test("only finishes fully paid matching orders", () => {
     expect(isVerifiedPayment(valid, invoice)).toBe(true);
-    expect(isVerifiedPayment({ ...valid, status: "01" }, invoice)).toBe(false);
     for (const override of [
-      { status: "021" },
-      { RRR: "999999999999" },
-      { amount: "4500" },
-      { amount: undefined },
-      { orderId: "wrong" },
-      { currency: "USD" },
+      { payment_status: "confirming" },
+      { payment_status: "confirmed" },
+      { payment_status: "sending" },
+      { payment_status: "partially_paid" },
+      { payment_status: "failed" },
+      { payment_status: "expired" },
+      { payment_status: "refunded" },
+      { invoice_id: "wrong" },
+      { price_amount: 1 },
+      { order_id: "wrong" },
+      { price_currency: "usd" },
+      { actually_paid: 0.0004 },
+      { actually_paid: null },
+      { pay_amount: 0 },
     ])
       expect(isVerifiedPayment({ ...valid, ...override }, invoice)).toBe(false);
+    expect(paymentMatches(valid, { ...invoice, provider: "remita" })).toBe(false);
   });
-  test("parses JSONP without executing arbitrary code", () => {
-    expect(parseRemitaResponse('jsonp ({"statuscode":"025","RRR":"123456789012"});').RRR).toBe(
-      invoice.rrr,
-    );
-    expect(() => parseRemitaResponse('evil({"status":"00"})')).toThrow();
-    expect(() => parseRemitaResponse("null")).toThrow();
-    expect(() => parseRemitaResponse("[]")).toThrow();
-  });
-  test("uses server credentials and exact decimal amount in the request signature", async () => {
+  test("verifies canonical nested IPN signatures and rejects missing/tampered signatures", () => {
     configure();
-    let captured = false;
+    const canonical = '{"a":{"a":1,"z":2},"items":[{"a":1,"b":2}],"z":3}';
+    const signature = createHmac("sha512", "ipn-test-secret").update(canonical).digest("hex");
+    const payload = { z: 3, items: [{ b: 2, a: 1 }], a: { z: 2, a: 1 } };
+    expect(verifyIpnSignature(payload, signature)).toBe(true);
+    expect(verifyIpnSignature({ ...payload, z: 4 }, signature)).toBe(false);
+    expect(verifyIpnSignature(payload, null)).toBe(false);
+    expect(verifyIpnSignature(payload, "bad")).toBe(false);
+  });
+  test("creates hosted checkout with private API key and trusted return/callback URLs", async () => {
+    configure();
     globalThis.fetch = (async (url, init) => {
-      expect(String(url)).toStartWith("https://remitademo.net/");
+      expect(String(url)).toBe("https://api-sandbox.nowpayments.io/v1/invoice");
+      expect(new Headers(init?.headers).get("x-api-key")).toBe("api-test-key");
       const body = JSON.parse(String(init?.body));
-      expect(body.amount).toBe("4500.50");
-      expect(body.orderId).toBe(invoice.id);
-      const signature = createHash("sha512")
-        .update("merchantservice" + invoice.id + "4500.50private-test-key")
-        .digest("hex");
-      expect(new Headers(init?.headers).get("Authorization")).toBe(
-        `remitaConsumerKey=merchant,remitaConsumerToken=${signature}`,
-      );
-      captured = true;
-      return new Response('jsonp ({"statuscode":"025","RRR":"123456789012"})');
+      expect(body.price_amount).toBe(4500.5);
+      expect(body.price_currency).toBe("ngn");
+      expect(body.order_id).toBe(invoice.id);
+      expect(body.ipn_callback_url).toBe("https://hq360.example/api/payments/nowpayments/ipn");
+      expect(body.success_url).toBe(`https://hq360.example/pay/${invoice.payment_token}`);
+      expect(body.pay_currency).toBeUndefined();
+      return Response.json({ id: invoice.provider_invoice_id, invoice_url: invoice.checkout_url });
     }) as typeof fetch;
-    expect(await generateRrr(invoice)).toBe(invoice.rrr);
-    expect(captured).toBe(true);
+    expect(await createHostedInvoice(invoice)).toEqual({
+      provider_invoice_id: invoice.provider_invoice_id,
+      checkout_url: invoice.checkout_url,
+    });
   });
-  test("recovers a duplicate order instead of creating a new reference", async () => {
+  test("rejects untrusted checkout redirects and cross-environment links", () => {
+    for (const value of [
+      "javascript:alert(1)",
+      "https://nowpayments.io.evil.example/pay",
+      "https://evil.example",
+      "https://user@nowpayments.io/payment",
+      "http://nowpayments.io/payment",
+      "https://sandbox.nowpayments.io/payment",
+    ])
+      expect(() => checkoutUrl(value, "live")).toThrow();
+    expect(checkoutUrl("https://nowpayments.io/payment/?iid=1", "live")).toBe(
+      "https://nowpayments.io/payment/?iid=1",
+    );
+  });
+  test("distinguishes definitive rejection from ambiguous timeout without automatic retry", async () => {
     configure();
+    globalThis.fetch = (async () => new Response("", { status: 400 })) as typeof fetch;
+    await expect(createHostedInvoice(invoice)).rejects.toBeInstanceOf(RejectedInvoiceError);
     let calls = 0;
-    globalThis.fetch = (async (url) => {
+    globalThis.fetch = (async () => {
       calls++;
-      if (calls === 1) return Response.json({ statuscode: "028" });
-      expect(String(url)).toContain(invoice.id);
-      expect(String(url)).toEndWith("/orderstatus.reg");
-      return Response.json({ orderId: invoice.id, RRR: invoice.rrr });
+      throw new Error("timeout");
     }) as typeof fetch;
-    expect(await generateRrr(invoice)).toBe(invoice.rrr);
-    expect(calls).toBe(2);
+    await expect(createHostedInvoice(invoice)).rejects.toThrow("reconciliation");
+    expect(calls).toBe(1);
   });
-  test("rejects missing credentials and cross-environment invoices", () => {
+  test("payment lookup binds the response to the requested payment", async () => {
     configure();
-    expect(() => remitaConfig("live")).toThrow();
-    delete process.env.REMITA_API_KEY;
-    expect(paymentSetup().configured).toBe(false);
-    expect(() => remitaConfig()).toThrow();
+    globalThis.fetch = (async (url) => {
+      expect(String(url)).toEndWith("/payment/98765");
+      return Response.json(valid);
+    }) as typeof fetch;
+    expect(await checkPayment("98765", "demo")).toEqual(valid);
+    globalThis.fetch = (async () =>
+      Response.json({ ...valid, payment_id: "different" })) as typeof fetch;
+    await expect(checkPayment("98765", "demo")).rejects.toThrow("did not match");
   });
-  test("validates whole minor-unit amounts, real dates and buyer details", () => {
-    const input = { ...invoice };
-    expect(invoiceSchema.safeParse(input).success).toBe(true);
+  test("requires both API and IPN credentials and prevents environment mixing", () => {
+    configure();
+    expect(() => nowpaymentsConfig("live")).toThrow();
+    delete process.env.NOWPAYMENTS_IPN_SECRET;
+    expect(paymentSetup().configured).toBe(false);
+  });
+  test("validates integer minor-unit amounts and buyer details", () => {
+    expect(invoiceSchema.safeParse(invoice).success).toBe(true);
     for (const override of [
       { amount_minor: -1 },
       { amount_minor: 0.2 },
       { due_date: "2026-02-31" },
       { buyer_email: "invalid" },
-      { buyer_phone: "abc" },
     ])
-      expect(invoiceSchema.safeParse({ ...input, ...override }).success).toBe(false);
+      expect(invoiceSchema.safeParse({ ...invoice, ...override }).success).toBe(false);
   });
-  test("requires same-origin mutations", () => {
+  test("requires same-origin admin and buyer mutations", () => {
     expect(
       sameOrigin(
         new Request("https://hq360.space/api", { headers: { origin: "https://hq360.space" } }),

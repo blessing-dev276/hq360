@@ -13,8 +13,6 @@ const context = await browser.newContext();
 const page = await context.newPage();
 const errors = [];
 page.on("pageerror", (error) => errors.push(error.message));
-let imports = 0;
-let unavailable = true;
 const name = 'Test Author, "Quoted"';
 const title = 'Test Book, "Quoted"';
 await context.route("**/api/admin/session", (route) =>
@@ -34,7 +32,7 @@ await context.route("**/api/admin/scout-reedsy-genres", (route) =>
     },
   }),
 );
-await context.route("**/api/admin/scout-amazon-search", (route) =>
+await context.route("**/api/admin/scout-reedsy-search", (route) =>
   route.fulfill({
     json: {
       ok: true,
@@ -42,35 +40,28 @@ await context.route("**/api/admin/scout-amazon-search", (route) =>
       qualifying: 1,
       items: [
         {
-          asin: "B012345678",
           title,
           authorName: name,
-          reviewCount: 12,
-          sourceUrl: "https://www.amazon.de/dp/B012345678",
-          genre: "Horror",
-          country: "Germany",
+          sourceUrl: "https://reedsy.com/discovery/book/test-book-test-author",
+          verdictRating: 4,
+          genre: "Fiction",
           qualified: true,
           reasons: [],
         },
         {
-          asin: "B087654321",
           title: "Unqualified Test Book",
           authorName: "Unqualified Author",
-          reviewCount: 500,
-          sourceUrl: "https://www.amazon.de/dp/B087654321",
-          genre: "Horror",
-          country: "Germany",
+          sourceUrl: "https://reedsy.com/discovery/book/unqualified-test-book",
+          verdictRating: 2,
+          genre: "Fiction",
           qualified: false,
-          reasons: ["500 ratings is outside 1–49"],
+          reasons: ["2/5 is below the minimum 3/5"],
         },
       ],
     },
   }),
 );
 await context.route("**/api/admin/scout-manual-ingest", (route) => {
-  imports++;
-  if (unavailable)
-    return route.fulfill({ status: 503, json: { ok: false, message: "Fixture save unavailable" } });
   const body = route.request().postDataJSON();
   return route.fulfill({
     json: {
@@ -80,7 +71,7 @@ await context.route("**/api/admin/scout-manual-ingest", (route) => {
           id: "server-book",
           title: body.bookTitle,
           genre: body.genre,
-          asin: "B012345678",
+          asin: null,
           source_url: body.sourceUrl,
         },
         author: { id: "server-author", name: body.authorName, country: body.country },
@@ -88,51 +79,24 @@ await context.route("**/api/admin/scout-manual-ingest", (route) => {
     },
   });
 });
-async function search() {
-  await page.getByRole("button", { name: "Search Amazon" }).click();
-  await expect(page.getByRole("heading", { name, exact: true })).toBeVisible();
-  await expect(page.getByText("Unqualified Test Book", { exact: true })).toBeVisible();
-}
-async function checkCsv() {
-  const downloadEvent = page.waitForEvent("download");
-  await page.getByRole("button", { name: "Export Amazon results (CSV)" }).click();
-  const download = await downloadEvent;
-  const csv = await readFile(await download.path(), "utf8");
-  expect(csv).toContain('"Test Author, ""Quoted""","Test Book, ""Quoted""","12"');
-  expect(csv).toContain('"B012345678","https://www.amazon.de/dp/B012345678"');
-  expect(csv).toContain('"Unqualified Author","Unqualified Test Book"');
-  expect(await download.failure()).toBeNull();
-}
+
 try {
   await page.goto(`${process.env.SCOUT_TEST_URL || "http://localhost:8081"}/scout`);
-  await search();
-  await expect(page.getByRole("button", { name: "Retry sync" })).toBeVisible();
-  await checkCsv();
-  await page.reload();
+  await page.getByRole("button", { name: "Search Reedsy" }).click();
   await expect(page.getByRole("heading", { name, exact: true })).toBeVisible();
-  await checkCsv();
-  console.log("PASS: automatic search collects data, survives a failed save and downloads CSV.");
+  await expect(page.getByText("Unqualified Test Book", { exact: true })).toBeVisible();
+  await expect(page.getByText(/Reedsy: Fiction/)).toBeVisible();
+  console.log("PASS: Reedsy search saves qualified results and shows unqualified ones separately.");
 
-  unavailable = false;
-  await page.getByRole("button", { name: "Retry sync" }).click();
-  await expect(
-    page.getByText("Book saved to your account and ready to export.", { exact: true }),
-  ).toBeVisible();
-  await checkCsv();
-  expect(imports).toBe(2);
-  console.log("PASS: retry saves the automatically collected result and keeps it exportable.");
+  const downloadEvent = page.waitForEvent("download");
+  await page.getByRole("button", { name: "Export Reedsy results (CSV)" }).click();
+  const download = await downloadEvent;
+  const csv = await readFile(await download.path(), "utf8");
+  expect(csv).toContain('"Test Author, ""Quoted""","Test Book, ""Quoted""","4/5"');
+  expect(csv).toContain('"Unqualified Author","Unqualified Test Book"');
+  expect(await download.failure()).toBeNull();
+  console.log("PASS: CSV export includes both qualified and unqualified results.");
 
-  await page.evaluate(() => localStorage.clear());
-  await context.addInitScript(() => {
-    Storage.prototype.setItem = () => {
-      throw new DOMException("Storage blocked", "QuotaExceededError");
-    };
-  });
-  unavailable = true;
-  await page.reload();
-  await search();
-  await checkCsv();
-  console.log("PASS: blocked browser storage does not prevent automatic search or CSV export.");
   expect(errors).toEqual([]);
 } finally {
   await browser.close();

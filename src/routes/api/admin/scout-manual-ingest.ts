@@ -38,6 +38,12 @@ const bodySchema = z.object({
   // they use this generic pair instead of amazonReviewCount.
   reviewPlatform: z.string().trim().min(1).max(40).optional(),
   reviewCount: z.number().int().min(0).max(999).optional(),
+  // Pass the same batchId + batchLabel for every book ingested in one
+  // search run so they group as a single "batch" the UI can list and
+  // export together, instead of each book creating its own throwaway
+  // batch of one.
+  batchId: z.string().uuid().optional(),
+  batchLabel: z.string().trim().min(1).max(200).optional(),
   // Staff must explicitly say "yes, this website belongs to this author" --
   // a name/URL pairing found on a listing page is not itself proof of
   // identity, so an unconfirmed website is recorded as a lead to verify,
@@ -206,19 +212,29 @@ export const Route = createFileRoute("/api/admin/scout-manual-ingest")({
           const publicationDate = body.publicationDate?.trim();
           const parsedDate = publicationDate ? parseManualDate(publicationDate) : null;
 
-          const newBatchId = crypto.randomUUID();
+          const newBatchId = body.batchId ?? crypto.randomUUID();
+          const { data: existingBatch } = body.batchId
+            ? await withDatabaseRetry(() =>
+                db.from("scout_batches").select("*").eq("id", newBatchId).maybeSingle(),
+              )
+            : { data: null };
+          const existingItemCount =
+            (existingBatch as { item_count: number } | null)?.item_count ?? 0;
           const { data: batch, error: batchErr } = await withDatabaseRetry(() =>
             db
               .from("scout_batches")
               .upsert({
                 id: newBatchId,
-                label: `Manual: ${source.slug} — "${body.bookTitle}"`,
+                label:
+                  (existingBatch as { label: string } | null)?.label ??
+                  body.batchLabel ??
+                  `Manual: ${source.slug} — "${body.bookTitle}"`,
                 genre: body.genre ?? null,
                 query: null,
                 sources: [body.sourceSlug],
                 requested_max: 1,
                 total_available: null,
-                item_count: book ? 0 : 1,
+                item_count: existingItemCount + (book ? 0 : 1),
               })
               .select("*")
               .single(),

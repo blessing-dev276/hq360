@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { isAdminRequest } from "@/lib/admin-auth.server";
+import { AMAZON_DOMAINS } from "@/lib/scout/amazon-url";
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -8,26 +9,6 @@ function json(body: unknown, status = 200) {
     headers: { "content-type": "application/json" },
   });
 }
-
-const AMAZON_DOMAINS = [
-  "amazon.com",
-  "amazon.ca",
-  "amazon.com.mx",
-  "amazon.com.br",
-  "amazon.co.uk",
-  "amazon.de",
-  "amazon.fr",
-  "amazon.it",
-  "amazon.es",
-  "amazon.nl",
-  "amazon.se",
-  "amazon.pl",
-  "amazon.com.au",
-  "amazon.co.jp",
-  "amazon.in",
-  "amazon.sg",
-  "amazon.ae",
-] as const;
 
 const PUBLISHED_WITHIN_DAYS = { any: 0, "30": 30, "90": 90, "180": 180, "365": 365 } as const;
 

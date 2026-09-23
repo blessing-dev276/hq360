@@ -34,12 +34,34 @@ async function extractContact(
   const html = await response.text();
   const titleMatch = html.match(/<title[^>]*>([^<]*)<\/title>/i);
   const mailtoMatch = html.match(/mailto:([a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,})/i);
-  const contactLinkMatch = html.match(/<a[^>]+href=["']([^"']+)["'][^>]*>[^<]*contact[^<]*<\/a>/i);
+  const contactLinkMatch =
+    html.match(/<a[^>]+href=["']([^"']+)["'][^>]*>[^<]*contact[^<]*<\/a>/i) ??
+    html.match(/<a[^>]+href=["']([^"'#]*contact[^"']*)["']/i);
   return {
     title: titleMatch?.[1]?.trim(),
     contactEmail: mailtoMatch?.[1]?.toLowerCase(),
     contactFormUrl: contactLinkMatch ? new URL(contactLinkMatch[1]!, url).toString() : undefined,
   };
+}
+
+async function searchCandidates(
+  query: string,
+  apiKey: string,
+  signal: AbortSignal,
+): Promise<Array<{ link?: string; title?: string }>> {
+  const searchUrl = new URL("https://serpapi.com/search.json");
+  searchUrl.searchParams.set("engine", "google");
+  searchUrl.searchParams.set("q", query);
+  searchUrl.searchParams.set("num", "20");
+  searchUrl.searchParams.set("api_key", apiKey);
+  const response = await fetch(searchUrl, { signal });
+  const data = (await response.json()) as {
+    error?: string;
+    organic_results?: Array<{ link?: string; title?: string }>;
+  };
+  if (!response.ok || data.error)
+    throw new Error(data.error || `Search failed (${response.status})`);
+  return data.organic_results ?? [];
 }
 
 export const Route = createFileRoute("/api/admin/scout-authors/$id/find-contact")({
@@ -74,32 +96,49 @@ export const Route = createFileRoute("/api/admin/scout-authors/$id/find-contact"
 
           const searchController = new AbortController();
           const searchTimeout = setTimeout(() => searchController.abort(), 20_000);
-          const searchUrl = new URL("https://serpapi.com/search.json");
-          searchUrl.searchParams.set("engine", "google");
-          searchUrl.searchParams.set("q", `"${author.name}" author official website`);
-          searchUrl.searchParams.set("num", "10");
-          searchUrl.searchParams.set("api_key", apiKey);
-          const searchResponse = await fetch(searchUrl, {
-            signal: searchController.signal,
-          }).finally(() => clearTimeout(searchTimeout));
-          const searchData = (await searchResponse.json()) as {
-            error?: string;
-            organic_results?: Array<{ link?: string; title?: string }>;
-          };
-          if (!searchResponse.ok || searchData.error)
-            throw new Error(searchData.error || `Search failed (${searchResponse.status})`);
+          let results: Array<{ link?: string; title?: string }> = [];
+          try {
+            results = await searchCandidates(
+              `"${author.name}" author website`,
+              apiKey,
+              searchController.signal,
+            );
+            if (results.every((item) => !item.link || EXCLUDED_HOSTS.test(item.link)))
+              results = results.concat(
+                await searchCandidates(
+                  `"${author.name}" books contact`,
+                  apiKey,
+                  searchController.signal,
+                ),
+              );
+          } finally {
+            clearTimeout(searchTimeout);
+          }
 
-          const candidate = (searchData.organic_results ?? []).find(
-            (item) => item.link && !EXCLUDED_HOSTS.test(item.link),
+          const candidates = results.filter(
+            (item): item is { link: string; title?: string } =>
+              Boolean(item.link) && !EXCLUDED_HOSTS.test(item.link!),
           );
-          if (!candidate?.link)
+          if (candidates.length === 0)
             return json({ ok: true, found: false, message: "No likely official website found." });
 
+          let candidate = candidates[0]!;
           let extracted: Awaited<ReturnType<typeof extractContact>> | null = null;
-          try {
-            extracted = await extractContact(candidate.link, AbortSignal.timeout(15_000));
-          } catch {
-            /* Page unreachable; the candidate link is still useful to hand back. */
+          for (const item of candidates.slice(0, 5)) {
+            try {
+              const result = await extractContact(item.link, AbortSignal.timeout(15_000));
+              if (result.contactEmail || result.contactFormUrl) {
+                candidate = item;
+                extracted = result;
+                break;
+              }
+              if (!extracted) {
+                candidate = item;
+                extracted = result;
+              }
+            } catch {
+              /* Try the next candidate. */
+            }
           }
 
           await db.from("scout_research_notes").insert({

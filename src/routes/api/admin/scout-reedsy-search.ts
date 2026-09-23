@@ -12,28 +12,9 @@ function json(body: unknown, status = 200) {
 // Reedsy Discovery exclusively features self-published/indie books that
 // applied for editorial review -- unlike Amazon, there's no "rating count"
 // to filter on. Its own signal is the reviewer's 1-5 verdict score.
-const GENRE_IDS: Record<string, number> = {
-  Horror: 44,
-  Fantasy: 2,
-  "Mystery & Crime": 28,
-  "Non-Fiction": 55,
-  Romance: 6,
-  "Science Fiction": 7,
-  "Thriller & Suspense": 43,
-  "Young Adult": 9,
-};
-
 const schema = z.object({
-  genre: z.enum([
-    "Horror",
-    "Fantasy",
-    "Mystery & Crime",
-    "Non-Fiction",
-    "Romance",
-    "Science Fiction",
-    "Thriller & Suspense",
-    "Young Adult",
-  ]),
+  genreId: z.number().int().positive(),
+  genreName: z.string().trim().min(1).max(120),
   limit: z.number().int().min(1).max(50),
   minVerdictRating: z.number().int().min(1).max(5).default(1),
   debutOnly: z.boolean().default(false),
@@ -89,8 +70,7 @@ export const Route = createFileRoute("/api/admin/scout-reedsy-search")({
           return json({ ok: false, error: "unauthorized" }, 401);
         const parsed = schema.safeParse(await request.json().catch(() => null));
         if (!parsed.success) return json({ ok: false, error: "invalid" }, 400);
-        const { genre, limit, minVerdictRating, debutOnly } = parsed.data;
-        const genreId = GENRE_IDS[genre];
+        const { genreId, genreName, limit, minVerdictRating, debutOnly } = parsed.data;
 
         try {
           const candidates: ReedsyBook[] = [];
@@ -155,7 +135,7 @@ export const Route = createFileRoute("/api/admin/scout-reedsy-search")({
                 verdictRating,
                 reviewerName: book.review?.reviewer?.name ?? null,
                 overview: book.review?.overview ?? null,
-                genre,
+                genre: genreName,
                 qualified: reasons.length === 0,
                 reasons,
               };

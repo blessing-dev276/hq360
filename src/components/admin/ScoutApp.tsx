@@ -49,6 +49,7 @@ type Book = {
   genre: string | null;
   source_url: string | null;
   source_slug: string;
+  discovered_at?: string | null;
   scout_authors: { id: string; name: string; country: string | null } | null;
   scout_review_counts: { platform: string; review_count: number | null }[];
   scout_prospects: { id: string; status: string }[];
@@ -64,6 +65,27 @@ type UnqualifiedResult = {
   genre: string;
   reasons: string[];
 };
+
+type ReedsyGenre = { id: number; name: string; emoji: string; depth: number; bookCount: number };
+
+type ContactResult = {
+  found: boolean;
+  candidateUrl: string | null;
+  candidateTitle: string | null;
+  contactEmail: string | null;
+  contactFormUrl: string | null;
+  message?: string;
+};
+
+function formatDiscoveredAt(value: string | null | undefined) {
+  if (!value) return null;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  return date.toLocaleString(undefined, {
+    dateStyle: "medium",
+    timeStyle: "short",
+  });
+}
 
 const LOCAL_BOOKS_KEY = "hq360-scout-amazon-books";
 const localBookSchema = z.object({
@@ -127,6 +149,52 @@ function PublicLink({ url, children }: { url: string | null; children: React.Rea
   ) : null;
 }
 
+function ContactFinder({
+  authorId,
+  busy,
+  result,
+  onFind,
+}: {
+  authorId: string;
+  busy: boolean;
+  result: ContactResult | undefined;
+  onFind: (authorId: string) => void;
+}) {
+  return (
+    <div className="mt-3">
+      <button
+        type="button"
+        disabled={busy}
+        onClick={() => onFind(authorId)}
+        className="inline-flex items-center gap-1 rounded-full border px-3 py-1.5 text-xs disabled:opacity-60"
+      >
+        {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
+        {busy ? "Searching…" : "Find contact info"}
+      </button>
+      {result && (
+        <p className="mt-2 text-xs text-muted-foreground">
+          {result.found ? (
+            <>
+              Candidate site:{" "}
+              <PublicLink url={result.candidateUrl}>
+                {result.candidateTitle ?? result.candidateUrl}
+              </PublicLink>
+              {result.contactEmail
+                ? ` · email found: ${result.contactEmail}`
+                : result.contactFormUrl
+                  ? " · contact form found"
+                  : " · no contact method found"}
+              {" — unverified, confirm before outreach."}
+            </>
+          ) : (
+            (result.message ?? "No likely official website found.")
+          )}
+        </p>
+      )}
+    </div>
+  );
+}
+
 function csvCell(value: string | number | null | undefined) {
   let text = String(value ?? "");
   if (/^[=+\-@]/.test(text)) text = `'${text}`;
@@ -149,6 +217,10 @@ export function ScoutApp() {
   const [reedsyUnqualified, setReedsyUnqualified] = useState<UnqualifiedResult[]>([]);
   const [reedsySavedOnly, setReedsySavedOnly] = useState(false);
   const [reedsyLoading, setReedsyLoading] = useState(true);
+  const [reedsyGenres, setReedsyGenres] = useState<ReedsyGenre[]>([]);
+  const [reedsyGenreId, setReedsyGenreId] = useState<number | null>(null);
+  const [contactBusy, setContactBusy] = useState("");
+  const [contactResults, setContactResults] = useState<Record<string, ContactResult>>({});
   const [books, setBooks] = useState<Book[]>([]);
   const [localBooks, setLocalBooks] = useState<Book[]>([]);
   const [loading, setLoading] = useState(true);
@@ -188,10 +260,27 @@ export function ScoutApp() {
     return () => controller.abort();
   }, [loadBooks, refresh]);
 
+  const reedsyGenre = reedsyGenres.find((item) => item.id === reedsyGenreId) ?? null;
+
+  useEffect(() => {
+    const controller = new AbortController();
+    api<{ genres: ReedsyGenre[] }>("/api/admin/scout-reedsy-genres", undefined, controller.signal)
+      .then((data) => {
+        setReedsyGenres(data.genres);
+        setReedsyGenreId((current) => current ?? data.genres[0]?.id ?? null);
+      })
+      .catch((caught) => {
+        if (!controller.signal.aborted)
+          setError(caught instanceof Error ? caught.message : "Could not load Reedsy genres.");
+      });
+    return () => controller.abort();
+  }, []);
+
   const loadReedsyBooks = useCallback(
     (signal?: AbortSignal) => {
+      if (!reedsyGenre) return Promise.resolve();
       setReedsyLoading(true);
-      const params = new URLSearchParams({ source: "reedsy_discovery", genre });
+      const params = new URLSearchParams({ source: "reedsy_discovery", genre: reedsyGenre.name });
       return api<{ items: Book[] }>(`/api/admin/scout-books?${params}`, undefined, signal)
         .then((data) => setReedsyBooks(data.items))
         .catch((caught) => {
@@ -202,7 +291,7 @@ export function ScoutApp() {
           if (!signal?.aborted) setReedsyLoading(false);
         });
     },
-    [genre],
+    [reedsyGenre],
   );
 
   useEffect(() => {
@@ -406,6 +495,7 @@ export function ScoutApp() {
   }
 
   async function runReedsySearch() {
+    if (!reedsyGenre) return;
     setBusy("reedsy-search");
     setError("");
     setNotice("Searching Reedsy Discovery and checking each result against your filters…");
@@ -423,7 +513,8 @@ export function ScoutApp() {
         searched: number;
         qualifying: number;
       }>("/api/admin/scout-reedsy-search", {
-        genre,
+        genreId: reedsyGenre.id,
+        genreName: reedsyGenre.name,
         limit: resultLimit,
         minVerdictRating: reedsyMinRating,
         debutOnly,
@@ -431,13 +522,24 @@ export function ScoutApp() {
       const qualifiedItems = result.items.filter((item) => item.qualified);
       const unqualifiedItems = result.items.filter((item) => !item.qualified);
 
-      const candidates: Book[] = qualifiedItems.map((item, index) => ({
+      // The same book being found again on a later search (same genre or
+      // not) must not create a second row -- skip re-ingesting anything
+      // whose source URL is already saved, rather than relying only on the
+      // server's upsert-on-conflict behavior.
+      const knownUrls = new Set(reedsyBooks.map((book) => book.source_url));
+      const alreadySavedCount = qualifiedItems.filter((item) =>
+        knownUrls.has(item.sourceUrl),
+      ).length;
+      const newQualifiedItems = qualifiedItems.filter((item) => !knownUrls.has(item.sourceUrl));
+
+      const candidates: Book[] = newQualifiedItems.map((item, index) => ({
         id: `local-reedsy-${index}-${item.sourceUrl}`,
         title: item.title,
         asin: null,
         genre: item.genre,
         source_url: item.sourceUrl,
         source_slug: "reedsy_discovery",
+        discovered_at: new Date().toISOString(),
         scout_authors: {
           id: `local-reedsy-${index}-${item.sourceUrl}`,
           name: item.authorName!,
@@ -470,9 +572,10 @@ export function ScoutApp() {
         ...current.filter((book) => !saved.some((item) => item.source_url === book.source_url)),
       ]);
       setNotice(
-        `${result.items.length} Reedsy results checked: ${candidates.length} qualified` +
-          ` (${saved.length} saved to your account) and ${unqualifiedItems.length} did not qualify.` +
-          ` All results are available to export below.`,
+        `${result.items.length} Reedsy results checked: ${candidates.length} new qualified` +
+          ` (${saved.length} saved to your account)` +
+          `${alreadySavedCount ? `, ${alreadySavedCount} already saved from an earlier search` : ""}` +
+          ` and ${unqualifiedItems.length} did not qualify. All results are available to export below.`,
       );
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Reedsy search failed.");
@@ -496,6 +599,26 @@ export function ScoutApp() {
       setError(caught instanceof Error ? caught.message : "Could not save this author.");
     } finally {
       setBusy("");
+    }
+  }
+
+  async function findContact(authorId: string) {
+    setContactBusy(authorId);
+    setError("");
+    try {
+      const result = await api<ContactResult>(
+        `/api/admin/scout-authors/${authorId}/find-contact`,
+        {},
+      );
+      setContactResults((current) => ({ ...current, [authorId]: result }));
+    } catch (caught) {
+      setError(
+        caught instanceof Error
+          ? caught.message
+          : "Could not search for this author's contact info.",
+      );
+    } finally {
+      setContactBusy("");
     }
   }
 
@@ -524,7 +647,11 @@ export function ScoutApp() {
     ? reedsyAllBooks.filter((book) => book.scout_prospects.length > 0)
     : reedsyAllBooks;
 
-  function downloadCsv(rows: (string | number | null | undefined)[][], filenameSuffix: string) {
+  function downloadCsv(
+    rows: (string | number | null | undefined)[][],
+    genreLabel: string,
+    filenameSuffix: string,
+  ) {
     const header = [
       "Author name",
       "Book title",
@@ -534,12 +661,13 @@ export function ScoutApp() {
       "URL",
       "Qualified",
       "Notes",
+      "Discovered",
     ];
     const csv = [header, ...rows].map((row) => row.map(csvCell).join(",")).join("\r\n");
     const url = URL.createObjectURL(new Blob([`\uFEFF${csv}`], { type: "text/csv;charset=utf-8" }));
     const link = document.createElement("a");
     link.href = url;
-    link.download = `hq360-${genre.toLowerCase().replaceAll(/[^a-z0-9]+/g, "-")}-${filenameSuffix}.csv`;
+    link.download = `hq360-${genreLabel.toLowerCase().replaceAll(/[^a-z0-9]+/g, "-")}-${filenameSuffix}.csv`;
     document.body.append(link);
     link.click();
     link.remove();
@@ -558,6 +686,7 @@ export function ScoutApp() {
         book.source_url,
         "Yes",
         "",
+        formatDiscoveredAt(book.discovered_at),
       ];
     });
     const unqualifiedRows = amazonUnqualified.map((item) => [
@@ -569,8 +698,9 @@ export function ScoutApp() {
       item.sourceUrl,
       "No",
       item.reasons.join("; "),
+      null,
     ]);
-    downloadCsv([...qualifiedRows, ...unqualifiedRows], "amazon-authors");
+    downloadCsv([...qualifiedRows, ...unqualifiedRows], genre, "amazon-authors");
   }
 
   function exportReedsyCsv() {
@@ -587,6 +717,7 @@ export function ScoutApp() {
         book.source_url,
         "Yes",
         "",
+        formatDiscoveredAt(book.discovered_at),
       ];
     });
     const unqualifiedRows = reedsyUnqualified.map((item) => [
@@ -598,8 +729,13 @@ export function ScoutApp() {
       item.sourceUrl,
       "No",
       item.reasons.join("; "),
+      null,
     ]);
-    downloadCsv([...qualifiedRows, ...unqualifiedRows], "reedsy-authors");
+    downloadCsv(
+      [...qualifiedRows, ...unqualifiedRows],
+      reedsyGenre?.name ?? "reedsy",
+      "reedsy-authors",
+    );
   }
 
   return (
@@ -837,11 +973,25 @@ export function ScoutApp() {
                   <p className="mt-3 text-sm text-muted-foreground">
                     {book.genre} · {amazonReviews?.review_count} verified Amazon ratings
                   </p>
+                  {formatDiscoveredAt(book.discovered_at) && (
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Found {formatDiscoveredAt(book.discovered_at)}
+                    </p>
+                  )}
                   {book.localOnly ? (
                     <p className="mt-2 text-xs text-muted-foreground">
                       Stored in this browser and included in CSV export.
                     </p>
-                  ) : null}
+                  ) : (
+                    book.scout_authors && (
+                      <ContactFinder
+                        authorId={book.scout_authors.id}
+                        busy={contactBusy === book.scout_authors.id}
+                        result={contactResults[book.scout_authors.id]}
+                        onFind={findContact}
+                      />
+                    )
+                  )}
                   <div className="mt-4">
                     <PublicLink url={book.source_url}>View Amazon listing</PublicLink>
                   </div>
@@ -891,12 +1041,18 @@ export function ScoutApp() {
               Genre
               <select
                 id="reedsy-genre"
-                value={genre}
-                onChange={(event) => setGenre(event.target.value as (typeof GENRES)[number])}
+                value={reedsyGenreId ?? ""}
+                onChange={(event) => setReedsyGenreId(Number(event.target.value))}
+                disabled={reedsyGenres.length === 0}
                 className="mt-2 w-full rounded-xl border border-border bg-background px-4 py-3"
               >
-                {GENRES.map((item) => (
-                  <option key={item}>{item}</option>
+                {reedsyGenres.length === 0 && <option>Loading genres…</option>}
+                {reedsyGenres.map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {"—".repeat(item.depth)}
+                    {item.depth > 0 ? " " : ""}
+                    {item.emoji} {item.name} ({item.bookCount})
+                  </option>
                 ))}
               </select>
             </label>
@@ -941,7 +1097,7 @@ export function ScoutApp() {
           </div>
           <button
             type="button"
-            disabled={Boolean(busy)}
+            disabled={Boolean(busy) || !reedsyGenre}
             onClick={runReedsySearch}
             className="mt-4 inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground"
           >
@@ -953,8 +1109,10 @@ export function ScoutApp() {
             {busy === "reedsy-search" ? "Searching and saving…" : "Search Reedsy"}
           </button>
           <p className="mt-3 text-xs text-muted-foreground">
-            Genre and "Debut authors only" are shared with the Amazon search above. Every result is
-            shown, whether it qualifies or not.
+            Genres and book counts come straight from Reedsy's own catalog. Results are saved
+            automatically with the date found; searching the same genre again skips anything already
+            saved rather than duplicating it. "Debut authors only" is shared with the Amazon search
+            above.
           </p>
         </section>
 
@@ -1041,6 +1199,19 @@ export function ScoutApp() {
                       ? "no Reedsy score on file"
                       : `${rating.review_count}/5 Reedsy score`}
                   </p>
+                  {formatDiscoveredAt(book.discovered_at) && (
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Found {formatDiscoveredAt(book.discovered_at)}
+                    </p>
+                  )}
+                  {!book.localOnly && book.scout_authors && (
+                    <ContactFinder
+                      authorId={book.scout_authors.id}
+                      busy={contactBusy === book.scout_authors.id}
+                      result={contactResults[book.scout_authors.id]}
+                      onFind={findContact}
+                    />
+                  )}
                   <div className="mt-4">
                     <PublicLink url={book.source_url}>View Reedsy listing</PublicLink>
                   </div>

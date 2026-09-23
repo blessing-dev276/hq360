@@ -23,6 +23,17 @@ await context.route("**/api/admin/session", (route) =>
 await context.route("**/api/admin/scout-books?*", (route) =>
   route.fulfill({ status: 503, json: { ok: false, message: "Fixture database unavailable" } }),
 );
+await context.route("**/api/admin/scout-reedsy-genres", (route) =>
+  route.fulfill({
+    json: {
+      ok: true,
+      genres: [
+        { id: 10, name: "Fiction", emoji: "📚", depth: 0, bookCount: 8273 },
+        { id: 2, name: "Fantasy", emoji: "🧙‍♂️", depth: 1, bookCount: 512 },
+      ],
+    },
+  }),
+);
 await context.route("**/api/admin/scout-amazon-search", (route) =>
   route.fulfill({
     json: {

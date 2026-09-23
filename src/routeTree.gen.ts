@@ -68,6 +68,7 @@ import { Route as ApiAdminScoutExportRouteImport } from './routes/api/admin/scou
 import { Route as ApiAdminScoutIdentityRouteImport } from './routes/api/admin/scout-identity'
 import { Route as ApiAdminScoutManualIngestRouteImport } from './routes/api/admin/scout-manual-ingest'
 import { Route as ApiAdminScoutProspectsRouteImport } from './routes/api/admin/scout-prospects'
+import { Route as ApiAdminScoutReedsyGenresRouteImport } from './routes/api/admin/scout-reedsy-genres'
 import { Route as ApiAdminScoutReedsySearchRouteImport } from './routes/api/admin/scout-reedsy-search'
 import { Route as ApiAdminSessionRouteImport } from './routes/api/admin/session'
 import { Route as ApiAdminTeamRouteImport } from './routes/api/admin/team'
@@ -109,6 +110,7 @@ import { Route as ApiAdminAuthorAuditsIdResearchRouteImport } from './routes/api
 import { Route as ApiAdminAuthorAuditsIdSynthesizeRouteImport } from './routes/api/admin/author-audits.$id.synthesize'
 import { Route as ApiAdminAuthorAuditsIdSynthesizePlanRouteImport } from './routes/api/admin/author-audits.$id.synthesize-plan'
 import { Route as ApiAdminAuthorAuditsIdVerificationsRouteImport } from './routes/api/admin/author-audits.$id.verifications'
+import { Route as ApiAdminScoutAuthorsIdFindContactRouteImport } from './routes/api/admin/scout-authors.$id.find-contact'
 import { Route as ApiAdminScoutAuthorsIdResearchWebsiteRouteImport } from './routes/api/admin/scout-authors.$id.research-website'
 import { Route as ApiAdminScoutBatchesIdExportRouteImport } from './routes/api/admin/scout-batches.$id.export'
 import { Route as ApiAdminAuthorAuditsIdComparablesComparableIdRouteImport } from './routes/api/admin/author-audits.$id.comparables.$comparableId'
@@ -419,6 +421,12 @@ const ApiAdminScoutProspectsRoute = ApiAdminScoutProspectsRouteImport.update({
   path: '/api/admin/scout-prospects',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAdminScoutReedsyGenresRoute =
+  ApiAdminScoutReedsyGenresRouteImport.update({
+    id: '/api/admin/scout-reedsy-genres',
+    path: '/api/admin/scout-reedsy-genres',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiAdminScoutReedsySearchRoute =
   ApiAdminScoutReedsySearchRouteImport.update({
     id: '/api/admin/scout-reedsy-search',
@@ -640,6 +648,12 @@ const ApiAdminAuthorAuditsIdVerificationsRoute =
     path: '/verifications',
     getParentRoute: () => ApiAdminAuthorAuditsIdRoute,
   } as any)
+const ApiAdminScoutAuthorsIdFindContactRoute =
+  ApiAdminScoutAuthorsIdFindContactRouteImport.update({
+    id: '/find-contact',
+    path: '/find-contact',
+    getParentRoute: () => ApiAdminScoutAuthorsIdRoute,
+  } as any)
 const ApiAdminScoutAuthorsIdResearchWebsiteRoute =
   ApiAdminScoutAuthorsIdResearchWebsiteRouteImport.update({
     id: '/research-website',
@@ -755,6 +769,7 @@ export interface FileRoutesByFullPath {
   '/api/admin/scout-identity': typeof ApiAdminScoutIdentityRoute
   '/api/admin/scout-manual-ingest': typeof ApiAdminScoutManualIngestRoute
   '/api/admin/scout-prospects': typeof ApiAdminScoutProspectsRouteWithChildren
+  '/api/admin/scout-reedsy-genres': typeof ApiAdminScoutReedsyGenresRoute
   '/api/admin/scout-reedsy-search': typeof ApiAdminScoutReedsySearchRoute
   '/api/admin/session': typeof ApiAdminSessionRoute
   '/api/admin/team': typeof ApiAdminTeamRouteWithChildren
@@ -796,6 +811,7 @@ export interface FileRoutesByFullPath {
   '/api/admin/author-audits/$id/synthesize': typeof ApiAdminAuthorAuditsIdSynthesizeRoute
   '/api/admin/author-audits/$id/synthesize-plan': typeof ApiAdminAuthorAuditsIdSynthesizePlanRoute
   '/api/admin/author-audits/$id/verifications': typeof ApiAdminAuthorAuditsIdVerificationsRoute
+  '/api/admin/scout-authors/$id/find-contact': typeof ApiAdminScoutAuthorsIdFindContactRoute
   '/api/admin/scout-authors/$id/research-website': typeof ApiAdminScoutAuthorsIdResearchWebsiteRoute
   '/api/admin/scout-batches/$id/export': typeof ApiAdminScoutBatchesIdExportRoute
   '/api/admin/author-audits/$id/comparables/$comparableId': typeof ApiAdminAuthorAuditsIdComparablesComparableIdRoute
@@ -866,6 +882,7 @@ export interface FileRoutesByTo {
   '/api/admin/scout-identity': typeof ApiAdminScoutIdentityRoute
   '/api/admin/scout-manual-ingest': typeof ApiAdminScoutManualIngestRoute
   '/api/admin/scout-prospects': typeof ApiAdminScoutProspectsRouteWithChildren
+  '/api/admin/scout-reedsy-genres': typeof ApiAdminScoutReedsyGenresRoute
   '/api/admin/scout-reedsy-search': typeof ApiAdminScoutReedsySearchRoute
   '/api/admin/session': typeof ApiAdminSessionRoute
   '/api/admin/team': typeof ApiAdminTeamRouteWithChildren
@@ -907,6 +924,7 @@ export interface FileRoutesByTo {
   '/api/admin/author-audits/$id/synthesize': typeof ApiAdminAuthorAuditsIdSynthesizeRoute
   '/api/admin/author-audits/$id/synthesize-plan': typeof ApiAdminAuthorAuditsIdSynthesizePlanRoute
   '/api/admin/author-audits/$id/verifications': typeof ApiAdminAuthorAuditsIdVerificationsRoute
+  '/api/admin/scout-authors/$id/find-contact': typeof ApiAdminScoutAuthorsIdFindContactRoute
   '/api/admin/scout-authors/$id/research-website': typeof ApiAdminScoutAuthorsIdResearchWebsiteRoute
   '/api/admin/scout-batches/$id/export': typeof ApiAdminScoutBatchesIdExportRoute
   '/api/admin/author-audits/$id/comparables/$comparableId': typeof ApiAdminAuthorAuditsIdComparablesComparableIdRoute
@@ -978,6 +996,7 @@ export interface FileRoutesById {
   '/api/admin/scout-identity': typeof ApiAdminScoutIdentityRoute
   '/api/admin/scout-manual-ingest': typeof ApiAdminScoutManualIngestRoute
   '/api/admin/scout-prospects': typeof ApiAdminScoutProspectsRouteWithChildren
+  '/api/admin/scout-reedsy-genres': typeof ApiAdminScoutReedsyGenresRoute
   '/api/admin/scout-reedsy-search': typeof ApiAdminScoutReedsySearchRoute
   '/api/admin/session': typeof ApiAdminSessionRoute
   '/api/admin/team': typeof ApiAdminTeamRouteWithChildren
@@ -1019,6 +1038,7 @@ export interface FileRoutesById {
   '/api/admin/author-audits/$id/synthesize': typeof ApiAdminAuthorAuditsIdSynthesizeRoute
   '/api/admin/author-audits/$id/synthesize-plan': typeof ApiAdminAuthorAuditsIdSynthesizePlanRoute
   '/api/admin/author-audits/$id/verifications': typeof ApiAdminAuthorAuditsIdVerificationsRoute
+  '/api/admin/scout-authors/$id/find-contact': typeof ApiAdminScoutAuthorsIdFindContactRoute
   '/api/admin/scout-authors/$id/research-website': typeof ApiAdminScoutAuthorsIdResearchWebsiteRoute
   '/api/admin/scout-batches/$id/export': typeof ApiAdminScoutBatchesIdExportRoute
   '/api/admin/author-audits/$id/comparables/$comparableId': typeof ApiAdminAuthorAuditsIdComparablesComparableIdRoute
@@ -1091,6 +1111,7 @@ export interface FileRouteTypes {
     | '/api/admin/scout-identity'
     | '/api/admin/scout-manual-ingest'
     | '/api/admin/scout-prospects'
+    | '/api/admin/scout-reedsy-genres'
     | '/api/admin/scout-reedsy-search'
     | '/api/admin/session'
     | '/api/admin/team'
@@ -1132,6 +1153,7 @@ export interface FileRouteTypes {
     | '/api/admin/author-audits/$id/synthesize'
     | '/api/admin/author-audits/$id/synthesize-plan'
     | '/api/admin/author-audits/$id/verifications'
+    | '/api/admin/scout-authors/$id/find-contact'
     | '/api/admin/scout-authors/$id/research-website'
     | '/api/admin/scout-batches/$id/export'
     | '/api/admin/author-audits/$id/comparables/$comparableId'
@@ -1202,6 +1224,7 @@ export interface FileRouteTypes {
     | '/api/admin/scout-identity'
     | '/api/admin/scout-manual-ingest'
     | '/api/admin/scout-prospects'
+    | '/api/admin/scout-reedsy-genres'
     | '/api/admin/scout-reedsy-search'
     | '/api/admin/session'
     | '/api/admin/team'
@@ -1243,6 +1266,7 @@ export interface FileRouteTypes {
     | '/api/admin/author-audits/$id/synthesize'
     | '/api/admin/author-audits/$id/synthesize-plan'
     | '/api/admin/author-audits/$id/verifications'
+    | '/api/admin/scout-authors/$id/find-contact'
     | '/api/admin/scout-authors/$id/research-website'
     | '/api/admin/scout-batches/$id/export'
     | '/api/admin/author-audits/$id/comparables/$comparableId'
@@ -1313,6 +1337,7 @@ export interface FileRouteTypes {
     | '/api/admin/scout-identity'
     | '/api/admin/scout-manual-ingest'
     | '/api/admin/scout-prospects'
+    | '/api/admin/scout-reedsy-genres'
     | '/api/admin/scout-reedsy-search'
     | '/api/admin/session'
     | '/api/admin/team'
@@ -1354,6 +1379,7 @@ export interface FileRouteTypes {
     | '/api/admin/author-audits/$id/synthesize'
     | '/api/admin/author-audits/$id/synthesize-plan'
     | '/api/admin/author-audits/$id/verifications'
+    | '/api/admin/scout-authors/$id/find-contact'
     | '/api/admin/scout-authors/$id/research-website'
     | '/api/admin/scout-batches/$id/export'
     | '/api/admin/author-audits/$id/comparables/$comparableId'
@@ -1425,6 +1451,7 @@ export interface RootRouteChildren {
   ApiAdminScoutIdentityRoute: typeof ApiAdminScoutIdentityRoute
   ApiAdminScoutManualIngestRoute: typeof ApiAdminScoutManualIngestRoute
   ApiAdminScoutProspectsRoute: typeof ApiAdminScoutProspectsRouteWithChildren
+  ApiAdminScoutReedsyGenresRoute: typeof ApiAdminScoutReedsyGenresRoute
   ApiAdminScoutReedsySearchRoute: typeof ApiAdminScoutReedsySearchRoute
   ApiAdminSessionRoute: typeof ApiAdminSessionRoute
   ApiAdminTeamRoute: typeof ApiAdminTeamRouteWithChildren
@@ -1862,6 +1889,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAdminScoutProspectsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/admin/scout-reedsy-genres': {
+      id: '/api/admin/scout-reedsy-genres'
+      path: '/api/admin/scout-reedsy-genres'
+      fullPath: '/api/admin/scout-reedsy-genres'
+      preLoaderRoute: typeof ApiAdminScoutReedsyGenresRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/admin/scout-reedsy-search': {
       id: '/api/admin/scout-reedsy-search'
       path: '/api/admin/scout-reedsy-search'
@@ -2149,6 +2183,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAdminAuthorAuditsIdVerificationsRouteImport
       parentRoute: typeof ApiAdminAuthorAuditsIdRoute
     }
+    '/api/admin/scout-authors/$id/find-contact': {
+      id: '/api/admin/scout-authors/$id/find-contact'
+      path: '/find-contact'
+      fullPath: '/api/admin/scout-authors/$id/find-contact'
+      preLoaderRoute: typeof ApiAdminScoutAuthorsIdFindContactRouteImport
+      parentRoute: typeof ApiAdminScoutAuthorsIdRoute
+    }
     '/api/admin/scout-authors/$id/research-website': {
       id: '/api/admin/scout-authors/$id/research-website'
       path: '/research-website'
@@ -2404,11 +2445,14 @@ const ApiAdminTestimonialsRouteWithChildren =
   ApiAdminTestimonialsRoute._addFileChildren(ApiAdminTestimonialsRouteChildren)
 
 interface ApiAdminScoutAuthorsIdRouteChildren {
+  ApiAdminScoutAuthorsIdFindContactRoute: typeof ApiAdminScoutAuthorsIdFindContactRoute
   ApiAdminScoutAuthorsIdResearchWebsiteRoute: typeof ApiAdminScoutAuthorsIdResearchWebsiteRoute
 }
 
 const ApiAdminScoutAuthorsIdRouteChildren: ApiAdminScoutAuthorsIdRouteChildren =
   {
+    ApiAdminScoutAuthorsIdFindContactRoute:
+      ApiAdminScoutAuthorsIdFindContactRoute,
     ApiAdminScoutAuthorsIdResearchWebsiteRoute:
       ApiAdminScoutAuthorsIdResearchWebsiteRoute,
   }
@@ -2478,6 +2522,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAdminScoutIdentityRoute: ApiAdminScoutIdentityRoute,
   ApiAdminScoutManualIngestRoute: ApiAdminScoutManualIngestRoute,
   ApiAdminScoutProspectsRoute: ApiAdminScoutProspectsRouteWithChildren,
+  ApiAdminScoutReedsyGenresRoute: ApiAdminScoutReedsyGenresRoute,
   ApiAdminScoutReedsySearchRoute: ApiAdminScoutReedsySearchRoute,
   ApiAdminSessionRoute: ApiAdminSessionRoute,
   ApiAdminTeamRoute: ApiAdminTeamRouteWithChildren,

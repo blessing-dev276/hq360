@@ -44,6 +44,7 @@ await context.route("**/api/admin/scout-reedsy-search", (route) =>
           authorName: name,
           sourceUrl: "https://reedsy.com/discovery/book/test-book-test-author",
           verdictRating: 4,
+          overview: "A gripping synopsis of the test book.",
           genre: "Fiction",
           qualified: true,
           reasons: [],
@@ -53,6 +54,7 @@ await context.route("**/api/admin/scout-reedsy-search", (route) =>
           authorName: "Unqualified Author",
           sourceUrl: "https://reedsy.com/discovery/book/unqualified-test-book",
           verdictRating: 2,
+          overview: "A synopsis of the unqualified book.",
           genre: "Fiction",
           qualified: false,
           reasons: ["2/5 is below the minimum 3/5"],
@@ -86,6 +88,7 @@ try {
   await expect(page.getByRole("heading", { name, exact: true })).toBeVisible();
   await expect(page.getByText("Unqualified Test Book", { exact: true })).toBeVisible();
   await expect(page.getByText(/Reedsy: Fiction/)).toBeVisible();
+  await expect(page.getByText("A gripping synopsis of the test book.")).toBeVisible();
   console.log("PASS: Reedsy search saves qualified results and shows unqualified ones separately.");
 
   const downloadEvent = page.waitForEvent("download");

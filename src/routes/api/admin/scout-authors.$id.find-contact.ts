@@ -18,6 +18,13 @@ const USER_AGENT =
 const EXCLUDED_HOSTS =
   /\b(amazon\.|goodreads\.|facebook\.|twitter\.|x\.com|instagram\.|wikipedia\.|barnesandnoble\.|books\.google\.|reedsy\.|linkedin\.|youtube\.|tiktok\.|pinterest\.|threads\.net|bookbub\.)/i;
 
+// Email is the only outcome that counts as a real find -- a contact form is
+// kept as fallback info to show, never as a reason to stop looking.
+function pickBestEmail(emails: string[]): string | undefined {
+  const unique = [...new Set(emails.map((email) => email.toLowerCase()))];
+  return unique.find((email) => /@gmail\.com$/.test(email)) ?? unique[0];
+}
+
 async function extractContact(
   url: string,
   signal: AbortSignal,
@@ -33,13 +40,18 @@ async function extractContact(
   if (!response.ok) throw new Error(`Site returned ${response.status}`);
   const html = await response.text();
   const titleMatch = html.match(/<title[^>]*>([^<]*)<\/title>/i);
-  const mailtoMatch = html.match(/mailto:([a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,})/i);
+  const mailtoMatches = [...html.matchAll(/mailto:([a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,})/gi)].map(
+    (match) => match[1]!,
+  );
+  const textEmailMatches = [...html.matchAll(/\b([a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,})\b/gi)].map(
+    (match) => match[1]!,
+  );
   const contactLinkMatch =
     html.match(/<a[^>]+href=["']([^"']+)["'][^>]*>[^<]*contact[^<]*<\/a>/i) ??
     html.match(/<a[^>]+href=["']([^"'#]*contact[^"']*)["']/i);
   return {
     title: titleMatch?.[1]?.trim(),
-    contactEmail: mailtoMatch?.[1]?.toLowerCase(),
+    contactEmail: pickBestEmail([...mailtoMatches, ...textEmailMatches]),
     contactFormUrl: contactLinkMatch ? new URL(contactLinkMatch[1]!, url).toString() : undefined,
   };
 }
@@ -82,6 +94,8 @@ export const Route = createFileRoute("/api/admin/scout-authors/$id/find-contact"
             503,
           );
 
+        const serpApiKey: string = apiKey;
+
         try {
           const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
           const db = asScoutDb(supabaseAdmin);
@@ -96,50 +110,59 @@ export const Route = createFileRoute("/api/admin/scout-authors/$id/find-contact"
 
           const searchController = new AbortController();
           const searchTimeout = setTimeout(() => searchController.abort(), 20_000);
-          let results: Array<{ link?: string; title?: string }> = [];
-          try {
-            results = await searchCandidates(
-              `"${author.name}" author website`,
-              apiKey,
-              searchController.signal,
+
+          type Candidate = { link: string; title?: string };
+          type Extracted = Awaited<ReturnType<typeof extractContact>>;
+          const seenLinks = new Set<string>();
+          let best: { candidate: Candidate; extracted: Extracted } | null = null;
+
+          async function tryQuery(
+            query: string,
+          ): Promise<{ candidate: Candidate; extracted: Extracted } | null> {
+            const results = await searchCandidates(query, serpApiKey, searchController.signal);
+            const fresh = results.filter(
+              (item): item is Candidate =>
+                Boolean(item.link) &&
+                !EXCLUDED_HOSTS.test(item.link!) &&
+                !seenLinks.has(item.link!),
             );
-            if (results.every((item) => !item.link || EXCLUDED_HOSTS.test(item.link)))
-              results = results.concat(
-                await searchCandidates(
-                  `"${author.name}" books contact`,
-                  apiKey,
-                  searchController.signal,
-                ),
-              );
+            let fallback: { candidate: Candidate; extracted: Extracted } | null = null;
+            for (const item of fresh.slice(0, 8)) {
+              seenLinks.add(item.link);
+              try {
+                const result = await extractContact(item.link, AbortSignal.timeout(15_000));
+                // An email address is the only thing worth stopping for --
+                // a contact form alone doesn't end the search.
+                if (result.contactEmail) return { candidate: item, extracted: result };
+                fallback ??= { candidate: item, extracted: result };
+              } catch {
+                /* Try the next candidate. */
+              }
+            }
+            return fallback;
+          }
+
+          try {
+            const attempts = [
+              `"${author.name}" author website`,
+              `"${author.name}" email contact`,
+              `"${author.name}" books contact`,
+            ];
+            for (const query of attempts) {
+              const result = await tryQuery(query);
+              if (result?.extracted.contactEmail) {
+                best = result;
+                break;
+              }
+              best ??= result;
+            }
           } finally {
             clearTimeout(searchTimeout);
           }
 
-          const candidates = results.filter(
-            (item): item is { link: string; title?: string } =>
-              Boolean(item.link) && !EXCLUDED_HOSTS.test(item.link!),
-          );
-          if (candidates.length === 0)
+          if (!best)
             return json({ ok: true, found: false, message: "No likely official website found." });
-
-          let candidate = candidates[0]!;
-          let extracted: Awaited<ReturnType<typeof extractContact>> | null = null;
-          for (const item of candidates.slice(0, 5)) {
-            try {
-              const result = await extractContact(item.link, AbortSignal.timeout(15_000));
-              if (result.contactEmail || result.contactFormUrl) {
-                candidate = item;
-                extracted = result;
-                break;
-              }
-              if (!extracted) {
-                candidate = item;
-                extracted = result;
-              }
-            } catch {
-              /* Try the next candidate. */
-            }
-          }
+          const { candidate, extracted } = best;
 
           await db.from("scout_research_notes").insert({
             scout_author_id: author.id,

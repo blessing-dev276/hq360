@@ -110,6 +110,7 @@ import { Route as ApiAdminAuthorAuditsIdResearchRouteImport } from './routes/api
 import { Route as ApiAdminAuthorAuditsIdSynthesizeRouteImport } from './routes/api/admin/author-audits.$id.synthesize'
 import { Route as ApiAdminAuthorAuditsIdSynthesizePlanRouteImport } from './routes/api/admin/author-audits.$id.synthesize-plan'
 import { Route as ApiAdminAuthorAuditsIdVerificationsRouteImport } from './routes/api/admin/author-audits.$id.verifications'
+import { Route as ApiAdminScoutAuthorsIdConfirmContactRouteImport } from './routes/api/admin/scout-authors.$id.confirm-contact'
 import { Route as ApiAdminScoutAuthorsIdFindContactRouteImport } from './routes/api/admin/scout-authors.$id.find-contact'
 import { Route as ApiAdminScoutAuthorsIdResearchWebsiteRouteImport } from './routes/api/admin/scout-authors.$id.research-website'
 import { Route as ApiAdminScoutBatchesIdExportRouteImport } from './routes/api/admin/scout-batches.$id.export'
@@ -648,6 +649,12 @@ const ApiAdminAuthorAuditsIdVerificationsRoute =
     path: '/verifications',
     getParentRoute: () => ApiAdminAuthorAuditsIdRoute,
   } as any)
+const ApiAdminScoutAuthorsIdConfirmContactRoute =
+  ApiAdminScoutAuthorsIdConfirmContactRouteImport.update({
+    id: '/confirm-contact',
+    path: '/confirm-contact',
+    getParentRoute: () => ApiAdminScoutAuthorsIdRoute,
+  } as any)
 const ApiAdminScoutAuthorsIdFindContactRoute =
   ApiAdminScoutAuthorsIdFindContactRouteImport.update({
     id: '/find-contact',
@@ -811,6 +818,7 @@ export interface FileRoutesByFullPath {
   '/api/admin/author-audits/$id/synthesize': typeof ApiAdminAuthorAuditsIdSynthesizeRoute
   '/api/admin/author-audits/$id/synthesize-plan': typeof ApiAdminAuthorAuditsIdSynthesizePlanRoute
   '/api/admin/author-audits/$id/verifications': typeof ApiAdminAuthorAuditsIdVerificationsRoute
+  '/api/admin/scout-authors/$id/confirm-contact': typeof ApiAdminScoutAuthorsIdConfirmContactRoute
   '/api/admin/scout-authors/$id/find-contact': typeof ApiAdminScoutAuthorsIdFindContactRoute
   '/api/admin/scout-authors/$id/research-website': typeof ApiAdminScoutAuthorsIdResearchWebsiteRoute
   '/api/admin/scout-batches/$id/export': typeof ApiAdminScoutBatchesIdExportRoute
@@ -924,6 +932,7 @@ export interface FileRoutesByTo {
   '/api/admin/author-audits/$id/synthesize': typeof ApiAdminAuthorAuditsIdSynthesizeRoute
   '/api/admin/author-audits/$id/synthesize-plan': typeof ApiAdminAuthorAuditsIdSynthesizePlanRoute
   '/api/admin/author-audits/$id/verifications': typeof ApiAdminAuthorAuditsIdVerificationsRoute
+  '/api/admin/scout-authors/$id/confirm-contact': typeof ApiAdminScoutAuthorsIdConfirmContactRoute
   '/api/admin/scout-authors/$id/find-contact': typeof ApiAdminScoutAuthorsIdFindContactRoute
   '/api/admin/scout-authors/$id/research-website': typeof ApiAdminScoutAuthorsIdResearchWebsiteRoute
   '/api/admin/scout-batches/$id/export': typeof ApiAdminScoutBatchesIdExportRoute
@@ -1038,6 +1047,7 @@ export interface FileRoutesById {
   '/api/admin/author-audits/$id/synthesize': typeof ApiAdminAuthorAuditsIdSynthesizeRoute
   '/api/admin/author-audits/$id/synthesize-plan': typeof ApiAdminAuthorAuditsIdSynthesizePlanRoute
   '/api/admin/author-audits/$id/verifications': typeof ApiAdminAuthorAuditsIdVerificationsRoute
+  '/api/admin/scout-authors/$id/confirm-contact': typeof ApiAdminScoutAuthorsIdConfirmContactRoute
   '/api/admin/scout-authors/$id/find-contact': typeof ApiAdminScoutAuthorsIdFindContactRoute
   '/api/admin/scout-authors/$id/research-website': typeof ApiAdminScoutAuthorsIdResearchWebsiteRoute
   '/api/admin/scout-batches/$id/export': typeof ApiAdminScoutBatchesIdExportRoute
@@ -1153,6 +1163,7 @@ export interface FileRouteTypes {
     | '/api/admin/author-audits/$id/synthesize'
     | '/api/admin/author-audits/$id/synthesize-plan'
     | '/api/admin/author-audits/$id/verifications'
+    | '/api/admin/scout-authors/$id/confirm-contact'
     | '/api/admin/scout-authors/$id/find-contact'
     | '/api/admin/scout-authors/$id/research-website'
     | '/api/admin/scout-batches/$id/export'
@@ -1266,6 +1277,7 @@ export interface FileRouteTypes {
     | '/api/admin/author-audits/$id/synthesize'
     | '/api/admin/author-audits/$id/synthesize-plan'
     | '/api/admin/author-audits/$id/verifications'
+    | '/api/admin/scout-authors/$id/confirm-contact'
     | '/api/admin/scout-authors/$id/find-contact'
     | '/api/admin/scout-authors/$id/research-website'
     | '/api/admin/scout-batches/$id/export'
@@ -1379,6 +1391,7 @@ export interface FileRouteTypes {
     | '/api/admin/author-audits/$id/synthesize'
     | '/api/admin/author-audits/$id/synthesize-plan'
     | '/api/admin/author-audits/$id/verifications'
+    | '/api/admin/scout-authors/$id/confirm-contact'
     | '/api/admin/scout-authors/$id/find-contact'
     | '/api/admin/scout-authors/$id/research-website'
     | '/api/admin/scout-batches/$id/export'
@@ -2183,6 +2196,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAdminAuthorAuditsIdVerificationsRouteImport
       parentRoute: typeof ApiAdminAuthorAuditsIdRoute
     }
+    '/api/admin/scout-authors/$id/confirm-contact': {
+      id: '/api/admin/scout-authors/$id/confirm-contact'
+      path: '/confirm-contact'
+      fullPath: '/api/admin/scout-authors/$id/confirm-contact'
+      preLoaderRoute: typeof ApiAdminScoutAuthorsIdConfirmContactRouteImport
+      parentRoute: typeof ApiAdminScoutAuthorsIdRoute
+    }
     '/api/admin/scout-authors/$id/find-contact': {
       id: '/api/admin/scout-authors/$id/find-contact'
       path: '/find-contact'
@@ -2445,12 +2465,15 @@ const ApiAdminTestimonialsRouteWithChildren =
   ApiAdminTestimonialsRoute._addFileChildren(ApiAdminTestimonialsRouteChildren)
 
 interface ApiAdminScoutAuthorsIdRouteChildren {
+  ApiAdminScoutAuthorsIdConfirmContactRoute: typeof ApiAdminScoutAuthorsIdConfirmContactRoute
   ApiAdminScoutAuthorsIdFindContactRoute: typeof ApiAdminScoutAuthorsIdFindContactRoute
   ApiAdminScoutAuthorsIdResearchWebsiteRoute: typeof ApiAdminScoutAuthorsIdResearchWebsiteRoute
 }
 
 const ApiAdminScoutAuthorsIdRouteChildren: ApiAdminScoutAuthorsIdRouteChildren =
   {
+    ApiAdminScoutAuthorsIdConfirmContactRoute:
+      ApiAdminScoutAuthorsIdConfirmContactRoute,
     ApiAdminScoutAuthorsIdFindContactRoute:
       ApiAdminScoutAuthorsIdFindContactRoute,
     ApiAdminScoutAuthorsIdResearchWebsiteRoute:

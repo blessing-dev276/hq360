@@ -1,5 +1,15 @@
 import { useCallback, useEffect, useState } from "react";
-import { Bookmark, Check, Download, ExternalLink, Loader2, Search } from "lucide-react";
+import {
+  Bookmark,
+  Check,
+  ChevronDown,
+  ChevronRight,
+  Download,
+  ExternalLink,
+  Loader2,
+  Search,
+  ShieldCheck,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { canonicalUrl } from "@/lib/scout/normalize";
 
@@ -10,6 +20,7 @@ type Book = {
   genre: string | null;
   source_url: string | null;
   source_slug: string;
+  description?: string | null;
   discovered_at?: string | null;
   batch_id?: string | null;
   scout_authors: { id: string; name: string; country: string | null } | null;
@@ -26,6 +37,7 @@ type UnqualifiedResult = {
   ratingLabel: string;
   sourceUrl: string;
   genre: string;
+  synopsis: string | null;
   reasons: string[];
 };
 
@@ -38,9 +50,12 @@ type ContactResult = {
   contactEmail: string | null;
   contactFormUrl: string | null;
   message?: string;
+  verified?: boolean;
 };
 
 type BatchGroup = { batchId: string; label: string; createdAt: string | null; books: Book[] };
+
+type View = "batch" | "imported" | "saved";
 
 function formatDiscoveredAt(value: string | null | undefined) {
   if (!value) return null;
@@ -73,6 +88,20 @@ function groupByBatch(books: Book[]): BatchGroup[] {
     if (!b.createdAt) return -1;
     return b.createdAt.localeCompare(a.createdAt);
   });
+}
+
+function buildGenreSections(genres: ReedsyGenre[]) {
+  const sections: { header: ReedsyGenre; children: ReedsyGenre[] }[] = [];
+  let current: { header: ReedsyGenre; children: ReedsyGenre[] } | null = null;
+  for (const item of genres) {
+    if (item.depth === 0) {
+      current = { header: item, children: [] };
+      sections.push(current);
+    } else {
+      current?.children.push(item);
+    }
+  }
+  return sections;
 }
 
 async function api<T>(url: string, body?: unknown, signal?: AbortSignal): Promise<T> {
@@ -117,16 +146,115 @@ function PublicLink({ url, children }: { url: string | null; children: React.Rea
   ) : null;
 }
 
+function GenrePicker({
+  genres,
+  selectedId,
+  onSelect,
+}: {
+  genres: ReedsyGenre[];
+  selectedId: number | null;
+  onSelect: (id: number) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [expanded, setExpanded] = useState<number | null>(null);
+  const sections = buildGenreSections(genres);
+  const selected = genres.find((item) => item.id === selectedId);
+
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((value) => !value)}
+        disabled={genres.length === 0}
+        className="mt-2 flex w-full items-center justify-between rounded-xl border border-border bg-background px-4 py-3 text-left text-sm"
+      >
+        <span>
+          {genres.length === 0
+            ? "Loading genres…"
+            : selected
+              ? `${selected.emoji} ${selected.name} (${selected.bookCount})`
+              : "Choose a genre"}
+        </span>
+        {open ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+      </button>
+      {open && (
+        <div className="absolute z-10 mt-2 max-h-80 w-full overflow-y-auto rounded-xl border border-border bg-card p-2 shadow-lg">
+          {sections.map((section) => (
+            <div key={section.header.id}>
+              <button
+                type="button"
+                onClick={() =>
+                  setExpanded((current) =>
+                    current === section.header.id ? null : section.header.id,
+                  )
+                }
+                className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm font-medium hover:bg-secondary"
+              >
+                <span>
+                  {section.header.emoji} {section.header.name} ({section.header.bookCount})
+                </span>
+                {expanded === section.header.id ? (
+                  <ChevronDown className="h-4 w-4" />
+                ) : (
+                  <ChevronRight className="h-4 w-4" />
+                )}
+              </button>
+              {expanded === section.header.id && (
+                <div className="ml-2 border-l border-border pl-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onSelect(section.header.id);
+                      setOpen(false);
+                    }}
+                    className={cn(
+                      "block w-full rounded-lg px-3 py-1.5 text-left text-sm hover:bg-secondary",
+                      selectedId === section.header.id && "bg-primary/10 font-medium",
+                    )}
+                  >
+                    All {section.header.name} ({section.header.bookCount})
+                  </button>
+                  {section.children.map((child) => (
+                    <button
+                      type="button"
+                      key={child.id}
+                      onClick={() => {
+                        onSelect(child.id);
+                        setOpen(false);
+                      }}
+                      style={{ paddingLeft: `${(child.depth - 1) * 12 + 12}px` }}
+                      className={cn(
+                        "block w-full rounded-lg py-1.5 text-left text-sm hover:bg-secondary",
+                        selectedId === child.id && "bg-primary/10 font-medium",
+                      )}
+                    >
+                      {child.emoji} {child.name} ({child.bookCount})
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function ContactFinder({
   authorId,
   busy,
+  verifyBusy,
   result,
   onFind,
+  onVerify,
 }: {
   authorId: string;
   busy: boolean;
+  verifyBusy: boolean;
   result: ContactResult | undefined;
   onFind: (authorId: string) => void;
+  onVerify: (authorId: string, result: ContactResult) => void;
 }) {
   return (
     <div className="mt-3">
@@ -140,9 +268,9 @@ function ContactFinder({
         {busy ? "Searching…" : "Find contact info"}
       </button>
       {result && (
-        <p className="mt-2 text-xs text-muted-foreground">
+        <div className="mt-2 text-xs text-muted-foreground">
           {result.found ? (
-            <>
+            <p>
               Candidate site:{" "}
               <PublicLink url={result.candidateUrl}>
                 {result.candidateTitle ?? result.candidateUrl}
@@ -150,14 +278,29 @@ function ContactFinder({
               {result.contactEmail
                 ? ` · email found: ${result.contactEmail}`
                 : result.contactFormUrl
-                  ? " · contact form found"
+                  ? " · contact form found (no email)"
                   : " · no contact method found"}
-              {" — unverified, confirm before outreach."}
-            </>
+              {result.verified ? " — verified." : " — unverified, confirm before outreach."}
+            </p>
           ) : (
-            (result.message ?? "No likely official website found.")
+            <p>{result.message ?? "No likely official website found."}</p>
           )}
-        </p>
+          {result.found && !result.verified && (result.contactEmail || result.contactFormUrl) && (
+            <button
+              type="button"
+              disabled={verifyBusy}
+              onClick={() => onVerify(authorId, result)}
+              className="mt-1.5 inline-flex items-center gap-1 rounded-full border border-primary/40 px-3 py-1 text-xs text-primary disabled:opacity-60"
+            >
+              {verifyBusy ? (
+                <Loader2 className="h-3 w-3 animate-spin" />
+              ) : (
+                <ShieldCheck className="h-3 w-3" />
+              )}
+              {verifyBusy ? "Confirming…" : "I've checked this — verify"}
+            </button>
+          )}
+        </div>
       )}
     </div>
   );
@@ -169,17 +312,86 @@ function csvCell(value: string | number | null | undefined) {
   return `"${text.replaceAll('"', '""')}"`;
 }
 
+function BookCard({
+  book,
+  busy,
+  contactBusy,
+  verifyBusy,
+  contactResult,
+  onSave,
+  onFindContact,
+  onVerifyContact,
+}: {
+  book: Book;
+  busy: string;
+  contactBusy: string;
+  verifyBusy: string;
+  contactResult: ContactResult | undefined;
+  onSave: (book: Book) => void;
+  onFindContact: (authorId: string) => void;
+  onVerifyContact: (authorId: string, result: ContactResult) => void;
+}) {
+  const saved = book.scout_prospects.length > 0;
+  const rating = book.scout_review_counts.find((item) => item.platform === "reedsy");
+  return (
+    <article className="rounded-2xl border border-border bg-card p-5">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h3 className="text-lg font-semibold">{book.scout_authors?.name}</h3>
+          <p className="mt-1 text-sm font-medium">{book.title}</p>
+        </div>
+        <button
+          disabled={saved || Boolean(busy)}
+          onClick={() => onSave(book)}
+          className="inline-flex shrink-0 items-center gap-1 rounded-full border px-3 py-1.5 text-xs disabled:opacity-60"
+        >
+          {saved ? <Check className="h-3.5 w-3.5" /> : <Bookmark className="h-3.5 w-3.5" />}
+          {saved ? "Saved" : busy === book.id ? "Saving…" : "Save"}
+        </button>
+      </div>
+      <p className="mt-3 text-sm text-muted-foreground">
+        {book.genre} ·{" "}
+        {rating?.review_count === undefined || rating.review_count === null
+          ? "no Reedsy score on file"
+          : `${rating.review_count}/5 Reedsy score`}
+      </p>
+      {book.description && (
+        <p className="mt-2 line-clamp-3 text-sm text-muted-foreground">{book.description}</p>
+      )}
+      {formatDiscoveredAt(book.discovered_at) && (
+        <p className="mt-1 text-xs text-muted-foreground">
+          Found {formatDiscoveredAt(book.discovered_at)}
+        </p>
+      )}
+      {book.scout_authors && (
+        <ContactFinder
+          authorId={book.scout_authors.id}
+          busy={contactBusy === book.scout_authors.id}
+          verifyBusy={verifyBusy === book.scout_authors.id}
+          result={contactResult}
+          onFind={onFindContact}
+          onVerify={onVerifyContact}
+        />
+      )}
+      <div className="mt-4">
+        <PublicLink url={book.source_url}>View Reedsy listing</PublicLink>
+      </div>
+    </article>
+  );
+}
+
 export function ScoutApp() {
   const [resultLimit, setResultLimit] = useState(20);
   const [debutOnly, setDebutOnly] = useState(false);
   const [reedsyMinRating, setReedsyMinRating] = useState(1);
   const [reedsyBooks, setReedsyBooks] = useState<Book[]>([]);
   const [reedsyUnqualified, setReedsyUnqualified] = useState<UnqualifiedResult[]>([]);
-  const [reedsySavedOnly, setReedsySavedOnly] = useState(false);
+  const [view, setView] = useState<View>("batch");
   const [reedsyLoading, setReedsyLoading] = useState(true);
   const [reedsyGenres, setReedsyGenres] = useState<ReedsyGenre[]>([]);
   const [reedsyGenreId, setReedsyGenreId] = useState<number | null>(null);
   const [contactBusy, setContactBusy] = useState("");
+  const [verifyBusy, setVerifyBusy] = useState("");
   const [contactResults, setContactResults] = useState<Record<string, ContactResult>>({});
   const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
@@ -240,6 +452,7 @@ export function ScoutApp() {
       authorName: book.scout_authors?.name,
       bookTitle: book.title,
       genre: book.genre,
+      description: book.description ?? undefined,
       country: book.scout_authors?.country ?? undefined,
       ...(reviewEntry && reviewEntry.review_count !== null
         ? { reviewPlatform: reviewEntry.platform, reviewCount: reviewEntry.review_count }
@@ -269,6 +482,7 @@ export function ScoutApp() {
           authorName: string | null;
           sourceUrl: string;
           verdictRating: number | null;
+          overview: string | null;
           genre: string;
           qualified: boolean;
           reasons: string[];
@@ -308,6 +522,7 @@ export function ScoutApp() {
         genre: item.genre,
         source_url: item.sourceUrl,
         source_slug: "reedsy_discovery",
+        description: item.overview,
         discovered_at: new Date().toISOString(),
         scout_authors: {
           id: `local-reedsy-${index}-${item.sourceUrl}`,
@@ -321,7 +536,7 @@ export function ScoutApp() {
         scout_prospects: [],
         localOnly: true,
       }));
-      setReedsySavedOnly(false);
+      setView("batch");
       setReedsyUnqualified(
         unqualifiedItems.map((item, index) => ({
           key: `${index}-${item.sourceUrl}`,
@@ -331,6 +546,7 @@ export function ScoutApp() {
             item.verdictRating === null ? "no review score found" : `${item.verdictRating}/5`,
           sourceUrl: item.sourceUrl,
           genre: item.genre,
+          synopsis: item.overview,
           reasons: item.reasons,
         })),
       );
@@ -392,10 +608,29 @@ export function ScoutApp() {
     }
   }
 
-  const reedsyVisibleBooks = reedsySavedOnly
-    ? reedsyBooks.filter((book) => book.scout_prospects.length > 0)
-    : reedsyBooks;
-  const reedsyBatchGroups = groupByBatch(reedsyVisibleBooks);
+  async function verifyContact(authorId: string, result: ContactResult) {
+    setVerifyBusy(authorId);
+    setError("");
+    try {
+      await api(`/api/admin/scout-authors/${authorId}/confirm-contact`, {
+        candidateUrl: result.candidateUrl,
+        contactEmail: result.contactEmail ?? undefined,
+        contactFormUrl: result.contactFormUrl ?? undefined,
+      });
+      setContactResults((current) => ({
+        ...current,
+        [authorId]: { ...result, verified: true },
+      }));
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Could not confirm this contact info.");
+    } finally {
+      setVerifyBusy("");
+    }
+  }
+
+  const notYetSaved = reedsyBooks.filter((book) => book.scout_prospects.length === 0);
+  const savedBooks = reedsyBooks.filter((book) => book.scout_prospects.length > 0);
+  const reedsyBatchGroups = groupByBatch(reedsyBooks);
 
   function downloadCsv(
     rows: (string | number | null | undefined)[][],
@@ -407,6 +642,7 @@ export function ScoutApp() {
       "Book title",
       "Rating",
       "Genre",
+      "Synopsis",
       "Reference",
       "URL",
       "Qualified",
@@ -433,6 +669,7 @@ export function ScoutApp() {
         ? null
         : `${rating.review_count}/5`,
       book.genre,
+      book.description ?? null,
       null,
       book.source_url,
       "Yes",
@@ -441,19 +678,22 @@ export function ScoutApp() {
     ];
   }
 
-  function exportReedsyCsv(books: Book[], filenameSuffix: string) {
+  function exportReedsyCsv(books: Book[], filenameSuffix: string, includeUnqualified: boolean) {
     const qualifiedRows = books.map(bookRow);
-    const unqualifiedRows = reedsyUnqualified.map((item) => [
-      item.authorName,
-      item.title,
-      item.ratingLabel,
-      item.genre,
-      null,
-      item.sourceUrl,
-      "No",
-      item.reasons.join("; "),
-      null,
-    ]);
+    const unqualifiedRows = includeUnqualified
+      ? reedsyUnqualified.map((item) => [
+          item.authorName,
+          item.title,
+          item.ratingLabel,
+          item.genre,
+          item.synopsis,
+          null,
+          item.sourceUrl,
+          "No",
+          item.reasons.join("; "),
+          null,
+        ])
+      : [];
     downloadCsv(
       [...qualifiedRows, ...unqualifiedRows],
       reedsyGenre?.name ?? "reedsy",
@@ -477,22 +717,11 @@ export function ScoutApp() {
           <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <label className="text-sm font-medium" htmlFor="reedsy-genre">
               Genre
-              <select
-                id="reedsy-genre"
-                value={reedsyGenreId ?? ""}
-                onChange={(event) => setReedsyGenreId(Number(event.target.value))}
-                disabled={reedsyGenres.length === 0}
-                className="mt-2 w-full rounded-xl border border-border bg-background px-4 py-3"
-              >
-                {reedsyGenres.length === 0 && <option>Loading genres…</option>}
-                {reedsyGenres.map((item) => (
-                  <option key={item.id} value={item.id}>
-                    {"—".repeat(item.depth)}
-                    {item.depth > 0 ? " " : ""}
-                    {item.emoji} {item.name} ({item.bookCount})
-                  </option>
-                ))}
-              </select>
+              <GenrePicker
+                genres={reedsyGenres}
+                selectedId={reedsyGenreId}
+                onSelect={setReedsyGenreId}
+              />
             </label>
             <label className="text-sm font-medium" htmlFor="reedsy-limit">
               Authors to find
@@ -569,29 +798,33 @@ export function ScoutApp() {
 
         <div className="mt-7 flex flex-wrap items-center justify-between gap-3">
           <div className="flex gap-1 rounded-full border bg-card p-1">
-            {[false, true].map((saved) => (
+            {(
+              [
+                ["batch", "Batch"],
+                ["imported", "Imported authors"],
+                ["saved", "Saved authors"],
+              ] as const
+            ).map(([value, label]) => (
               <button
-                key={String(saved)}
-                onClick={() => setReedsySavedOnly(saved)}
+                key={value}
+                onClick={() => setView(value)}
                 className={cn(
                   "rounded-full px-4 py-2 text-sm",
-                  reedsySavedOnly === saved
-                    ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground",
+                  view === value ? "bg-primary text-primary-foreground" : "text-muted-foreground",
                 )}
               >
-                {saved ? "Saved Reedsy authors" : "Imported Reedsy authors"}
+                {label}
               </button>
             ))}
           </div>
           <div className="flex items-center gap-3">
             <p className="text-sm text-muted-foreground">
-              {reedsyVisibleBooks.length} qualified · {reedsyUnqualified.length} not qualified
+              {reedsyBooks.length} saved · {reedsyUnqualified.length} not qualified
             </p>
             <button
               type="button"
               disabled={reedsyBooks.length === 0 && reedsyUnqualified.length === 0}
-              onClick={() => exportReedsyCsv(reedsyVisibleBooks, "reedsy-authors")}
+              onClick={() => exportReedsyCsv(reedsyBooks, "reedsy-authors", true)}
               className="inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium disabled:opacity-40"
             >
               <Download className="h-4 w-4" /> Export Reedsy results (CSV)
@@ -599,88 +832,90 @@ export function ScoutApp() {
           </div>
         </div>
 
-        {reedsyLoading && reedsyVisibleBooks.length === 0 ? (
+        {reedsyLoading && reedsyBooks.length === 0 ? (
           <div role="status" className="flex justify-center py-16">
             <Loader2 className="h-6 w-6 animate-spin" />
             <span className="sr-only">Loading Reedsy authors</span>
           </div>
-        ) : reedsyVisibleBooks.length === 0 ? (
-          <div className="mt-5 rounded-2xl border border-dashed p-12 text-center">
-            <h2 className="font-semibold">No qualifying Reedsy authors imported yet</h2>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Choose the genre above, then run the Reedsy search.
-            </p>
-          </div>
-        ) : (
-          reedsyBatchGroups.map((group) => (
-            <div key={group.batchId} className="mt-8">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <div>
-                  <h2 className="font-semibold">{group.label}</h2>
-                  <p className="text-xs text-muted-foreground">{group.books.length} authors</p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => exportReedsyCsv(group.books, `reedsy-batch-${group.batchId}`)}
-                  className="inline-flex items-center gap-1 rounded-full border px-3 py-1.5 text-xs"
-                >
-                  <Download className="h-3.5 w-3.5" /> Export this batch
-                </button>
-              </div>
-              <div className="mt-3 grid gap-4 sm:grid-cols-2">
-                {group.books.map((book) => {
-                  const saved = book.scout_prospects.length > 0;
-                  const rating = book.scout_review_counts.find(
-                    (item) => item.platform === "reedsy",
-                  );
-                  return (
-                    <article key={book.id} className="rounded-2xl border border-border bg-card p-5">
-                      <div className="flex items-start justify-between gap-3">
-                        <div>
-                          <h3 className="text-lg font-semibold">{book.scout_authors?.name}</h3>
-                          <p className="mt-1 text-sm font-medium">{book.title}</p>
-                        </div>
-                        <button
-                          disabled={saved || Boolean(busy)}
-                          onClick={() => save(book)}
-                          className="inline-flex items-center gap-1 rounded-full border px-3 py-1.5 text-xs disabled:opacity-60"
-                        >
-                          {saved ? (
-                            <Check className="h-3.5 w-3.5" />
-                          ) : (
-                            <Bookmark className="h-3.5 w-3.5" />
-                          )}
-                          {saved ? "Saved" : busy === book.id ? "Saving…" : "Save"}
-                        </button>
-                      </div>
-                      <p className="mt-3 text-sm text-muted-foreground">
-                        {book.genre} ·{" "}
-                        {rating?.review_count === undefined || rating.review_count === null
-                          ? "no Reedsy score on file"
-                          : `${rating.review_count}/5 Reedsy score`}
-                      </p>
-                      {formatDiscoveredAt(book.discovered_at) && (
-                        <p className="mt-1 text-xs text-muted-foreground">
-                          Found {formatDiscoveredAt(book.discovered_at)}
-                        </p>
-                      )}
-                      {book.scout_authors && (
-                        <ContactFinder
-                          authorId={book.scout_authors.id}
-                          busy={contactBusy === book.scout_authors.id}
-                          result={contactResults[book.scout_authors.id]}
-                          onFind={findContact}
-                        />
-                      )}
-                      <div className="mt-4">
-                        <PublicLink url={book.source_url}>View Reedsy listing</PublicLink>
-                      </div>
-                    </article>
-                  );
-                })}
-              </div>
+        ) : view === "batch" ? (
+          reedsyBatchGroups.length === 0 ? (
+            <div className="mt-5 rounded-2xl border border-dashed p-12 text-center">
+              <h2 className="font-semibold">No qualifying Reedsy authors imported yet</h2>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Choose the genre above, then run the Reedsy search.
+              </p>
             </div>
-          ))
+          ) : (
+            reedsyBatchGroups.map((group) => (
+              <div key={group.batchId} className="mt-8">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div>
+                    <h2 className="font-semibold">{group.label}</h2>
+                    <p className="text-xs text-muted-foreground">{group.books.length} authors</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      exportReedsyCsv(group.books, `reedsy-batch-${group.batchId}`, false)
+                    }
+                    className="inline-flex items-center gap-1 rounded-full border px-3 py-1.5 text-xs"
+                  >
+                    <Download className="h-3.5 w-3.5" /> Export this batch
+                  </button>
+                </div>
+                <div className="mt-3 grid gap-4 sm:grid-cols-2">
+                  {group.books.map((book) => (
+                    <BookCard
+                      key={book.id}
+                      book={book}
+                      busy={busy}
+                      contactBusy={contactBusy}
+                      verifyBusy={verifyBusy}
+                      contactResult={
+                        book.scout_authors ? contactResults[book.scout_authors.id] : undefined
+                      }
+                      onSave={save}
+                      onFindContact={findContact}
+                      onVerifyContact={verifyContact}
+                    />
+                  ))}
+                </div>
+              </div>
+            ))
+          )
+        ) : (
+          <>
+            {(view === "imported" ? notYetSaved : savedBooks).length === 0 ? (
+              <div className="mt-5 rounded-2xl border border-dashed p-12 text-center">
+                <h2 className="font-semibold">
+                  {view === "imported" ? "No newly imported authors yet" : "No saved authors yet"}
+                </h2>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  {view === "imported"
+                    ? "Run the Reedsy search above to bring in new authors."
+                    : 'Use "Save" on an author to add them to your saved list.'}
+                </p>
+              </div>
+            ) : (
+              <div className="mt-5 grid gap-4 sm:grid-cols-2">
+                {(view === "imported" ? notYetSaved : savedBooks).map((book) => (
+                  <BookCard
+                    key={book.id}
+                    book={book}
+                    busy={busy}
+                    contactBusy={contactBusy}
+                    verifyBusy={verifyBusy}
+                    contactResult={
+                      book.scout_authors ? contactResults[book.scout_authors.id] : undefined
+                    }
+                    onSave={save}
+                    onFindContact={findContact}
+                    onVerifyContact={verifyContact}
+                  />
+                ))}
+              </div>
+            )}
+          </>
         )}
 
         {reedsyUnqualified.length > 0 && (
@@ -701,6 +936,11 @@ export function ScoutApp() {
                   <p className="mt-3 text-sm text-muted-foreground">
                     {item.genre} · {item.ratingLabel}
                   </p>
+                  {item.synopsis && (
+                    <p className="mt-2 line-clamp-3 text-sm text-muted-foreground">
+                      {item.synopsis}
+                    </p>
+                  )}
                   <p className="mt-2 text-xs text-destructive">{item.reasons.join("; ")}</p>
                   <div className="mt-4">
                     <PublicLink url={item.sourceUrl}>View Reedsy listing</PublicLink>

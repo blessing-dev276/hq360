@@ -388,7 +388,7 @@ export function ScoutApp() {
   const [reedsyMinRating, setReedsyMinRating] = useState(1);
   const [reedsyBooks, setReedsyBooks] = useState<Book[]>([]);
   const [reedsyUnqualified, setReedsyUnqualified] = useState<UnqualifiedResult[]>([]);
-  const [view, setView] = useState<View>("batch");
+  const [view, setView] = useState<View>("imported");
   const [reedsyLoading, setReedsyLoading] = useState(true);
   const [reedsyGenres, setReedsyGenres] = useState<ReedsyGenre[]>([]);
   const [reedsyGenreId, setReedsyGenreId] = useState<number | null>(null);
@@ -558,7 +558,7 @@ export function ScoutApp() {
         scout_prospects: [],
         localOnly: true,
       }));
-      setView("batch");
+      setView("imported");
       setReedsyUnqualified(
         unqualifiedItems.map((item, index) => ({
           key: `${index}-${item.sourceUrl}`,
@@ -831,8 +831,8 @@ export function ScoutApp() {
           <div className="flex gap-1 rounded-full border bg-card p-1">
             {(
               [
-                ["batch", "Batch"],
                 ["imported", "Imported authors"],
+                ["batch", "Batch"],
                 ["saved", "Saved authors"],
               ] as const
             ).map(([value, label]) => (

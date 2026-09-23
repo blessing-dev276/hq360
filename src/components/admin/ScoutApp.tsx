@@ -54,6 +54,16 @@ type Book = {
   localOnly?: boolean;
 };
 
+type UnqualifiedResult = {
+  asin: string;
+  title: string;
+  authorName: string | null;
+  reviewCount: number | null;
+  sourceUrl: string;
+  genre: string;
+  reasons: string[];
+};
+
 const LOCAL_BOOKS_KEY = "hq360-scout-amazon-books";
 const localBookSchema = z.object({
   id: z.string(),
@@ -131,6 +141,7 @@ export function ScoutApp() {
     useState<(typeof PUBLISHED_WITHIN_OPTIONS)[number]["value"]>("any");
   const [debutOnly, setDebutOnly] = useState(false);
   const [savedOnly, setSavedOnly] = useState(false);
+  const [unqualified, setUnqualified] = useState<UnqualifiedResult[]>([]);
   const [books, setBooks] = useState<Book[]>([]);
   const [localBooks, setLocalBooks] = useState<Book[]>([]);
   const [loading, setLoading] = useState(true);
@@ -264,25 +275,24 @@ export function ScoutApp() {
   async function runSearch() {
     setBusy("search");
     setError("");
-    setNotice("Searching Google Books for new releases, then confirming each on Amazon…");
+    setNotice("Searching Amazon and checking each result against your filters…");
     try {
       const result = await api<{
         items: Array<{
           asin: string;
           title: string;
-          authorName: string;
-          reviewCount: number;
+          authorName: string | null;
+          reviewCount: number | null;
           sourceUrl: string;
           genre: string;
           country: string;
           publishedDate?: string;
+          qualified: boolean;
+          reasons: string[];
         }>;
         searched: number;
         qualifying: number;
-        skippedTooOld: number;
-        skippedNotDebut: number;
-        skippedNoAmazonMatch: number;
-      }>("/api/admin/scout-book-search", {
+      }>("/api/admin/scout-amazon-search", {
         genre,
         amazonDomain: market.domain,
         country: market.country,
@@ -292,7 +302,10 @@ export function ScoutApp() {
         publishedWithin,
         debutOnly,
       });
-      const candidates: Book[] = result.items.map((item) => ({
+      const qualifiedItems = result.items.filter((item) => item.qualified);
+      const unqualifiedItems = result.items.filter((item) => !item.qualified);
+
+      const candidates: Book[] = qualifiedItems.map((item) => ({
         id: `local-${item.asin}`,
         title: item.title,
         asin: item.asin,
@@ -300,7 +313,7 @@ export function ScoutApp() {
         source_url: item.sourceUrl,
         scout_authors: {
           id: `local-${item.asin}`,
-          name: item.authorName,
+          name: item.authorName!,
           country: item.country,
         },
         scout_review_counts: [{ platform: "amazon", review_count: item.reviewCount }],
@@ -309,6 +322,17 @@ export function ScoutApp() {
       }));
       setSavedOnly(false);
       candidates.forEach(storeLocalBook);
+      setUnqualified(
+        unqualifiedItems.map((item) => ({
+          asin: item.asin,
+          title: item.title,
+          authorName: item.authorName,
+          reviewCount: item.reviewCount,
+          sourceUrl: item.sourceUrl,
+          genre: item.genre,
+          reasons: item.reasons,
+        })),
+      );
       const settled = await Promise.allSettled(candidates.map(ingestBook));
       const saved = settled.flatMap((item) => (item.status === "fulfilled" ? [item.value] : []));
       const failedUrls = new Set(
@@ -330,22 +354,12 @@ export function ScoutApp() {
         }
         return next;
       });
-      const tooOld = result.skippedTooOld;
-      const notDebut = result.skippedNotDebut;
-      const noAmazonMatch = result.skippedNoAmazonMatch;
       setNotice(
-        `${candidates.length} qualifying books found; ${saved.length} saved to your account` +
-          `${failedUrls.size ? ` and ${failedUrls.size} kept in this browser for export` : ""}` +
-          `${tooOld ? `. ${tooOld} skipped as outside the publish-date window` : ""}` +
-          `${notDebut ? `. ${notDebut} skipped as not a debut author` : ""}` +
-          `${noAmazonMatch ? `. ${noAmazonMatch} skipped without a matching Amazon rating count in range` : ""}.`,
+        `${result.items.length} results checked: ${candidates.length} qualified` +
+          ` (${saved.length} saved to your account` +
+          `${failedUrls.size ? `, ${failedUrls.size} kept in this browser for export` : ""})` +
+          ` and ${unqualifiedItems.length} did not qualify. All results are available to export below.`,
       );
-      if (candidates.length === 0)
-        setNotice(
-          `No new releases matched a debut author` +
-            `${publishedWithin === "any" ? "" : " and publish date in range"} with a` +
-            ` ${ratingMin}–${ratingMax} Amazon rating count, out of ${result.searched} Google Books new releases checked.`,
-        );
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Automatic Amazon search failed.");
       setNotice("");
@@ -392,8 +406,17 @@ export function ScoutApp() {
     : allBooks;
 
   function exportCsv() {
-    const header = ["Author name", "Book title", "Amazon ratings", "Genre", "ASIN", "Amazon URL"];
-    const rows = visibleBooks.map((book) => {
+    const header = [
+      "Author name",
+      "Book title",
+      "Amazon ratings",
+      "Genre",
+      "ASIN",
+      "Amazon URL",
+      "Qualified",
+      "Notes",
+    ];
+    const qualifiedRows = allBooks.map((book) => {
       const ratings = book.scout_review_counts.find((item) => item.platform === "amazon");
       return [
         book.scout_authors?.name,
@@ -402,8 +425,21 @@ export function ScoutApp() {
         book.genre,
         book.asin,
         book.source_url,
+        "Yes",
+        "",
       ];
     });
+    const unqualifiedRows = unqualified.map((item) => [
+      item.authorName,
+      item.title,
+      item.reviewCount,
+      item.genre,
+      item.asin,
+      item.sourceUrl,
+      "No",
+      item.reasons.join("; "),
+    ]);
+    const rows = [...qualifiedRows, ...unqualifiedRows];
     const csv = [header, ...rows].map((row) => row.map(csvCell).join(",")).join("\r\n");
     const url = URL.createObjectURL(new Blob([`\uFEFF${csv}`], { type: "text/csv;charset=utf-8" }));
     const link = document.createElement("a");
@@ -419,14 +455,15 @@ export function ScoutApp() {
     <div className="min-h-[70vh] bg-secondary/30">
       <div className="mx-auto max-w-5xl px-5 py-10 sm:px-6">
         <p className="text-xs font-semibold tracking-widest text-brand uppercase">HQ360 Scout</p>
-        <h1 className="mt-2 font-display text-3xl">Find new and debut authors</h1>
+        <h1 className="mt-2 font-display text-3xl">Find new and debut authors on Amazon</h1>
         <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
-          Discovers new releases from Google Books' catalog, then confirms each one's rating count
-          on Amazon before saving it for CSV export.
+          Searches Amazon automatically and shows every result — qualified and not — so nothing is
+          hidden. Qualified results are saved to your account automatically; everything is available
+          to export.
         </p>
 
         <section className="mt-7 rounded-2xl border border-border bg-card p-5">
-          <h2 className="font-semibold">Search for new releases and save authors</h2>
+          <h2 className="font-semibold">Search Amazon and save qualified authors</h2>
           <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <label className="text-sm font-medium" htmlFor="scout-genre">
               Genre
@@ -538,17 +575,18 @@ export function ScoutApp() {
             ) : (
               <Search className="h-4 w-4" />
             )}
-            {busy === "search" ? "Searching and saving…" : "Search new releases and save results"}
+            {busy === "search" ? "Searching and saving…" : "Search Amazon"}
           </button>
           <p className="mt-3 text-xs text-muted-foreground">
-            Discovery comes from Google Books' own "newest first" catalog for the genre, using its
-            real publish date — not a guess. Each match is then looked up on Amazon by title and
-            author to confirm it actually has a rating count in your selected range; a book Amazon
-            doesn't carry, or with no confirmed rating count in range, is skipped. "Published"
-            narrows to books from Google Books with a publish date inside that window. "Debut
-            authors only" keeps authors with 1–2 books under that name in Google Books' catalog and
-            drops the rest — a useful signal, not a certainty: pen names, same-name authors and thin
-            Google Books coverage can throw it off in either direction.
+            Results are sorted by Amazon's newest arrivals first. Every result is shown, whether it
+            qualifies or not — nothing is silently dropped. A result qualifies when it has a
+            verified author, a rating count inside your selected range, and (if set) a publish date
+            in your "Published" window and a debut author. Qualified results are saved to your
+            account automatically; results that don't qualify are listed separately below with the
+            reason, and both groups are included when you export. "Debut authors only" keeps authors
+            with 1–2 books under that name in Google Books' catalog — a useful signal, not a
+            certainty: pen names, same-name authors and thin Google Books coverage can throw it off
+            in either direction.
           </p>
         </section>
 
@@ -584,14 +622,16 @@ export function ScoutApp() {
             ))}
           </div>
           <div className="flex items-center gap-3">
-            <p className="text-sm text-muted-foreground">{visibleBooks.length} books</p>
+            <p className="text-sm text-muted-foreground">
+              {visibleBooks.length} qualified · {unqualified.length} not qualified
+            </p>
             <button
               type="button"
-              disabled={visibleBooks.length === 0}
+              disabled={allBooks.length === 0 && unqualified.length === 0}
               onClick={exportCsv}
               className="inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium disabled:opacity-40"
             >
-              <Download className="h-4 w-4" /> Export CSV
+              <Download className="h-4 w-4" /> Export all (CSV)
             </button>
           </div>
         </div>
@@ -657,6 +697,37 @@ export function ScoutApp() {
                 </article>
               );
             })}
+          </div>
+        )}
+
+        {unqualified.length > 0 && (
+          <div className="mt-10">
+            <h2 className="font-semibold">Not qualified from the last search</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              These didn't meet your filters, but are shown here and included in the export so
+              nothing found is hidden.
+            </p>
+            <div className="mt-4 grid gap-4 sm:grid-cols-2">
+              {unqualified.map((item) => (
+                <article
+                  key={item.asin}
+                  className="rounded-2xl border border-dashed border-border bg-card/60 p-5"
+                >
+                  <h3 className="text-lg font-semibold">{item.authorName ?? "Unknown author"}</h3>
+                  <p className="mt-1 text-sm font-medium">{item.title}</p>
+                  <p className="mt-3 text-sm text-muted-foreground">
+                    {item.genre} ·{" "}
+                    {item.reviewCount === null
+                      ? "no rating count found"
+                      : `${item.reviewCount} ratings`}
+                  </p>
+                  <p className="mt-2 text-xs text-destructive">{item.reasons.join("; ")}</p>
+                  <div className="mt-4">
+                    <PublicLink url={item.sourceUrl}>View Amazon listing</PublicLink>
+                  </div>
+                </article>
+              ))}
+            </div>
           </div>
         )}
       </div>

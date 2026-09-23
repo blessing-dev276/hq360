@@ -23,15 +23,12 @@ await context.route("**/api/admin/session", (route) =>
 await context.route("**/api/admin/scout-books?*", (route) =>
   route.fulfill({ status: 503, json: { ok: false, message: "Fixture database unavailable" } }),
 );
-await context.route("**/api/admin/scout-book-search", (route) =>
+await context.route("**/api/admin/scout-amazon-search", (route) =>
   route.fulfill({
     json: {
       ok: true,
       searched: 18,
       qualifying: 1,
-      skippedTooOld: 0,
-      skippedNotDebut: 0,
-      skippedNoAmazonMatch: 0,
       items: [
         {
           asin: "B012345678",
@@ -41,6 +38,19 @@ await context.route("**/api/admin/scout-book-search", (route) =>
           sourceUrl: "https://www.amazon.de/dp/B012345678",
           genre: "Horror",
           country: "Germany",
+          qualified: true,
+          reasons: [],
+        },
+        {
+          asin: "B087654321",
+          title: "Unqualified Test Book",
+          authorName: "Unqualified Author",
+          reviewCount: 500,
+          sourceUrl: "https://www.amazon.de/dp/B087654321",
+          genre: "Horror",
+          country: "Germany",
+          qualified: false,
+          reasons: ["500 ratings is outside 1–49"],
         },
       ],
     },
@@ -68,16 +78,18 @@ await context.route("**/api/admin/scout-manual-ingest", (route) => {
   });
 });
 async function search() {
-  await page.getByRole("button", { name: "Search new releases and save results" }).click();
+  await page.getByRole("button", { name: "Search Amazon" }).click();
   await expect(page.getByRole("heading", { name, exact: true })).toBeVisible();
+  await expect(page.getByText("Unqualified Test Book", { exact: true })).toBeVisible();
 }
 async function checkCsv() {
   const downloadEvent = page.waitForEvent("download");
-  await page.getByRole("button", { name: "Export CSV" }).click();
+  await page.getByRole("button", { name: "Export all (CSV)" }).click();
   const download = await downloadEvent;
   const csv = await readFile(await download.path(), "utf8");
   expect(csv).toContain('"Test Author, ""Quoted""","Test Book, ""Quoted""","12"');
   expect(csv).toContain('"B012345678","https://www.amazon.de/dp/B012345678"');
+  expect(csv).toContain('"Unqualified Author","Unqualified Test Book"');
   expect(await download.failure()).toBeNull();
 }
 try {

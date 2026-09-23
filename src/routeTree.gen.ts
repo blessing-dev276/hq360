@@ -60,8 +60,8 @@ import { Route as ApiAdminAuthorAuditLeadsRouteImport } from './routes/api/admin
 import { Route as ApiAdminAuthorAuditsRouteImport } from './routes/api/admin/author-audits'
 import { Route as ApiAdminCaseStudiesRouteImport } from './routes/api/admin/case-studies'
 import { Route as ApiAdminPortfolioRouteImport } from './routes/api/admin/portfolio'
+import { Route as ApiAdminScoutAmazonSearchRouteImport } from './routes/api/admin/scout-amazon-search'
 import { Route as ApiAdminScoutBatchesRouteImport } from './routes/api/admin/scout-batches'
-import { Route as ApiAdminScoutBookSearchRouteImport } from './routes/api/admin/scout-book-search'
 import { Route as ApiAdminScoutBooksRouteImport } from './routes/api/admin/scout-books'
 import { Route as ApiAdminScoutDiscoverCountRouteImport } from './routes/api/admin/scout-discover-count'
 import { Route as ApiAdminScoutExportRouteImport } from './routes/api/admin/scout-export'
@@ -375,14 +375,15 @@ const ApiAdminPortfolioRoute = ApiAdminPortfolioRouteImport.update({
   path: '/api/admin/portfolio',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAdminScoutAmazonSearchRoute =
+  ApiAdminScoutAmazonSearchRouteImport.update({
+    id: '/api/admin/scout-amazon-search',
+    path: '/api/admin/scout-amazon-search',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiAdminScoutBatchesRoute = ApiAdminScoutBatchesRouteImport.update({
   id: '/api/admin/scout-batches',
   path: '/api/admin/scout-batches',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiAdminScoutBookSearchRoute = ApiAdminScoutBookSearchRouteImport.update({
-  id: '/api/admin/scout-book-search',
-  path: '/api/admin/scout-book-search',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiAdminScoutBooksRoute = ApiAdminScoutBooksRouteImport.update({
@@ -739,8 +740,8 @@ export interface FileRoutesByFullPath {
   '/api/admin/author-audits': typeof ApiAdminAuthorAuditsRouteWithChildren
   '/api/admin/case-studies': typeof ApiAdminCaseStudiesRouteWithChildren
   '/api/admin/portfolio': typeof ApiAdminPortfolioRouteWithChildren
+  '/api/admin/scout-amazon-search': typeof ApiAdminScoutAmazonSearchRoute
   '/api/admin/scout-batches': typeof ApiAdminScoutBatchesRouteWithChildren
-  '/api/admin/scout-book-search': typeof ApiAdminScoutBookSearchRoute
   '/api/admin/scout-books': typeof ApiAdminScoutBooksRoute
   '/api/admin/scout-discover-count': typeof ApiAdminScoutDiscoverCountRoute
   '/api/admin/scout-export': typeof ApiAdminScoutExportRoute
@@ -849,8 +850,8 @@ export interface FileRoutesByTo {
   '/api/admin/author-audits': typeof ApiAdminAuthorAuditsRouteWithChildren
   '/api/admin/case-studies': typeof ApiAdminCaseStudiesRouteWithChildren
   '/api/admin/portfolio': typeof ApiAdminPortfolioRouteWithChildren
+  '/api/admin/scout-amazon-search': typeof ApiAdminScoutAmazonSearchRoute
   '/api/admin/scout-batches': typeof ApiAdminScoutBatchesRouteWithChildren
-  '/api/admin/scout-book-search': typeof ApiAdminScoutBookSearchRoute
   '/api/admin/scout-books': typeof ApiAdminScoutBooksRoute
   '/api/admin/scout-discover-count': typeof ApiAdminScoutDiscoverCountRoute
   '/api/admin/scout-export': typeof ApiAdminScoutExportRoute
@@ -960,8 +961,8 @@ export interface FileRoutesById {
   '/api/admin/author-audits': typeof ApiAdminAuthorAuditsRouteWithChildren
   '/api/admin/case-studies': typeof ApiAdminCaseStudiesRouteWithChildren
   '/api/admin/portfolio': typeof ApiAdminPortfolioRouteWithChildren
+  '/api/admin/scout-amazon-search': typeof ApiAdminScoutAmazonSearchRoute
   '/api/admin/scout-batches': typeof ApiAdminScoutBatchesRouteWithChildren
-  '/api/admin/scout-book-search': typeof ApiAdminScoutBookSearchRoute
   '/api/admin/scout-books': typeof ApiAdminScoutBooksRoute
   '/api/admin/scout-discover-count': typeof ApiAdminScoutDiscoverCountRoute
   '/api/admin/scout-export': typeof ApiAdminScoutExportRoute
@@ -1072,8 +1073,8 @@ export interface FileRouteTypes {
     | '/api/admin/author-audits'
     | '/api/admin/case-studies'
     | '/api/admin/portfolio'
+    | '/api/admin/scout-amazon-search'
     | '/api/admin/scout-batches'
-    | '/api/admin/scout-book-search'
     | '/api/admin/scout-books'
     | '/api/admin/scout-discover-count'
     | '/api/admin/scout-export'
@@ -1182,8 +1183,8 @@ export interface FileRouteTypes {
     | '/api/admin/author-audits'
     | '/api/admin/case-studies'
     | '/api/admin/portfolio'
+    | '/api/admin/scout-amazon-search'
     | '/api/admin/scout-batches'
-    | '/api/admin/scout-book-search'
     | '/api/admin/scout-books'
     | '/api/admin/scout-discover-count'
     | '/api/admin/scout-export'
@@ -1292,8 +1293,8 @@ export interface FileRouteTypes {
     | '/api/admin/author-audits'
     | '/api/admin/case-studies'
     | '/api/admin/portfolio'
+    | '/api/admin/scout-amazon-search'
     | '/api/admin/scout-batches'
-    | '/api/admin/scout-book-search'
     | '/api/admin/scout-books'
     | '/api/admin/scout-discover-count'
     | '/api/admin/scout-export'
@@ -1403,8 +1404,8 @@ export interface RootRouteChildren {
   ApiAdminAuthorAuditsRoute: typeof ApiAdminAuthorAuditsRouteWithChildren
   ApiAdminCaseStudiesRoute: typeof ApiAdminCaseStudiesRouteWithChildren
   ApiAdminPortfolioRoute: typeof ApiAdminPortfolioRouteWithChildren
+  ApiAdminScoutAmazonSearchRoute: typeof ApiAdminScoutAmazonSearchRoute
   ApiAdminScoutBatchesRoute: typeof ApiAdminScoutBatchesRouteWithChildren
-  ApiAdminScoutBookSearchRoute: typeof ApiAdminScoutBookSearchRoute
   ApiAdminScoutBooksRoute: typeof ApiAdminScoutBooksRoute
   ApiAdminScoutDiscoverCountRoute: typeof ApiAdminScoutDiscoverCountRoute
   ApiAdminScoutExportRoute: typeof ApiAdminScoutExportRoute
@@ -1791,18 +1792,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAdminPortfolioRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/admin/scout-amazon-search': {
+      id: '/api/admin/scout-amazon-search'
+      path: '/api/admin/scout-amazon-search'
+      fullPath: '/api/admin/scout-amazon-search'
+      preLoaderRoute: typeof ApiAdminScoutAmazonSearchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/admin/scout-batches': {
       id: '/api/admin/scout-batches'
       path: '/api/admin/scout-batches'
       fullPath: '/api/admin/scout-batches'
       preLoaderRoute: typeof ApiAdminScoutBatchesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/admin/scout-book-search': {
-      id: '/api/admin/scout-book-search'
-      path: '/api/admin/scout-book-search'
-      fullPath: '/api/admin/scout-book-search'
-      preLoaderRoute: typeof ApiAdminScoutBookSearchRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/admin/scout-books': {
@@ -2448,8 +2449,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAdminAuthorAuditsRoute: ApiAdminAuthorAuditsRouteWithChildren,
   ApiAdminCaseStudiesRoute: ApiAdminCaseStudiesRouteWithChildren,
   ApiAdminPortfolioRoute: ApiAdminPortfolioRouteWithChildren,
+  ApiAdminScoutAmazonSearchRoute: ApiAdminScoutAmazonSearchRoute,
   ApiAdminScoutBatchesRoute: ApiAdminScoutBatchesRouteWithChildren,
-  ApiAdminScoutBookSearchRoute: ApiAdminScoutBookSearchRoute,
   ApiAdminScoutBooksRoute: ApiAdminScoutBooksRoute,
   ApiAdminScoutDiscoverCountRoute: ApiAdminScoutDiscoverCountRoute,
   ApiAdminScoutExportRoute: ApiAdminScoutExportRoute,

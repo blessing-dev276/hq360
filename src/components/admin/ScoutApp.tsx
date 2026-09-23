@@ -264,7 +264,7 @@ export function ScoutApp() {
   async function runSearch() {
     setBusy("search");
     setError("");
-    setNotice("Searching Amazon and collecting qualifying author details…");
+    setNotice("Searching Google Books for new releases, then confirming each on Amazon…");
     try {
       const result = await api<{
         items: Array<{
@@ -279,10 +279,10 @@ export function ScoutApp() {
         }>;
         searched: number;
         qualifying: number;
-        skippedWithoutAuthor: number;
         skippedTooOld: number;
         skippedNotDebut: number;
-      }>("/api/admin/scout-amazon-search", {
+        skippedNoAmazonMatch: number;
+      }>("/api/admin/scout-book-search", {
         genre,
         amazonDomain: market.domain,
         country: market.country,
@@ -330,21 +330,21 @@ export function ScoutApp() {
         }
         return next;
       });
-      const skipped = result.skippedWithoutAuthor;
       const tooOld = result.skippedTooOld;
       const notDebut = result.skippedNotDebut;
+      const noAmazonMatch = result.skippedNoAmazonMatch;
       setNotice(
         `${candidates.length} qualifying books found; ${saved.length} saved to your account` +
           `${failedUrls.size ? ` and ${failedUrls.size} kept in this browser for export` : ""}` +
-          `${skipped ? `. ${skipped} skipped because the author could not be verified` : ""}` +
           `${tooOld ? `. ${tooOld} skipped as outside the publish-date window` : ""}` +
-          `${notDebut ? `. ${notDebut} skipped as not a debut author` : ""}.`,
+          `${notDebut ? `. ${notDebut} skipped as not a debut author` : ""}` +
+          `${noAmazonMatch ? `. ${noAmazonMatch} skipped without a matching Amazon rating count in range` : ""}.`,
       );
       if (candidates.length === 0)
         setNotice(
-          `No books with ${ratingMin}–${ratingMax} ratings, a verified author` +
-            `${publishedWithin === "any" ? "" : ", a confirmed publish date in range"}` +
-            `${debutOnly ? ", and a debut author" : ""} were found in the first ${result.searched} Amazon results.`,
+          `No new releases matched a debut author` +
+            `${publishedWithin === "any" ? "" : " and publish date in range"} with a` +
+            ` ${ratingMin}–${ratingMax} Amazon rating count, out of ${result.searched} Google Books new releases checked.`,
         );
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Automatic Amazon search failed.");
@@ -419,14 +419,14 @@ export function ScoutApp() {
     <div className="min-h-[70vh] bg-secondary/30">
       <div className="mx-auto max-w-5xl px-5 py-10 sm:px-6">
         <p className="text-xs font-semibold tracking-widest text-brand uppercase">HQ360 Scout</p>
-        <h1 className="mt-2 font-display text-3xl">Find emerging authors on Amazon</h1>
+        <h1 className="mt-2 font-display text-3xl">Find new and debut authors</h1>
         <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
-          Search Amazon automatically, collect the book and author details, and save every result
-          within your selected rating range for CSV export.
+          Discovers new releases from Google Books' catalog, then confirms each one's rating count
+          on Amazon before saving it for CSV export.
         </p>
 
         <section className="mt-7 rounded-2xl border border-border bg-card p-5">
-          <h2 className="font-semibold">Search and save authors</h2>
+          <h2 className="font-semibold">Search for new releases and save authors</h2>
           <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <label className="text-sm font-medium" htmlFor="scout-genre">
               Genre
@@ -538,18 +538,17 @@ export function ScoutApp() {
             ) : (
               <Search className="h-4 w-4" />
             )}
-            {busy === "search" ? "Searching and saving…" : "Search Amazon and save results"}
+            {busy === "search" ? "Searching and saving…" : "Search new releases and save results"}
           </button>
           <p className="mt-3 text-xs text-muted-foreground">
-            Results are sorted by Amazon's newest arrivals first. Only books inside the selected
-            rating range are saved, and a low rating range (1–49) already biases toward niche,
-            aspiring and newly published authors over established ones. A "Published" window
-            cross-checks each book's publish date against Google Books' catalog — an obscure debut
-            without a Google Books entry may be skipped when a window narrower than "Any time" is
-            selected. "Debut authors only" keeps authors with 1–2 books in Google Books' catalog
-            under that name and drops the rest — a useful signal, not a certainty: pen names,
-            same-name authors and books missing from Google Books can throw it off in either
-            direction.
+            Discovery comes from Google Books' own "newest first" catalog for the genre, using its
+            real publish date — not a guess. Each match is then looked up on Amazon by title and
+            author to confirm it actually has a rating count in your selected range; a book Amazon
+            doesn't carry, or with no confirmed rating count in range, is skipped. "Published"
+            narrows to books from Google Books with a publish date inside that window. "Debut
+            authors only" keeps authors with 1–2 books under that name in Google Books' catalog and
+            drops the rest — a useful signal, not a certainty: pen names, same-name authors and thin
+            Google Books coverage can throw it off in either direction.
           </p>
         </section>
 
@@ -604,9 +603,9 @@ export function ScoutApp() {
           </div>
         ) : visibleBooks.length === 0 ? (
           <div className="mt-5 rounded-2xl border border-dashed p-12 text-center">
-            <h2 className="font-semibold">No qualifying Amazon authors imported yet</h2>
+            <h2 className="font-semibold">No qualifying authors imported yet</h2>
             <p className="mt-2 text-sm text-muted-foreground">
-              Choose the market and rating range, then run the automatic Amazon search above.
+              Choose the genre, market and rating range, then run the search above.
             </p>
           </div>
         ) : (

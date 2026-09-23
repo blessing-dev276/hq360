@@ -23,13 +23,15 @@ await context.route("**/api/admin/session", (route) =>
 await context.route("**/api/admin/scout-books?*", (route) =>
   route.fulfill({ status: 503, json: { ok: false, message: "Fixture database unavailable" } }),
 );
-await context.route("**/api/admin/scout-amazon-search", (route) =>
+await context.route("**/api/admin/scout-book-search", (route) =>
   route.fulfill({
     json: {
       ok: true,
       searched: 18,
       qualifying: 1,
-      skippedWithoutAuthor: 0,
+      skippedTooOld: 0,
+      skippedNotDebut: 0,
+      skippedNoAmazonMatch: 0,
       items: [
         {
           asin: "B012345678",
@@ -66,7 +68,7 @@ await context.route("**/api/admin/scout-manual-ingest", (route) => {
   });
 });
 async function search() {
-  await page.getByRole("button", { name: "Search Amazon and save results" }).click();
+  await page.getByRole("button", { name: "Search new releases and save results" }).click();
   await expect(page.getByRole("heading", { name, exact: true })).toBeVisible();
 }
 async function checkCsv() {

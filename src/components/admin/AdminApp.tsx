@@ -16,8 +16,8 @@ import {
   ArrowUpRight,
   LogOut,
   ChevronRight,
-  Command,
 } from "lucide-react";
+import { Logo } from "@/components/Logo";
 import { PaymentsAdmin } from "./PaymentsAdmin";
 import { AdminOverview } from "./AdminOverview";
 import "./admin-workspace.css";
@@ -197,10 +197,7 @@ export function AdminApp() {
     <div className="admin-workspace">
       <aside className="admin-sidebar">
         <a href="/admin" className="admin-wordmark">
-          <span className="admin-brand-icon">
-            <Command size={21} />
-          </span>{" "}
-          HQ360<span className="admin-wordmark-dot">.</span>
+          <Logo variant="mono" size={26} />
         </a>
         <div className="admin-workspace-label">
           <span className="admin-workspace-avatar">HQ</span>

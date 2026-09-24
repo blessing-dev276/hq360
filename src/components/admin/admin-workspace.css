@@ -1,18 +1,18 @@
 .admin-workspace {
-  --brand: #37776b;
-  --primary: #172a2a;
-  --primary-foreground: #fff;
-  --background: #fff;
-  --card: #fff;
-  --foreground: #202a31;
-  --muted-foreground: #77828b;
-  --border: #e6e9eb;
-  --secondary: #f4f6f6;
+  --brand: var(--color-brand);
+  --primary: var(--color-ink);
+  --primary-foreground: var(--color-surface);
+  --background: var(--color-surface);
+  --card: var(--color-surface-raised);
+  --foreground: var(--color-ink);
+  --muted-foreground: var(--color-ink-muted);
+  --border: var(--color-hairline);
+  --secondary: var(--color-secondary);
   display: flex;
   min-height: 100vh;
-  background: #f5f6f8;
-  color: #202a31;
-  font-family: Inter, sans-serif;
+  background: var(--color-surface);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
   font-size: 14px;
 }
 .admin-workspace button,
@@ -26,14 +26,14 @@
 }
 .admin-workspace :focus-visible,
 .admin-dialog :focus-visible {
-  outline: 2px solid #37776b;
+  outline: 2px solid var(--color-brand);
   outline-offset: 3px;
 }
 .admin-sidebar {
   width: 244px;
   flex: 0 0 244px;
-  background: #122429;
-  color: #aab8bb;
+  background: var(--color-ink);
+  color: #aab3b8;
   padding: 34px 19px 20px;
   display: flex;
   flex-direction: column;
@@ -47,19 +47,20 @@
   gap: 10px;
   align-items: center;
   color: #fff;
+  font-family: var(--font-display);
   font-size: 25px;
   font-weight: 750;
   letter-spacing: -1.3px;
   padding: 0 13px;
 }
 .admin-brand-icon {
-  background: #d9ebdf;
-  color: #183831;
+  background: var(--color-brand-soft);
+  color: var(--color-brand);
   border-radius: 9px;
   padding: 7px;
 }
 .admin-wordmark-dot {
-  color: #a6cabb;
+  color: var(--color-brand-strong);
   margin-left: -9px;
 }
 .admin-workspace-label {
@@ -70,12 +71,12 @@
   display: flex;
   gap: 10px;
   align-items: center;
-  color: #edf2f1;
+  color: #edf1f2;
   font-size: 12px;
 }
 .admin-workspace-label small {
   display: block;
-  color: #91a5a8;
+  color: #8f9ba0;
   margin-top: 4px;
   font-size: 10px;
 }
@@ -93,7 +94,7 @@
   font-size: 9px;
   font-weight: 600;
   letter-spacing: 1.8px;
-  color: #789195;
+  color: #78868c;
   margin: 0 13px 12px;
 }
 .admin-nav-item {
@@ -115,12 +116,12 @@
   background: #ffffff09;
 }
 .admin-nav-item.active {
-  color: #effff7;
+  color: #fff2e9;
   background: #ffffff11;
-  box-shadow: inset 3px 0 #bce0c8;
+  box-shadow: inset 3px 0 var(--color-brand);
 }
 .admin-nav-item.active > svg {
-  color: #c2e3ca;
+  color: var(--color-brand-strong);
 }
 .admin-nav-item > span:not(.admin-new) {
   flex: 1;
@@ -128,9 +129,9 @@
 .admin-new {
   font-size: 8px;
   letter-spacing: 0.8px;
-  background: #b9d5c71c;
+  background: #ff8f2c1c;
   padding: 3px 4px;
-  color: #bcd8c9;
+  color: var(--color-brand-strong);
   border-radius: 3px;
 }
 .admin-sidebar-bottom {
@@ -140,11 +141,11 @@
 .admin-sidebar-note {
   font-size: 10px;
   padding: 15px 12px 23px;
-  color: #c2d3d3;
+  color: #c3ccce;
   line-height: 1.7;
 }
 .admin-sidebar-note p {
-  color: #7f999d;
+  color: #8a959a;
   margin-top: 9px;
 }
 .admin-live-dot {
@@ -152,7 +153,7 @@
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background: #b7dbba;
+  background: var(--color-brand-strong);
   margin-right: 5px;
 }
 .admin-main {
@@ -161,12 +162,12 @@
 }
 .admin-topbar {
   height: 82px;
-  border-bottom: 1px solid #e6e9eb;
+  border-bottom: 1px solid var(--color-hairline);
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 42px;
-  background: #ffffffbd;
+  background: color-mix(in oklch, var(--color-surface-raised) 90%, transparent);
 }
 .admin-breadcrumb {
   display: flex;
@@ -176,7 +177,7 @@
   font-size: 11px;
 }
 .admin-breadcrumb strong {
-  color: #39434b;
+  color: var(--color-ink);
   font-weight: 500;
 }
 .admin-account {
@@ -195,14 +196,15 @@
 .admin-user-avatar {
   display: grid;
   place-items: center;
-  background: #e4e9e2;
+  background: var(--color-brand-soft);
+  color: var(--color-brand);
   width: 35px;
   height: 35px;
   border-radius: 50%;
   border: 3px solid #fff;
-  outline: 1px solid #e2e6e1;
+  outline: 1px solid var(--color-hairline);
   font-size: 10px;
-  font-weight: 600;
+  font-weight: 700;
 }
 .admin-page {
   max-width: 1510px;
@@ -220,9 +222,10 @@
   font-size: 9px;
   letter-spacing: 1.8px;
   font-weight: 650;
-  color: #6d897c;
+  color: var(--color-brand);
 }
 .admin-page-heading h1 {
+  font-family: var(--font-display);
   font-size: clamp(22px, 2.3vw, 30px);
   font-weight: 600;
   letter-spacing: -1.1px;
@@ -237,10 +240,10 @@
   font-size: 10px;
   color: #78848b;
   white-space: nowrap;
-  border: 1px solid #e0e5e8;
+  border: 1px solid var(--color-hairline);
   padding: 9px 12px;
   border-radius: 6px;
-  background: #fff;
+  background: var(--color-surface-raised);
 }
 .admin-stats {
   display: grid;
@@ -250,8 +253,8 @@
 }
 .admin-stat {
   padding: 22px 24px;
-  border: 1px solid #e3e7e9;
-  background: #fff;
+  border: 1px solid var(--color-hairline);
+  background: var(--color-surface-raised);
   border-radius: 11px;
   box-shadow: 0 2px 3px #213a4002;
 }
@@ -263,10 +266,11 @@
   gap: 10px;
 }
 .admin-stat svg {
-  color: #82948c;
+  color: var(--color-brand);
 }
 .admin-stat > strong {
   display: block;
+  font-family: var(--font-display);
   font-size: clamp(21px, 2.4vw, 31px);
   font-weight: 550;
   letter-spacing: -1px;
@@ -285,8 +289,8 @@
 }
 .admin-panel,
 .admin-content-panel {
-  border: 1px solid #e3e7e9;
-  background: #fff;
+  border: 1px solid var(--color-hairline);
+  background: var(--color-surface-raised);
   border-radius: 11px;
   overflow: hidden;
 }
@@ -302,6 +306,7 @@
   gap: 12px;
 }
 .admin-panel-heading h2 {
+  font-family: var(--font-display);
   font-size: 14px;
   font-weight: 600;
   letter-spacing: -0.2px;
@@ -316,18 +321,18 @@
   overflow: hidden;
   border-radius: 11px;
   padding: 29px 30px;
-  background: #dfe8df;
+  background: var(--color-brand-soft);
   min-height: 322px;
 }
 .admin-feature .admin-eyebrow {
   font-size: 8px;
-  color: #47685a;
+  color: var(--color-brand);
 }
 .admin-feature h2 {
   font-size: 31px;
   line-height: 1.15;
   letter-spacing: -1px;
-  color: #254339;
+  color: var(--color-ink);
   margin-top: 20px;
   font-weight: 550;
   position: relative;
@@ -335,7 +340,7 @@
 }
 .admin-feature > p:not(.admin-eyebrow) {
   font-size: 11px;
-  color: #687c70;
+  color: var(--color-ink-muted);
   max-width: 270px;
   line-height: 1.9;
   margin: 14px 0 20px;
@@ -348,16 +353,16 @@
   place-items: center;
   width: 220px;
   height: 220px;
-  border: 1px solid #789f7a30;
+  border: 1px solid oklch(0.702 0.213 41.2 / 20%);
   border-radius: 50%;
   right: -80px;
   top: 70px;
-  color: #73917c;
+  color: var(--color-brand);
   transform: rotate(-20deg);
   box-shadow:
-    0 0 0 22px #789f7a08,
-    0 0 0 44px #789f7a06,
-    0 0 0 66px #789f7a04;
+    0 0 0 22px oklch(0.702 0.213 41.2 / 5%),
+    0 0 0 44px oklch(0.702 0.213 41.2 / 4%),
+    0 0 0 66px oklch(0.702 0.213 41.2 / 3%);
 }
 .admin-feature-foot {
   position: absolute;
@@ -365,7 +370,8 @@
   bottom: 22px;
   font-size: 7px;
   letter-spacing: 1.4px;
-  color: #84988a;
+  color: var(--color-brand);
+  opacity: 0.7;
 }
 .admin-quick-actions {
   padding: 0 24px 15px;
@@ -396,11 +402,11 @@
   margin-top: 5px;
 }
 .admin-quick-actions button > svg {
-  color: #8e9b96;
+  color: var(--color-brand);
 }
 .admin-action-icon {
-  background: #f4f6f3;
-  color: #627d6a;
+  background: var(--color-brand-soft);
+  color: var(--color-brand);
   width: 40px;
   height: 40px;
   border-radius: 9px;
@@ -420,37 +426,38 @@
 }
 .admin-button {
   padding: 11px 15px;
-  border: 1px solid #e1e5e7;
+  border: 1px solid var(--color-hairline);
   border-radius: 7px;
-  background: white;
-  color: #4b585e;
+  background: var(--color-surface-raised);
+  color: var(--color-ink-muted);
 }
 .admin-button:hover {
-  background: #f3f6f4;
+  background: var(--color-brand-soft);
 }
 .admin-button-primary {
-  background: #234d40;
-  border-color: #234d40;
-  color: white;
+  background: var(--color-ink);
+  border-color: var(--color-ink);
+  color: var(--color-surface);
 }
 .admin-button-primary:hover {
-  background: #193c32;
+  background: var(--color-brand);
+  border-color: var(--color-brand);
 }
 .admin-button-light {
   position: relative;
   z-index: 1;
   border: none;
-  color: #355c49;
+  color: var(--color-brand);
   font-size: 10px;
 }
 .admin-text-button {
-  color: #477663;
+  color: var(--color-brand);
 }
 .admin-icon-button {
   padding: 8px;
-  border: 1px solid #e5e9e9;
+  border: 1px solid var(--color-hairline);
   border-radius: 6px;
-  color: #74827c;
+  color: var(--color-ink-muted);
 }
 .admin-button-row {
   display: flex;
@@ -491,10 +498,10 @@
   border-bottom: none;
 }
 .admin-table tbody tr:hover {
-  background: #fcfdfc;
+  background: color-mix(in oklch, var(--color-brand-soft) 40%, transparent);
 }
 .admin-invoice-name {
-  color: #2d4940;
+  color: var(--color-ink);
   font-weight: 600;
 }
 .admin-numeric {
@@ -543,12 +550,13 @@
   place-items: center;
   width: 52px;
   height: 52px;
-  background: #f2f6f2;
-  border: 1px solid #e7eee7;
-  color: #728e77;
+  background: var(--color-brand-soft);
+  border: 1px solid oklch(0.702 0.213 41.2 / 20%);
+  color: var(--color-brand);
   border-radius: 13px;
 }
 .admin-empty h3 {
+  font-family: var(--font-display);
   font-size: 13px;
   font-weight: 550;
 }
@@ -595,21 +603,21 @@
   width: 34px;
   height: 34px;
   border-radius: 9px;
-  background: #fff0e9;
+  background: var(--color-brand-soft);
   display: grid;
   place-items: center;
   font-size: 26px;
   font-weight: 700;
   font-style: italic;
-  color: #e97641;
+  color: var(--color-brand);
 }
 .admin-setup {
   display: flex;
   align-items: center;
   gap: 15px;
-  background: #edf2ec;
-  border: 1px solid #dfe8dc;
-  color: #688165;
+  background: var(--color-brand-soft);
+  border: 1px solid oklch(0.702 0.213 41.2 / 18%);
+  color: oklch(0.42 0.16 42);
   padding: 18px 21px;
   border-radius: 9px;
   margin-bottom: 23px;
@@ -619,7 +627,7 @@
 }
 .admin-setup strong {
   font-size: 11px;
-  color: #466245;
+  color: var(--color-brand);
   font-weight: 550;
 }
 .admin-setup p {
@@ -652,14 +660,14 @@
   flex-shrink: 0;
 }
 .admin-notice {
-  background: #ecf5ed;
-  color: #447552;
+  background: var(--color-brand-soft);
+  color: oklch(0.42 0.16 42);
 }
 .admin-count {
   font-size: 9px;
   font-weight: 500;
   padding: 3px 6px;
-  background: #f0f3f1;
+  background: var(--color-secondary);
   color: #87968c;
   border-radius: 4px;
   margin-left: 6px;
@@ -685,15 +693,15 @@
   text-transform: capitalize;
 }
 .admin-filters button.active {
-  background: #eef3ef;
-  color: #4f765a;
+  background: var(--color-brand-soft);
+  color: var(--color-brand);
   font-weight: 550;
 }
 .admin-search {
   display: flex;
   gap: 8px;
   align-items: center;
-  border: 1px solid #e8ebed;
+  border: 1px solid var(--color-hairline);
   padding: 8px 10px;
   border-radius: 6px;
   color: #9ba5aa;
@@ -704,7 +712,7 @@
   font-size: 10px;
   min-width: 100px;
   width: 130px;
-  color: #485a50;
+  color: var(--color-ink);
   outline: none;
 }
 .admin-table-footer {
@@ -723,26 +731,26 @@
   display: inline-flex;
   gap: 4px;
   padding: 4px;
-  background: #f2f5f3;
+  background: var(--color-secondary);
   border-radius: 7px;
 }
 .admin-segmented button {
   padding: 8px 13px;
-  color: #7a8780;
+  color: var(--color-ink-muted);
   border-radius: 5px;
   font-size: 11px;
 }
 .admin-segmented button.active {
-  background: #fff;
-  color: #325541;
+  background: var(--color-surface-raised);
+  color: var(--color-ink);
   box-shadow: 0 1px 3px #00000008;
 }
 .admin-dialog {
-  color: #263c32;
-  background: white;
+  color: var(--color-ink);
+  background: var(--color-surface-raised);
   max-height: 90dvh;
   overflow-y: auto;
-  font-family: Inter, sans-serif;
+  font-family: var(--font-sans);
 }
 .admin-invoice-form {
   display: grid;
@@ -758,19 +766,19 @@
   gap: 7px;
   font-size: 11px;
   font-weight: 550;
-  color: #66786d;
+  color: var(--color-ink-muted);
 }
 .admin-invoice-form input,
 .admin-invoice-form textarea {
-  border: 1px solid #dfe5df;
+  border: 1px solid var(--color-hairline);
   border-radius: 7px;
   padding: 10px 12px;
   font-size: 12px;
   font-weight: 400;
   width: 100%;
   min-width: 0;
-  background: white;
-  color: #253d30;
+  background: var(--color-surface-raised);
+  color: var(--color-ink);
 }
 .admin-form-note {
   font-size: 10px;
@@ -780,17 +788,18 @@
 .admin-invoice-summary {
   padding: 22px;
   border-radius: 8px;
-  background: #f4f7f2;
+  background: var(--color-brand-soft);
 }
 .admin-invoice-summary strong {
   display: block;
+  font-family: var(--font-display);
   font-size: 29px;
   margin: 14px 0 10px;
   letter-spacing: -0.8px;
 }
 .admin-invoice-summary p {
   font-size: 12px;
-  color: #738271;
+  color: oklch(0.42 0.16 42);
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }

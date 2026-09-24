@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import {
   Plus,
+  Trash2,
   Search,
   Download,
   FileText,
@@ -97,6 +98,24 @@ export function PaymentsAdmin() {
       setBusy("");
     }
   }
+  async function removeDraft(invoice: Invoice) {
+    if (!window.confirm(`Delete draft ${invoice.number}? This cannot be undone.`)) return;
+    setBusy("delete");
+    setError("");
+    setNotice("");
+    try {
+      const response = await fetch(`/api/admin/invoices/${invoice.id}`, { method: "DELETE" });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Could not delete draft.");
+      setInvoices((list) => list.filter((item) => item.id !== invoice.id));
+      setSelected(null);
+      setNotice(`Draft ${invoice.number} deleted.`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not delete draft.");
+    } finally {
+      setBusy("");
+    }
+  }
   async function create(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
@@ -130,17 +149,20 @@ export function PaymentsAdmin() {
         .includes(search.toLowerCase()),
   );
   const sum = (status: string) =>
-    invoices.filter((i) => i.status === status).reduce((s, i) => s + i.amount_minor, 0);
+    invoices
+      .filter((i) => i.status === status && i.currency === "USD")
+      .reduce((s, i) => s + i.amount_minor, 0);
   function exportCsv() {
     const escape = (value: string) =>
       `"${(/^[=+@\-\t\r]/.test(value) ? "'" + value : value).replaceAll('"', '""')}"`;
     const rows = [
-      ["Invoice", "Buyer", "Email", "Amount (NGN)", "Due date", "Status", "Provider invoice"],
+      ["Invoice", "Buyer", "Email", "Amount", "Currency", "Due date", "Status", "Provider invoice"],
       ...visible.map((i) => [
         i.number,
         i.buyer_name,
         i.buyer_email,
         (i.amount_minor / 100).toFixed(2),
+        i.currency,
         i.due_date,
         invoiceStatus(i),
         i.provider_invoice_id || "",
@@ -247,7 +269,7 @@ export function PaymentsAdmin() {
               <Icon size={18} />
             </div>
             <strong>{loading ? "—" : money(amount)}</strong>
-            <small>{note} · latest 1,000 invoices</small>
+            <small>{note} · USD only · latest 1,000 invoices</small>
           </div>
         ))}
       </div>
@@ -326,7 +348,7 @@ export function PaymentsAdmin() {
                       </button>
                       <small>{i.buyer_name}</small>
                     </td>
-                    <td className="admin-numeric">{money(i.amount_minor)}</td>
+                    <td className="admin-numeric">{money(i.amount_minor, i.currency)}</td>
                     <td>
                       <span className={`admin-status ${invoiceStatus(i)}`}>{invoiceStatus(i)}</span>
                     </td>
@@ -372,7 +394,8 @@ export function PaymentsAdmin() {
           </div>
         )}
         <div className="admin-table-footer">
-          Showing {visible.length} of {invoices.length} invoices<span>Amounts in NGN</span>
+          Showing {visible.length} of {invoices.length} invoices
+          <span>Currency shown per invoice</span>
         </div>
       </section>
       <Dialog
@@ -442,7 +465,7 @@ export function PaymentsAdmin() {
               />
             </label>
             <label>
-              Amount (NGN)
+              Amount (USD)
               <input
                 name="amount"
                 type="number"
@@ -481,7 +504,7 @@ export function PaymentsAdmin() {
                 <span className={`admin-status ${invoiceStatus(selected)}`}>
                   {invoiceStatus(selected)}
                 </span>
-                <strong>{money(selected.amount_minor)}</strong>
+                <strong>{money(selected.amount_minor, selected.currency)}</strong>
                 <p>{selected.description}</p>
               </div>
               <dl className="admin-invoice-details">
@@ -510,6 +533,16 @@ export function PaymentsAdmin() {
                 </div>
               </dl>
               <div className="admin-button-row flex-wrap">
+                {selected.status === "draft" && !selected.provider_invoice_id && (
+                  <button
+                    className="admin-button text-destructive"
+                    disabled={!!busy}
+                    onClick={() => void removeDraft(selected)}
+                  >
+                    <Trash2 size={15} />
+                    {busy === "delete" ? "Deleting…" : "Delete draft"}
+                  </button>
+                )}
                 {!selected.provider_invoice_id ? (
                   <button
                     className="admin-button admin-button-primary"

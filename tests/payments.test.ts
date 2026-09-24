@@ -21,7 +21,7 @@ const invoice: Invoice = {
   buyer_phone: "08012345678",
   description: "Website project",
   amount_minor: 450050,
-  currency: "NGN",
+  currency: "USD",
   due_date: "2026-10-01",
   status: "pending",
   provider: "nowpayments",
@@ -39,7 +39,7 @@ const valid = {
   payment_id: "98765",
   invoice_id: invoice.provider_invoice_id,
   order_id: invoice.id,
-  price_currency: "ngn",
+  price_currency: "usd",
   price_amount: 4500.5,
   pay_amount: 0.0005,
   actually_paid: 0.0005,
@@ -81,7 +81,7 @@ describe("NOWPayments payment integrity", () => {
       { invoice_id: "wrong" },
       { price_amount: 1 },
       { order_id: "wrong" },
-      { price_currency: "usd" },
+      { price_currency: "ngn" },
       { actually_paid: 0.0004 },
       { actually_paid: null },
       { pay_amount: 0 },
@@ -106,7 +106,7 @@ describe("NOWPayments payment integrity", () => {
       expect(new Headers(init?.headers).get("x-api-key")).toBe("api-test-key");
       const body = JSON.parse(String(init?.body));
       expect(body.price_amount).toBe(4500.5);
-      expect(body.price_currency).toBe("ngn");
+      expect(body.price_currency).toBe("usd");
       expect(body.order_id).toBe(invoice.id);
       expect(body.ipn_callback_url).toBe("https://hq360.example/api/payments/nowpayments/ipn");
       expect(body.success_url).toBe(`https://hq360.example/pay/${invoice.payment_token}`);

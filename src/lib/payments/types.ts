@@ -6,7 +6,7 @@ export type Invoice = {
   buyer_phone: string;
   description: string;
   amount_minor: number;
-  currency: "NGN";
+  currency: "USD" | "NGN";
   due_date: string;
   status: "draft" | "pending" | "paid" | "refunded";
   provider: "nowpayments" | "remita";
@@ -25,10 +25,10 @@ export type PaymentSetup = {
   emailConfigured: boolean;
   environment: "demo" | "live";
 };
-export function money(minor: number) {
-  return new Intl.NumberFormat("en-NG", {
+export function money(minor: number, currency: Invoice["currency"] = "USD") {
+  return new Intl.NumberFormat("en-US", {
     style: "currency",
-    currency: "NGN",
+    currency,
     maximumFractionDigits: 2,
   }).format(minor / 100);
 }

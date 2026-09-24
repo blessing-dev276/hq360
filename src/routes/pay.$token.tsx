@@ -20,6 +20,7 @@ type PaymentData = {
     number: string;
     description: string;
     amount_minor: number;
+    currency: "USD" | "NGN";
     due_date: string;
     status: string;
     provider_invoice_id: string;
@@ -122,8 +123,10 @@ function BuyerInvoice() {
             </div>
             <div className="buyer-total">
               <span>{data.invoice.status === "paid" ? "Amount paid" : "Amount due"}</span>
-              <strong>{money(data.invoice.amount_minor)}</strong>
-              <small>NGN · Nigerian naira</small>
+              <strong>{money(data.invoice.amount_minor, data.invoice.currency)}</strong>
+              <small>
+                {data.invoice.currency === "USD" ? "USD · US dollars" : "NGN · Nigerian naira"}
+              </small>
             </div>
             <dl className="buyer-details">
               <div>

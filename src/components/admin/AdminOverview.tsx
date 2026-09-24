@@ -37,19 +37,19 @@ export function AdminOverview({
       active = false;
     };
   }, []);
-  const paid = invoices?.filter((i) => i.status === "paid") ?? [];
-  const pending = invoices?.filter((i) => i.status === "pending") ?? [];
+  const paid = invoices?.filter((i) => i.status === "paid" && i.currency === "USD") ?? [];
+  const pending = invoices?.filter((i) => i.status === "pending" && i.currency === "USD") ?? [];
   const stats = [
     {
       label: "Payments received",
       value: money(paid.reduce((s, i) => s + i.amount_minor, 0)),
-      detail: `${paid.length} paid invoices`,
+      detail: `${paid.length} paid USD invoices`,
       icon: CreditCard,
     },
     {
       label: "Awaiting payment",
       value: money(pending.reduce((s, i) => s + i.amount_minor, 0)),
-      detail: `${pending.length} open invoices`,
+      detail: `${pending.length} open USD invoices`,
       icon: FileText,
     },
     {
@@ -177,7 +177,7 @@ export function AdminOverview({
                       </button>
                     </td>
                     <td>{i.buyer_name}</td>
-                    <td className="admin-numeric">{money(i.amount_minor)}</td>
+                    <td className="admin-numeric">{money(i.amount_minor, i.currency)}</td>
                     <td>
                       <span className={`admin-status ${invoiceStatus(i)}`}>{invoiceStatus(i)}</span>
                     </td>

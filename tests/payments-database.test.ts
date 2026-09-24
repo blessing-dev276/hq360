@@ -19,6 +19,12 @@ beforeAll(async () => {
       "utf8",
     ),
   );
+  await db.exec(
+    await readFile(
+      new URL("../supabase/migrations/20260924090000_invoice_usd.sql", import.meta.url),
+      "utf8",
+    ),
+  );
 }, 30000);
 afterAll(async () => {
   await db.close();
@@ -67,4 +73,34 @@ test("ambiguous issuance cannot be reclaimed automatically", async () => {
     "update payment_invoices set issue_locked_at=now() where id=$1 and issue_locked_at is null returning id";
   expect((await db.query(claim, [row.id])).rows.length).toBe(1);
   expect((await db.query(claim, [row.id])).rows.length).toBe(0);
+});
+
+test("new invoices use dollars without relabelling historical naira amounts", async () => {
+  const fresh = (await db.query<{ currency: string; amount_minor: number }>(insert)).rows[0]!;
+  expect(fresh.currency).toBe("USD");
+  const old = (
+    await db.query<{ currency: string; amount_minor: number }>(
+      "select currency,amount_minor from payment_invoices where buyer_name='Legacy'",
+    )
+  ).rows[0]!;
+  expect(old.currency).toBe("NGN");
+  expect(Number(old.amount_minor)).toBe(10000);
+});
+
+test("draft deletion protects issued, paid and in-flight invoices", async () => {
+  const remove =
+    "delete from payment_invoices where id=$1 and provider='nowpayments' and status='draft' and provider_invoice_id is null and payment_id is null and issue_locked_at is null and rrr is null returning id";
+  const fresh = (await db.query<{ id: string }>(insert)).rows[0]!;
+  expect((await db.query(remove, [fresh.id])).rows.length).toBe(1);
+  for (const state of ["locked", "pending", "paid"]) {
+    const row = (await db.query<{ id: string }>(insert)).rows[0]!;
+    if (state === "locked")
+      await db.query("update payment_invoices set issue_locked_at=now() where id=$1", [row.id]);
+    else
+      await db.query(
+        "update payment_invoices set status=$2,provider_invoice_id=$1,checkout_url='https://nowpayments.io/payment',paid_at=now() where id=$1",
+        [row.id, state],
+      );
+    expect((await db.query(remove, [row.id])).rows.length).toBe(0);
+  }
 });

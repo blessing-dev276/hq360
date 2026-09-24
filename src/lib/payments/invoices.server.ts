@@ -71,12 +71,31 @@ export async function getInvoice(id: string, byToken = false): Promise<Invoice> 
 }
 export async function createInvoice(input: z.infer<typeof invoiceSchema>) {
   const { error } = await db().upsert(
-    { ...input, provider: "nowpayments", environment: paymentSetup().environment },
+    { ...input, currency: "USD", provider: "nowpayments", environment: paymentSetup().environment },
     { onConflict: "id", ignoreDuplicates: true },
   );
   if (error)
     throw new Error("Could not save the invoice. Check the database connection and migration.");
   return getInvoice(input.id);
+}
+export async function deleteDraft(id: string) {
+  if (!z.string().uuid().safeParse(id).success) throw new Error("Invalid invoice ID.");
+  // Atomic predicate prevents deletion racing with an issuance claim.
+  const { data, error } = await db()
+    .delete()
+    .eq("id", id)
+    .eq("provider", "nowpayments")
+    .eq("status", "draft")
+    .is("provider_invoice_id", null)
+    .is("payment_id", null)
+    .is("issue_locked_at", null)
+    .is("rrr", null)
+    .select("id");
+  if (error) throw new Error("Could not delete the draft. Please try again.");
+  if (!data?.length)
+    throw new Error(
+      "Only unissued drafts can be deleted. This invoice may have been issued, be awaiting reconciliation, or already be deleted.",
+    );
 }
 export async function issueInvoice(invoice: Invoice) {
   if (invoice.provider_invoice_id) return invoice;
@@ -160,7 +179,7 @@ export async function emailInvoice(invoice: Invoice) {
   const result = await sendEmail({
     to: invoice.buyer_email,
     subject: `${invoice.environment === "demo" ? "[TEST] " : ""}Your HQ360 invoice ${invoice.number}`,
-    text: `${invoice.environment === "demo" ? "TEST INVOICE — no real payment will be collected.\n\n" : ""}Hello ${invoice.buyer_name},\n\nYour invoice ${invoice.number} is ready.\n\n${invoice.description}\nAmount: ${money(invoice.amount_minor)}\nDue: ${invoice.due_date}\nNOWPayments invoice: ${invoice.provider_invoice_id}\n\nView your invoice and pay securely:\n${invoiceLink(invoice)}\n\nThank you,\nHQ360`,
+    text: `${invoice.environment === "demo" ? "TEST INVOICE — no real payment will be collected.\n\n" : ""}Hello ${invoice.buyer_name},\n\nYour invoice ${invoice.number} is ready.\n\n${invoice.description}\nAmount: ${money(invoice.amount_minor, invoice.currency)}\nDue: ${invoice.due_date}\nNOWPayments invoice: ${invoice.provider_invoice_id}\n\nView your invoice and pay securely:\n${invoiceLink(invoice)}\n\nThank you,\nHQ360`,
   });
   if (!result.sent)
     throw new Error(

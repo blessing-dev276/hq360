@@ -1,6 +1,6 @@
 -- Run once in the Supabase SQL Editor for this project.
 -- This setup is for a database without public.payment_invoices.
--- Source: the two payment migrations listed below.
+-- Source: the payment migrations listed below.
 BEGIN;
 
 -- 20260923090000_payment_invoices.sql
@@ -57,6 +57,12 @@ alter table public.payment_invoices add constraint payment_invoices_provider_ref
   (provider = 'nowpayments' and provider_invoice_id is not null and checkout_url is not null)
 );
 create unique index payment_invoices_provider_id_idx on public.payment_invoices(provider, environment, provider_invoice_id) where provider_invoice_id is not null;
+
+-- 20260924090000_invoice_usd.sql
+-- Keep historical amounts in their original currency; all new invoices use USD.
+alter table public.payment_invoices drop constraint payment_invoices_currency_check;
+alter table public.payment_invoices add constraint payment_invoices_currency_check check (currency in ('NGN', 'USD'));
+alter table public.payment_invoices alter column currency set default 'USD';
 
 NOTIFY pgrst, 'reload schema';
 COMMIT;

@@ -17,7 +17,7 @@ await context.route("**/api/admin/invoices", (route) => {
     const invoice = {
       ...input,
       number: "HQ-000001",
-      currency: "NGN",
+      currency: "USD",
       status: "draft",
       provider: "nowpayments",
       provider_invoice_id: null,
@@ -68,7 +68,7 @@ try {
   await page.getByLabel("Email address").fill("buyer@example.com");
   await page.getByLabel("Phone number").fill("+2348012345678");
   await page.getByLabel("What is this invoice for?").fill("Brand strategy and website design");
-  await page.getByLabel("Amount (NGN)").fill("125000.50");
+  await page.getByLabel("Amount (USD)").fill("125000.50");
   await page.getByRole("button", { name: "Save draft" }).click();
   await expect(page.getByRole("heading", { name: "Invoice HQ-000001" })).toBeVisible();
   expect(invoices[0].amount_minor).toBe(12500050);

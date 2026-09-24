@@ -24,6 +24,7 @@ async function publicInvoice(token: string, verify: boolean) {
         number: invoice.number,
         description: invoice.description,
         amount_minor: invoice.amount_minor,
+        currency: invoice.currency,
         due_date: invoice.due_date,
         status: invoice.status,
         provider_invoice_id: invoice.provider_invoice_id,

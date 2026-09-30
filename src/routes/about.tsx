@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import ceoPhoto from "@/assets/team-blessing.png";
+import teamGroupPhoto from "@/assets/team-group-hero.jpg";
 import { AGENCY_PROCESS } from "@/data/agency";
 import { BRAND } from "@/config/brand";
 import { useExpertDirectory } from "@/lib/experts";
@@ -35,8 +35,8 @@ function AboutPage() {
       <section className="hqd-page-hero">
         <div className="hqd-page-panel">
           <span className="hqd-hero-glow" aria-hidden="true" />
-          <div className="hqd-page-photo" aria-hidden="true">
-            <img src={ceoPhoto} alt="" fetchPriority="high" />
+          <div className="hqd-page-photo hqd-page-photo--wide" aria-hidden="true">
+            <img src={teamGroupPhoto} alt="" fetchPriority="high" />
           </div>
           <span className="hqd-hero-shade" aria-hidden="true" />
           <Grain />

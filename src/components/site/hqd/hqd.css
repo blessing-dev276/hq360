@@ -1393,8 +1393,38 @@
   object-fit: cover;
   object-position: 50% 20%;
   filter: none;
-  -webkit-mask-image: radial-gradient(ellipse 55% 70% at 50% 40%, #000 55%, transparent 85%);
-  mask-image: radial-gradient(ellipse 55% 70% at 50% 40%, #000 55%, transparent 85%);
+  /* mask-image (unprefixed) defaults to luminance mode, where black means
+     "hide" -- the opposite of -webkit-mask-image's alpha-based default.
+     White keeps both interpretations correct: opaque+bright reveals,
+     transparent hides. */
+  -webkit-mask-image: radial-gradient(ellipse 55% 70% at 50% 40%, #fff 55%, transparent 85%);
+  mask-image: radial-gradient(ellipse 55% 70% at 50% 40%, #fff 55%, transparent 85%);
+}
+/* Wide group-photo variant: positive stacking (on top of the panel
+   background) rather than .hqd-page-photo's default negative-z "peek from
+   behind" trick, which is unreliable for larger photos. The readability
+   shade is bumped above it via the sibling rule below. */
+.hqd-page-photo--wide {
+  position: absolute;
+  z-index: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 100%;
+  width: min(64rem, 92vw);
+  margin-inline: auto;
+  pointer-events: none;
+}
+.hqd-page-photo--wide ~ .hqd-hero-shade {
+  z-index: 1;
+}
+.hqd-page-photo--wide img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 25%;
+  -webkit-mask-image: radial-gradient(ellipse 75% 75% at 50% 42%, #fff 55%, transparent 90%);
+  mask-image: radial-gradient(ellipse 75% 75% at 50% 42%, #fff 55%, transparent 90%);
 }
 .hqd-page-inner {
   position: relative;

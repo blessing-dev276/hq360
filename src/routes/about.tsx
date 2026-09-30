@@ -1,5 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
-import teamGroupPhoto from "@/assets/team-group-hero.jpg";
+import teamGroup1 from "@/assets/team-group-hero.jpg";
+import teamGroup2 from "@/assets/team-group-2.jpg";
+import teamGroup3 from "@/assets/team-group-3.jpg";
+import teamGroup4 from "@/assets/team-group-4.jpg";
 import { AGENCY_PROCESS } from "@/data/agency";
 import { BRAND } from "@/config/brand";
 import { useExpertDirectory } from "@/lib/experts";
@@ -27,6 +30,8 @@ export const Route = createFileRoute("/about")({
   component: AboutPage,
 });
 
+const TEAM_GROUP_PHOTOS = [teamGroup1, teamGroup2, teamGroup3, teamGroup4];
+
 function AboutPage() {
   const { team } = useExpertDirectory();
 
@@ -36,7 +41,17 @@ function AboutPage() {
         <div className="hqd-page-panel">
           <span className="hqd-hero-glow" aria-hidden="true" />
           <div className="hqd-page-photo hqd-page-photo--wide" aria-hidden="true">
-            <img src={teamGroupPhoto} alt="" fetchPriority="high" />
+            {TEAM_GROUP_PHOTOS.map((src, index) => (
+              <img
+                key={src}
+                src={src}
+                alt=""
+                decoding="async"
+                {...(index === 0
+                  ? { fetchPriority: "high" as const }
+                  : { loading: "lazy" as const })}
+              />
+            ))}
           </div>
           <span className="hqd-hero-shade" aria-hidden="true" />
           <Grain />

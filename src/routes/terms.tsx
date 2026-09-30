@@ -48,34 +48,34 @@ const sections = [
 function TermsPage() {
   return (
     <>
-    <Section tone="hero">
-      <SectionHeader
-        as="h1"
-        eyebrow="Legal"
-        title="Terms of service"
-        intro="Placeholder terms for demonstration. Have counsel review before publishing."
-      />
-    </Section>
-    <Section>
-      <div className="max-w-3xl space-y-10">
-        {sections.map((s) => (
-          <section key={s.heading}>
-            <h2 className="font-display text-xl">{s.heading}</h2>
-            <p className="mt-3 leading-relaxed text-muted-foreground">{s.body}</p>
+      <Section tone="hero">
+        <SectionHeader
+          as="h1"
+          eyebrow="Legal"
+          title="Terms of service"
+          intro="Placeholder terms for demonstration. Have counsel review before publishing."
+        />
+      </Section>
+      <Section>
+        <div className="max-w-3xl space-y-10">
+          {sections.map((s) => (
+            <section key={s.heading}>
+              <h2 className="font-display text-xl">{s.heading}</h2>
+              <p className="mt-3 leading-relaxed text-muted-foreground">{s.body}</p>
+            </section>
+          ))}
+          <section>
+            <h2 className="font-display text-xl">Contact</h2>
+            <p className="mt-3 leading-relaxed text-muted-foreground">
+              Questions about these terms can be sent to{" "}
+              <a href={`mailto:${BRAND.email}`} className="text-brand underline underline-offset-4">
+                {BRAND.email}
+              </a>
+              .
+            </p>
           </section>
-        ))}
-        <section>
-          <h2 className="font-display text-xl">Contact</h2>
-          <p className="mt-3 leading-relaxed text-muted-foreground">
-            Questions about these terms can be sent to{" "}
-            <a href={`mailto:${BRAND.email}`} className="text-brand underline underline-offset-4">
-              {BRAND.email}
-            </a>
-            .
-          </p>
-        </section>
-      </div>
-    </Section>
+        </div>
+      </Section>
     </>
   );
 }

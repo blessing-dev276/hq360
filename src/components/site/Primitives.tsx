@@ -122,7 +122,13 @@ export function SectionHeader({
         {title}
       </TitleTag>
       {intro ? (
-        <p className={cn("hqd-intro", h1 ? "max-w-2xl" : "max-w-2xl", align === "center" && "mx-auto")}>
+        <p
+          className={cn(
+            "hqd-intro",
+            h1 ? "max-w-2xl" : "max-w-2xl",
+            align === "center" && "mx-auto",
+          )}
+        >
           {intro}
         </p>
       ) : null}

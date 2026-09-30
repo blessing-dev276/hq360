@@ -173,8 +173,10 @@ export function AuthorVisibilityAudit() {
 
   return (
     <div className="author-audit-page">
-      <section className="author-audit-hero">
-        <Container className="author-audit-hero-grid">
+      <section className="author-audit-hero hqd-hero-section">
+        <span className="hqd-hero-glow" aria-hidden="true" />
+        <span className="hqd-hero-shade" aria-hidden="true" />
+        <Container className="author-audit-hero-grid relative">
           <div>
             <span className="author-audit-eyebrow">Free Author Visibility Check</span>
             <h1>

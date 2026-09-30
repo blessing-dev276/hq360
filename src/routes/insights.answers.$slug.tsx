@@ -86,7 +86,6 @@ function AnswerPage() {
       <Section>
         <Container size="narrow" className="px-0">
           <article>
-
             <p className="mt-8 text-xl leading-relaxed text-foreground">{answer.short}</p>
             <div className="mt-6 space-y-5 text-lg leading-relaxed text-muted-foreground">
               {answer.body.map((p) => (

@@ -14,7 +14,6 @@ import { ServiceCards } from "../hqd/ServiceCards";
 
 const BAND_WORDS = ["Websites", "Mobile Apps", "Automation", "CRM", "Writing", "Translation"];
 
-
 export function HomeExperience() {
   const directory = useExpertDirectory();
 

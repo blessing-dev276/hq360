@@ -98,7 +98,14 @@ export type ScoutBook = {
 };
 
 export type ReviewPlatform =
-  "google_books" | "open_library" | "goodreads" | "amazon" | "reedsy" | "bookbub" | "other";
+  | "google_books"
+  | "open_library"
+  | "goodreads"
+  | "amazon"
+  | "reedsy"
+  | "bookbub"
+  | "other"
+  | "readers_favorite";
 
 export type ScoutReviewCount = {
   id: string;

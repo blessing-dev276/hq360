@@ -38,6 +38,7 @@ const bodySchema = z.object({
   // they use this generic pair instead of amazonReviewCount.
   reviewPlatform: z.string().trim().min(1).max(40).optional(),
   reviewCount: z.number().int().min(0).max(999).optional(),
+  reviewRating: z.number().min(1).max(5).optional(),
   // Pass the same batchId + batchLabel for every book ingested in one
   // search run so they group as a single "batch" the UI can list and
   // export together, instead of each book creating its own throwaway
@@ -296,13 +297,17 @@ export const Route = createFileRoute("/api/admin/scout-manual-ingest")({
             );
             if (reviewError) throw reviewError;
           }
-          if (body.reviewPlatform && body.reviewCount !== undefined) {
+          if (
+            body.reviewPlatform &&
+            (body.reviewCount !== undefined || body.reviewRating !== undefined)
+          ) {
             const { error: reviewError } = await withDatabaseRetry(() =>
               db.from("scout_review_counts").upsert(
                 {
                   book_id: book.id,
                   platform: body.reviewPlatform,
-                  review_count: body.reviewCount,
+                  review_count: body.reviewCount ?? null,
+                  ...(body.reviewRating !== undefined ? { rating: body.reviewRating } : {}),
                   verified: true,
                   source_url: sourceUrl,
                   retrieved_at: new Date().toISOString(),

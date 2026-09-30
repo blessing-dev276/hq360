@@ -108,7 +108,9 @@ function Hero({
   }
 
   return (
-    <section className="ind-hero">
+    <section className="ind-hero hqd-hero-section">
+      <span className="hqd-hero-glow" aria-hidden="true" />
+      <span className="hqd-hero-shade" aria-hidden="true" />
       <div className="ind-hero-grid" aria-hidden="true" />
       <Container size="wide" className="relative z-10">
         <nav aria-label="Breadcrumb" className="ind-crumb">

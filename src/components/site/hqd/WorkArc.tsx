@@ -5,8 +5,6 @@ import { toCaseStudyShape, type SerializedCaseStudy } from "@/lib/case-study-sha
 import { CASE_STUDIES, type CaseStudy } from "@/data/work";
 import { buildAgencyProof, type PortfolioProof } from "@/lib/agency-work";
 
-const MIN_CARDS = 12;
-
 /**
  * A concave, auto-drifting arc of project images. Positions are written straight
  * to the DOM each frame (no React re-render); drag to scrub, hover to pause.
@@ -27,12 +25,8 @@ export function WorkArc() {
   const withImages = buildAgencyProof(portfolio.data?.items ?? [], studies).filter(
     (item) => item.image,
   );
-  const cards = withImages.length
-    ? Array.from(
-        { length: Math.max(MIN_CARDS, withImages.length) },
-        (_, i) => withImages[i % withImages.length]!,
-      )
-    : [];
+  // Show each actual project once, including when the collection is small.
+  const cards = withImages;
 
   const stageRef = useRef<HTMLDivElement>(null);
   const count = cards.length;
@@ -69,7 +63,7 @@ export function WorkArc() {
     const tick = (now: number) => {
       const dt = Math.min(64, now - last);
       last = now;
-      if (!reduced && !hovering && !dragging) pos += dt * 0.00028;
+      if (count > 5 && !reduced && !hovering && !dragging) pos += dt * 0.00028;
       layout();
       raf = onScreen ? requestAnimationFrame(tick) : 0;
     };

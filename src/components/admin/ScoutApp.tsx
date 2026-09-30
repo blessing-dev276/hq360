@@ -1,3 +1,4 @@
+import { ReadersFavoriteScout } from "./ReadersFavoriteScout";
 import { useCallback, useEffect, useState } from "react";
 import {
   Bookmark,
@@ -383,6 +384,32 @@ function BookCard({
 }
 
 export function ScoutApp() {
+  const [source, setSource] = useState("reedsy");
+  return (
+    <>
+      <nav aria-label="Scout sources" className="mx-auto flex max-w-5xl gap-3 px-5 pt-6">
+        {[
+          ["reedsy", "Reedsy Discovery"],
+          ["readers", "Readers’ Favorite"],
+        ].map(([value, label]) => (
+          <button
+            key={value}
+            aria-pressed={source === value}
+            onClick={() => setSource(value!)}
+            className={cn(
+              "rounded-full border px-4 py-3 text-sm",
+              source === value && "bg-primary text-primary-foreground",
+            )}
+          >
+            {label}
+          </button>
+        ))}
+      </nav>
+      {source === "readers" ? <ReadersFavoriteScout /> : <ReedsyScout />}
+    </>
+  );
+}
+function ReedsyScout() {
   const [resultLimit, setResultLimit] = useState(20);
   const [debutOnly, setDebutOnly] = useState(false);
   const [reedsyMinRating, setReedsyMinRating] = useState(1);

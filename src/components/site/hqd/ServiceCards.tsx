@@ -58,8 +58,8 @@ export function ServiceCards() {
           <span className="hqd-card-body">
             <h3 style={{ fontSize: "clamp(2.2rem, 3.4vw, 3rem)" }}>Become an Expert</h3>
             <p>
-              Writers, designers, developers and marketers — apply to work alongside HQ360 and
-              get a public expert profile.
+              Writers, designers, developers and marketers — apply to work alongside HQ360 and get a
+              public expert profile.
             </p>
           </span>
         </Link>

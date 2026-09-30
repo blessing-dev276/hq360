@@ -84,11 +84,7 @@ export function InsightsHub() {
         </div>
 
         {/* Topic filter */}
-        <div
-          className="mt-10 flex flex-wrap gap-2"
-          role="group"
-          aria-label="Filter by topic"
-        >
+        <div className="mt-10 flex flex-wrap gap-2" role="group" aria-label="Filter by topic">
           {topics.map((t) => (
             <button
               key={t}

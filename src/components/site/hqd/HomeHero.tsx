@@ -18,7 +18,12 @@ export function HomeHero() {
   const frame = useRef(0);
 
   function parallax(event: React.PointerEvent<HTMLDivElement>) {
-    if (event.pointerType !== "mouse" || frame.current) return;
+    if (
+      event.pointerType !== "mouse" ||
+      frame.current ||
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    )
+      return;
     const { clientX, clientY, currentTarget } = event;
     frame.current = requestAnimationFrame(() => {
       frame.current = 0;

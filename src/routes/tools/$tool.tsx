@@ -93,139 +93,139 @@ function Tool({ tool }: { tool: (typeof FREE_TOOLS)[number] }) {
   }
   return (
     <>
-    <Section tone="hero">
-      <div className="mx-auto max-w-3xl">
-        <Link to="/tools" className="text-sm text-brand">
-          ← All free tools
-        </Link>
-        <div className="mt-8">
-          <SectionHeader
-            as="h1"
-            eyebrow="HQ360 / Free tools"
-            title={tool.name}
-            intro={tool.description}
-          />
+      <Section tone="hero">
+        <div className="mx-auto max-w-3xl">
+          <Link to="/tools" className="text-sm text-brand">
+            ← All free tools
+          </Link>
+          <div className="mt-8">
+            <SectionHeader
+              as="h1"
+              eyebrow="HQ360 / Free tools"
+              title={tool.name}
+              intro={tool.description}
+            />
+          </div>
         </div>
-      </div>
-    </Section>
-    <Section>
-      <div className="mx-auto max-w-3xl">
-        <p className="mb-6 text-sm text-muted-foreground">
-          {checklist
-            ? "Answer a few questions to build your next-action checklist."
-            : "Create a practical planning document you can copy or download."}{" "}
-          Your answers stay in this page and are not saved after you leave.
-        </p>
-        <form
-          onSubmit={generate}
-          onChange={() => setResult("")}
-          className="space-y-5 rounded-3xl border border-border bg-card p-6 sm:p-8"
-        >
-          {tool.fields.map((label, i) => (
-            <label key={label} className="block text-sm font-medium">
-              {label}
-              {checklist ? (
-                <select required name={`field-${i}`} defaultValue="" className={input}>
-                  <option value="" disabled>
-                    Choose an answer
-                  </option>
-                  <option value="yes">Yes</option>
-                  <option value="no">Not yet</option>
-                  <option value="unknown">Not sure</option>
-                </select>
-              ) : (
-                <textarea
-                  required
-                  maxLength={1500}
-                  name={`field-${i}`}
-                  rows={2}
-                  className={input}
-                />
-              )}
-            </label>
-          ))}
-          {budget && (
-            <>
-              <label className="block">
-                Monthly budget
-                <input
-                  required
-                  name="budget"
-                  type="number"
-                  min="1"
-                  max="100000000"
-                  step="0.01"
-                  className={input}
-                />
-              </label>
-              <label className="block">
-                Currency
-                <select name="currency" className={input}>
-                  {["USD", "GBP", "EUR", "NGN", "CAD", "AUD"].map((c) => (
-                    <option key={c}>{c}</option>
-                  ))}
-                </select>
-              </label>
-              <label className="block">
-                Current priority
-                <select name="focus" className={input}>
-                  <option value="foundation">Build the foundations</option>
-                  <option value="growth">Distribute an established offer</option>
-                </select>
-              </label>
-              <p className="text-xs text-muted-foreground">
-                Foundation split: 40 / 20 / 20 / 20%. Distribution split: 25 / 40 / 20 / 15%. These
-                editable starting assumptions allocate funds across creative, distribution,
-                conversion and measurement.
-              </p>
-            </>
-          )}
-          <button className="rounded-full bg-primary px-6 py-3 font-semibold text-primary-foreground">
-            {checklist ? "Build my checklist" : "Create my plan"}
-          </button>
-        </form>
-        {result && (
-          <section
-            aria-label="Your results"
-            className="mt-8 rounded-3xl border border-brand/30 bg-secondary p-6"
+      </Section>
+      <Section>
+        <div className="mx-auto max-w-3xl">
+          <p className="mb-6 text-sm text-muted-foreground">
+            {checklist
+              ? "Answer a few questions to build your next-action checklist."
+              : "Create a practical planning document you can copy or download."}{" "}
+            Your answers stay in this page and are not saved after you leave.
+          </p>
+          <form
+            onSubmit={generate}
+            onChange={() => setResult("")}
+            className="space-y-5 rounded-3xl border border-border bg-card p-6 sm:p-8"
           >
-            <h2 className="font-display text-2xl" role="status">
-              Your plan is ready
-            </h2>
-            <pre className="mt-5 whitespace-pre-wrap font-sans text-sm leading-relaxed">
-              {result}
-            </pre>
-            <div className="mt-6 flex flex-wrap gap-4">
-              <button
-                onClick={download}
-                className="rounded-full bg-primary px-5 py-3 text-sm text-primary-foreground"
-              >
-                Download plan
-              </button>
-              <button
-                onClick={async () => {
-                  try {
-                    await navigator.clipboard.writeText(result);
-                    setNotice("Copied to clipboard.");
-                  } catch {
-                    setNotice("Copy unavailable. Use Download plan instead.");
-                  }
-                }}
-                className="rounded-full border border-border px-5 py-3 text-sm"
-              >
-                Copy plan
-              </button>
-            </div>
-            <p role="status" className="mt-3 text-sm">
-              {notice}
-            </p>
-            <Link to="/contact" className="mt-5 inline-block text-sm text-brand underline">
-              Talk to HQ360 about your next steps
-            </Link>
-          </section>
-        )}
-      </div>
-    </Section>
+            {tool.fields.map((label, i) => (
+              <label key={label} className="block text-sm font-medium">
+                {label}
+                {checklist ? (
+                  <select required name={`field-${i}`} defaultValue="" className={input}>
+                    <option value="" disabled>
+                      Choose an answer
+                    </option>
+                    <option value="yes">Yes</option>
+                    <option value="no">Not yet</option>
+                    <option value="unknown">Not sure</option>
+                  </select>
+                ) : (
+                  <textarea
+                    required
+                    maxLength={1500}
+                    name={`field-${i}`}
+                    rows={2}
+                    className={input}
+                  />
+                )}
+              </label>
+            ))}
+            {budget && (
+              <>
+                <label className="block">
+                  Monthly budget
+                  <input
+                    required
+                    name="budget"
+                    type="number"
+                    min="1"
+                    max="100000000"
+                    step="0.01"
+                    className={input}
+                  />
+                </label>
+                <label className="block">
+                  Currency
+                  <select name="currency" className={input}>
+                    {["USD", "GBP", "EUR", "NGN", "CAD", "AUD"].map((c) => (
+                      <option key={c}>{c}</option>
+                    ))}
+                  </select>
+                </label>
+                <label className="block">
+                  Current priority
+                  <select name="focus" className={input}>
+                    <option value="foundation">Build the foundations</option>
+                    <option value="growth">Distribute an established offer</option>
+                  </select>
+                </label>
+                <p className="text-xs text-muted-foreground">
+                  Foundation split: 40 / 20 / 20 / 20%. Distribution split: 25 / 40 / 20 / 15%.
+                  These editable starting assumptions allocate funds across creative, distribution,
+                  conversion and measurement.
+                </p>
+              </>
+            )}
+            <button className="rounded-full bg-primary px-6 py-3 font-semibold text-primary-foreground">
+              {checklist ? "Build my checklist" : "Create my plan"}
+            </button>
+          </form>
+          {result && (
+            <section
+              aria-label="Your results"
+              className="mt-8 rounded-3xl border border-brand/30 bg-secondary p-6"
+            >
+              <h2 className="font-display text-2xl" role="status">
+                Your plan is ready
+              </h2>
+              <pre className="mt-5 whitespace-pre-wrap font-sans text-sm leading-relaxed">
+                {result}
+              </pre>
+              <div className="mt-6 flex flex-wrap gap-4">
+                <button
+                  onClick={download}
+                  className="rounded-full bg-primary px-5 py-3 text-sm text-primary-foreground"
+                >
+                  Download plan
+                </button>
+                <button
+                  onClick={async () => {
+                    try {
+                      await navigator.clipboard.writeText(result);
+                      setNotice("Copied to clipboard.");
+                    } catch {
+                      setNotice("Copy unavailable. Use Download plan instead.");
+                    }
+                  }}
+                  className="rounded-full border border-border px-5 py-3 text-sm"
+                >
+                  Copy plan
+                </button>
+              </div>
+              <p role="status" className="mt-3 text-sm">
+                {notice}
+              </p>
+              <Link to="/contact" className="mt-5 inline-block text-sm text-brand underline">
+                Talk to HQ360 about your next steps
+              </Link>
+            </section>
+          )}
+        </div>
+      </Section>
     </>
   );
 }

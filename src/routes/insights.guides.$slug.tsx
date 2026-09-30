@@ -84,7 +84,6 @@ function GuidePage() {
       <Section>
         <Container size="narrow" className="px-0">
           <article>
-
             <p className="mt-8 text-lg leading-relaxed text-muted-foreground">{guide.intro}</p>
 
             {/* Contents */}

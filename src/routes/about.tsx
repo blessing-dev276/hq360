@@ -74,8 +74,8 @@ function AboutPage() {
               <p className="hqd-body">{BRAND.positioning}</p>
               <p className="hqd-body">
                 We work with businesses, creators, authors and other agencies. Formerly{" "}
-                {BRAND.formerlyKnownAs}, we bring the required work into an agreed scope, with
-                clear review points and handover.
+                {BRAND.formerlyKnownAs}, we bring the required work into an agreed scope, with clear
+                review points and handover.
               </p>
             </div>
           </Reveal>
@@ -95,8 +95,8 @@ function AboutPage() {
             </div>
             <div className="hqd-split-aside">
               <p className="hqd-lede">
-                From strategy to visuals to code — tailored services that help your brand grow
-                with clarity.
+                From strategy to visuals to code — tailored services that help your brand grow with
+                clarity.
               </p>
               <Pill to="/contact" tone="orange">
                 Get in Touch

@@ -32,7 +32,9 @@ export function AuditHero({
   }, [steps.length]);
 
   return (
-    <section className="aud-hero">
+    <section className="aud-hero hqd-hero-section">
+      <span className="hqd-hero-glow" aria-hidden="true" />
+      <span className="hqd-hero-shade" aria-hidden="true" />
       <div className="aud-hero-grid" aria-hidden="true" />
       <Container className="relative z-10">
         <div className="aud-hero-copy">

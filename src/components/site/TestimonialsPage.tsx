@@ -34,7 +34,9 @@ export function TestimonialsPage() {
 
   return (
     <>
-      <section className="tsp-hero">
+      <section className="tsp-hero hqd-hero-section">
+        <span className="hqd-hero-glow" aria-hidden="true" />
+        <span className="hqd-hero-shade" aria-hidden="true" />
         <div className="tsp-hero-grid" aria-hidden="true" />
         <Container className="relative z-10">
           <div className="tsp-hero-copy">

@@ -9,7 +9,7 @@ import { ProjectInquiryForm } from "../ProjectInquiryForm";
 export function AuthorExperience() {
   return (
     <>
-      <Section tone="raised">
+      <Section tone="hero">
         <div className="max-w-4xl">
           <p className="text-sm font-semibold tracking-widest text-brand uppercase">
             HQ360 / Authors & Publishers

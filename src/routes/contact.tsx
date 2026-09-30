@@ -30,7 +30,7 @@ export const Route = createFileRoute("/contact")({
       {
         title: "Start a Project | HQ360",
         description:
-          "Tell HQ360 about your business. We reply within one working day with a first view of what we would build and whether we are the right fit.",
+          "Tell HQ360 about your book. We reply within one working day with a first view of what we would build and whether we are the right fit.",
         path: "/contact",
       },
       [
@@ -53,7 +53,7 @@ function ContactPage() {
             <SectionHeader
               as="h1"
               eyebrow="Start a project"
-              title="Tell us what you're building"
+              title="Tell us about your next chapter"
               intro="The more context you give, the more useful our first reply will be. Everything here is optional except your name, email and where you need help."
             />
             <ul className="mt-10 space-y-3 text-sm text-muted-foreground">
@@ -81,7 +81,7 @@ function ContactPage() {
             </p>
           </div>
 
-          <ProjectInquiryForm />
+          <ProjectInquiryForm defaultIndustry="Authors & Publishers" sourceIndustry="authors" />
         </div>
       </Section>
 

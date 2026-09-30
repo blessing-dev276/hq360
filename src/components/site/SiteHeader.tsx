@@ -353,12 +353,12 @@ export function SiteHeader() {
                           <p>
                             {key === "industries"
                               ? "Your world.\nOur perspective."
-                              : "A sharper brand.\nA stronger business."}
+                              : "Your book.\nYour next chapter."}
                           </p>
                           <span className="hq-menu-caption">
                             {key === "industries"
                               ? "Specialist thinking shaped around the way your market actually works."
-                              : "Strategy, creative and technology working as one connected system."}
+                              : "Writing, publishing support, visibility and reader relationships."}
                           </span>
                           <Link
                             to={key === "industries" ? "/industries" : "/services"}
@@ -482,53 +482,8 @@ export function SiteHeader() {
           }}
         >
           <span className="hq-nav-eyebrow">Find your next move</span>
-          <MobileGroup
-            title="Industries"
-            extra={{ label: "View all industries", to: "/industries" }}
-          >
-            {INDUSTRY_GROUPS.map((group) => (
-              <div key={group.label} className="hq-mobile-industry-group">
-                <p className="hq-nav-eyebrow">{group.label}</p>
-                <MobileLinks items={group.items} />
-              </div>
-            ))}
-          </MobileGroup>
           <MobileGroup title="Services" extra={{ label: "Explore services", to: "/services" }}>
             <MobileLinks items={CAPABILITY_MENU} />
-          </MobileGroup>
-          <MobileGroup title="About">
-            <MobileLinks items={ABOUT_MENU} />
-          </MobileGroup>
-          <MobileGroup title="Resources">
-            <ul className="hq-mobile-submenu-links">
-              <li>
-                <Link to="/insights" preload="intent">
-                  Insights
-                  <ArrowUpRight size={14} aria-hidden="true" />
-                </Link>
-              </li>
-              <li>
-                <Link to="/testimonials" preload="intent">
-                  Testimonials &amp; Reviews
-                  <ArrowUpRight size={14} aria-hidden="true" />
-                </Link>
-              </li>
-              <li className="hq-mobile-resource-heading">Free Tools</li>
-              {FREE_TOOLS.map((tool) => (
-                <li key={tool.slug}>
-                  <Link to="/tools/$tool" params={{ tool: tool.slug }}>
-                    {tool.name}
-                    <ArrowUpRight size={14} aria-hidden="true" />
-                  </Link>
-                </li>
-              ))}
-              <li>
-                <Link to="/tools">
-                  All free tools
-                  <ArrowRight size={14} />
-                </Link>
-              </li>
-            </ul>
           </MobileGroup>
           <ul className="hq-mobile-primary-links">
             {PRIMARY_NAV.filter((item) => item.to).map((item) => (

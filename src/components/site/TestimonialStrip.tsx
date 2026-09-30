@@ -60,7 +60,7 @@ export function TestimonialStrip({
   if (items?.length === 0) return null;
 
   return (
-    <Section id={id} tone={tone}>
+    <Section {...(id ? { id } : {})} tone={tone}>
       <SectionHeader eyebrow={eyebrow} title={title} />
       {query.isPending ? (
         <div role="status" aria-busy="true">

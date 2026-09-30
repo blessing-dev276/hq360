@@ -18,7 +18,10 @@ async function publicInvoice(token: string, verify: boolean) {
     if (!invoice.provider_invoice_id)
       return p.paymentJson({ error: "This invoice is not ready for payment." }, 404);
     if (verify) invoice = await p.verifyInvoice(invoice);
-    const { checkoutUrl } = await import("@/lib/payments/nowpayments.server");
+    const checkoutUrl = (await import("@/lib/payments/nowpayments.server")).checkoutUrl(
+      invoice.checkout_url,
+      invoice.environment,
+    );
     return p.paymentJson({
       invoice: {
         number: invoice.number,
@@ -27,12 +30,13 @@ async function publicInvoice(token: string, verify: boolean) {
         currency: invoice.currency,
         due_date: invoice.due_date,
         status: invoice.status,
+        provider: invoice.provider,
         provider_invoice_id: invoice.provider_invoice_id,
         provider_status: invoice.provider_status,
         environment: invoice.environment,
       },
       checkout: {
-        url: checkoutUrl(invoice.checkout_url, invoice.environment),
+        url: checkoutUrl,
       },
     });
   } catch {

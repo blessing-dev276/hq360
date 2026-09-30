@@ -1,3 +1,4 @@
+import { AUTHOR_OFFERS } from "@/data/author-offers";
 /**
  * HQ360 brand configuration.
  *
@@ -25,13 +26,13 @@ export const BRAND = {
   whatsapp: "+1 (361) 466-0223",
   /** wa.me deep link — digits only, no "+". */
   whatsappHref: "https://wa.me/13614660223",
-  tagline: "Everything your brand needs to grow.",
+  tagline: "Your book. Your readers. Your next chapter.",
   /** One-paragraph positioning, reused in meta descriptions and the footer. */
   positioning:
-    "HQ360 is a multi-industry growth agency. We surround a business with the strategy, creative, technology and marketing it needs to get seen, earn trust and turn attention into customers.",
+    "HQ360 helps authors and publishers develop books, prepare for publication, improve visibility and build reader relationships.",
   /** Short descriptor for schema.org and OG site name. */
-  descriptor: "Multi-industry growth agency",
-  serviceArea: "Working with ambitious businesses and personal brands worldwide.",
+  descriptor: "Author and publishing services",
+  serviceArea: "Working with authors and publishers worldwide.",
 } as const;
 
 export const CTAS = {
@@ -57,64 +58,21 @@ export const INDUSTRY_MENU: { label: string; to: string }[] = [
   { label: "Agencies", to: "/agencies" },
 ];
 
-export const CAPABILITY_MENU: { label: string; to: string; blurb: string }[] = [
-  {
-    label: "Brand & Creative",
-    to: "/services/brand-creative",
-    blurb: "Identity, design and creative direction that make a brand recognisable.",
-  },
-  {
-    label: "Website & Funnel",
-    to: "/services/websites-funnels",
-    blurb: "Sites and landing pages built to turn attention into action.",
-  },
-  {
-    label: "CRM Automation",
-    to: "/services/crm-automation",
-    blurb: "Pipelines and follow-up that work without manual chasing.",
-  },
-  {
-    label: "Writing & Translation",
-    to: "/services/writing-translation",
-    blurb: "Writing, editing and translation that keep every message clear and on-brand.",
-  },
-  {
-    label: "Social Media Marketing",
-    to: "/services/lead-generation",
-    blurb: "Consistent, qualified demand from advertising and outreach.",
-  },
-  {
-    label: "Ai Video & Video Editing",
-    to: "/services/content-social",
-    blurb: "Visibility that keeps a brand in front of the right audience.",
-  },
-  {
-    label: "SEO",
-    to: "/services/visibility-reputation",
-    blurb: "Search presence, reviews and press that build credibility.",
-  },
-  {
-    label: "Mobile App Development",
-    to: "/services/mobile-app-development",
-    blurb: "Mobile products designed around the journeys your customers use most.",
-  },
-  {
-    label: "Game Development",
-    to: "/services/game-development",
-    blurb: "Interactive experiences designed to be played, shared and remembered.",
-  },
-];
+export const CAPABILITY_MENU = AUTHOR_OFFERS.map((offer) => ({
+  label: offer.name,
+  to: `/services/${offer.slug}`,
+  blurb: offer.description,
+}));
 
 export const PRIMARY_NAV: {
   label: string;
   to?: string;
   menu?: "industries" | "capabilities" | "about" | "resources";
 }[] = [
-  { label: "Industries", menu: "industries" },
   { label: "Services", menu: "capabilities" },
-  { label: "Work", to: "/work" },
-  { label: "About", menu: "about" },
-  { label: "Resources", menu: "resources" },
+  { label: "Our Work", to: "/work" },
+  { label: "Free Visibility Check", to: "/tools/author-visibility-audit" },
+  { label: "About", to: "/about" },
 ];
 
 /** The About nav dropdown: the agency story, and the people behind it. */
@@ -131,42 +89,16 @@ export const ABOUT_MENU: { label: string; to: string; blurb: string }[] = [
   },
 ];
 
-export const FOOTER_NAV: { heading: string; links: { label: string; to: string }[] }[] = [
+export const FOOTER_NAV = [
+  { heading: "Services", links: CAPABILITY_MENU },
   {
-    heading: "Industries",
+    heading: "Explore",
     links: [
       { label: "Authors & Publishers", to: "/authors" },
-      { label: "Real Estate", to: "/real-estate" },
-      { label: "Content Creators", to: "/creators" },
-      { label: "Coaches & Consultants", to: "/coaches" },
-      { label: "E-commerce & DTC", to: "/ecommerce" },
-      { label: "Home Services", to: "/home-services" },
-      { label: "All industries", to: "/industries" },
-    ],
-  },
-  {
-    heading: "Services",
-    links: [
-      { label: "Brand & Creative", to: "/services/brand-creative" },
-      { label: "Website & Funnel", to: "/services/websites-funnels" },
-      { label: "CRM Automation", to: "/services/crm-automation" },
-      { label: "Writing & Translation", to: "/services/writing-translation" },
-      { label: "Social Media Marketing", to: "/services/lead-generation" },
-      { label: "Ai Video & Video Editing", to: "/services/content-social" },
-      { label: "SEO", to: "/services/visibility-reputation" },
-      { label: "Mobile App Development", to: "/services/mobile-app-development" },
-      { label: "Game Development", to: "/services/game-development" },
-    ],
-  },
-  {
-    heading: "Company",
-    links: [
+      { label: "Our Work", to: "/work" },
+      { label: "Resources", to: "/resources" },
+      { label: "Free Visibility Check", to: "/tools/author-visibility-audit" },
       { label: "About", to: "/about" },
-      { label: "Team", to: "/team" },
-      { label: "Work", to: "/work" },
-      { label: "Insights", to: "/insights" },
-      { label: "FAQs", to: "/faqs" },
-      { label: "Glossary", to: "/insights/glossary" },
       { label: "Start a Project", to: "/contact" },
     ],
   },

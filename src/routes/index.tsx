@@ -5,9 +5,9 @@ import { buildSeo } from "@/lib/seo";
 export const Route = createFileRoute("/")({
   head: () =>
     buildSeo({
-      title: "HQ360 — Strategy, Creative, Technology & Growth",
+      title: "HQ360 — Book & Marketing Support for Authors",
       description:
-        "HQ360 connects brand, websites, automation, marketing, content and visibility into one growth system for ambitious businesses and personal brands.",
+        "Book writing, editing, formatting, publishing support, author visibility, websites and email systems for authors and publishers.",
       path: "/",
     }),
   component: HomeExperience,

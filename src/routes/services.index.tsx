@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { CapabilitiesPage } from "./capabilities.index";
+import { AuthorOffers } from "@/components/site/AuthorOffers";
+import { Section, SectionHeader } from "@/components/site/Primitives";
 import { buildSeo, breadcrumbSchema } from "@/lib/seo";
 
 export const Route = createFileRoute("/services/")({
@@ -8,7 +9,7 @@ export const Route = createFileRoute("/services/")({
       {
         title: "Services — What HQ360 Does | HQ360",
         description:
-          "Nine services spanning brand, websites, CRM automation, marketing, content, writing and translation, SEO, mobile apps and game development.",
+          "Writing, editing, formatting, publishing support, author visibility, websites and email systems.",
         path: "/services",
       },
       breadcrumbSchema([
@@ -16,5 +17,14 @@ export const Route = createFileRoute("/services/")({
         { name: "Services", path: "/services" },
       ]),
     ),
-  component: CapabilitiesPage,
+  component: () => (
+    <Section>
+      <SectionHeader
+        as="h1"
+        title="Services for your next chapter"
+        intro="Choose the support you need, wherever you are in your author journey."
+      />
+      <AuthorOffers />
+    </Section>
+  ),
 });

@@ -61,6 +61,7 @@ import { Route as ApiAdminAuthorAuditLeadsRouteImport } from './routes/api/admin
 import { Route as ApiAdminAuthorAuditsRouteImport } from './routes/api/admin/author-audits'
 import { Route as ApiAdminCaseStudiesRouteImport } from './routes/api/admin/case-studies'
 import { Route as ApiAdminInvoicesRouteImport } from './routes/api/admin/invoices'
+import { Route as ApiAdminLeadsRouteImport } from './routes/api/admin/leads'
 import { Route as ApiAdminPortfolioRouteImport } from './routes/api/admin/portfolio'
 import { Route as ApiAdminScoutAmazonSearchRouteImport } from './routes/api/admin/scout-amazon-search'
 import { Route as ApiAdminScoutBatchesRouteImport } from './routes/api/admin/scout-batches'
@@ -105,6 +106,7 @@ import { Route as ApiAdminTeamReorderRouteImport } from './routes/api/admin/team
 import { Route as ApiAdminTestimonialsIdRouteImport } from './routes/api/admin/testimonials.$id'
 import { Route as ApiAdminTestimonialsReorderRouteImport } from './routes/api/admin/testimonials.reorder'
 import { Route as ApiPaymentsNowpaymentsIpnRouteImport } from './routes/api/payments/nowpayments/ipn'
+import { Route as ApiPaymentsPaystackWebhookRouteImport } from './routes/api/payments/paystack/webhook'
 import { Route as ApiAdminAuthorAuditsIdBulkImportRouteImport } from './routes/api/admin/author-audits.$id.bulk-import'
 import { Route as ApiAdminAuthorAuditsIdComparablesRouteImport } from './routes/api/admin/author-audits.$id.comparables'
 import { Route as ApiAdminAuthorAuditsIdEvidenceAssetsRouteImport } from './routes/api/admin/author-audits.$id.evidence-assets'
@@ -389,6 +391,11 @@ const ApiAdminInvoicesRoute = ApiAdminInvoicesRouteImport.update({
   path: '/api/admin/invoices',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAdminLeadsRoute = ApiAdminLeadsRouteImport.update({
+  id: '/api/admin/leads',
+  path: '/api/admin/leads',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAdminPortfolioRoute = ApiAdminPortfolioRouteImport.update({
   id: '/api/admin/portfolio',
   path: '/api/admin/portfolio',
@@ -620,6 +627,12 @@ const ApiPaymentsNowpaymentsIpnRoute =
     path: '/api/payments/nowpayments/ipn',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPaymentsPaystackWebhookRoute =
+  ApiPaymentsPaystackWebhookRouteImport.update({
+    id: '/api/payments/paystack/webhook',
+    path: '/api/payments/paystack/webhook',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiAdminAuthorAuditsIdBulkImportRoute =
   ApiAdminAuthorAuditsIdBulkImportRouteImport.update({
     id: '/bulk-import',
@@ -800,6 +813,7 @@ export interface FileRoutesByFullPath {
   '/api/admin/author-audits': typeof ApiAdminAuthorAuditsRouteWithChildren
   '/api/admin/case-studies': typeof ApiAdminCaseStudiesRouteWithChildren
   '/api/admin/invoices': typeof ApiAdminInvoicesRouteWithChildren
+  '/api/admin/leads': typeof ApiAdminLeadsRoute
   '/api/admin/portfolio': typeof ApiAdminPortfolioRouteWithChildren
   '/api/admin/scout-amazon-search': typeof ApiAdminScoutAmazonSearchRoute
   '/api/admin/scout-batches': typeof ApiAdminScoutBatchesRouteWithChildren
@@ -844,6 +858,7 @@ export interface FileRoutesByFullPath {
   '/api/admin/testimonials/$id': typeof ApiAdminTestimonialsIdRoute
   '/api/admin/testimonials/reorder': typeof ApiAdminTestimonialsReorderRoute
   '/api/payments/nowpayments/ipn': typeof ApiPaymentsNowpaymentsIpnRoute
+  '/api/payments/paystack/webhook': typeof ApiPaymentsPaystackWebhookRoute
   '/api/admin/author-audits/$id/bulk-import': typeof ApiAdminAuthorAuditsIdBulkImportRoute
   '/api/admin/author-audits/$id/comparables': typeof ApiAdminAuthorAuditsIdComparablesRouteWithChildren
   '/api/admin/author-audits/$id/evidence-assets': typeof ApiAdminAuthorAuditsIdEvidenceAssetsRouteWithChildren
@@ -919,6 +934,7 @@ export interface FileRoutesByTo {
   '/api/admin/author-audits': typeof ApiAdminAuthorAuditsRouteWithChildren
   '/api/admin/case-studies': typeof ApiAdminCaseStudiesRouteWithChildren
   '/api/admin/invoices': typeof ApiAdminInvoicesRouteWithChildren
+  '/api/admin/leads': typeof ApiAdminLeadsRoute
   '/api/admin/portfolio': typeof ApiAdminPortfolioRouteWithChildren
   '/api/admin/scout-amazon-search': typeof ApiAdminScoutAmazonSearchRoute
   '/api/admin/scout-batches': typeof ApiAdminScoutBatchesRouteWithChildren
@@ -963,6 +979,7 @@ export interface FileRoutesByTo {
   '/api/admin/testimonials/$id': typeof ApiAdminTestimonialsIdRoute
   '/api/admin/testimonials/reorder': typeof ApiAdminTestimonialsReorderRoute
   '/api/payments/nowpayments/ipn': typeof ApiPaymentsNowpaymentsIpnRoute
+  '/api/payments/paystack/webhook': typeof ApiPaymentsPaystackWebhookRoute
   '/api/admin/author-audits/$id/bulk-import': typeof ApiAdminAuthorAuditsIdBulkImportRoute
   '/api/admin/author-audits/$id/comparables': typeof ApiAdminAuthorAuditsIdComparablesRouteWithChildren
   '/api/admin/author-audits/$id/evidence-assets': typeof ApiAdminAuthorAuditsIdEvidenceAssetsRouteWithChildren
@@ -1039,6 +1056,7 @@ export interface FileRoutesById {
   '/api/admin/author-audits': typeof ApiAdminAuthorAuditsRouteWithChildren
   '/api/admin/case-studies': typeof ApiAdminCaseStudiesRouteWithChildren
   '/api/admin/invoices': typeof ApiAdminInvoicesRouteWithChildren
+  '/api/admin/leads': typeof ApiAdminLeadsRoute
   '/api/admin/portfolio': typeof ApiAdminPortfolioRouteWithChildren
   '/api/admin/scout-amazon-search': typeof ApiAdminScoutAmazonSearchRoute
   '/api/admin/scout-batches': typeof ApiAdminScoutBatchesRouteWithChildren
@@ -1083,6 +1101,7 @@ export interface FileRoutesById {
   '/api/admin/testimonials/$id': typeof ApiAdminTestimonialsIdRoute
   '/api/admin/testimonials/reorder': typeof ApiAdminTestimonialsReorderRoute
   '/api/payments/nowpayments/ipn': typeof ApiPaymentsNowpaymentsIpnRoute
+  '/api/payments/paystack/webhook': typeof ApiPaymentsPaystackWebhookRoute
   '/api/admin/author-audits/$id/bulk-import': typeof ApiAdminAuthorAuditsIdBulkImportRoute
   '/api/admin/author-audits/$id/comparables': typeof ApiAdminAuthorAuditsIdComparablesRouteWithChildren
   '/api/admin/author-audits/$id/evidence-assets': typeof ApiAdminAuthorAuditsIdEvidenceAssetsRouteWithChildren
@@ -1160,6 +1179,7 @@ export interface FileRouteTypes {
     | '/api/admin/author-audits'
     | '/api/admin/case-studies'
     | '/api/admin/invoices'
+    | '/api/admin/leads'
     | '/api/admin/portfolio'
     | '/api/admin/scout-amazon-search'
     | '/api/admin/scout-batches'
@@ -1204,6 +1224,7 @@ export interface FileRouteTypes {
     | '/api/admin/testimonials/$id'
     | '/api/admin/testimonials/reorder'
     | '/api/payments/nowpayments/ipn'
+    | '/api/payments/paystack/webhook'
     | '/api/admin/author-audits/$id/bulk-import'
     | '/api/admin/author-audits/$id/comparables'
     | '/api/admin/author-audits/$id/evidence-assets'
@@ -1279,6 +1300,7 @@ export interface FileRouteTypes {
     | '/api/admin/author-audits'
     | '/api/admin/case-studies'
     | '/api/admin/invoices'
+    | '/api/admin/leads'
     | '/api/admin/portfolio'
     | '/api/admin/scout-amazon-search'
     | '/api/admin/scout-batches'
@@ -1323,6 +1345,7 @@ export interface FileRouteTypes {
     | '/api/admin/testimonials/$id'
     | '/api/admin/testimonials/reorder'
     | '/api/payments/nowpayments/ipn'
+    | '/api/payments/paystack/webhook'
     | '/api/admin/author-audits/$id/bulk-import'
     | '/api/admin/author-audits/$id/comparables'
     | '/api/admin/author-audits/$id/evidence-assets'
@@ -1398,6 +1421,7 @@ export interface FileRouteTypes {
     | '/api/admin/author-audits'
     | '/api/admin/case-studies'
     | '/api/admin/invoices'
+    | '/api/admin/leads'
     | '/api/admin/portfolio'
     | '/api/admin/scout-amazon-search'
     | '/api/admin/scout-batches'
@@ -1442,6 +1466,7 @@ export interface FileRouteTypes {
     | '/api/admin/testimonials/$id'
     | '/api/admin/testimonials/reorder'
     | '/api/payments/nowpayments/ipn'
+    | '/api/payments/paystack/webhook'
     | '/api/admin/author-audits/$id/bulk-import'
     | '/api/admin/author-audits/$id/comparables'
     | '/api/admin/author-audits/$id/evidence-assets'
@@ -1518,6 +1543,7 @@ export interface RootRouteChildren {
   ApiAdminAuthorAuditsRoute: typeof ApiAdminAuthorAuditsRouteWithChildren
   ApiAdminCaseStudiesRoute: typeof ApiAdminCaseStudiesRouteWithChildren
   ApiAdminInvoicesRoute: typeof ApiAdminInvoicesRouteWithChildren
+  ApiAdminLeadsRoute: typeof ApiAdminLeadsRoute
   ApiAdminPortfolioRoute: typeof ApiAdminPortfolioRouteWithChildren
   ApiAdminScoutAmazonSearchRoute: typeof ApiAdminScoutAmazonSearchRoute
   ApiAdminScoutBatchesRoute: typeof ApiAdminScoutBatchesRouteWithChildren
@@ -1550,6 +1576,7 @@ export interface RootRouteChildren {
   InsightsGuidesSlugRoute: typeof InsightsGuidesSlugRoute
   ApiAdminScoutAuthorsIdRoute: typeof ApiAdminScoutAuthorsIdRouteWithChildren
   ApiPaymentsNowpaymentsIpnRoute: typeof ApiPaymentsNowpaymentsIpnRoute
+  ApiPaymentsPaystackWebhookRoute: typeof ApiPaymentsPaystackWebhookRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -1918,6 +1945,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAdminInvoicesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/admin/leads': {
+      id: '/api/admin/leads'
+      path: '/api/admin/leads'
+      fullPath: '/api/admin/leads'
+      preLoaderRoute: typeof ApiAdminLeadsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/admin/portfolio': {
       id: '/api/admin/portfolio'
       path: '/api/admin/portfolio'
@@ -2224,6 +2258,13 @@ declare module '@tanstack/react-router' {
       path: '/api/payments/nowpayments/ipn'
       fullPath: '/api/payments/nowpayments/ipn'
       preLoaderRoute: typeof ApiPaymentsNowpaymentsIpnRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/payments/paystack/webhook': {
+      id: '/api/payments/paystack/webhook'
+      path: '/api/payments/paystack/webhook'
+      fullPath: '/api/payments/paystack/webhook'
+      preLoaderRoute: typeof ApiPaymentsPaystackWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/admin/author-audits/$id/bulk-import': {
@@ -2649,6 +2690,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAdminAuthorAuditsRoute: ApiAdminAuthorAuditsRouteWithChildren,
   ApiAdminCaseStudiesRoute: ApiAdminCaseStudiesRouteWithChildren,
   ApiAdminInvoicesRoute: ApiAdminInvoicesRouteWithChildren,
+  ApiAdminLeadsRoute: ApiAdminLeadsRoute,
   ApiAdminPortfolioRoute: ApiAdminPortfolioRouteWithChildren,
   ApiAdminScoutAmazonSearchRoute: ApiAdminScoutAmazonSearchRoute,
   ApiAdminScoutBatchesRoute: ApiAdminScoutBatchesRouteWithChildren,
@@ -2681,6 +2723,7 @@ const rootRouteChildren: RootRouteChildren = {
   InsightsGuidesSlugRoute: InsightsGuidesSlugRoute,
   ApiAdminScoutAuthorsIdRoute: ApiAdminScoutAuthorsIdRouteWithChildren,
   ApiPaymentsNowpaymentsIpnRoute: ApiPaymentsNowpaymentsIpnRoute,
+  ApiPaymentsPaystackWebhookRoute: ApiPaymentsPaystackWebhookRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -74,6 +74,24 @@ export const Route = createFileRoute("/api/public/author-audit")({
           }
 
           try {
+            const { forwardLead } = await import("@/lib/lead-forwarding.server");
+            await forwardLead({
+              kind: "author_visibility_check",
+              id: data.id,
+              createdAt: new Date().toISOString(),
+              name: body.authorName,
+              email: body.email,
+              fields: {
+                bookTitle: body.bookTitle,
+                website: body.websiteUrl,
+                stage: "needs_review",
+              },
+            });
+          } catch (error) {
+            console.error("[author-check] forwarding failed", error);
+          }
+
+          try {
             const { sendLeadEmail } = await import("@/lib/email.server");
             const result = await sendLeadEmail({
               subject: `New Author Visibility Audit request — ${body.authorName}`,

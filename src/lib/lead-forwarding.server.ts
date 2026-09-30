@@ -12,10 +12,17 @@
 // With nothing configured, forwarding is a logged no-op and the caller still
 // succeeds (the lead is already stored in Supabase).
 
-export type LeadKind = "project_inquiry" | "growth_audit_request" | "resource_request";
+export type LeadKind =
+  | "author_visibility_check"
+  | "sales_lead_updated"
+  | "project_inquiry"
+  | "growth_audit_request"
+  | "resource_request";
 
 export type LeadPayload = {
   kind: LeadKind;
+  /** Stable across initial capture and later sales updates. */
+  recordKey?: string;
   id: string;
   createdAt: string;
   email: string;
@@ -54,8 +61,15 @@ export async function forwardLead(payload: LeadPayload): Promise<ForwardResult> 
   try {
     const res = await fetch(url, {
       method: "POST",
+      signal: AbortSignal.timeout(8000),
       headers,
-      body: JSON.stringify({ source: "hq360-website", ...payload }),
+      body: JSON.stringify({
+        source: "hq360-website",
+        recordKey:
+          payload.recordKey ??
+          `${payload.kind === "project_inquiry" ? "inquiry" : payload.kind === "author_visibility_check" ? "visibility_check" : payload.kind}:${payload.id}`,
+        ...payload,
+      }),
     });
     if (!res.ok) {
       const body = await res.text();

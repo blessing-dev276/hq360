@@ -19,3 +19,18 @@ export function loadGoogleAnalytics(): void {
   script.src = `https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`;
   document.head.appendChild(script);
 }
+
+/** Consent-aware conversion events; never include contact details or free-text input. */
+export function trackConversion(
+  event: "project_inquiry_submitted" | "visibility_check_submitted",
+  service?: string,
+) {
+  if (typeof window === "undefined") return;
+  try {
+    if (localStorage.getItem("hq360-cookie-consent") !== "accepted") return;
+    const analytics = window as unknown as { gtag?: (...args: unknown[]) => void };
+    analytics.gtag?.("event", event, service ? { service } : {});
+  } catch {
+    /* Storage or analytics may be unavailable. */
+  }
+}

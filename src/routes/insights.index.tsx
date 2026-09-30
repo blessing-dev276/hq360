@@ -17,7 +17,7 @@ export const Route = createFileRoute("/insights/")({
         title: "Growth Library: Guides, Answers, Glossary & Resources | HQ360",
         description:
           "Practical guides, quick answers, a glossary and downloads on growth systems, websites, SEO, advertising, automation and retention — from the HQ360 team.",
-        path: "/insights",
+        path: "/resources",
       },
       [
         breadcrumbSchema([
@@ -30,7 +30,7 @@ export const Route = createFileRoute("/insights/")({
   component: InsightsHub,
 });
 
-function InsightsHub() {
+export function InsightsHub() {
   const topics = useMemo(() => ["All", ...LIBRARY_TOPICS] as const, []);
   const [topic, setTopic] = useState<string>("All");
   const match = (t: string) => topic === "All" || t === topic;
@@ -46,11 +46,19 @@ function InsightsHub() {
         <SectionHeader
           as="h1"
           align="center"
-          eyebrow="The HQ360 growth library"
-          title="Answers, playbooks and tools for growing a business"
+          eyebrow="Resources"
+          title="Guides, answers and resources for your next step"
           intro="Working knowledge from building connected growth systems — no listicles. Guides go deep, answers are quick, the glossary defines the jargon, and the resources are yours to download."
         />
 
+        <div className="mt-6 flex justify-center gap-6 text-sm">
+          <Link to="/tools/author-visibility-audit" className="text-brand underline">
+            Free Author Visibility Check
+          </Link>
+          <Link to="/tools" className="underline">
+            All tools
+          </Link>
+        </div>
         {/* Content-type quick nav */}
         <div className="mx-auto mt-10 grid max-w-4xl gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {[

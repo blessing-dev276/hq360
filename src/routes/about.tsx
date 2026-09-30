@@ -1,14 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { AboutExperience } from "@/components/site/AboutExperience";
+import { Section, SectionHeader } from "@/components/site/Primitives";
+import { TeamShowcase } from "@/components/site/TeamShowcase";
 import { buildSeo, breadcrumbSchema } from "@/lib/seo";
 
 export const Route = createFileRoute("/about")({
   head: () =>
     buildSeo(
       {
-        title: "About HQ360 | Multi-Industry Growth Agency",
+        title: "About HQ360 | Author & Publishing Support",
         description:
-          "Why HQ360 exists, why fragmented marketing systems fail, and how a single multidisciplinary team builds growth that connects.",
+          "Meet the team helping authors develop books, publish and build reader relationships.",
         path: "/about",
       },
       breadcrumbSchema([
@@ -20,5 +21,18 @@ export const Route = createFileRoute("/about")({
 });
 
 function AboutPage() {
-  return <AboutExperience />;
+  return (
+    <>
+      <Section>
+        <SectionHeader
+          as="h1"
+          title="A team for your next chapter"
+          intro="HQ360 brings writing, publishing support, design and marketing together for authors and publishers. Formerly House of Synergy, we help you move from a book idea to a clearer path to your readers."
+        />
+      </Section>
+      <Section id="team" tone="raised">
+        <TeamShowcase title="The people behind HQ360" />
+      </Section>
+    </>
+  );
 }

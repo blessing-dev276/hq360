@@ -1,3 +1,4 @@
+import { AUTHOR_OFFERS } from "@/data/author-offers";
 import { CAPABILITIES } from "@/data/capabilities";
 import { FREE_TOOLS } from "@/data/free-tools";
 import { INDUSTRIES } from "@/data/industries";
@@ -11,15 +12,15 @@ export const STATIC_SITEMAP_PATHS = [
   "/tools",
   ...FREE_TOOLS.map((tool) => `/tools/${tool.slug}`),
   "/about",
-  "/team",
   "/contact",
   "/services",
+  "/resources",
+  ...AUTHOR_OFFERS.map((offer) => `/services/${offer.slug}`),
   "/industries",
   "/work",
   "/tools/author-visibility-audit",
   "/book-launch",
   "/faqs",
-  "/insights",
   "/insights/glossary",
   "/privacy",
   "/terms",

@@ -1,14 +1,24 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
-import type { Invoice, PaymentSetup } from "./types";
+import { RejectedInvoiceError, type Invoice, type ProviderSetup } from "./types";
 
-export function paymentSetup(): PaymentSetup {
+export function paymentSetup(): ProviderSetup {
   return {
     configured: Boolean(
       process.env.NOWPAYMENTS_API_KEY?.trim() && process.env.NOWPAYMENTS_IPN_SECRET?.trim(),
     ),
-    emailConfigured: process.env.EMAIL_PROVIDER === "resend" && Boolean(process.env.RESEND_API_KEY),
     environment: process.env.NOWPAYMENTS_ENVIRONMENT === "live" ? "live" : "demo",
   };
+}
+/** Pre-flight checks run before claiming the one-shot issuance lock. */
+export function assertReady(environment: Invoice["environment"]) {
+  nowpaymentsConfig(environment);
+  siteOrigin();
+}
+export function statusOf(result: Record<string, unknown>) {
+  return String(result.payment_status);
+}
+export function isRefunded(result: Record<string, unknown>) {
+  return result.payment_status === "refunded";
 }
 export function nowpaymentsConfig(environment = paymentSetup().environment) {
   if (!paymentSetup().configured)
@@ -43,7 +53,6 @@ export function checkoutUrl(value: unknown, environment: Invoice["environment"])
     throw new Error("NOWPayments returned an unexpected checkout host.");
   return url.href;
 }
-export class RejectedInvoiceError extends Error {}
 async function request(path: string, environment: Invoice["environment"], body?: unknown) {
   const c = nowpaymentsConfig(environment);
   let response: Response;

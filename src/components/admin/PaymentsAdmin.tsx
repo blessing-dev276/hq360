@@ -21,7 +21,17 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { invoiceStatus, money, type Invoice, type PaymentSetup } from "@/lib/payments/types";
+import {
+  invoiceStatus,
+  money,
+  providerLabel,
+  type Invoice,
+  type PaymentSetup,
+} from "@/lib/payments/types";
+
+const PROVIDERS = [
+  { value: "nowpayments", label: "NOWPayments", hint: "Crypto checkout" },
+] as const;
 
 async function call(url: string, body?: unknown) {
   const response = await fetch(
@@ -47,6 +57,7 @@ export function PaymentsAdmin() {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
   const [creating, setCreating] = useState(false);
+  const provider = "nowpayments" as const;
   const [selected, setSelected] = useState<Invoice | null>(null);
   const [busy, setBusy] = useState("");
   const createId = useRef("");
@@ -89,7 +100,7 @@ export function PaymentsAdmin() {
           : action === "issue"
             ? "Invoice issued. Your buyer’s payment link is ready."
             : data.invoice.status === "paid"
-              ? "Payment verified by NOWPayments."
+              ? `Payment verified by ${providerLabel(data.invoice.provider)}.`
               : "Payment is not confirmed yet. You can check again shortly.",
       );
     } catch (err) {
@@ -125,6 +136,7 @@ export function PaymentsAdmin() {
       const amount = Number(form.get("amount"));
       const data = await call("/api/admin/invoices", {
         id: createId.current,
+        provider,
         buyer_name: form.get("buyer_name"),
         buyer_email: form.get("buyer_email"),
         buyer_phone: form.get("buyer_phone"),
@@ -148,6 +160,8 @@ export function PaymentsAdmin() {
         .toLowerCase()
         .includes(search.toLowerCase()),
   );
+  const setupFor = (p: Invoice["provider"]) =>
+    p === "nowpayments" ? setup?.nowpayments : undefined;
   const sum = (status: string) =>
     invoices
       .filter((i) => i.status === status && i.currency === "USD")
@@ -198,14 +212,21 @@ export function PaymentsAdmin() {
   return (
     <>
       <div className="admin-payment-toolbar">
-        <div className="admin-provider">
-          <span className="admin-provider-mark">N</span>
-          <div>
-            NOWPayments <small>{setup?.configured ? "Configured" : "Setup required"}</small>
-          </div>
-          <span className={`admin-status ${setup?.environment === "live" ? "paid" : "draft"}`}>
-            {setup?.environment === "live" ? "Live mode" : "Test mode"}
-          </span>
+        <div className="flex flex-wrap gap-3">
+          {PROVIDERS.map((p) => {
+            const s = setup?.[p.value];
+            return (
+              <div className="admin-provider" key={p.value}>
+                <span className="admin-provider-mark">{p.label[0]}</span>
+                <div>
+                  {p.label} <small>{s?.configured ? "Configured" : "Setup required"}</small>
+                </div>
+                <span className={`admin-status ${s?.environment === "live" ? "paid" : "draft"}`}>
+                  {s?.environment === "live" ? "Live mode" : "Test mode"}
+                </span>
+              </div>
+            );
+          })}
         </div>
         <div className="admin-button-row">
           <button className="admin-button" disabled={!visible.length} onClick={exportCsv}>
@@ -227,7 +248,7 @@ export function PaymentsAdmin() {
         </div>
       </div>
       {!creating && !selected && feedback}
-      {setup && !setup.configured && (
+      {setup && !setup.nowpayments.configured && (
         <div className="admin-setup">
           <CreditCard size={22} />
           <div>
@@ -411,6 +432,7 @@ export function PaymentsAdmin() {
           </DialogHeader>
           {feedback}
           <form onSubmit={create} className="admin-invoice-form">
+            <p className="admin-form-note">Payments are processed through NOWPayments.</p>
             <div className="admin-form-grid">
               <label>
                 Buyer name
@@ -520,7 +542,7 @@ export function PaymentsAdmin() {
                   <dd>{selected.due_date}</dd>
                 </div>
                 <div>
-                  <dt>NOWPayments reference</dt>
+                  <dt>{providerLabel(selected.provider)} reference</dt>
                   <dd>{selected.provider_invoice_id || "Not issued yet"}</dd>
                 </div>
                 <div>
@@ -546,10 +568,12 @@ export function PaymentsAdmin() {
                 {!selected.provider_invoice_id ? (
                   <button
                     className="admin-button admin-button-primary"
-                    disabled={!!busy || !setup?.configured}
+                    disabled={!!busy || !setupFor(selected.provider)?.configured}
                     onClick={() => void action(selected, "issue")}
                   >
-                    {busy === "issue" ? "Issuing…" : "Issue with NOWPayments"}
+                    {busy === "issue"
+                      ? "Issuing…"
+                      : `Issue with ${providerLabel(selected.provider)}`}
                     <ArrowUpRight size={16} />
                   </button>
                 ) : (

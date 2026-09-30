@@ -9,10 +9,9 @@ import {
   verifyIpnSignature,
   checkoutUrl,
   checkPayment,
-  RejectedInvoiceError,
 } from "../src/lib/payments/nowpayments.server";
 import { invoiceSchema, sameOrigin } from "../src/lib/payments/invoices.server";
-import type { Invoice } from "../src/lib/payments/types";
+import { RejectedInvoiceError, type Invoice } from "../src/lib/payments/types";
 const invoice: Invoice = {
   id: "915f46ec-429d-4a93-a319-85e001f8d0a0",
   number: "HQ-000001",
@@ -184,4 +183,10 @@ describe("NOWPayments payment integrity", () => {
     ).toBe(false);
     expect(sameOrigin(new Request("https://hq360.space/api"))).toBe(false);
   });
+});
+
+test("only NOWPayments can create new invoices", () => {
+  expect(invoiceSchema.safeParse(invoice).success).toBe(true);
+  expect(invoiceSchema.safeParse({ ...invoice, provider: "paystack" }).success).toBe(false);
+  expect(invoiceSchema.safeParse({ ...invoice, provider: "remita" }).success).toBe(false);
 });

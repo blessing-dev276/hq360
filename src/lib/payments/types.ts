@@ -9,7 +9,7 @@ export type Invoice = {
   currency: "USD" | "NGN";
   due_date: string;
   status: "draft" | "pending" | "paid" | "refunded";
-  provider: "nowpayments" | "remita";
+  provider: "nowpayments" | "paystack" | "remita";
   provider_invoice_id: string | null;
   checkout_url: string | null;
   payment_id: string | null;
@@ -20,11 +20,21 @@ export type Invoice = {
   sent_at: string | null;
   paid_at: string | null;
 };
+export type ProviderSetup = { configured: boolean; environment: "demo" | "live" };
 export type PaymentSetup = {
-  configured: boolean;
   emailConfigured: boolean;
-  environment: "demo" | "live";
+  nowpayments: ProviderSetup;
 };
+export function providerLabel(provider: Invoice["provider"]) {
+  return provider === "paystack"
+    ? "Paystack"
+    : provider === "nowpayments"
+      ? "NOWPayments"
+      : "Remita";
+}
+/** Thrown by a provider module when it gets a definitive (e.g. 4xx) rejection,
+ *  as opposed to a timeout/5xx where an invoice may already exist provider-side. */
+export class RejectedInvoiceError extends Error {}
 export function money(minor: number, currency: Invoice["currency"] = "USD") {
   return new Intl.NumberFormat("en-US", {
     style: "currency",

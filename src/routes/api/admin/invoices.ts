@@ -5,17 +5,17 @@ export const Route = createFileRoute("/api/admin/invoices")({
   server: {
     handlers: {
       GET: async ({ request }) => {
-        const { paymentJson, listInvoices } = await import("@/lib/payments/invoices.server");
+        const { paymentJson, listInvoices, combinedSetup } =
+          await import("@/lib/payments/invoices.server");
         if (!(await isAdminRequest(request))) return paymentJson({ error: "Unauthorized" }, 401);
-        const { paymentSetup } = await import("@/lib/payments/nowpayments.server");
         try {
-          return paymentJson({ invoices: await listInvoices(), setup: paymentSetup() });
+          return paymentJson({ invoices: await listInvoices(), setup: combinedSetup() });
         } catch {
           return paymentJson(
             {
               error:
                 "Invoice storage is unavailable. Apply the payments migration and check the database connection.",
-              setup: paymentSetup(),
+              setup: combinedSetup(),
             },
             503,
           );

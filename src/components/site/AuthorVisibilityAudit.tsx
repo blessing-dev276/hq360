@@ -1,3 +1,4 @@
+import { trackConversion } from "@/lib/google-analytics";
 import { useRef, useState, type FormEvent } from "react";
 import {
   ArrowRight,
@@ -158,9 +159,10 @@ export function AuthorVisibilityAudit() {
           throw err;
         }
       }
+      if (!honeypot) trackConversion("visibility_check_submitted");
       setState("success");
       setMessage(
-        "Your preliminary audit request is with HQ360. We will review the supplied information before any research is presented as a finding.",
+        "Your free visibility check request is with HQ360. We will review the supplied information before any research is presented as a finding.",
       );
       formElement.reset();
     } catch {
@@ -174,7 +176,7 @@ export function AuthorVisibilityAudit() {
       <section className="author-audit-hero">
         <Container className="author-audit-hero-grid">
           <div>
-            <span className="author-audit-eyebrow">Complimentary author visibility audit</span>
+            <span className="author-audit-eyebrow">Free Author Visibility Check</span>
             <h1>
               A great book deserves
               <br />
@@ -185,7 +187,7 @@ export function AuthorVisibilityAudit() {
               stronger. Get a preliminary assessment reviewed by the HQ360 team.
             </p>
             <a href="#audit-form" className="author-audit-cta">
-              Start my audit <ArrowRight size={18} />
+              Start my free check <ArrowRight size={18} />
             </a>
             <span className="author-audit-note">
               Free to request · Human reviewed · No account needed
@@ -397,7 +399,7 @@ export function AuthorVisibilityAudit() {
                     ? "Sending request…"
                     : step < 2
                       ? "Continue"
-                      : "Request my free audit"}
+                      : "Request my free check"}
                   <ArrowRight className="size-4" />
                 </button>
               </div>
@@ -413,8 +415,8 @@ export function AuthorVisibilityAudit() {
       <Section tone="raised">
         <SectionHeader
           eyebrow="What we examine"
-          title="A complete reader-discovery picture"
-          intro="The final audit is structured around the touchpoints a reader can actually encounter — not a generic score."
+          title="A focused first look at your visibility"
+          intro="The free check reviews your supplied links and highlights a few priorities. A detailed report is a separately scoped, researched assessment with supporting evidence and a roadmap."
         />
         <ul className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {auditAreas.map((area) => (
@@ -446,6 +448,42 @@ export function AuthorVisibilityAudit() {
             </li>
           ))}
         </ul>
+      </Section>
+
+      <Section>
+        <SectionHeader
+          eyebrow="Go deeper"
+          title="Detailed Author Visibility Report"
+          intro="For authors who need a researched roadmap: evidence sources, verified findings, visible uncertainties and prioritised actions, reviewed by a person before delivery. Ask us about scope and pricing; it can also form part of a marketing engagement."
+        />
+        <div className="mt-8 grid gap-4 sm:grid-cols-2">
+          {[
+            [
+              "Weak author website",
+              "Website improvement proposal",
+              "/services/author-websites-email",
+            ],
+            [
+              "Unclear book listing",
+              "Listing copy and positioning support",
+              "/services/author-visibility-marketing",
+            ],
+            ["No reader signup path", "Newsletter setup", "/services/author-websites-email"],
+            ["Disconnected launch activity", "Launch planning support", "/book-launch"],
+          ].map(([finding, next, href]) => (
+            <a
+              key={finding}
+              href={href}
+              className="rounded-xl border border-border p-5 hover:border-brand"
+            >
+              <span className="text-xs text-muted-foreground">
+                Example, if supported by evidence
+              </span>
+              <h3 className="mt-2 font-semibold">{finding}</h3>
+              <p className="mt-2 text-brand">{next} →</p>
+            </a>
+          ))}
+        </div>
       </Section>
 
       <Section tone="carbon">

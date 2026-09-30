@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { ArrowUpRight, CheckCircle2, LockKeyhole, RefreshCw, Printer } from "lucide-react";
-import { money } from "@/lib/payments/types";
+import { money, providerLabel, type Invoice } from "@/lib/payments/types";
 import "@/components/admin/admin-workspace.css";
 import "@/components/admin/buyer-invoice.css";
 
@@ -23,6 +23,7 @@ type PaymentData = {
     currency: "USD" | "NGN";
     due_date: string;
     status: string;
+    provider: Invoice["provider"];
     provider_invoice_id: string;
     provider_status: string | null;
     environment: string;
@@ -144,7 +145,7 @@ function BuyerInvoice() {
                 </dd>
               </div>
               <div>
-                <dt>NOWPayments reference</dt>
+                <dt>{providerLabel(data.invoice.provider)} reference</dt>
                 <dd>{data.invoice.provider_invoice_id}</dd>
               </div>
             </dl>
@@ -164,7 +165,8 @@ function BuyerInvoice() {
             )}
             {data.invoice.status === "paid" ? (
               <div className="buyer-paid">
-                <CheckCircle2 size={22} /> Payment confirmed by NOWPayments
+                <CheckCircle2 size={22} /> Payment confirmed by{" "}
+                {providerLabel(data.invoice.provider)}
               </div>
             ) : (
               <div className="buyer-actions">
@@ -194,7 +196,8 @@ function BuyerInvoice() {
             )}
             <div className="buyer-invoice-foot">
               <span>
-                <LockKeyhole size={12} /> Payments processed securely by NOWPayments
+                <LockKeyhole size={12} /> Payments processed securely by{" "}
+                {providerLabel(data.invoice.provider)}
               </span>
               <button className="admin-text-button" onClick={() => window.print()}>
                 <Printer size={14} />

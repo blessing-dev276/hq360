@@ -1,14 +1,15 @@
+import { trackConversion } from "@/lib/google-analytics";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { ArrowLeft, ArrowRight, CheckCircle2, Sparkles, X } from "lucide-react";
 import { useRouterState } from "@tanstack/react-router";
 import { z } from "zod";
-import { CAPABILITIES } from "@/data/capabilities";
+import { AUTHOR_OFFERS } from "@/data/author-offers";
 import "./lead-popup.css";
 
 const SESSION_KEY = "hq360-popup-shown";
 const EXCLUDED_PATH_PREFIXES = ["/contact", "/admin", "/tools"];
 const IDLE_DELAY_MS = 30_000;
-const HELP_OPTIONS = CAPABILITIES.map((c) => c.name);
+const HELP_OPTIONS = AUTHOR_OFFERS.map((c) => c.name);
 
 const schema = z.object({
   name: z.string().min(2, "Enter your name").max(160),
@@ -149,6 +150,7 @@ export function LeadPopup() {
       });
       const body = (await res.json().catch(() => ({}))) as { ok?: boolean; emailed?: boolean };
       if (res.ok && body.ok) {
+        trackConversion("project_inquiry_submitted");
         setState("done");
         setEmailed(body.emailed === true);
       } else {

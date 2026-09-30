@@ -2,19 +2,49 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { sendEmail } from "@/lib/email.server";
+import * as nowpayments from "./nowpayments.server";
 import {
-  checkPayment,
-  createHostedInvoice,
-  isVerifiedPayment,
-  paymentMatches,
-  paymentSetup,
+  money,
+  providerLabel,
   RejectedInvoiceError,
-} from "./nowpayments.server";
-import { money, type Invoice } from "./types";
+  type Invoice,
+  type PaymentSetup,
+} from "./types";
+
+const HOSTED_PROVIDERS = ["nowpayments"] as const;
+type HostedProvider = (typeof HOSTED_PROVIDERS)[number];
+type ProviderModule = {
+  paymentSetup: () => { configured: boolean; environment: Invoice["environment"] };
+  assertReady: (environment: Invoice["environment"]) => void;
+  createHostedInvoice: (
+    invoice: Invoice,
+  ) => Promise<{ provider_invoice_id: string; checkout_url: string }>;
+  checkPayment: (
+    reference: string,
+    environment: Invoice["environment"],
+  ) => Promise<Record<string, unknown>>;
+  paymentMatches: (result: Record<string, unknown>, invoice: Invoice) => boolean;
+  isVerifiedPayment: (result: Record<string, unknown>, invoice: Invoice) => boolean;
+  statusOf: (result: Record<string, unknown>) => string;
+  isRefunded: (result: Record<string, unknown>) => boolean;
+};
+const providers: Record<HostedProvider, ProviderModule> = { nowpayments };
+function providerModule(name: Invoice["provider"]) {
+  if (name !== "nowpayments")
+    throw new Error("This provider is no longer supported for new invoices.");
+  return providers[name];
+}
+export function combinedSetup(): PaymentSetup {
+  return {
+    emailConfigured: process.env.EMAIL_PROVIDER === "resend" && Boolean(process.env.RESEND_API_KEY),
+    nowpayments: nowpayments.paymentSetup(),
+  };
+}
 
 const db = () => (supabaseAdmin as SupabaseClient).from("payment_invoices");
 export const invoiceSchema = z.object({
   id: z.string().uuid(),
+  provider: z.enum(HOSTED_PROVIDERS),
   buyer_name: z.string().trim().min(2).max(150),
   buyer_email: z.string().trim().email().max(254),
   buyer_phone: z
@@ -48,8 +78,7 @@ export function sameOrigin(request: Request) {
 export async function listInvoices() {
   const { data, error } = await db()
     .select("*")
-    .eq("environment", paymentSetup().environment)
-    .eq("provider", "nowpayments")
+    .in("provider", HOSTED_PROVIDERS)
     .order("created_at", { ascending: false })
     .limit(1000);
   if (error)
@@ -66,12 +95,13 @@ export async function getInvoice(id: string, byToken = false): Promise<Invoice> 
     .eq(byToken ? "payment_token" : "id", id)
     .maybeSingle();
   if (error) throw new Error("Invoice storage is unavailable.");
-  if (!data || data.provider !== "nowpayments") throw new Error("Invoice not found.");
+  if (!data || !HOSTED_PROVIDERS.includes(data.provider)) throw new Error("Invoice not found.");
   return data as Invoice;
 }
 export async function createInvoice(input: z.infer<typeof invoiceSchema>) {
+  const environment = providerModule(input.provider).paymentSetup().environment;
   const { error } = await db().upsert(
-    { ...input, currency: "USD", provider: "nowpayments", environment: paymentSetup().environment },
+    { ...input, currency: "USD", environment },
     { onConflict: "id", ignoreDuplicates: true },
   );
   if (error)
@@ -84,7 +114,7 @@ export async function deleteDraft(id: string) {
   const { data, error } = await db()
     .delete()
     .eq("id", id)
-    .eq("provider", "nowpayments")
+    .in("provider", HOSTED_PROVIDERS)
     .eq("status", "draft")
     .is("provider_invoice_id", null)
     .is("payment_id", null)
@@ -98,11 +128,10 @@ export async function deleteDraft(id: string) {
     );
 }
 export async function issueInvoice(invoice: Invoice) {
+  const mod = providerModule(invoice.provider);
   if (invoice.provider_invoice_id) return invoice;
   // Validate local configuration before claiming the one-shot provider request.
-  const { nowpaymentsConfig, siteOrigin } = await import("./nowpayments.server");
-  nowpaymentsConfig(invoice.environment);
-  siteOrigin();
+  mod.assertReady(invoice.environment);
   const { data, error } = await db()
     .update({ issue_locked_at: new Date().toISOString() })
     .eq("id", invoice.id)
@@ -111,17 +140,17 @@ export async function issueInvoice(invoice: Invoice) {
     .select("id");
   if (error || !data?.length)
     throw new Error(
-      "Issuance is in progress or needs reconciliation. Check NOWPayments before attempting another invoice.",
+      `Issuance is in progress or needs reconciliation. Check ${providerLabel(invoice.provider)} before attempting another invoice.`,
     );
   try {
-    const reference = await createHostedInvoice(invoice);
+    const reference = await mod.createHostedInvoice(invoice);
     const saved = await db()
       .update({ ...reference, status: "pending", issue_locked_at: null })
       .eq("id", invoice.id)
       .is("provider_invoice_id", null);
     if (saved.error)
       throw new Error(
-        "NOWPayments created the invoice but its reference could not be saved. Reconcile this order in NOWPayments before retrying.",
+        `${providerLabel(invoice.provider)} created the invoice but its reference could not be saved. Reconcile this order there before retrying.`,
       );
     return await getInvoice(invoice.id);
   } catch (error) {
@@ -132,14 +161,15 @@ export async function issueInvoice(invoice: Invoice) {
   }
 }
 export async function reconcilePayment(invoice: Invoice, paymentId: string) {
-  const result = await checkPayment(paymentId, invoice.environment);
-  if (!paymentMatches(result, invoice))
+  const mod = providerModule(invoice.provider);
+  const result = await mod.checkPayment(paymentId, invoice.environment);
+  if (!mod.paymentMatches(result, invoice))
     throw new Error("Payment details do not match this invoice.");
-  const paid = isVerifiedPayment(result, invoice);
-  const refunded = result.payment_status === "refunded";
+  const paid = mod.isVerifiedPayment(result, invoice);
+  const refunded = mod.isRefunded(result);
   const update: Record<string, unknown> = {
     payment_id: paymentId,
-    provider_status: String(result.payment_status),
+    provider_status: mod.statusOf(result),
     checked_at: new Date().toISOString(),
   };
   if (paid) Object.assign(update, { status: "paid", paid_at: new Date().toISOString() });
@@ -154,6 +184,7 @@ export async function reconcilePayment(invoice: Invoice, paymentId: string) {
   return getInvoice(invoice.id);
 }
 export async function verifyInvoice(invoice: Invoice) {
+  providerModule(invoice.provider);
   if (!invoice.provider_invoice_id) throw new Error("Issue this invoice before checking payment.");
   // The signed IPN supplies the payment ID once the buyer chooses a coin.
   if (!invoice.payment_id || invoice.status === "refunded") return invoice;
@@ -173,13 +204,14 @@ export function invoiceLink(invoice: Invoice) {
   return `${site.origin}/pay/${invoice.payment_token}`;
 }
 export async function emailInvoice(invoice: Invoice) {
+  providerModule(invoice.provider);
   if (!invoice.provider_invoice_id) throw new Error("Issue the invoice before sending it.");
   if (["paid", "refunded"].includes(invoice.status))
     throw new Error("This invoice has already been paid.");
   const result = await sendEmail({
     to: invoice.buyer_email,
     subject: `${invoice.environment === "demo" ? "[TEST] " : ""}Your HQ360 invoice ${invoice.number}`,
-    text: `${invoice.environment === "demo" ? "TEST INVOICE — no real payment will be collected.\n\n" : ""}Hello ${invoice.buyer_name},\n\nYour invoice ${invoice.number} is ready.\n\n${invoice.description}\nAmount: ${money(invoice.amount_minor, invoice.currency)}\nDue: ${invoice.due_date}\nNOWPayments invoice: ${invoice.provider_invoice_id}\n\nView your invoice and pay securely:\n${invoiceLink(invoice)}\n\nThank you,\nHQ360`,
+    text: `${invoice.environment === "demo" ? "TEST INVOICE — no real payment will be collected.\n\n" : ""}Hello ${invoice.buyer_name},\n\nYour invoice ${invoice.number} is ready.\n\n${invoice.description}\nAmount: ${money(invoice.amount_minor, invoice.currency)}\nDue: ${invoice.due_date}\n${providerLabel(invoice.provider)} invoice: ${invoice.provider_invoice_id}\n\nView your invoice and pay securely:\n${invoiceLink(invoice)}\n\nThank you,\nHQ360`,
   });
   if (!result.sent)
     throw new Error(

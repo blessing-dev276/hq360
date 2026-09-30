@@ -36,3 +36,7 @@ The dashboard and CSV cover the latest 1,000 NOWPayments invoices in the current
 - `bun run preview --port 8081`, followed by `bun scripts/test-payments-browser.mjs` for the mocked desktop/mobile admin and buyer flow. This sends no email and creates no provider transactions.
 
 References: [NOWPayments integration guide](https://nowpayments.io/blog/nowpayments-api-explained-customize-your-payment-gateway), [official SDK and signature rules](https://github.com/NowPaymentsIO/nowpayments-sdk-nodejs), [API endpoint documentation](https://nowpayments.zendesk.com/hc/en-us/articles/21345824322717-API-and-endpoint-description), and [sandbox guide](https://nowpayments.io/blog/how-to-use-the-sandbox-a-guide).
+
+## Active provider
+
+NOWPayments is the only active provider. Apply `20260930110000_nowpayments_only.sql` after the existing migrations to enforce this for database writes as well as the application. Historical Remita/Paystack rows are preserved, but those providers cannot create invoices, issue checkout links or receive payment callbacks in HQ360. The retired Paystack webhook returns HTTP 410.

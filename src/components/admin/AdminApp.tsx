@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { PaymentsAdmin } from "./PaymentsAdmin";
-import { AdminOverview } from "./AdminOverview";
+import { LeadsAdmin } from "./LeadsAdmin";
 import "./admin-workspace.css";
 
 /* ------------------------------------------------------------------ types */
@@ -137,24 +137,30 @@ function UploadField({
 
 /* ------------------------------------------------------------------- root */
 
-type Tab = "overview" | "payments" | "work" | "team" | "testimonials" | "audits";
+type Tab = "projects" | "overview" | "payments" | "work" | "team" | "testimonials" | "audits";
 type WorkView = "cases" | "gallery";
 const NAV = [
   {
+    id: "projects",
+    label: "Projects",
+    icon: BriefcaseBusiness,
+    description: "Track agreed work, client review and delivery.",
+  },
+  {
     id: "overview",
-    label: "Overview",
+    label: "Leads & Follow-ups",
     icon: LayoutDashboard,
-    description: "A clear view of your business, all in one place.",
+    description: "Review needs, assign ownership and keep the next conversation moving.",
   },
   {
     id: "payments",
-    label: "Payments",
+    label: "Invoices",
     icon: CreditCard,
     description: "From the first invoice to the final payment.",
   },
   {
     id: "work",
-    label: "Work & portfolio",
+    label: "Website Content",
     icon: BriefcaseBusiness,
     description: "Showcase the work that makes HQ360 stand out.",
   },
@@ -167,7 +173,7 @@ const NAV = [
   },
   {
     id: "audits",
-    label: "Author audits",
+    label: "Author Reports",
     icon: ScanSearch,
     description: "Turn research into a clear growth direction.",
   },
@@ -177,6 +183,7 @@ const input =
 
 export function AdminApp() {
   const [tab, setTab] = useState<Tab>("overview");
+  const [contentTab, setContentTab] = useState<"work" | "team" | "testimonials">("work");
   const [workView, setWorkView] = useState<WorkView>("cases");
   const [logoutError, setLogoutError] = useState("");
   const current = NAV.find((item) => item.id === tab)!;
@@ -208,25 +215,31 @@ export function AdminApp() {
         </div>
         <p className="admin-nav-label">WORKSPACE</p>
         <nav aria-label="Admin navigation">
-          {NAV.map(({ id, label, icon: Icon }) => (
-            <button
-              key={id}
-              onClick={() => navigate(id)}
-              className={cn("admin-nav-item", tab === id && "active")}
-              aria-current={tab === id ? "page" : undefined}
-            >
-              <Icon size={18} />
-              <span>{label}</span>
-              {id === "payments" && <span className="admin-new">NEW</span>}
-            </button>
-          ))}
+          {["overview", "scout", "audits", "projects", "payments", "work"].map((key) =>
+            key === "scout" ? (
+              <a key="scout" href="/scout" className="admin-nav-item">
+                <ScanSearch size={18} />
+                <span>Scout</span>
+              </a>
+            ) : (
+              (() => {
+                const { id, label, icon: Icon } = NAV.find((item) => item.id === key)!;
+                return (
+                  <button
+                    key={id}
+                    onClick={() => navigate(id)}
+                    className={cn("admin-nav-item", tab === id && "active")}
+                    aria-current={tab === id ? "page" : undefined}
+                  >
+                    <Icon size={18} />
+                    <span>{label}</span>
+                  </button>
+                );
+              })()
+            ),
+          )}
         </nav>
-        <p className="admin-nav-label mt-8">DISCOVER</p>
-        <a href="/scout" className="admin-nav-item">
-          <ScanSearch size={18} />
-          <span>Scout prospecting</span>
-          <ArrowUpRight size={14} />
-        </a>
+
         <div className="admin-sidebar-bottom">
           <div className="admin-sidebar-note">
             <span className="admin-live-dot" /> Your next chapter starts here.
@@ -275,7 +288,7 @@ export function AdminApp() {
           <div className="admin-page-heading">
             <div>
               <p className="admin-eyebrow">YOUR BUSINESS, IN FOCUS</p>
-              <h1>{current.label === "Overview" ? "Welcome to your workspace" : current.label}</h1>
+              <h1>{current.label}</h1>
               <p>{current.description}</p>
             </div>
             <span className="admin-date">
@@ -287,12 +300,30 @@ export function AdminApp() {
             </span>
           </div>
           {tab === "overview" ? (
-            <AdminOverview onNavigate={navigate} />
+            <LeadsAdmin />
+          ) : tab === "projects" ? (
+            <LeadsAdmin projects />
           ) : tab === "payments" ? (
             <PaymentsAdmin />
           ) : (
             <section className="admin-content-panel">
-              {tab === "work" && (
+              {(tab === "work" || tab === "team" || tab === "testimonials") && (
+                <div className="admin-segmented mb-7">
+                  {(["work", "team", "testimonials"] as const).map((value) => (
+                    <button
+                      key={value}
+                      className={(tab === "work" ? contentTab : tab) === value ? "active" : ""}
+                      onClick={() => {
+                        setContentTab(value);
+                        navigate("work");
+                      }}
+                    >
+                      {value === "work" ? "Our Work" : value === "team" ? "Team" : "Testimonials"}
+                    </button>
+                  ))}
+                </div>
+              )}
+              {tab === "work" && contentTab === "work" && (
                 <div className="admin-segmented mb-7">
                   {(
                     [
@@ -310,15 +341,15 @@ export function AdminApp() {
                   ))}
                 </div>
               )}
-              {tab === "work" ? (
+              {tab === "work" && contentTab === "work" ? (
                 workView === "cases" ? (
                   <CaseStudyDashboard />
                 ) : (
                   <PortfolioDashboard />
                 )
-              ) : tab === "team" ? (
+              ) : tab === "team" || (tab === "work" && contentTab === "team") ? (
                 <TeamDashboard />
-              ) : tab === "testimonials" ? (
+              ) : tab === "testimonials" || (tab === "work" && contentTab === "testimonials") ? (
                 <TestimonialDashboard />
               ) : (
                 <AuthorAuditAdmin />

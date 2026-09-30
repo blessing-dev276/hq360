@@ -25,6 +25,11 @@ beforeAll(async () => {
       "utf8",
     ),
   );
+  for (const migration of ["20260930110000_nowpayments_only.sql"]) {
+    await db.exec(
+      await readFile(new URL(`../supabase/migrations/${migration}`, import.meta.url), "utf8"),
+    );
+  }
 }, 30000);
 afterAll(async () => {
   await db.close();
@@ -103,4 +108,23 @@ test("draft deletion protects issued, paid and in-flight invoices", async () => 
       );
     expect((await db.query(remove, [row.id])).rows.length).toBe(0);
   }
+});
+
+test("database blocks other providers without deleting historical invoices", async () => {
+  for (const provider of ["paystack", "remita"]) {
+    await expect(
+      db.query(
+        "insert into payment_invoices(buyer_name,buyer_email,buyer_phone,description,amount_minor,due_date,environment,provider) values ('Buyer','buyer@example.com','08012345678','Project',10000,'2026-10-01','demo',$1)",
+        [provider],
+      ),
+    ).rejects.toThrow("NOWPayments is the only active payment provider");
+  }
+  await expect(
+    db.exec(
+      "update payment_invoices set checkout_url='https://example.com/checkout' where provider='remita'",
+    ),
+  ).rejects.toThrow("NOWPayments is the only active payment provider");
+  expect(
+    (await db.query("select id from payment_invoices where provider='remita'")).rows,
+  ).toHaveLength(1);
 });

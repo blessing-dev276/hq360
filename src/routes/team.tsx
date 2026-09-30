@@ -9,7 +9,7 @@ export const Route = createFileRoute("/team")({
         title: "Meet the Team | HQ360",
         description:
           "The multidisciplinary team behind HQ360 — one named lead per engagement, every discipline in-house.",
-        path: "/team",
+        path: "/about",
       },
       breadcrumbSchema([
         { name: "Home", path: "/" },

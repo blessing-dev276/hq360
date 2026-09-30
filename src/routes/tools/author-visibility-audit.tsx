@@ -6,14 +6,14 @@ export const Route = createFileRoute("/tools/author-visibility-audit")({
   head: () =>
     buildSeo(
       {
-        title: "Author Visibility Audit | HQ360",
+        title: "Free Author Visibility Check | HQ360",
         description:
           "Request an evidence-led preliminary assessment of how readers discover, evaluate and purchase your book.",
         path: "/tools/author-visibility-audit",
       },
       breadcrumbSchema([
         { name: "Home", path: "/" },
-        { name: "Author Visibility Audit", path: "/tools/author-visibility-audit" },
+        { name: "Free Author Visibility Check", path: "/tools/author-visibility-audit" },
       ]),
     ),
   component: AuthorVisibilityAudit,

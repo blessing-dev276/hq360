@@ -6,10 +6,13 @@ const context = await browser.newContext({ viewport: { width: 1440, height: 1050
 const page = await context.newPage();
 const errors = [];
 page.on("pageerror", (error) => errors.push(error.message));
-const setup = { configured: true, emailConfigured: true, environment: "demo" };
+const setup = { emailConfigured: true, nowpayments: { configured: true, environment: "demo" } };
 let invoices = [];
 await context.route("**/api/admin/session", (route) =>
   route.fulfill({ json: { authed: true, configured: true } }),
+);
+await context.route("**/api/admin/leads", (route) =>
+  route.fulfill({ json: { ok: true, items: [], invoices: [], events: [] } }),
 );
 await context.route("**/api/admin/invoices", (route) => {
   if (route.request().method() === "POST") {
@@ -60,9 +63,17 @@ await context.route("**/api/pay/*", (route) =>
 try {
   const base = process.env.PAYMENTS_TEST_URL || "http://localhost:8081";
   await page.goto(`${base}/admin`);
-  await expect(page.getByRole("heading", { name: "Welcome to your workspace" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Leads & Follow-ups" })).toBeVisible();
   await page.screenshot({ path: "/tmp/hq360-admin-desktop.png", fullPage: true });
-  await page.getByRole("button", { name: "Payments", exact: false }).first().click();
+  await page.getByRole("button", { name: "Invoices", exact: false }).first().click();
+  await expect(page.getByText("Paystack", { exact: true })).toHaveCount(0);
+  expect(
+    (
+      await page.request.post(`${base}/api/payments/paystack/webhook`, {
+        data: { event: "charge.success" },
+      })
+    ).status(),
+  ).toBe(410);
   await page.getByRole("button", { name: "Create invoice", exact: true }).click();
   await page.getByLabel("Buyer name", { exact: true }).fill("Acme Studio");
   await page.getByLabel("Email address").fill("buyer@example.com");
@@ -75,9 +86,9 @@ try {
   await page.getByRole("button", { name: "Issue with NOWPayments" }).click();
   await expect(page.getByText("123456789012", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Send invoice", exact: true }).click();
-  await expect(page.getByRole("status")).toContainText("Invoice emailed");
+  await expect(page.locator(".admin-notice")).toContainText("Invoice emailed");
   await page.getByRole("button", { name: "Check payment", exact: true }).click();
-  await expect(page.getByRole("status")).toContainText("Payment verified");
+  await expect(page.locator(".admin-notice")).toContainText("Payment verified");
   await page.getByRole("button", { name: "Close", exact: true }).click();
   await page.screenshot({ path: "/tmp/hq360-payments-desktop.png", fullPage: true });
   await page.getByLabel("Search invoices").fill("no match");

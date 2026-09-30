@@ -1,10 +1,11 @@
+import { trackConversion } from "@/lib/google-analytics";
 import { useState, type FormEvent } from "react";
 import { z } from "zod";
 import { cn } from "@/lib/utils";
-import { CAPABILITIES } from "@/data/capabilities";
+import { AUTHOR_OFFERS } from "@/data/author-offers";
 import { INDUSTRIES } from "@/data/industries";
 
-const HELP_OPTIONS = CAPABILITIES.map((c) => c.name);
+const HELP_OPTIONS = AUTHOR_OFFERS.map((c) => c.name);
 const BUDGETS = ["Not sure yet", "Under $5k", "$5k – $15k", "$15k – $50k", "$50k+"];
 const TIMELINES = ["As soon as possible", "Within 1–3 months", "In 3–6 months", "Just exploring"];
 
@@ -89,6 +90,7 @@ export function ProjectInquiryForm({
       const body = (await res.json().catch(() => ({}))) as { ok?: boolean; emailed?: boolean };
       if (res.ok && body.ok) {
         setEmailed(body.emailed === true);
+        trackConversion("project_inquiry_submitted");
         setState("done");
       } else {
         setState("idle");

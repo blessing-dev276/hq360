@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Section, SectionHeader } from "@/components/site/Primitives";
 import { WorkGrid } from "@/components/site/WorkGrid";
-import { ProofStrip } from "@/components/site/ProofStrip";
+import { PortfolioStrip } from "@/components/site/PortfolioStrip";
+import { TestimonialStrip } from "@/components/site/TestimonialStrip";
 import { CtaBand } from "@/components/site/CtaBand";
 import { buildSeo, breadcrumbSchema } from "@/lib/seo";
 import { loadCaseStudies } from "@/lib/case-studies.functions";
@@ -42,6 +43,7 @@ function WorkPage() {
         </div>
       </Section>
 
+      <PortfolioStrip industry="authors" title="Author & publishing portfolio" />
       <Section tone="raised">
         <SectionHeader
           eyebrow="Proof of work"
@@ -49,15 +51,15 @@ function WorkPage() {
           intro="Supplied by clients. No fabricated quotes or figures."
         />
         <div className="mt-10">
-          <ProofStrip />
+          <TestimonialStrip industry="authors" />
         </div>
       </Section>
 
       <CtaBand
-        title="Want to see a plan for your business?"
+        title="What comes next for your book?"
         body="The fastest way to understand how we work is to see what we would do for you. Start a project and we will map it."
         primary={CTAS.primary}
-        secondary={CTAS.industries}
+        secondary={{ label: "Explore services", to: "/services" }}
       />
     </>
   );

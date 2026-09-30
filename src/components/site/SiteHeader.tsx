@@ -22,6 +22,8 @@ export function SiteHeader() {
   const search = useRouterState({ select: (state) => state.location.search });
   const contactTo = inquiryHref({ ...contextForPath(pathname), ...readInquiryContext(search) });
   const isAdmin = pathname === "/admin";
+  const darkTone =
+    pathname === "/" || pathname.startsWith("/experts") || pathname === "/expert-signup";
   const [adminAuthed, setAdminAuthed] = useState(false);
   const [openMenu, setOpenMenu] = useState<MenuKey | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -152,6 +154,7 @@ export function SiteHeader() {
     <header
       ref={headerRef}
       className="hq-header"
+      data-tone={darkTone ? "dark" : undefined}
       data-scrolled={scrolled || undefined}
       data-menu-open={Boolean(openMenu) || undefined}
       onKeyDown={(event) => {
@@ -178,7 +181,7 @@ export function SiteHeader() {
       <div className="hq-header-surface" aria-hidden="true" />
       <div className="hq-header-inner">
         <Link to="/" preload="intent" aria-label="HQ360 home" className="hq-header-logo">
-          <Logo size={48} />
+          <Logo size={48} variant={darkTone ? "mono" : "gradient"} />
         </Link>
 
         <nav aria-label="Primary" className="hq-desktop-nav">
@@ -413,6 +416,9 @@ export function SiteHeader() {
           </ul>
         </nav>
 
+        <Link to="/expert-signup" preload="intent" className="hq-header-join">
+          Become an Expert
+        </Link>
         {isAdmin && adminAuthed ? (
           <button type="button" className="hq-header-cta" onClick={signOutAdmin}>
             Sign out
@@ -495,6 +501,12 @@ export function SiteHeader() {
                 </Link>
               </li>
             ))}
+            <li>
+              <Link to="/expert-signup" preload="intent">
+                Become an Expert
+                <ArrowUpRight size={21} aria-hidden="true" />
+              </Link>
+            </li>
           </ul>
           {isAdmin && adminAuthed ? (
             <button type="button" className="hq-mobile-project-link" onClick={signOutAdmin}>

@@ -1,20 +1,52 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
-import { ArrowRight, CheckCircle2, LockKeyhole } from "lucide-react";
-import { Logo } from "@/components/Logo";
+import {
+  ArrowUpRight,
+  BadgeCheck,
+  CheckCircle2,
+  FileText,
+  ScanSearch,
+  UserRound,
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { buildSeo } from "@/lib/seo";
+import { Eyebrow, Grain, Pill } from "@/components/site/hqd/Hqd";
 
 export const Route = createFileRoute("/expert-signup")({
-  head: () => ({
-    meta: [
-      { title: "Create an expert account | HQ360" },
-      { name: "robots", content: "noindex, nofollow" },
-    ],
-  }),
-  component: ExpertSignup,
+  head: () =>
+    buildSeo({
+      title: "Become an Expert | HQ360",
+      description:
+        "Apply to join the HQ360 expert network. Approved experts get access to Author Reports and Scout, and a public profile page.",
+      path: "/expert-signup",
+    }),
+  component: BecomeAnExpert,
 });
 
-function ExpertSignup() {
+const PERKS = [
+  {
+    icon: UserRound,
+    title: "A public expert profile",
+    body: "Your own page on hq360.space with your specialties, background and links.",
+  },
+  {
+    icon: FileText,
+    title: "Author Reports",
+    body: "Research and build author visibility reports with HQ360’s tooling.",
+  },
+  {
+    icon: ScanSearch,
+    title: "Scout",
+    body: "Find and research new and debut authors with the prospecting workspace.",
+  },
+  {
+    icon: BadgeCheck,
+    title: "Reviewed by HQ360",
+    body: "Every application is approved by the team before any access is granted.",
+  },
+];
+
+function BecomeAnExpert() {
   const [done, setDone] = useState(false);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -28,7 +60,12 @@ function ExpertSignup() {
       email: String(form.get("email") || ""),
       password: String(form.get("password") || ""),
       options: {
-        data: { account_type: "expert", full_name: String(form.get("full_name") || "") },
+        emailRedirectTo: `${window.location.origin}/expert`,
+        data: {
+          account_type: "expert",
+          full_name: String(form.get("full_name") || "").trim(),
+          headline: String(form.get("headline") || "").trim(),
+        },
       },
     });
     setSubmitting(false);
@@ -40,88 +77,149 @@ function ExpertSignup() {
   }
 
   return (
-    <main className="grid min-h-screen place-items-center bg-secondary/40 px-5 py-12">
-      <section className="w-full max-w-md rounded-3xl border border-border bg-card p-7 shadow-xl sm:p-9">
-        <Logo size={48} />
-        <div className="mt-8 inline-flex size-11 items-center justify-center rounded-full bg-brand/10 text-brand">
-          <LockKeyhole className="size-5" aria-hidden="true" />
-        </div>
-        <p className="mt-5 text-xs font-semibold tracking-[0.18em] text-brand uppercase">
-          HQ360 experts
-        </p>
-        <h1 className="mt-2 font-display text-3xl">Create your account</h1>
-        <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-          Get access to Author Reports and Scout once HQ360 approves your account.
-        </p>
-
-        {done ? (
-          <div className="mt-7 flex items-start gap-3 rounded-xl bg-secondary p-4 text-sm">
-            <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-brand" aria-hidden="true" />
-            <p>
-              Account created. It’s now waiting on admin approval — you’ll be able to sign in at{" "}
-              <a href="/expert" className="text-brand">
-                /expert
-              </a>{" "}
-              once approved.
-            </p>
+    <div className="hqd dark">
+      <section className="hqd-page-hero">
+        <div className="hqd-page-panel" style={{ minHeight: "clamp(26rem, 60svh, 36rem)" }}>
+          <span className="hqd-hero-glow" aria-hidden="true" />
+          <span className="hqd-hero-shade" aria-hidden="true" />
+          <Grain />
+          <div className="hqd-page-inner">
+            <div>
+              <p className="hqd-hero-kicker">Join the HQ360 expert network</p>
+              <h1 className="hqd-page-title">
+                Become an
+                <br />
+                Expert.
+              </h1>
+            </div>
+            <div className="hqd-hero-aside">
+              <p className="hqd-lede">Do your best work, with a team behind you.</p>
+              <p>Apply in two minutes. We review every application before access is granted.</p>
+            </div>
           </div>
-        ) : (
-          <form className="mt-7 space-y-5" onSubmit={submit}>
-            <label className="block text-sm font-semibold">
-              Full name
-              <input
-                name="full_name"
-                required
-                minLength={2}
-                maxLength={150}
-                autoComplete="name"
-                autoFocus
-                className="mt-2 w-full rounded-xl border border-border bg-background px-4 py-3 outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              />
-            </label>
-            <label className="block text-sm font-semibold">
-              Email
-              <input
-                type="email"
-                name="email"
-                required
-                autoComplete="email"
-                className="mt-2 w-full rounded-xl border border-border bg-background px-4 py-3 outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              />
-            </label>
-            <label className="block text-sm font-semibold">
-              Password
-              <input
-                type="password"
-                name="password"
-                required
-                minLength={8}
-                autoComplete="new-password"
-                className="mt-2 w-full rounded-xl border border-border bg-background px-4 py-3 outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              />
-            </label>
-            {error ? (
-              <p className="text-sm text-destructive" role="alert">
-                {error}
-              </p>
-            ) : null}
-            <button
-              type="submit"
-              disabled={submitting}
-              className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-primary px-5 py-3 font-semibold text-primary-foreground transition hover:-translate-y-0.5 disabled:cursor-wait disabled:opacity-60"
-            >
-              {submitting ? "Creating account…" : "Create account"}
-              {!submitting ? <ArrowRight className="size-4" aria-hidden="true" /> : null}
-            </button>
-            <p className="text-center text-sm text-muted-foreground">
-              Already approved?{" "}
-              <a href="/expert" className="text-brand">
-                Sign in
-              </a>
-            </p>
-          </form>
-        )}
+        </div>
       </section>
-    </main>
+
+      <section className="hqd-section">
+        <div className="hqd-wrap hqd-join">
+          <div>
+            <Eyebrow>What you get</Eyebrow>
+            <h2 className="hqd-h2">
+              Built for
+              <br />
+              <span className="hqd-orange-text">specialists.</span>
+            </h2>
+            <div className="hqd-perks">
+              {PERKS.map(({ icon: Icon, title, body }) => (
+                <div key={title} className="hqd-perk">
+                  <span className="hqd-card-arrow" aria-hidden="true">
+                    <Icon size={18} />
+                  </span>
+                  <div>
+                    <strong>{title}</strong>
+                    <p>{body}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="hqd-form-shell" style={{ position: "sticky", top: "6rem" }}>
+            {done ? (
+              <div style={{ display: "grid", gap: "1rem" }}>
+                <CheckCircle2 size={40} className="text-brand" aria-hidden="true" />
+                <h2 className="hqd-lede" style={{ fontSize: "1.8rem" }}>
+                  Application received.
+                </h2>
+                <p className="hqd-body">
+                  If we sent a confirmation email, confirm your address first. Once HQ360 approves
+                  your account you can sign in and publish your profile.
+                </p>
+                <div>
+                  <Pill to="/expert">Go to expert sign-in</Pill>
+                </div>
+              </div>
+            ) : (
+              <form onSubmit={submit} style={{ display: "grid", gap: "1.1rem" }}>
+                <div>
+                  <h2 className="hqd-lede" style={{ fontSize: "1.8rem" }}>
+                    Create your account
+                  </h2>
+                  <p className="hqd-note" style={{ marginTop: "0.4rem" }}>
+                    Already approved?{" "}
+                    <a href="/expert" className="text-brand">
+                      Sign in
+                    </a>
+                  </p>
+                </div>
+                <label className="hqd-field">
+                  Full name
+                  <input
+                    className="hqd-input"
+                    name="full_name"
+                    required
+                    minLength={2}
+                    maxLength={150}
+                    autoComplete="name"
+                  />
+                </label>
+                <label className="hqd-field">
+                  Your expertise
+                  <input
+                    className="hqd-input"
+                    name="headline"
+                    required
+                    minLength={3}
+                    maxLength={160}
+                    placeholder="e.g. Book editor & publishing consultant"
+                  />
+                </label>
+                <label className="hqd-field">
+                  Email
+                  <input
+                    className="hqd-input"
+                    type="email"
+                    name="email"
+                    required
+                    autoComplete="email"
+                  />
+                </label>
+                <label className="hqd-field">
+                  Password
+                  <input
+                    className="hqd-input"
+                    type="password"
+                    name="password"
+                    required
+                    minLength={8}
+                    autoComplete="new-password"
+                  />
+                </label>
+                {error ? (
+                  <p className="hqd-alert" role="alert">
+                    {error}
+                  </p>
+                ) : null}
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="hqd-pill hqd-pill--orange"
+                  style={{ justifyContent: "space-between", border: 0, cursor: "pointer" }}
+                >
+                  <span>{submitting ? "Creating account…" : "Apply to become an Expert"}</span>
+                  <span className="hqd-pill-dot" aria-hidden="true">
+                    <ArrowUpRight size={17} strokeWidth={2.4} />
+                  </span>
+                </button>
+                <p className="hqd-note">
+                  Your account stays inactive until HQ360 approves it. We’ll only use your details
+                  to review your application and run your expert account.
+                </p>
+              </form>
+            )}
+          </div>
+        </div>
+      </section>
+    </div>
   );
 }

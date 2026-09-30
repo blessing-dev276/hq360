@@ -100,6 +100,7 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const privateAudit = useRouterState({
     select: (state) =>
+      state.location.pathname === "/expert" ||
       ["/author-audit", "/admin", "/scout", "/pay/"].some((path) =>
         state.location.pathname.startsWith(path),
       ),

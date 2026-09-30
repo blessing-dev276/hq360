@@ -65,6 +65,7 @@ export const PRIMARY_NAV: {
   { label: "Services", menu: "capabilities" },
   { label: "Who We Help", menu: "industries" },
   { label: "Our Work", to: "/work" },
+  { label: "Experts", to: "/experts" },
   { label: "About", to: "/about" },
 ];
 
@@ -80,6 +81,16 @@ export const ABOUT_MENU: { label: string; to: string; blurb: string }[] = [
     to: "/about",
     blurb: "The people on your account, and what each of them owns.",
   },
+  {
+    label: "Our Experts",
+    to: "/experts",
+    blurb: "The HQ360 team and approved independent experts, with a profile for each.",
+  },
+  {
+    label: "Become an Expert",
+    to: "/expert-signup",
+    blurb: "Apply to join the expert network and publish your own profile.",
+  },
 ];
 
 export const FOOTER_NAV = [
@@ -93,6 +104,8 @@ export const FOOTER_NAV = [
       { label: "Resources", to: "/resources" },
       { label: "Tools", to: "/tools" },
       { label: "Free Visibility Check", to: "/tools/author-visibility-audit" },
+      { label: "Our Experts", to: "/experts" },
+      { label: "Become an Expert", to: "/expert-signup" },
       { label: "About", to: "/about" },
       { label: "Start a Project", to: "/contact" },
     ],

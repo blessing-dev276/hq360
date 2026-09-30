@@ -1,0 +1,81 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { z } from "zod";
+
+function json(body: unknown, status = 200) {
+  return Response.json(body, { status, headers: { "Cache-Control": "no-store" } });
+}
+
+const httpsUrl = z
+  .string()
+  .trim()
+  .max(300)
+  .url()
+  .refine((value) => value.startsWith("https://"), "Use an https:// link");
+
+const schema = z.object({
+  full_name: z.string().trim().min(2).max(150),
+  headline: z.string().trim().max(160),
+  bio: z.string().trim().max(4000),
+  location: z.string().trim().max(120),
+  specialties: z.array(z.string().trim().min(1).max(40)).max(12),
+  website_url: httpsUrl.or(z.literal("")),
+  linkedin_url: httpsUrl
+    .refine((value) => /(^|\.)linkedin\.com$/i.test(new URL(value).hostname), "Use a LinkedIn link")
+    .or(z.literal("")),
+  photo_url: z.string().trim().max(500),
+  is_public: z.boolean(),
+});
+
+const FIELDS =
+  "id, email, slug, full_name, headline, bio, photo_url, specialties, location, website_url, linkedin_url, is_public, status";
+
+export const Route = createFileRoute("/api/expert/profile")({
+  server: {
+    handlers: {
+      GET: async ({ request }) => {
+        const { isExpertRequest, expertProfiles } = await import("@/lib/expert-auth.server");
+        const expertId = await isExpertRequest(request);
+        if (!expertId) return json({ error: "Unauthorized" }, 401);
+        const { data, error } = await expertProfiles()
+          .select(FIELDS)
+          .eq("id", expertId)
+          .maybeSingle();
+        if (error || !data) return json({ error: "Could not load your profile." }, 503);
+        return json({ profile: data });
+      },
+      PUT: async ({ request }) => {
+        const { isExpertRequest, expertProfiles } = await import("@/lib/expert-auth.server");
+        const expertId = await isExpertRequest(request);
+        if (!expertId) return json({ error: "Unauthorized" }, 401);
+        if (request.headers.get("origin") !== new URL(request.url).origin)
+          return json({ error: "Invalid origin" }, 403);
+        const parsed = schema.safeParse(await request.json().catch(() => null));
+        if (!parsed.success)
+          return json({ error: parsed.error.issues[0]?.message || "Check your details." }, 400);
+        const input = parsed.data;
+        // Portraits may only point at this expert's own folder in our bucket.
+        const photoPrefix = `${(process.env.SUPABASE_URL ?? "").replace(/\/$/, "")}/storage/v1/object/public/expert-photos/${expertId}/`;
+        if (input.photo_url && !input.photo_url.startsWith(photoPrefix))
+          return json({ error: "Upload your photo using the photo button." }, 400);
+        const { data, error } = await expertProfiles()
+          .update({
+            full_name: input.full_name,
+            headline: input.headline || null,
+            bio: input.bio || null,
+            location: input.location || null,
+            specialties: [...new Set(input.specialties)],
+            website_url: input.website_url || null,
+            linkedin_url: input.linkedin_url || null,
+            photo_url: input.photo_url || null,
+            is_public: input.is_public,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", expertId)
+          .select(FIELDS)
+          .maybeSingle();
+        if (error || !data) return json({ error: "Could not save your profile." }, 503);
+        return json({ profile: data });
+      },
+    },
+  },
+});

@@ -13,6 +13,8 @@ export const STATIC_SITEMAP_PATHS = [
   "/tools",
   ...FREE_TOOLS.map((tool) => `/tools/${tool.slug}`),
   "/about",
+  "/experts",
+  "/expert-signup",
   "/contact",
   "/services",
   "/resources",

@@ -1,19 +1,22 @@
 import { useEffect, useState } from "react";
-import { ChevronRight, LogOut, ScanSearch, Command } from "lucide-react";
+import { ChevronRight, FileText, LogOut, ScanSearch, UserRound } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
+import { Logo } from "@/components/Logo";
 import { AuthorAuditAdmin } from "@/components/admin/AuthorAuditAdmin";
 import { ScoutApp } from "@/components/admin/ScoutApp";
+import { ExpertProfileEditor } from "./ExpertProfileEditor";
 import "@/components/admin/admin-workspace.css";
 
-type Tab = "reports" | "scout";
+type Tab = "profile" | "reports" | "scout";
 const NAV = [
-  { id: "reports", label: "Author Reports", icon: ScanSearch },
+  { id: "profile", label: "My profile", icon: UserRound },
+  { id: "reports", label: "Author Reports", icon: FileText },
   { id: "scout", label: "Scout", icon: ScanSearch },
 ] as const;
 
 export function ExpertApp() {
-  const [tab, setTab] = useState<Tab>("reports");
+  const [tab, setTab] = useState<Tab>("profile");
   const [logoutError, setLogoutError] = useState("");
 
   useEffect(() => {
@@ -43,10 +46,7 @@ export function ExpertApp() {
     <div className="admin-workspace">
       <aside className="admin-sidebar">
         <a href="/expert" className="admin-wordmark">
-          <span className="admin-brand-icon">
-            <Command size={21} />
-          </span>{" "}
-          HQ360<span className="admin-wordmark-dot">.</span>
+          <Logo variant="mono" size={26} />
         </a>
         <div className="admin-workspace-label">
           <span className="admin-workspace-avatar">EX</span>
@@ -70,6 +70,10 @@ export function ExpertApp() {
           ))}
         </nav>
         <div className="admin-sidebar-bottom">
+          <a href="/experts" target="_blank" rel="noreferrer" className="admin-nav-item">
+            <UserRound size={18} />
+            Experts directory
+          </a>
           <button className="admin-nav-item" onClick={() => void signOut()}>
             <LogOut size={18} />
             Sign out
@@ -85,7 +89,13 @@ export function ExpertApp() {
           </div>
         </header>
         <div className="admin-page">
-          {tab === "reports" ? <AuthorAuditAdmin /> : <ScoutApp />}
+          {tab === "profile" ? (
+            <ExpertProfileEditor />
+          ) : tab === "reports" ? (
+            <AuthorAuditAdmin />
+          ) : (
+            <ScoutApp />
+          )}
           <footer className="admin-footer">
             <span>HQ360 · Expert workspace</span>
             <span>Private workspace</span>

@@ -51,6 +51,8 @@ import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as CapabilitiesIndexRouteImport } from './routes/capabilities.index'
 import { Route as CapabilitiesSlugRouteImport } from './routes/capabilities.$slug'
+import { Route as ExpertsIndexRouteImport } from './routes/experts.index'
+import { Route as ExpertsSlugRouteImport } from './routes/experts.$slug'
 import { Route as InsightsIndexRouteImport } from './routes/insights.index'
 import { Route as InsightsSlugRouteImport } from './routes/insights.$slug'
 import { Route as InsightsGlossaryRouteImport } from './routes/insights.glossary'
@@ -85,10 +87,13 @@ import { Route as ApiAdminTeamRouteImport } from './routes/api/admin/team'
 import { Route as ApiAdminTestimonialsRouteImport } from './routes/api/admin/testimonials'
 import { Route as ApiAdminUploadRouteImport } from './routes/api/admin/upload'
 import { Route as ApiAdminUploadUrlRouteImport } from './routes/api/admin/upload-url'
+import { Route as ApiExpertPhotoUrlRouteImport } from './routes/api/expert/photo-url'
+import { Route as ApiExpertProfileRouteImport } from './routes/api/expert/profile'
 import { Route as ApiExpertSessionRouteImport } from './routes/api/expert/session'
 import { Route as ApiPayTokenRouteImport } from './routes/api/pay/$token'
 import { Route as ApiPublicAuthorAuditRouteImport } from './routes/api/public/author-audit'
 import { Route as ApiPublicCaseStudiesRouteImport } from './routes/api/public/case-studies'
+import { Route as ApiPublicExpertsRouteImport } from './routes/api/public/experts'
 import { Route as ApiPublicGrowthAuditRouteImport } from './routes/api/public/growth-audit'
 import { Route as ApiPublicInquiryRouteImport } from './routes/api/public/inquiry'
 import { Route as ApiPublicNewsletterRouteImport } from './routes/api/public/newsletter'
@@ -349,6 +354,16 @@ const CapabilitiesSlugRoute = CapabilitiesSlugRouteImport.update({
   path: '/capabilities/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ExpertsIndexRoute = ExpertsIndexRouteImport.update({
+  id: '/experts/',
+  path: '/experts/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ExpertsSlugRoute = ExpertsSlugRouteImport.update({
+  id: '/experts/$slug',
+  path: '/experts/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const InsightsIndexRoute = InsightsIndexRouteImport.update({
   id: '/insights/',
   path: '/insights/',
@@ -526,6 +541,16 @@ const ApiAdminUploadUrlRoute = ApiAdminUploadUrlRouteImport.update({
   path: '/api/admin/upload-url',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiExpertPhotoUrlRoute = ApiExpertPhotoUrlRouteImport.update({
+  id: '/api/expert/photo-url',
+  path: '/api/expert/photo-url',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiExpertProfileRoute = ApiExpertProfileRouteImport.update({
+  id: '/api/expert/profile',
+  path: '/api/expert/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiExpertSessionRoute = ApiExpertSessionRouteImport.update({
   id: '/api/expert/session',
   path: '/api/expert/session',
@@ -544,6 +569,11 @@ const ApiPublicAuthorAuditRoute = ApiPublicAuthorAuditRouteImport.update({
 const ApiPublicCaseStudiesRoute = ApiPublicCaseStudiesRouteImport.update({
   id: '/api/public/case-studies',
   path: '/api/public/case-studies',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicExpertsRoute = ApiPublicExpertsRouteImport.update({
+  id: '/api/public/experts',
+  path: '/api/public/experts',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicGrowthAuditRoute = ApiPublicGrowthAuditRouteImport.update({
@@ -855,6 +885,7 @@ export interface FileRoutesByFullPath {
   '/api/private-audit': typeof ApiPrivateAuditRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/capabilities/$slug': typeof CapabilitiesSlugRoute
+  '/experts/$slug': typeof ExpertsSlugRoute
   '/insights/$slug': typeof InsightsSlugRoute
   '/insights/glossary': typeof InsightsGlossaryRoute
   '/pay/$token': typeof PayTokenRoute
@@ -866,6 +897,7 @@ export interface FileRoutesByFullPath {
   '/author-audit/': typeof AuthorAuditIndexRoute
   '/blog/': typeof BlogIndexRoute
   '/capabilities/': typeof CapabilitiesIndexRoute
+  '/experts/': typeof ExpertsIndexRoute
   '/insights/': typeof InsightsIndexRoute
   '/services/': typeof ServicesIndexRoute
   '/tools/': typeof ToolsIndexRoute
@@ -892,10 +924,13 @@ export interface FileRoutesByFullPath {
   '/api/admin/testimonials': typeof ApiAdminTestimonialsRouteWithChildren
   '/api/admin/upload': typeof ApiAdminUploadRoute
   '/api/admin/upload-url': typeof ApiAdminUploadUrlRoute
+  '/api/expert/photo-url': typeof ApiExpertPhotoUrlRoute
+  '/api/expert/profile': typeof ApiExpertProfileRoute
   '/api/expert/session': typeof ApiExpertSessionRoute
   '/api/pay/$token': typeof ApiPayTokenRoute
   '/api/public/author-audit': typeof ApiPublicAuthorAuditRoute
   '/api/public/case-studies': typeof ApiPublicCaseStudiesRoute
+  '/api/public/experts': typeof ApiPublicExpertsRoute
   '/api/public/growth-audit': typeof ApiPublicGrowthAuditRoute
   '/api/public/inquiry': typeof ApiPublicInquiryRoute
   '/api/public/newsletter': typeof ApiPublicNewsletterRoute
@@ -985,6 +1020,7 @@ export interface FileRoutesByTo {
   '/api/private-audit': typeof ApiPrivateAuditRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/capabilities/$slug': typeof CapabilitiesSlugRoute
+  '/experts/$slug': typeof ExpertsSlugRoute
   '/insights/$slug': typeof InsightsSlugRoute
   '/insights/glossary': typeof InsightsGlossaryRoute
   '/pay/$token': typeof PayTokenRoute
@@ -996,6 +1032,7 @@ export interface FileRoutesByTo {
   '/author-audit': typeof AuthorAuditIndexRoute
   '/blog': typeof BlogIndexRoute
   '/capabilities': typeof CapabilitiesIndexRoute
+  '/experts': typeof ExpertsIndexRoute
   '/insights': typeof InsightsIndexRoute
   '/services': typeof ServicesIndexRoute
   '/tools': typeof ToolsIndexRoute
@@ -1022,10 +1059,13 @@ export interface FileRoutesByTo {
   '/api/admin/testimonials': typeof ApiAdminTestimonialsRouteWithChildren
   '/api/admin/upload': typeof ApiAdminUploadRoute
   '/api/admin/upload-url': typeof ApiAdminUploadUrlRoute
+  '/api/expert/photo-url': typeof ApiExpertPhotoUrlRoute
+  '/api/expert/profile': typeof ApiExpertProfileRoute
   '/api/expert/session': typeof ApiExpertSessionRoute
   '/api/pay/$token': typeof ApiPayTokenRoute
   '/api/public/author-audit': typeof ApiPublicAuthorAuditRoute
   '/api/public/case-studies': typeof ApiPublicCaseStudiesRoute
+  '/api/public/experts': typeof ApiPublicExpertsRoute
   '/api/public/growth-audit': typeof ApiPublicGrowthAuditRoute
   '/api/public/inquiry': typeof ApiPublicInquiryRoute
   '/api/public/newsletter': typeof ApiPublicNewsletterRoute
@@ -1116,6 +1156,7 @@ export interface FileRoutesById {
   '/api/private-audit': typeof ApiPrivateAuditRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/capabilities/$slug': typeof CapabilitiesSlugRoute
+  '/experts/$slug': typeof ExpertsSlugRoute
   '/insights/$slug': typeof InsightsSlugRoute
   '/insights/glossary': typeof InsightsGlossaryRoute
   '/pay/$token': typeof PayTokenRoute
@@ -1127,6 +1168,7 @@ export interface FileRoutesById {
   '/author-audit/': typeof AuthorAuditIndexRoute
   '/blog/': typeof BlogIndexRoute
   '/capabilities/': typeof CapabilitiesIndexRoute
+  '/experts/': typeof ExpertsIndexRoute
   '/insights/': typeof InsightsIndexRoute
   '/services/': typeof ServicesIndexRoute
   '/tools/': typeof ToolsIndexRoute
@@ -1153,10 +1195,13 @@ export interface FileRoutesById {
   '/api/admin/testimonials': typeof ApiAdminTestimonialsRouteWithChildren
   '/api/admin/upload': typeof ApiAdminUploadRoute
   '/api/admin/upload-url': typeof ApiAdminUploadUrlRoute
+  '/api/expert/photo-url': typeof ApiExpertPhotoUrlRoute
+  '/api/expert/profile': typeof ApiExpertProfileRoute
   '/api/expert/session': typeof ApiExpertSessionRoute
   '/api/pay/$token': typeof ApiPayTokenRoute
   '/api/public/author-audit': typeof ApiPublicAuthorAuditRoute
   '/api/public/case-studies': typeof ApiPublicCaseStudiesRoute
+  '/api/public/experts': typeof ApiPublicExpertsRoute
   '/api/public/growth-audit': typeof ApiPublicGrowthAuditRoute
   '/api/public/inquiry': typeof ApiPublicInquiryRoute
   '/api/public/newsletter': typeof ApiPublicNewsletterRoute
@@ -1248,6 +1293,7 @@ export interface FileRouteTypes {
     | '/api/private-audit'
     | '/blog/$slug'
     | '/capabilities/$slug'
+    | '/experts/$slug'
     | '/insights/$slug'
     | '/insights/glossary'
     | '/pay/$token'
@@ -1259,6 +1305,7 @@ export interface FileRouteTypes {
     | '/author-audit/'
     | '/blog/'
     | '/capabilities/'
+    | '/experts/'
     | '/insights/'
     | '/services/'
     | '/tools/'
@@ -1285,10 +1332,13 @@ export interface FileRouteTypes {
     | '/api/admin/testimonials'
     | '/api/admin/upload'
     | '/api/admin/upload-url'
+    | '/api/expert/photo-url'
+    | '/api/expert/profile'
     | '/api/expert/session'
     | '/api/pay/$token'
     | '/api/public/author-audit'
     | '/api/public/case-studies'
+    | '/api/public/experts'
     | '/api/public/growth-audit'
     | '/api/public/inquiry'
     | '/api/public/newsletter'
@@ -1378,6 +1428,7 @@ export interface FileRouteTypes {
     | '/api/private-audit'
     | '/blog/$slug'
     | '/capabilities/$slug'
+    | '/experts/$slug'
     | '/insights/$slug'
     | '/insights/glossary'
     | '/pay/$token'
@@ -1389,6 +1440,7 @@ export interface FileRouteTypes {
     | '/author-audit'
     | '/blog'
     | '/capabilities'
+    | '/experts'
     | '/insights'
     | '/services'
     | '/tools'
@@ -1415,10 +1467,13 @@ export interface FileRouteTypes {
     | '/api/admin/testimonials'
     | '/api/admin/upload'
     | '/api/admin/upload-url'
+    | '/api/expert/photo-url'
+    | '/api/expert/profile'
     | '/api/expert/session'
     | '/api/pay/$token'
     | '/api/public/author-audit'
     | '/api/public/case-studies'
+    | '/api/public/experts'
     | '/api/public/growth-audit'
     | '/api/public/inquiry'
     | '/api/public/newsletter'
@@ -1508,6 +1563,7 @@ export interface FileRouteTypes {
     | '/api/private-audit'
     | '/blog/$slug'
     | '/capabilities/$slug'
+    | '/experts/$slug'
     | '/insights/$slug'
     | '/insights/glossary'
     | '/pay/$token'
@@ -1519,6 +1575,7 @@ export interface FileRouteTypes {
     | '/author-audit/'
     | '/blog/'
     | '/capabilities/'
+    | '/experts/'
     | '/insights/'
     | '/services/'
     | '/tools/'
@@ -1545,10 +1602,13 @@ export interface FileRouteTypes {
     | '/api/admin/testimonials'
     | '/api/admin/upload'
     | '/api/admin/upload-url'
+    | '/api/expert/photo-url'
+    | '/api/expert/profile'
     | '/api/expert/session'
     | '/api/pay/$token'
     | '/api/public/author-audit'
     | '/api/public/case-studies'
+    | '/api/public/experts'
     | '/api/public/growth-audit'
     | '/api/public/inquiry'
     | '/api/public/newsletter'
@@ -1639,6 +1699,7 @@ export interface RootRouteChildren {
   ApiPrivateAuditRoute: typeof ApiPrivateAuditRoute
   BlogSlugRoute: typeof BlogSlugRoute
   CapabilitiesSlugRoute: typeof CapabilitiesSlugRoute
+  ExpertsSlugRoute: typeof ExpertsSlugRoute
   InsightsSlugRoute: typeof InsightsSlugRoute
   InsightsGlossaryRoute: typeof InsightsGlossaryRoute
   PayTokenRoute: typeof PayTokenRoute
@@ -1650,6 +1711,7 @@ export interface RootRouteChildren {
   AuthorAuditIndexRoute: typeof AuthorAuditIndexRoute
   BlogIndexRoute: typeof BlogIndexRoute
   CapabilitiesIndexRoute: typeof CapabilitiesIndexRoute
+  ExpertsIndexRoute: typeof ExpertsIndexRoute
   InsightsIndexRoute: typeof InsightsIndexRoute
   ServicesIndexRoute: typeof ServicesIndexRoute
   ToolsIndexRoute: typeof ToolsIndexRoute
@@ -1676,10 +1738,13 @@ export interface RootRouteChildren {
   ApiAdminTestimonialsRoute: typeof ApiAdminTestimonialsRouteWithChildren
   ApiAdminUploadRoute: typeof ApiAdminUploadRoute
   ApiAdminUploadUrlRoute: typeof ApiAdminUploadUrlRoute
+  ApiExpertPhotoUrlRoute: typeof ApiExpertPhotoUrlRoute
+  ApiExpertProfileRoute: typeof ApiExpertProfileRoute
   ApiExpertSessionRoute: typeof ApiExpertSessionRoute
   ApiPayTokenRoute: typeof ApiPayTokenRoute
   ApiPublicAuthorAuditRoute: typeof ApiPublicAuthorAuditRoute
   ApiPublicCaseStudiesRoute: typeof ApiPublicCaseStudiesRoute
+  ApiPublicExpertsRoute: typeof ApiPublicExpertsRoute
   ApiPublicGrowthAuditRoute: typeof ApiPublicGrowthAuditRoute
   ApiPublicInquiryRoute: typeof ApiPublicInquiryRoute
   ApiPublicNewsletterRoute: typeof ApiPublicNewsletterRoute
@@ -1992,6 +2057,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CapabilitiesSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/experts/': {
+      id: '/experts/'
+      path: '/experts'
+      fullPath: '/experts/'
+      preLoaderRoute: typeof ExpertsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/experts/$slug': {
+      id: '/experts/$slug'
+      path: '/experts/$slug'
+      fullPath: '/experts/$slug'
+      preLoaderRoute: typeof ExpertsSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/insights/': {
       id: '/insights/'
       path: '/insights'
@@ -2230,6 +2309,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAdminUploadUrlRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/expert/photo-url': {
+      id: '/api/expert/photo-url'
+      path: '/api/expert/photo-url'
+      fullPath: '/api/expert/photo-url'
+      preLoaderRoute: typeof ApiExpertPhotoUrlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/expert/profile': {
+      id: '/api/expert/profile'
+      path: '/api/expert/profile'
+      fullPath: '/api/expert/profile'
+      preLoaderRoute: typeof ApiExpertProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/expert/session': {
       id: '/api/expert/session'
       path: '/api/expert/session'
@@ -2256,6 +2349,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/case-studies'
       fullPath: '/api/public/case-studies'
       preLoaderRoute: typeof ApiPublicCaseStudiesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/experts': {
+      id: '/api/public/experts'
+      path: '/api/public/experts'
+      fullPath: '/api/public/experts'
+      preLoaderRoute: typeof ApiPublicExpertsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/growth-audit': {
@@ -2869,6 +2969,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPrivateAuditRoute: ApiPrivateAuditRoute,
   BlogSlugRoute: BlogSlugRoute,
   CapabilitiesSlugRoute: CapabilitiesSlugRoute,
+  ExpertsSlugRoute: ExpertsSlugRoute,
   InsightsSlugRoute: InsightsSlugRoute,
   InsightsGlossaryRoute: InsightsGlossaryRoute,
   PayTokenRoute: PayTokenRoute,
@@ -2880,6 +2981,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthorAuditIndexRoute: AuthorAuditIndexRoute,
   BlogIndexRoute: BlogIndexRoute,
   CapabilitiesIndexRoute: CapabilitiesIndexRoute,
+  ExpertsIndexRoute: ExpertsIndexRoute,
   InsightsIndexRoute: InsightsIndexRoute,
   ServicesIndexRoute: ServicesIndexRoute,
   ToolsIndexRoute: ToolsIndexRoute,
@@ -2906,10 +3008,13 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAdminTestimonialsRoute: ApiAdminTestimonialsRouteWithChildren,
   ApiAdminUploadRoute: ApiAdminUploadRoute,
   ApiAdminUploadUrlRoute: ApiAdminUploadUrlRoute,
+  ApiExpertPhotoUrlRoute: ApiExpertPhotoUrlRoute,
+  ApiExpertProfileRoute: ApiExpertProfileRoute,
   ApiExpertSessionRoute: ApiExpertSessionRoute,
   ApiPayTokenRoute: ApiPayTokenRoute,
   ApiPublicAuthorAuditRoute: ApiPublicAuthorAuditRoute,
   ApiPublicCaseStudiesRoute: ApiPublicCaseStudiesRoute,
+  ApiPublicExpertsRoute: ApiPublicExpertsRoute,
   ApiPublicGrowthAuditRoute: ApiPublicGrowthAuditRoute,
   ApiPublicInquiryRoute: ApiPublicInquiryRoute,
   ApiPublicNewsletterRoute: ApiPublicNewsletterRoute,

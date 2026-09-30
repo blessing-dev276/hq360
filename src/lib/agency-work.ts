@@ -50,7 +50,7 @@ function serviceTags(title: string, tags: string[]) {
   if (/goodreads|listopia/i.test(title)) return ["author-visibility"];
   if (/interior.*format|formatting.*layout/i.test(title)) return ["book-formatting"];
   if (/launch day/i.test(title)) return ["book-launch"];
-  if (/translat|localiz|localis/i.test(title)) return ["translation-localization"];
+  if (/translat|localiz|localis/i.test(title)) return ["writing-editing"];
   return [...new Set(tags.map((tag) => aliases[tag] ?? tag))];
 }
 function audience(slug: string) {

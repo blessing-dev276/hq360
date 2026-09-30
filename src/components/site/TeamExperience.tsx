@@ -4,26 +4,11 @@ import { ArrowRight, ArrowUpRight, Shuffle } from "lucide-react";
 import { Container } from "@/components/site/Primitives";
 import { CtaBand } from "@/components/site/CtaBand";
 import { PHOTOS as TEAM_PHOTOS } from "@/components/site/TeamAvatar";
-import { TeamShowcase, type Person } from "@/components/site/TeamShowcase";
+import { TeamShowcase } from "@/components/site/TeamShowcase";
 import { TEAM } from "@/data/team";
 import { BRAND, CTAS } from "@/config/brand";
 import "./about.css";
 import "./team.css";
-
-/** Department, derived from the person's existing role title — not a separate
- * fact to keep in sync. Used for the roster filter chips. */
-function classifyDepartment(role: string): string {
-  const r = role.toLowerCase();
-  if (r.includes("ceo") || r.includes("founder")) return "Leadership";
-  if (r.includes("market") || r.includes("social")) return "Marketing";
-  if (r.includes("brand") || r.includes("creative") || r.includes("video") || r.includes("design"))
-    return "Creative";
-  if (r.includes("web") || r.includes("app") || r.includes("dev") || r.includes("engineer"))
-    return "Product";
-  return "Team";
-}
-
-const DEPARTMENTS = ["All", ...new Set(TEAM.map((m) => classifyDepartment(m.role)))];
 
 export function TeamExperience() {
   return (
@@ -265,32 +250,10 @@ function TeamMatcher() {
 }
 
 function Team() {
-  const [department, setDepartment] = useState("All");
-
   return (
     <section className="ab-team" id="team">
       <Container size="wide">
-        {DEPARTMENTS.length > 2 ? (
-          <div className="tm-dept-tabs" role="group" aria-label="Filter the roster by discipline">
-            {DEPARTMENTS.map((dept) => (
-              <button
-                key={dept}
-                type="button"
-                aria-pressed={department === dept}
-                className={department === dept ? "active" : undefined}
-                onClick={() => setDepartment(dept)}
-              >
-                {dept}
-              </button>
-            ))}
-          </div>
-        ) : null}
-        <TeamShowcase
-          key={department}
-          eyebrow="The roster"
-          title="Tap a card to see what they own."
-          filter={(p: Person) => department === "All" || classifyDepartment(p.role) === department}
-        />
+        <TeamShowcase eyebrow="The roster" title="Tap a card to see what they own." />
         <p className="ab-team-line">
           Want the full picture of how {BRAND.name} works?{" "}
           <Link to="/about">

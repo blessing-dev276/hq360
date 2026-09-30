@@ -258,43 +258,6 @@
   }
 }
 
-/* -------------------------------------------------------- dept filter */
-
-.tm-dept-tabs {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 0.5rem;
-  margin: 0 0 clamp(2rem, 4vw, 3rem);
-}
-
-.tm-dept-tabs button {
-  appearance: none;
-  border: 1px solid var(--line);
-  background: var(--surface);
-  padding: 0.5rem 1.1rem;
-  border-radius: 999px;
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: var(--ink-muted);
-  cursor: pointer;
-  transition:
-    background-color var(--fast, 160ms) var(--ease, ease),
-    border-color var(--fast, 160ms) var(--ease, ease),
-    color var(--fast, 160ms) var(--ease, ease);
-}
-
-.tm-dept-tabs button:hover {
-  border-color: var(--brand);
-  color: var(--ink);
-}
-
-.tm-dept-tabs button.active {
-  border-color: transparent;
-  background: var(--carbon);
-  color: oklch(0.97 0.006 90);
-}
-
 /* ---------------------------------------------------------- matcher */
 
 .tm-matcher {

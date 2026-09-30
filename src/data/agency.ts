@@ -135,30 +135,30 @@ export const CORE_SERVICES: CoreService[] = [
   },
   {
     slug: "writing-editing",
-    name: "Writing & Editing",
+    name: "Writing and Translation",
     description:
-      "Clear website copy, business documents and manuscripts shaped around their readers.",
+      "Clear website copy, business documents and manuscripts, adapted into other languages when needed, shaped around their readers.",
     audience:
-      "For businesses explaining an offer, agencies preparing client content and authors developing or refining a manuscript.",
+      "For businesses explaining an offer, agencies preparing client content, and authors developing, refining or localizing a manuscript.",
     problems: [
       "The draft has useful ideas but lacks structure.",
       "The message is hard to follow or inconsistent.",
-      "Content needs a careful edit before publication.",
+      "Content needs a careful edit, or a translation, before publication.",
     ],
     deliverables: [
       "A brief covering audience, purpose and tone",
       "An outline or content structure where needed",
-      "Drafting or editing of agreed material",
+      "Drafting, editing or translation of agreed material",
       "Agreed revision rounds and delivery in an editable format",
     ],
     projects: [
       "Website and service-page copy",
       "Company profile or media kit",
       "Customer emails and guides",
-      "Book writing and manuscript editing",
+      "Book writing, manuscript editing and translation",
     ],
     scope:
-      "Word count, source material, research needs, level of editing and revision rounds determine the quote. Subject-matter claims and specialist factual review require your input or an agreed qualified reviewer.",
+      "Word count, source material, research needs, language pair (for translation), level of editing and revision rounds determine the quote. Subject-matter claims and specialist factual review require your input or an agreed qualified reviewer. Certified, sworn or specialist regulated translation is not included unless expressly confirmed.",
     faqs: [
       {
         q: "Can you keep my voice?",
@@ -170,48 +170,52 @@ export const CORE_SERVICES: CoreService[] = [
       },
       {
         q: "Do you work on books?",
-        a: "Yes. Our dedicated author offer covers manuscript development and editing, with publishing preparation scoped separately.",
+        a: "Yes. Our dedicated author offer covers manuscript development, editing and translation, with publishing preparation scoped separately.",
+      },
+      {
+        q: "Which languages do you support?",
+        a: "Share the source language, target language and a sample. We confirm availability and review arrangements for that exact brief before quoting.",
       },
     ],
   },
   {
-    slug: "translation-localization",
-    name: "Translation & Localization",
+    slug: "digital-marketing",
+    name: "Digital Marketing",
     description:
-      "Adapt written content for another language and its intended context, with scope confirmed before work begins.",
+      "Campaigns, content and ad management that bring the right audience to what you've already built.",
     audience:
-      "For businesses and agencies preparing websites, product information or customer communications for another audience.",
+      "For businesses and agencies that need consistent visibility across search, social and paid channels, not just a one-off campaign.",
     problems: [
-      "A direct translation may miss the intended meaning or tone.",
-      "Terminology is inconsistent across pages.",
-      "Translated text needs to fit its design and audience.",
+      "Traffic and enquiries are inconsistent month to month.",
+      "Social channels and ads are running without a shared plan.",
+      "There's no clear read on what's actually driving results.",
     ],
     deliverables: [
-      "Review of the source text, target language and locale",
-      "An agreed terminology and tone brief",
-      "Translation or localization of the agreed content",
-      "Review, revisions and delivery in agreed formats",
+      "A channel plan matched to the audience and budget",
+      "Content calendar and creative for agreed channels",
+      "Campaign setup and ongoing management",
+      "Regular reporting against agreed metrics",
     ],
     projects: [
-      "Website localization",
-      "Product and service descriptions",
-      "Customer emails and help content",
-      "Business presentations",
+      "Social media management and content",
+      "Paid search and paid social campaigns",
+      "SEO and on-site content planning",
+      "Email and lifecycle marketing",
     ],
     scope:
-      "Language pair, locale, word count, subject matter, file format and review requirements determine availability and price. We confirm suitable delivery and review capacity before accepting a project. Certified, sworn or specialist regulated translation is not included unless expressly confirmed.",
+      "Channels, ad spend, content volume and reporting cadence determine the quote. Ad spend itself is billed separately from management fees unless agreed otherwise.",
     faqs: [
       {
-        q: "Which languages do you support?",
-        a: "Share the source language, target language, locale and a sample. We confirm availability and review arrangements for that exact brief before quoting.",
+        q: "Do you manage the ad budget?",
+        a: "We plan and manage campaigns; ad spend is paid directly to the platform (Google, Meta, etc.) and billed separately from our management fee.",
       },
       {
-        q: "Do you provide certified translations?",
-        a: "We do not advertise certified or sworn translations. Tell us if certification is required so suitability can be checked before any work is agreed.",
+        q: "Which platforms do you cover?",
+        a: "Share your current channels and goals. We confirm which platforms suit your audience before proposing a plan.",
       },
       {
-        q: "How is localization different?",
-        a: "Localization also considers terminology, tone, dates, units and layout for the target audience. The required adaptations are agreed in the brief.",
+        q: "How do you report results?",
+        a: "We agree the metrics that matter for your goals up front and report against those on a regular schedule.",
       },
     ],
   },
@@ -222,6 +226,7 @@ export const SERVICE_REDIRECTS: Record<string, string> = {
   "websites-funnels": "website-development",
   "crm-automation": "automation-crm",
   "writing-translation": "writing-editing",
+  "translation-localization": "writing-editing",
 };
 export type Audience = {
   slug: string;

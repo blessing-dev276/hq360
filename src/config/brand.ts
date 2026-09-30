@@ -29,7 +29,7 @@ export const BRAND = {
   tagline: "Websites, apps, systems and content.",
   /** One-paragraph positioning, reused in meta descriptions and the footer. */
   positioning:
-    "HQ360 builds websites, mobile apps and automation systems, and provides writing, editing, translation and localization for businesses.",
+    "HQ360 builds websites, mobile apps and automation systems, and provides writing, translation and digital marketing for businesses.",
   /** Short descriptor for schema.org and OG site name. */
   descriptor: "Digital services and content agency",
   serviceArea: "Working with businesses, creators, authors and agency teams.",

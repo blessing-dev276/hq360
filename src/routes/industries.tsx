@@ -11,13 +11,18 @@ export const Route = createFileRoute("/industries")({
       path: "/industries",
     }),
   component: () => (
-    <Section>
-      <SectionHeader
-        as="h1"
-        title="Who we help"
-        intro="Explore a starting point shaped around your business."
-      />
-      <AudienceLinks />
-    </Section>
+    <>
+      <Section tone="hero">
+        <SectionHeader
+          as="h1"
+          eyebrow="Who we help"
+          title="Different businesses. Specific needs."
+          intro="Explore a starting point shaped around your business."
+        />
+      </Section>
+      <Section>
+        <AudienceLinks />
+      </Section>
+    </>
   ),
 });

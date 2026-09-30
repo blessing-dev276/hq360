@@ -62,7 +62,7 @@ function GuidePage() {
 
   return (
     <>
-      <Section>
+      <Section tone="hero">
         <Container size="narrow" className="px-0">
           <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground">
             <Link to="/insights" className="hover:text-brand">
@@ -72,13 +72,18 @@ function GuidePage() {
             <span className="text-foreground">Guide</span>
           </nav>
 
-          <article className="mt-8">
+          <header className="mt-8">
             <Eyebrow>{guide.topic}</Eyebrow>
             <h1 className="mt-4 text-3xl leading-tight text-balance sm:text-4xl">{guide.title}</h1>
             <p className="mt-4 text-sm text-muted-foreground">
               Updated {guide.updated} &middot; {guide.readTime}
             </p>
-            <div className="rule-brand mt-8" />
+          </header>
+        </Container>
+      </Section>
+      <Section>
+        <Container size="narrow" className="px-0">
+          <article>
 
             <p className="mt-8 text-lg leading-relaxed text-muted-foreground">{guide.intro}</p>
 

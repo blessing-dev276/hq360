@@ -41,7 +41,7 @@ function InsightPost() {
 
   return (
     <>
-      <Section>
+      <Section tone="hero">
         <Container size="narrow" className="px-0">
           <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground">
             <Link to="/insights" className="hover:text-brand">
@@ -50,13 +50,18 @@ function InsightPost() {
             <span aria-hidden="true"> / </span>
             <span className="text-foreground">{post.category}</span>
           </nav>
-          <article className="mt-8">
+          <header className="mt-8">
             <Eyebrow>{post.category}</Eyebrow>
             <h1 className="mt-4 text-3xl leading-tight text-balance sm:text-4xl">{post.title}</h1>
             <p className="mt-4 text-sm text-muted-foreground">
               {post.date} &middot; {post.readTime}
             </p>
-            <div className="rule-brand mt-8" />
+          </header>
+        </Container>
+      </Section>
+      <Section>
+        <Container size="narrow" className="px-0">
+          <article>
             <div className="mt-8 space-y-6 text-lg leading-relaxed text-muted-foreground">
               {post.body.map((paragraph) => (
                 <p key={paragraph.slice(0, 40)}>{paragraph}</p>

@@ -42,16 +42,15 @@ export function InsightsHub() {
 
   return (
     <>
-      <Section>
+      <Section tone="hero">
         <SectionHeader
           as="h1"
-          align="center"
           eyebrow="Resources"
           title="Guides, answers and resources for your next step"
           intro="Working knowledge from building connected growth systems — no listicles. Guides go deep, answers are quick, the glossary defines the jargon, and the resources are yours to download."
         />
 
-        <div className="mt-6 flex justify-center gap-6 text-sm">
+        <div className="mt-6 flex gap-6 text-sm">
           <Link to="/tools/author-visibility-audit" className="text-brand underline">
             Free Author Visibility Check
           </Link>
@@ -60,7 +59,7 @@ export function InsightsHub() {
           </Link>
         </div>
         {/* Content-type quick nav */}
-        <div className="mx-auto mt-10 grid max-w-4xl gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-10 grid max-w-4xl gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {[
             { label: "Guides", to: "#guides", desc: `${GUIDES.length} in-depth playbooks` },
             { label: "Answers", to: "#answers", desc: `${ANSWERS.length} common questions` },
@@ -86,7 +85,7 @@ export function InsightsHub() {
 
         {/* Topic filter */}
         <div
-          className="mt-10 flex flex-wrap justify-center gap-2"
+          className="mt-10 flex flex-wrap gap-2"
           role="group"
           aria-label="Filter by topic"
         >

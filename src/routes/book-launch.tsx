@@ -29,15 +29,16 @@ function BookLaunchPage() {
     <>
       <FeaturedAuthor />
 
-      <Section>
+      <Section tone="hero">
         <SectionHeader
           as="h1"
           eyebrow="Book launch"
           title="Sanman Thapa book launch"
           intro={LAUNCH.intro}
         />
-
-        <div className="mt-12 grid gap-10 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] lg:items-start">
+      </Section>
+      <Section>
+        <div className="grid gap-10 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] lg:items-start">
           <div>
             <div className="overflow-hidden rounded-2xl border border-border bg-charcoal shadow-editorial">
               <video

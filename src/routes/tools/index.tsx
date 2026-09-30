@@ -13,14 +13,17 @@ export const Route = createFileRoute("/tools/")({
 });
 function Tools() {
   return (
-    <Section>
+    <>
+    <Section tone="hero">
       <SectionHeader
         as="h1"
         eyebrow="HQ360 / Resources"
         title="A useful place to start."
         intro="Explore free tools to clarify your idea, review your foundations and plan your next move."
       />
-      <div className="mt-12 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+    </Section>
+    <Section>
+      <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
         {FREE_TOOLS.map((t) => (
           <Link
             key={t.slug}
@@ -35,5 +38,6 @@ function Tools() {
         ))}
       </div>
     </Section>
+    </>
   );
 }

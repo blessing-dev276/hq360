@@ -82,7 +82,7 @@ export function CoreServicePage({
         : [];
   return (
     <>
-      <Section tone="raised">
+      <Section tone="hero">
         <SectionHeader
           as="h1"
           eyebrow="HQ360 / Services"
@@ -179,7 +179,7 @@ export function CoreServicePage({
 export function AudiencePage({ audience }: { audience: Audience }) {
   return (
     <>
-      <Section tone="raised">
+      <Section tone="hero">
         <SectionHeader
           as="h1"
           eyebrow={`HQ360 / ${audience.name}`}

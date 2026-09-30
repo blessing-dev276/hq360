@@ -120,6 +120,9 @@ export function SiteFooter() {
             {BRAND.name} was previously {BRAND.formerlyKnownAs}.
           </p>
         </div>
+        <span className="hqd-footer-mark" aria-hidden="true">
+          HQ360
+        </span>
       </div>
     </footer>
   );

@@ -9,36 +9,11 @@ import { ProjectInquiryForm } from "../ProjectInquiryForm";
 import { Eyebrow, Grain, Num, PersonCard, Pill, spotlight } from "../hqd/Hqd";
 import { HomeHero } from "../hqd/HomeHero";
 import { WorkArc } from "../hqd/WorkArc";
+import { Packages } from "../hqd/Packages";
+import { ServiceCards } from "../hqd/ServiceCards";
 
 const BAND_WORDS = ["Websites", "Mobile Apps", "Automation", "CRM", "Writing", "Translation"];
 
-const PLANS = [
-  {
-    name: "Launch",
-    note: "For one focused build.",
-    items: [
-      "One website, app or content project",
-      "Written scope, timing and price",
-      "Handover with access and instructions",
-    ],
-  },
-  {
-    name: "Build & Grow",
-    tag: "Full support",
-    note: "For businesses ready to connect the pieces.",
-    items: ["Website or mobile app", "Automation & CRM set-up", "Ongoing support after launch"],
-    hot: true,
-  },
-  {
-    name: "Author",
-    note: "For authors and publishers.",
-    items: [
-      "Editing and formatting support",
-      "An author website readers can find",
-      "Free visibility check to start",
-    ],
-  },
-] as const;
 
 export function HomeExperience() {
   const directory = useExpertDirectory();
@@ -127,64 +102,7 @@ export function HomeExperience() {
               </div>
             </div>
           </Reveal>
-          <div className="hqd-cards">
-            {CORE_SERVICES.map((service, index) => (
-              <Reveal key={service.slug} delay={index * 70}>
-                <Link
-                  to="/services/$slug"
-                  params={{ slug: service.slug }}
-                  preload="intent"
-                  className="hqd-card"
-                  onPointerMove={spotlight}
-                >
-                  <span className="hqd-card-rule" aria-hidden="true" />
-                  <span className="hqd-card-top">
-                    <Num n={index + 1} />
-                    <span className="hqd-card-arrow" aria-hidden="true">
-                      <ArrowUpRight size={18} strokeWidth={2.4} />
-                    </span>
-                  </span>
-                  <span className="hqd-card-body">
-                    <h3>{service.name}</h3>
-                    <p>{service.description}</p>
-                  </span>
-                  <ul className="hqd-ticks">
-                    {service.deliverables.slice(0, 3).map((item) => (
-                      <li key={item}>
-                        <Check size={15} strokeWidth={3} aria-hidden="true" />
-                        {item}
-                      </li>
-                    ))}
-                  </ul>
-                </Link>
-              </Reveal>
-            ))}
-            <Reveal delay={CORE_SERVICES.length * 70}>
-              <Link
-                to="/expert-signup"
-                preload="intent"
-                className="hqd-card hqd-card--join"
-                onPointerMove={spotlight}
-              >
-                <Grain />
-                <span className="hqd-card-top">
-                  <span className="hqd-num" style={{ color: "#fff" }}>
-                    Join us
-                  </span>
-                  <span className="hqd-card-arrow" aria-hidden="true">
-                    <ArrowUpRight size={18} strokeWidth={2.4} />
-                  </span>
-                </span>
-                <span className="hqd-card-body">
-                  <h3 style={{ fontSize: "clamp(2.2rem, 3.4vw, 3rem)" }}>Become an Expert</h3>
-                  <p>
-                    Writers, designers, developers and marketers — apply to work alongside HQ360 and
-                    get a public expert profile.
-                  </p>
-                </span>
-              </Link>
-            </Reveal>
-          </div>
+          <ServiceCards />
         </div>
       </section>
 
@@ -254,50 +172,7 @@ export function HomeExperience() {
 
       <section className="hqd-section" style={{ paddingTop: 0 }}>
         <div className="hqd-wrap">
-          <Reveal className="hqd-plans-head">
-            <Eyebrow>Ways to work together</Eyebrow>
-            <h2 className="hqd-h2">
-              Simple packages
-              <br />
-              for every stage
-            </h2>
-            <p className="hqd-body" style={{ maxWidth: "34rem" }}>
-              Every project is quoted after a short brief, so you only pay for what the work
-              actually needs.
-            </p>
-          </Reveal>
-          <div className="hqd-plans">
-            {PLANS.map((plan, index) => (
-              <Reveal key={plan.name} delay={index * 90}>
-                <article
-                  className={`hqd-plan ${"hot" in plan && plan.hot ? "hqd-plan--hot" : ""}`}
-                  style={{ height: "100%" }}
-                >
-                  <div className="hqd-plan-top">
-                    <p className="hqd-plan-name">
-                      {plan.name}
-                      {"tag" in plan && <span className="hqd-plan-tag">{plan.tag}</span>}
-                    </p>
-                    <p className="hqd-plan-price">
-                      Custom <small>/ quoted per project</small>
-                    </p>
-                    <p className="hqd-plan-note">{plan.note}</p>
-                  </div>
-                  <ul>
-                    {plan.items.map((item) => (
-                      <li key={item}>
-                        <Check size={16} strokeWidth={3} aria-hidden="true" />
-                        {item}
-                      </li>
-                    ))}
-                  </ul>
-                  <Pill href="#project-inquiry" tone={"hot" in plan && plan.hot ? "light" : "dark"}>
-                    Get in Touch
-                  </Pill>
-                </article>
-              </Reveal>
-            ))}
-          </div>
+          <Packages ctaHref="#project-inquiry" />
         </div>
       </section>
 

@@ -22,8 +22,7 @@ export function SiteHeader() {
   const search = useRouterState({ select: (state) => state.location.search });
   const contactTo = inquiryHref({ ...contextForPath(pathname), ...readInquiryContext(search) });
   const isAdmin = pathname === "/admin";
-  const darkTone =
-    pathname === "/" || pathname.startsWith("/experts") || pathname === "/expert-signup";
+  const darkTone = true;
   const [adminAuthed, setAdminAuthed] = useState(false);
   const [openMenu, setOpenMenu] = useState<MenuKey | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);

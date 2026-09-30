@@ -42,7 +42,7 @@ function GlossaryPage() {
 
   return (
     <>
-      <Section>
+      <Section tone="hero">
         <Container size="narrow" className="px-0">
           <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground">
             <Link to="/insights" className="hover:text-brand">
@@ -59,8 +59,11 @@ function GlossaryPage() {
               intro="The terms that come up in a growth engagement, in plain language. Link straight to any definition."
             />
           </div>
-
-          <dl className="mt-12 divide-y divide-border">
+        </Container>
+      </Section>
+      <Section>
+        <Container size="narrow" className="px-0">
+          <dl className="divide-y divide-border">
             {sorted.map((t) => (
               <div key={t.slug} id={t.slug} className="scroll-mt-24 py-7">
                 <dt className="font-display text-xl">{t.term}</dt>

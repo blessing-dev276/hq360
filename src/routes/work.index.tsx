@@ -26,13 +26,15 @@ export const Route = createFileRoute("/work/")({
 function WorkPage() {
   return (
     <>
-      <Section>
+      <Section tone="hero">
         <SectionHeader
           as="h1"
           eyebrow="Our work"
           title="Selected projects, with the work explained"
           intro="Explore published websites, author campaigns and publishing work. Filter by service or audience to find relevant examples."
         />
+      </Section>
+      <Section>
         <AgencyWork filters />
       </Section>
       <TestimonialStrip />

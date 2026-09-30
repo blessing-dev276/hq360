@@ -15,6 +15,7 @@ export const STATIC_SITEMAP_PATHS = [
   "/about",
   "/experts",
   "/expert-signup",
+  "/pricing",
   "/contact",
   "/services",
   "/resources",

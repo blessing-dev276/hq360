@@ -33,6 +33,7 @@ import { Route as LocalBusinessRouteImport } from './routes/local-business'
 import { Route as LocalBusinessesRouteImport } from './routes/local-businesses'
 import { Route as MedSpasRouteImport } from './routes/med-spas'
 import { Route as PlumbersRouteImport } from './routes/plumbers'
+import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as RealEstateRouteImport } from './routes/real-estate'
 import { Route as ResourcesRouteImport } from './routes/resources'
@@ -262,6 +263,11 @@ const MedSpasRoute = MedSpasRouteImport.update({
 const PlumbersRoute = PlumbersRouteImport.update({
   id: '/plumbers',
   path: '/plumbers',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PricingRoute = PricingRouteImport.update({
+  id: '/pricing',
+  path: '/pricing',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PrivacyRoute = PrivacyRouteImport.update({
@@ -870,6 +876,7 @@ export interface FileRoutesByFullPath {
   '/local-businesses': typeof LocalBusinessesRoute
   '/med-spas': typeof MedSpasRoute
   '/plumbers': typeof PlumbersRoute
+  '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
   '/real-estate': typeof RealEstateRoute
   '/resources': typeof ResourcesRoute
@@ -1005,6 +1012,7 @@ export interface FileRoutesByTo {
   '/local-businesses': typeof LocalBusinessesRoute
   '/med-spas': typeof MedSpasRoute
   '/plumbers': typeof PlumbersRoute
+  '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
   '/real-estate': typeof RealEstateRoute
   '/resources': typeof ResourcesRoute
@@ -1141,6 +1149,7 @@ export interface FileRoutesById {
   '/local-businesses': typeof LocalBusinessesRoute
   '/med-spas': typeof MedSpasRoute
   '/plumbers': typeof PlumbersRoute
+  '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
   '/real-estate': typeof RealEstateRoute
   '/resources': typeof ResourcesRoute
@@ -1278,6 +1287,7 @@ export interface FileRouteTypes {
     | '/local-businesses'
     | '/med-spas'
     | '/plumbers'
+    | '/pricing'
     | '/privacy'
     | '/real-estate'
     | '/resources'
@@ -1413,6 +1423,7 @@ export interface FileRouteTypes {
     | '/local-businesses'
     | '/med-spas'
     | '/plumbers'
+    | '/pricing'
     | '/privacy'
     | '/real-estate'
     | '/resources'
@@ -1548,6 +1559,7 @@ export interface FileRouteTypes {
     | '/local-businesses'
     | '/med-spas'
     | '/plumbers'
+    | '/pricing'
     | '/privacy'
     | '/real-estate'
     | '/resources'
@@ -1684,6 +1696,7 @@ export interface RootRouteChildren {
   LocalBusinessesRoute: typeof LocalBusinessesRoute
   MedSpasRoute: typeof MedSpasRoute
   PlumbersRoute: typeof PlumbersRoute
+  PricingRoute: typeof PricingRoute
   PrivacyRoute: typeof PrivacyRoute
   RealEstateRoute: typeof RealEstateRoute
   ResourcesRoute: typeof ResourcesRoute
@@ -1929,6 +1942,13 @@ declare module '@tanstack/react-router' {
       path: '/plumbers'
       fullPath: '/plumbers'
       preLoaderRoute: typeof PlumbersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pricing': {
+      id: '/pricing'
+      path: '/pricing'
+      fullPath: '/pricing'
+      preLoaderRoute: typeof PricingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/privacy': {
@@ -2954,6 +2974,7 @@ const rootRouteChildren: RootRouteChildren = {
   LocalBusinessesRoute: LocalBusinessesRoute,
   MedSpasRoute: MedSpasRoute,
   PlumbersRoute: PlumbersRoute,
+  PricingRoute: PricingRoute,
   PrivacyRoute: PrivacyRoute,
   RealEstateRoute: RealEstateRoute,
   ResourcesRoute: ResourcesRoute,

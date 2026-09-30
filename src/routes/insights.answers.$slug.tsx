@@ -65,7 +65,7 @@ function AnswerPage() {
 
   return (
     <>
-      <Section>
+      <Section tone="hero">
         <Container size="narrow" className="px-0">
           <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground">
             <Link to="/insights" className="hover:text-brand">
@@ -75,12 +75,17 @@ function AnswerPage() {
             <span className="text-foreground">Answers</span>
           </nav>
 
-          <article className="mt-8">
+          <header className="mt-8">
             <Eyebrow>{answer.topic}</Eyebrow>
             <h1 className="mt-4 text-3xl leading-tight text-balance sm:text-4xl">
               {answer.question}
             </h1>
-            <div className="rule-brand mt-8" />
+          </header>
+        </Container>
+      </Section>
+      <Section>
+        <Container size="narrow" className="px-0">
+          <article>
 
             <p className="mt-8 text-xl leading-relaxed text-foreground">{answer.short}</p>
             <div className="mt-6 space-y-5 text-lg leading-relaxed text-muted-foreground">

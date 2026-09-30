@@ -26,26 +26,29 @@ export const Route = createFileRoute("/faqs")({
 
 function FaqPage() {
   return (
-    <Section>
-      <div className="grid gap-10 lg:grid-cols-[1fr_1.6fr] lg:gap-16">
-        <div>
-          <SectionHeader
-            as="h1"
-            eyebrow="Questions"
-            title="Working with HQ360"
-            intro="What we offer, who we help and how to get started."
-          />
-          <nav
-            aria-label="Explore HQ360"
-            className="mt-8 flex flex-wrap gap-5 text-sm text-brand underline underline-offset-4"
-          >
-            <Link to="/services">Explore services</Link>
-            <Link to="/industries">Industries we help</Link>
-            <Link to="/contact">Start a project</Link>
-          </nav>
+    <>
+      <Section tone="hero">
+        <SectionHeader
+          as="h1"
+          eyebrow="Questions"
+          title="Working with HQ360"
+          intro="What we offer, who we help and how to get started."
+        />
+        <nav
+          aria-label="Explore HQ360"
+          className="mt-8 flex flex-wrap gap-5 text-sm text-brand underline underline-offset-4"
+        >
+          <Link to="/services">Explore services</Link>
+          <Link to="/pricing">See pricing</Link>
+          <Link to="/industries">Industries we help</Link>
+          <Link to="/contact">Start a project</Link>
+        </nav>
+      </Section>
+      <Section>
+        <div className="mx-auto max-w-4xl">
+          <FaqSection faqs={GENERAL_FAQS} idPrefix="general" />
         </div>
-        <FaqSection faqs={GENERAL_FAQS} idPrefix="general" />
-      </div>
-    </Section>
+      </Section>
+    </>
   );
 }

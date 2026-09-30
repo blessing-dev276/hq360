@@ -92,7 +92,8 @@ function Tool({ tool }: { tool: (typeof FREE_TOOLS)[number] }) {
     URL.revokeObjectURL(url);
   }
   return (
-    <Section>
+    <>
+    <Section tone="hero">
       <div className="mx-auto max-w-3xl">
         <Link to="/tools" className="text-sm text-brand">
           ← All free tools
@@ -105,7 +106,11 @@ function Tool({ tool }: { tool: (typeof FREE_TOOLS)[number] }) {
             intro={tool.description}
           />
         </div>
-        <p className="my-6 text-sm text-muted-foreground">
+      </div>
+    </Section>
+    <Section>
+      <div className="mx-auto max-w-3xl">
+        <p className="mb-6 text-sm text-muted-foreground">
           {checklist
             ? "Answer a few questions to build your next-action checklist."
             : "Create a practical planning document you can copy or download."}{" "}
@@ -221,5 +226,6 @@ function Tool({ tool }: { tool: (typeof FREE_TOOLS)[number] }) {
         )}
       </div>
     </Section>
+    </>
   );
 }

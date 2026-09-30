@@ -51,16 +51,18 @@ function ContactPage() {
   const context = Route.useSearch();
   return (
     <>
+      <Section tone="hero">
+        <SectionHeader
+          as="h1"
+          eyebrow="Start a project"
+          title="Tell us about your project"
+          intro="The more context you give, the more useful our first reply will be. Everything here is optional except your name and email."
+        />
+      </Section>
       <Section>
         <div className="grid gap-12 lg:grid-cols-[1fr_1.15fr] lg:items-start lg:gap-16">
           <div>
-            <SectionHeader
-              as="h1"
-              eyebrow="Start a project"
-              title="Tell us about your project"
-              intro="The more context you give, the more useful our first reply will be. Everything here is optional except your name and email."
-            />
-            <ul className="mt-10 space-y-3 text-sm text-muted-foreground">
+            <ul className="space-y-3 text-sm text-muted-foreground">
               <li>One working day to a considered reply, not an autoresponder</li>
               <li>You own every account, asset and automation we build</li>
               <li>We agree deliverables, review points and support in your proposal</li>

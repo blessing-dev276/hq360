@@ -47,14 +47,17 @@ const sections = [
 
 function PrivacyPage() {
   return (
-    <Section>
+    <>
+    <Section tone="hero">
       <SectionHeader
         as="h1"
         eyebrow="Legal"
         title="Privacy policy"
         intro="Placeholder policy for demonstration. Have counsel review before publishing."
       />
-      <div className="mt-12 max-w-3xl space-y-10">
+    </Section>
+    <Section>
+      <div className="max-w-3xl space-y-10">
         {sections.map((s) => (
           <section key={s.heading}>
             <h2 className="font-display text-xl">{s.heading}</h2>
@@ -73,5 +76,6 @@ function PrivacyPage() {
         </section>
       </div>
     </Section>
+    </>
   );
 }

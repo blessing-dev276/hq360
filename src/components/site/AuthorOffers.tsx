@@ -27,14 +27,16 @@ export function AuthorOffers() {
 export function AuthorOfferPage({ offer }: { offer: AuthorOffer }) {
   return (
     <>
-      <Section>
+      <Section tone="hero">
         <SectionHeader
           as="h1"
           eyebrow="For authors & publishers"
           title={offer.name}
           intro={offer.description}
         />
-        <h2 className="mt-10 text-2xl">What we can help you deliver</h2>
+      </Section>
+      <Section>
+        <h2 className="text-2xl">What we can help you deliver</h2>
         <ul className="mt-5 space-y-3">
           {offer.deliverables.map((item) => (
             <li key={item}>✓ {item}</li>

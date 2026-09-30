@@ -55,14 +55,16 @@ export function CapabilityDetailView({ capability }: { capability: Capability })
 
   return (
     <>
-      <section className="relative overflow-hidden border-b border-border">
+      <section className="hqd-hero-section">
+        <span className="hqd-hero-glow" aria-hidden="true" />
+        <span className="hqd-hero-shade" aria-hidden="true" />
         <span
           aria-hidden="true"
-          className="pointer-events-none absolute -right-24 -top-20 hidden h-[26rem] w-[26rem] text-foreground/[0.06] lg:block"
+          className="pointer-events-none absolute -right-24 -top-20 hidden h-[26rem] w-[26rem] text-white/10 lg:block"
         >
           <OrbitGraphic />
         </span>
-        <Container className="relative py-16 sm:py-20 lg:py-24">
+        <Container className="relative">
           <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground">
             <Link to="/services" className="hover:text-brand">
               Services

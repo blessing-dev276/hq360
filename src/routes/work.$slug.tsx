@@ -53,7 +53,7 @@ function WorkDetail() {
 
   return (
     <>
-      <Section>
+      <Section tone="hero">
         <Container size="narrow" className="px-0">
           <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground">
             <Link to="/work" className="hover:text-brand">
@@ -97,7 +97,7 @@ function WorkDetail() {
       </Section>
 
       {study.media && study.media.length > 0 ? (
-        <Section tone="raised" className="pt-0 lg:pt-0">
+        <Section tone="raised">
           <ul className="grid gap-6 md:grid-cols-2">
             {study.media.map((m, i) => {
               const isVideo =

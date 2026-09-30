@@ -65,6 +65,7 @@ export const PRIMARY_NAV: {
   { label: "Services", menu: "capabilities" },
   { label: "Who We Help", menu: "industries" },
   { label: "Our Work", to: "/work" },
+  { label: "Pricing", to: "/pricing" },
   { label: "Experts", to: "/experts" },
   { label: "About", to: "/about" },
 ];
@@ -101,6 +102,7 @@ export const FOOTER_NAV = [
     links: [
       { label: "Authors & Publishers", to: "/authors" },
       { label: "Our Work", to: "/work" },
+      { label: "Pricing", to: "/pricing" },
       { label: "Resources", to: "/resources" },
       { label: "Tools", to: "/tools" },
       { label: "Free Visibility Check", to: "/tools/author-visibility-audit" },

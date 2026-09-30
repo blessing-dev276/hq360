@@ -29,17 +29,16 @@ export const Route = createFileRoute("/capabilities/")({
 export function CapabilitiesPage() {
   return (
     <>
-      <Section>
+      <Section tone="hero">
         <SectionHeader
           as="h1"
-          align="center"
           eyebrow="What we do"
           title="Nine services, run as one system"
           intro="HQ360 helps businesses and personal brands connect brand, websites, marketing and product development. Start with the services your business needs, guided by an audit and a written plan."
         />
-        <div className="mt-14">
-          <CapabilityGrid />
-        </div>
+      </Section>
+      <Section>
+        <CapabilityGrid />
       </Section>
 
       <Section tone="carbon">

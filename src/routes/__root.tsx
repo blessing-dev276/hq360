@@ -115,19 +115,21 @@ function RootComponent() {
       >
         Skip to content
       </a>
-      {!privateAudit && <SiteHeader />}
-      <main id="main">
-        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-        <Outlet />
-      </main>
-      {!privateAudit && (
-        <>
-          <SiteFooter />
-          <CookieBanner />
-          <LeadPopup />
-          <VoiceMessage />
-        </>
-      )}
+      <div className={privateAudit ? undefined : "hqd dark hqd-site"}>
+        {!privateAudit && <SiteHeader />}
+        <main id="main">
+          {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+          <Outlet />
+        </main>
+        {!privateAudit && (
+          <>
+            <SiteFooter />
+            <CookieBanner />
+            <LeadPopup />
+            <VoiceMessage />
+          </>
+        )}
+      </div>
     </QueryClientProvider>
   );
 }

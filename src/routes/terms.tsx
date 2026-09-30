@@ -47,14 +47,17 @@ const sections = [
 
 function TermsPage() {
   return (
-    <Section>
+    <>
+    <Section tone="hero">
       <SectionHeader
         as="h1"
         eyebrow="Legal"
         title="Terms of service"
         intro="Placeholder terms for demonstration. Have counsel review before publishing."
       />
-      <div className="mt-12 max-w-3xl space-y-10">
+    </Section>
+    <Section>
+      <div className="max-w-3xl space-y-10">
         {sections.map((s) => (
           <section key={s.heading}>
             <h2 className="font-display text-xl">{s.heading}</h2>
@@ -73,5 +76,6 @@ function TermsPage() {
         </section>
       </div>
     </Section>
+    </>
   );
 }

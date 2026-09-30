@@ -177,7 +177,12 @@ function Founder() {
         <div className="ab-founder-card">
           <div className="ab-founder-photo">
             {photo ? (
-              <img src={photo} alt={`${FOUNDER.name}, Founder & CEO of ${BRAND.name}`} loading="lazy" decoding="async" />
+              <img
+                src={photo}
+                alt={`${FOUNDER.name}, Founder & CEO of ${BRAND.name}`}
+                loading="lazy"
+                decoding="async"
+              />
             ) : (
               <span aria-hidden="true">{FOUNDER.initials}</span>
             )}
@@ -185,9 +190,7 @@ function Founder() {
           <p className="ab-eyebrow">
             <span /> From our founder
           </p>
-          <p className="ab-founder-quote">
-            &ldquo;{FOUNDER.blurb}&rdquo;
-          </p>
+          <p className="ab-founder-quote">&ldquo;{FOUNDER.blurb}&rdquo;</p>
           <p className="ab-founder-byline">
             <strong>{FOUNDER.name}</strong>
             <span>Founder &amp; CEO, {BRAND.name}</span>
@@ -399,7 +402,10 @@ function TeamTeaser() {
               <span /> The team
             </p>
             <h2>A small multidisciplinary team, every discipline in-house</h2>
-            <p>One named lead per engagement &mdash; no account managers relaying work between vendors.</p>
+            <p>
+              One named lead per engagement &mdash; no account managers relaying work between
+              vendors.
+            </p>
           </div>
           <Link to="/team" className="ab-btn ab-btn-primary">
             Meet the team <ArrowUpRight aria-hidden="true" />

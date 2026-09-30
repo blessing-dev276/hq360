@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
-import { isAdminRequest } from "@/lib/admin-auth.server";
+import { isAdminOrExpertRequest } from "@/lib/expert-auth.server";
 import { asScoutDb, type ScoutAuthor } from "@/lib/scout/db";
 import { researchAuthorWebsite } from "@/lib/scout/adapters/website-research";
 
@@ -18,7 +18,7 @@ export const Route = createFileRoute("/api/admin/scout-authors/$id/research-webs
   server: {
     handlers: {
       POST: async ({ request, params }) => {
-        if (!(await isAdminRequest(request)))
+        if (!(await isAdminOrExpertRequest(request)))
           return json({ ok: false, error: "unauthorized" }, 401);
         if (!UUID.test(params.id)) return json({ ok: false, error: "invalid" }, 400);
         let body: z.infer<typeof bodySchema>;

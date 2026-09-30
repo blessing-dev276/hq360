@@ -81,6 +81,7 @@ export const Route = createFileRoute("/api/public/inquiry")({
               industry: parsed.industry || parsed.sourceIndustry || undefined,
               sourcePath: parsed.sourcePath || undefined,
               fields: {
+                sourceIndustry: parsed.sourceIndustry || undefined,
                 helpWith: parsed.helpWith ?? [],
                 primaryGoal: parsed.primaryGoal || undefined,
                 budgetRange: parsed.budgetRange || undefined,

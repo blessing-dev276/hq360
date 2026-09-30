@@ -1,3 +1,4 @@
+import { contextForPath, inquiryHref, readInquiryContext } from "@/lib/inquiry-context";
 import { Link, useRouterState } from "@tanstack/react-router";
 import { useEffect, useId, useRef, useState } from "react";
 import { ArrowRight, ArrowUpRight, ChevronDown, LogOut, Menu, X } from "lucide-react";
@@ -14,18 +15,12 @@ const RESOURCE_LINKS: NavItem[] = [
   { label: "Testimonials & Reviews", to: "/testimonials" },
 ];
 
-const INDUSTRY_GROUPS = [
-  { label: "People & ideas", routes: ["/authors", "/creators", "/coaches"] },
-  { label: "Places & spaces", routes: ["/real-estate", "/home-services", "/med-spas"] },
-  { label: "Commerce & product", routes: ["/ecommerce"] },
-  { label: "Business & expertise", routes: ["/law-firms", "/agencies"] },
-].map((group) => ({
-  label: group.label,
-  items: group.routes.flatMap((route) => INDUSTRY_MENU.filter((item) => item.to === route)),
-}));
+const INDUSTRY_GROUPS = [{ label: "Find your audience", items: INDUSTRY_MENU }];
 
 export function SiteHeader() {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
+  const search = useRouterState({ select: (state) => state.location.search });
+  const contactTo = inquiryHref({ ...contextForPath(pathname), ...readInquiryContext(search) });
   const isAdmin = pathname === "/admin";
   const [adminAuthed, setAdminAuthed] = useState(false);
   const [openMenu, setOpenMenu] = useState<MenuKey | null>(null);
@@ -353,19 +348,19 @@ export function SiteHeader() {
                           <p>
                             {key === "industries"
                               ? "Your world.\nOur perspective."
-                              : "Your book.\nYour next chapter."}
+                              : "Your project.\nThe right support."}
                           </p>
                           <span className="hq-menu-caption">
                             {key === "industries"
-                              ? "Specialist thinking shaped around the way your market actually works."
-                              : "Writing, publishing support, visibility and reader relationships."}
+                              ? "Practical starting points for different business needs."
+                              : "Websites, apps, automation, writing and translation."}
                           </span>
                           <Link
                             to={key === "industries" ? "/industries" : "/services"}
                             preload="intent"
                             className="hq-nav-text-link"
                           >
-                            {key === "industries" ? "View all industries" : "Explore services"}
+                            {key === "industries" ? "Explore audiences" : "Explore services"}
                             <ArrowRight size={16} aria-hidden="true" />
                           </Link>
                         </aside>
@@ -424,7 +419,7 @@ export function SiteHeader() {
             <LogOut size={16} aria-hidden="true" />
           </button>
         ) : (
-          <Link to={CTAS.primary.to} preload="intent" className="hq-header-cta">
+          <Link to={contactTo} preload="intent" className="hq-header-cta">
             {CTAS.primary.label}
             <ArrowUpRight size={16} aria-hidden="true" />
           </Link>
@@ -485,6 +480,12 @@ export function SiteHeader() {
           <MobileGroup title="Services" extra={{ label: "Explore services", to: "/services" }}>
             <MobileLinks items={CAPABILITY_MENU} />
           </MobileGroup>
+          <MobileGroup
+            title="Who We Help"
+            extra={{ label: "Explore audiences", to: "/industries" }}
+          >
+            <MobileLinks items={INDUSTRY_MENU} />
+          </MobileGroup>
           <ul className="hq-mobile-primary-links">
             {PRIMARY_NAV.filter((item) => item.to).map((item) => (
               <li key={item.label}>
@@ -501,12 +502,12 @@ export function SiteHeader() {
               <LogOut size={20} aria-hidden="true" />
             </button>
           ) : (
-            <Link to={CTAS.primary.to} preload="intent" className="hq-mobile-project-link">
+            <Link to={contactTo} preload="intent" className="hq-mobile-project-link">
               {CTAS.primary.label}
               <ArrowUpRight size={20} aria-hidden="true" />
             </Link>
           )}
-          <p className="hq-mobile-signoff">Strategy. Creative. Technology. Growth.</p>
+          <p className="hq-mobile-signoff">Websites. Apps. Systems. Content.</p>
         </nav>
       </dialog>
     </header>

@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { randomBytes, randomUUID } from "node:crypto";
 import { z } from "zod";
-import { isAdminRequest } from "@/lib/admin-auth.server";
+import { isAdminOrExpertRequest } from "@/lib/expert-auth.server";
 import { clientDb, privateJson } from "@/lib/author-audit/client-access.server";
 import {
   digest,
@@ -30,7 +30,8 @@ export const Route = createFileRoute("/api/admin/author-audits/$id/publishing")(
   server: {
     handlers: {
       GET: async ({ request, params }) => {
-        if (!(await isAdminRequest(request))) return privateJson({ error: "Unauthorized" }, 401);
+        if (!(await isAdminOrExpertRequest(request)))
+          return privateJson({ error: "Unauthorized" }, 401);
         try {
           const db = clientDb();
           const url = new URL(request.url);
@@ -102,7 +103,8 @@ export const Route = createFileRoute("/api/admin/author-audits/$id/publishing")(
         }
       },
       POST: async ({ request, params }) => {
-        if (!(await isAdminRequest(request))) return privateJson({ error: "Unauthorized" }, 401);
+        if (!(await isAdminOrExpertRequest(request)))
+          return privateJson({ error: "Unauthorized" }, 401);
         if (!sameOrigin(request)) return privateJson({ error: "Forbidden" }, 403);
         try {
           const body = schema.parse(await request.json());

@@ -66,7 +66,9 @@ export function AuditHero({
                 <span className="aud-step-num">{number}</span>
                 <span>{label}</span>
               </button>
-              {index < steps.length - 1 ? <span className="aud-step-line" aria-hidden="true" /> : null}
+              {index < steps.length - 1 ? (
+                <span className="aud-step-line" aria-hidden="true" />
+              ) : null}
             </li>
           ))}
         </ol>

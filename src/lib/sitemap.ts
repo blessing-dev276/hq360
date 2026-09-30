@@ -1,3 +1,4 @@
+import { AUDIENCES, CORE_SERVICES, SERVICE_REDIRECTS } from "@/data/agency";
 import { AUTHOR_OFFERS } from "@/data/author-offers";
 import { CAPABILITIES } from "@/data/capabilities";
 import { FREE_TOOLS } from "@/data/free-tools";
@@ -24,8 +25,12 @@ export const STATIC_SITEMAP_PATHS = [
   "/insights/glossary",
   "/privacy",
   "/terms",
-  ...CAPABILITIES.map((item) => item.path),
-  ...INDUSTRIES.map((item) => item.path),
+  ...CORE_SERVICES.map((item) => `/services/${item.slug}`),
+  ...AUDIENCES.map((item) => `/${item.slug}`),
+  ...CAPABILITIES.filter((item) => !SERVICE_REDIRECTS[item.slug]).map((item) => item.path),
+  ...INDUSTRIES.filter((item) => !["/creators", "/local-business"].includes(item.path)).map(
+    (item) => item.path,
+  ),
   ...INSIGHTS.map((item) => `/insights/${item.slug}`),
   ...GUIDES.map((item) => `/insights/guides/${item.slug}`),
   ...ANSWERS.map((item) => `/insights/answers/${item.slug}`),

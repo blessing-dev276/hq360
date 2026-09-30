@@ -11,7 +11,7 @@ async function handle(request: Request) {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = supabaseAdmin as SupabaseClient;
     if (request.method === "GET") {
-      const [leads, invoices, events] = await Promise.all([
+      const [leads, invoices, events, inquiries] = await Promise.all([
         db.from("sales_leads").select("*").order("created_at", { ascending: false }),
         db
           .from("payment_invoices")
@@ -22,6 +22,7 @@ async function handle(request: Request) {
           .from("sales_events")
           .select("lead_id,event,detail,created_at")
           .order("created_at", { ascending: false }),
+        db.from("project_inquiries").select("id,industry,help_with,source_industry,source_path"),
       ]);
       if (leads.error || invoices.error || events.error)
         return json(
@@ -30,7 +31,13 @@ async function handle(request: Request) {
         );
       return json({
         ok: true,
-        items: leads.data ?? [],
+        items: (leads.data ?? []).map((lead) => ({
+          ...lead,
+          inquiry_context:
+            lead.source_kind === "inquiry"
+              ? (inquiries.data?.find((inquiry) => inquiry.id === lead.source_id) ?? null)
+              : null,
+        })),
         invoices: invoices.data ?? [],
         events: events.data ?? [],
       });

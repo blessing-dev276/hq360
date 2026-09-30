@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
-import { isAdminRequest } from "@/lib/admin-auth.server";
+import { isAdminOrExpertRequest } from "@/lib/expert-auth.server";
 import { AMAZON_DOMAINS } from "@/lib/scout/amazon-url";
 
 function json(body: unknown, status = 200) {
@@ -110,7 +110,7 @@ export const Route = createFileRoute("/api/admin/scout-amazon-search")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        if (!(await isAdminRequest(request)))
+        if (!(await isAdminOrExpertRequest(request)))
           return json({ ok: false, error: "unauthorized" }, 401);
         const parsed = schema.safeParse(await request.json().catch(() => null));
         if (!parsed.success || parsed.data.ratingMin > parsed.data.ratingMax)

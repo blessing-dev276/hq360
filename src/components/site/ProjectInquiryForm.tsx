@@ -2,16 +2,16 @@ import { trackConversion } from "@/lib/google-analytics";
 import { useState, type FormEvent } from "react";
 import { z } from "zod";
 import { cn } from "@/lib/utils";
-import { AUTHOR_OFFERS } from "@/data/author-offers";
-import { INDUSTRIES } from "@/data/industries";
+import { AUDIENCES, CORE_SERVICES } from "@/data/agency";
+import { inquirySourcePath } from "@/lib/inquiry-context";
 
-const HELP_OPTIONS = AUTHOR_OFFERS.map((c) => c.name);
+const HELP_OPTIONS = CORE_SERVICES.map((c) => c.name);
 const BUDGETS = ["Not sure yet", "Under $5k", "$5k – $15k", "$15k – $50k", "$50k+"];
 const TIMELINES = ["As soon as possible", "Within 1–3 months", "In 3–6 months", "Just exploring"];
 
 const schema = z.object({
-  name: z.string().min(2, "Enter your name"),
-  email: z.string().email("Enter a valid email"),
+  name: z.string().min(2, "Enter your name").max(160),
+  email: z.string().email("Enter a valid email").max(320),
   company: z.string().optional(),
   website: z.string().optional(),
   industry: z.string().optional(),
@@ -27,20 +27,26 @@ type Errors = Partial<Record<keyof z.infer<typeof schema>, string>> & { form?: s
 export function ProjectInquiryForm({
   defaultIndustry,
   sourceIndustry,
+  sourceService = "",
+  sourcePath,
+  defaultServices = [],
   className,
   compact = false,
   helpOptions = HELP_OPTIONS,
 }: {
   /** Prefill the industry select (Industry.shortName). */
-  defaultIndustry?: string;
+  defaultIndustry?: string | undefined;
   /** The industry landing page this form was rendered on. */
-  sourceIndustry?: string;
+  sourceIndustry?: string | undefined;
+  sourceService?: string | undefined;
+  sourcePath?: string | undefined;
+  defaultServices?: string[];
   className?: string;
   compact?: boolean;
   /** Optional vertical-specific service choices. */
   helpOptions?: string[];
 }) {
-  const [helpWith, setHelpWith] = useState<string[]>([]);
+  const [helpWith, setHelpWith] = useState<string[]>(defaultServices);
   const [errors, setErrors] = useState<Errors>({});
   const [state, setState] = useState<"idle" | "sending" | "done">("idle");
   const [honey, setHoney] = useState("");
@@ -57,7 +63,7 @@ export function ProjectInquiryForm({
       company: String(fd.get("company") ?? "").trim(),
       website: String(fd.get("website") ?? "").trim(),
       industry: String(fd.get("industry") ?? "").trim(),
-      helpWith,
+      helpWith: helpWith.length ? helpWith : ["Help me choose"],
       primaryGoal: String(fd.get("primaryGoal") ?? "").trim(),
       budgetRange: String(fd.get("budgetRange") ?? "").trim(),
       timeline: String(fd.get("timeline") ?? "").trim(),
@@ -71,6 +77,8 @@ export function ProjectInquiryForm({
         next[issue.path[0] as keyof Errors] = issue.message;
       }
       setErrors(next);
+      const field = e.currentTarget.elements.namedItem(String(parsed.error.issues[0]?.path[0]));
+      if (field instanceof HTMLElement) field.focus();
       return;
     }
     setErrors({});
@@ -83,14 +91,17 @@ export function ProjectInquiryForm({
         body: JSON.stringify({
           ...parsed.data,
           sourceIndustry: sourceIndustry ?? "",
-          sourcePath: typeof window !== "undefined" ? window.location.pathname : "",
+          sourcePath: inquirySourcePath(
+            sourcePath ?? (typeof window !== "undefined" ? window.location.pathname : ""),
+            sourceService,
+          ),
           company_url: honey,
         }),
       });
       const body = (await res.json().catch(() => ({}))) as { ok?: boolean; emailed?: boolean };
       if (res.ok && body.ok) {
         setEmailed(body.emailed === true);
-        trackConversion("project_inquiry_submitted");
+        if (!honey) trackConversion("project_inquiry_submitted");
         setState("done");
       } else {
         setState("idle");
@@ -145,26 +156,69 @@ export function ProjectInquiryForm({
       <div className="grid gap-5">
         <div className={cn("grid gap-5", !compact && "sm:grid-cols-2")}>
           <Field label="Full name" error={errors.name}>
-            <input name="name" type="text" autoComplete="name" className={inputCls} />
+            <input
+              name="name"
+              required
+              maxLength={160}
+              type="text"
+              autoComplete="name"
+              className={inputCls}
+            />
           </Field>
           <Field label="Email" error={errors.email}>
-            <input name="email" type="email" autoComplete="email" className={inputCls} />
+            <input
+              name="email"
+              required
+              maxLength={320}
+              type="email"
+              autoComplete="email"
+              className={inputCls}
+            />
           </Field>
         </div>
 
-        <Field label="What do you need help with?" error={errors.helpWith}>
-          <select
-            className={inputCls}
-            value={helpWith[0] ?? ""}
-            onChange={(event) => setHelpWith(event.target.value ? [event.target.value] : [])}
-          >
-            <option value="">Choose a service</option>
-            {helpOptions.map((option) => (
-              <option key={option}>{option}</option>
+        <Field label="Business type" hint="Optional">
+          <select name="industry" defaultValue={defaultIndustry ?? ""} className={inputCls}>
+            <option value="">Choose your business type</option>
+            {[
+              ...new Set([
+                ...AUDIENCES.map((a) => a.name),
+                ...(defaultIndustry ? [defaultIndustry] : []),
+              ]),
+            ].map((name) => (
+              <option key={name}>{name}</option>
             ))}
-            <option>Help me choose</option>
+            <option>Other</option>
           </select>
         </Field>
+        <fieldset>
+          <legend className="text-sm font-medium">What do you need help with?</legend>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Select all that apply, or leave this blank and we’ll help you choose.
+          </p>
+          <div className="mt-3 grid gap-2">
+            {[...new Set([...helpOptions, ...defaultServices])].map((option) => (
+              <label
+                key={option}
+                className="flex min-h-11 items-center gap-3 rounded-lg border border-border px-3 py-2 text-sm"
+              >
+                <input
+                  type="checkbox"
+                  checked={helpWith.includes(option)}
+                  onChange={(event) =>
+                    setHelpWith((current) =>
+                      event.target.checked
+                        ? [...current, option]
+                        : current.filter((value) => value !== option),
+                    )
+                  }
+                  className="size-4 accent-brand"
+                />
+                {option}
+              </label>
+            ))}
+          </div>
+        </fieldset>
         <Field label="Tell us a little about your idea" hint="Optional">
           <textarea
             name="message"
@@ -180,17 +234,6 @@ export function ProjectInquiryForm({
             <span className="font-normal text-muted-foreground">(optional)</span>
           </summary>
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
-            <Field label="Industry">
-              <select name="industry" defaultValue={defaultIndustry ?? ""} className={inputCls}>
-                <option value="">Choose industry</option>
-                {INDUSTRIES.map((i) => (
-                  <option key={i.slug} value={i.shortName}>
-                    {i.shortName}
-                  </option>
-                ))}
-                <option>Other</option>
-              </select>
-            </Field>
             <Field label="Website">
               <input
                 name="website"
@@ -275,7 +318,11 @@ function Field({
         {hint ? <span className="text-xs text-muted-foreground">{hint}</span> : null}
       </span>
       <span className="mt-1.5 block">{children}</span>
-      {error ? <span className="mt-1 block text-xs text-destructive">{error}</span> : null}
+      {error ? (
+        <span role="alert" className="mt-1 block text-xs text-destructive">
+          {error}
+        </span>
+      ) : null}
     </label>
   );
 }

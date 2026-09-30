@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
-import { isAdminRequest } from "@/lib/admin-auth.server";
+import { isAdminOrExpertRequest } from "@/lib/expert-auth.server";
 import { asAuditDb, type AuditStatus } from "@/lib/author-audit/db";
 import { clientDb } from "@/lib/author-audit/client-access.server";
 import { buildReportData } from "@/lib/author-audit/report-data";
@@ -182,7 +182,7 @@ export const Route = createFileRoute("/api/admin/author-audits/$id/bulk-import")
   server: {
     handlers: {
       POST: async ({ request, params }) => {
-        if (!(await isAdminRequest(request)))
+        if (!(await isAdminOrExpertRequest(request)))
           return json({ ok: false, error: "unauthorized" }, 401);
         if (!UUID.test(params.id)) return json({ ok: false, error: "not_found" }, 404);
 
@@ -223,10 +223,7 @@ export const Route = createFileRoute("/api/admin/author-audits/$id/bulk-import")
         }
         for (const asset of body.evidenceAssets) {
           if (asset.findingKey && !keySet.has(asset.findingKey)) {
-            return json(
-              { ok: false, error: "unknown_finding_key", area: "evidenceAssets" },
-              400,
-            );
+            return json({ ok: false, error: "unknown_finding_key", area: "evidenceAssets" }, 400);
           }
         }
 
@@ -399,7 +396,8 @@ export const Route = createFileRoute("/api/admin/author-audits/$id/bulk-import")
           }
 
           const auditPatch: Record<string, unknown> = {};
-          if (body.preparedByStaffName) auditPatch.prepared_by_staff_name = body.preparedByStaffName;
+          if (body.preparedByStaffName)
+            auditPatch.prepared_by_staff_name = body.preparedByStaffName;
           if (body.executiveAssessment) {
             auditPatch.executive_assessment = body.executiveAssessment;
             auditPatch.executive_assessment_review_status = "approved";

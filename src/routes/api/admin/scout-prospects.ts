@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
-import { isAdminRequest } from "@/lib/admin-auth.server";
+import { isAdminOrExpertRequest } from "@/lib/expert-auth.server";
 import { asScoutDb, type ScoutProspect } from "@/lib/scout/db";
 
 function json(body: unknown, status = 200) {
@@ -19,7 +19,7 @@ export const Route = createFileRoute("/api/admin/scout-prospects")({
   server: {
     handlers: {
       GET: async ({ request }) => {
-        if (!(await isAdminRequest(request)))
+        if (!(await isAdminOrExpertRequest(request)))
           return json({ ok: false, error: "unauthorized" }, 401);
         try {
           const url = new URL(request.url);
@@ -42,7 +42,7 @@ export const Route = createFileRoute("/api/admin/scout-prospects")({
         }
       },
       POST: async ({ request }) => {
-        if (!(await isAdminRequest(request)))
+        if (!(await isAdminOrExpertRequest(request)))
           return json({ ok: false, error: "unauthorized" }, 401);
         let body: z.infer<typeof createSchema>;
         try {

@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { isAdminRequest } from "@/lib/admin-auth.server";
+import { isAdminOrExpertRequest } from "@/lib/expert-auth.server";
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -48,7 +48,7 @@ export const Route = createFileRoute("/api/admin/scout-reedsy-genres")({
   server: {
     handlers: {
       GET: async ({ request }) => {
-        if (!(await isAdminRequest(request)))
+        if (!(await isAdminOrExpertRequest(request)))
           return json({ ok: false, error: "unauthorized" }, 401);
 
         if (cache && Date.now() - cache.at < CACHE_TTL_MS)

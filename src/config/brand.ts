@@ -1,4 +1,4 @@
-import { AUTHOR_OFFERS } from "@/data/author-offers";
+import { AUDIENCES, CORE_SERVICES } from "@/data/agency";
 /**
  * HQ360 brand configuration.
  *
@@ -26,13 +26,13 @@ export const BRAND = {
   whatsapp: "+1 (361) 466-0223",
   /** wa.me deep link — digits only, no "+". */
   whatsappHref: "https://wa.me/13614660223",
-  tagline: "Your book. Your readers. Your next chapter.",
+  tagline: "Websites, apps, systems and content.",
   /** One-paragraph positioning, reused in meta descriptions and the footer. */
   positioning:
-    "HQ360 helps authors and publishers develop books, prepare for publication, improve visibility and build reader relationships.",
+    "HQ360 builds websites, mobile apps and automation systems, and provides writing, editing, translation and localization for businesses.",
   /** Short descriptor for schema.org and OG site name. */
-  descriptor: "Author and publishing services",
-  serviceArea: "Working with authors and publishers worldwide.",
+  descriptor: "Digital services and content agency",
+  serviceArea: "Working with businesses, creators, authors and agency teams.",
 } as const;
 
 export const CTAS = {
@@ -46,19 +46,12 @@ export const CTAS = {
  * Industry links shown in the header mega menu. The full list lives in
  * `src/data/industries.ts`; this is the curated shortlist plus a catch-all.
  */
-export const INDUSTRY_MENU: { label: string; to: string }[] = [
-  { label: "Authors & Publishers", to: "/authors" },
-  { label: "Real Estate", to: "/real-estate" },
-  { label: "Content Creators", to: "/creators" },
-  { label: "Coaches & Consultants", to: "/coaches" },
-  { label: "E-commerce & DTC", to: "/ecommerce" },
-  { label: "Home Services", to: "/home-services" },
-  { label: "Med Spas & Beauty", to: "/med-spas" },
-  { label: "Law & Professional Services", to: "/law-firms" },
-  { label: "Agencies", to: "/agencies" },
-];
+export const INDUSTRY_MENU = AUDIENCES.map((audience) => ({
+  label: audience.name,
+  to: `/${audience.slug}`,
+}));
 
-export const CAPABILITY_MENU = AUTHOR_OFFERS.map((offer) => ({
+export const CAPABILITY_MENU = CORE_SERVICES.map((offer) => ({
   label: offer.name,
   to: `/services/${offer.slug}`,
   blurb: offer.description,
@@ -70,8 +63,8 @@ export const PRIMARY_NAV: {
   menu?: "industries" | "capabilities" | "about" | "resources";
 }[] = [
   { label: "Services", menu: "capabilities" },
+  { label: "Who We Help", menu: "industries" },
   { label: "Our Work", to: "/work" },
-  { label: "Free Visibility Check", to: "/tools/author-visibility-audit" },
   { label: "About", to: "/about" },
 ];
 
@@ -84,19 +77,21 @@ export const ABOUT_MENU: { label: string; to: string; blurb: string }[] = [
   },
   {
     label: "Meet the Team",
-    to: "/team",
+    to: "/about",
     blurb: "The people on your account, and what each of them owns.",
   },
 ];
 
 export const FOOTER_NAV = [
   { heading: "Services", links: CAPABILITY_MENU },
+  { heading: "Who We Help", links: INDUSTRY_MENU },
   {
     heading: "Explore",
     links: [
       { label: "Authors & Publishers", to: "/authors" },
       { label: "Our Work", to: "/work" },
       { label: "Resources", to: "/resources" },
+      { label: "Tools", to: "/tools" },
       { label: "Free Visibility Check", to: "/tools/author-visibility-audit" },
       { label: "About", to: "/about" },
       { label: "Start a Project", to: "/contact" },

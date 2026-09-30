@@ -1,4 +1,5 @@
-import { Link } from "@tanstack/react-router";
+import { contextForPath, inquiryHref, readInquiryContext } from "@/lib/inquiry-context";
+import { Link, useRouterState } from "@tanstack/react-router";
 import { OrbitGraphic } from "@/components/brand/OrbitGraphic";
 import { CTAS } from "@/config/brand";
 
@@ -19,6 +20,11 @@ export function CtaBand({
   primary?: { label: string; to: string };
   secondary?: { label: string; to: string };
 }) {
+  const location = useRouterState({ select: (state) => state.location });
+  const contact = inquiryHref({
+    ...contextForPath(location.pathname),
+    ...readInquiryContext(location.search),
+  });
   return (
     <section className="bg-carbon text-[oklch(0.95_0.006_90)]">
       <div className="mx-auto max-w-7xl px-5 py-20 sm:px-6 lg:px-8 lg:py-28">
@@ -43,14 +49,14 @@ export function CtaBand({
             ) : null}
             <div className="mt-9 flex flex-col gap-3 sm:flex-row">
               <Link
-                to={primary.to}
+                to={primary.to === "/contact" ? contact : primary.to}
                 className="inline-flex items-center justify-center rounded-full bg-primary px-7 py-3.5 text-sm font-semibold text-primary-foreground transition-transform hover:-translate-y-0.5 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
               >
                 {primary.label}
               </Link>
               {secondary ? (
                 <Link
-                  to={secondary.to}
+                  to={secondary.to === "/contact" ? contact : secondary.to}
                   className="inline-flex items-center justify-center rounded-full border border-white/25 px-7 py-3.5 text-sm font-semibold text-[oklch(0.97_0.006_90)] hover:border-brand hover:text-brand focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
                 >
                   {secondary.label}

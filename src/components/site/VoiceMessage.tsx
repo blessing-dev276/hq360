@@ -93,11 +93,11 @@ export function VoiceMessage() {
           setMessage("");
           dialog.current?.showModal();
         }}
-        className="fixed right-5 bottom-6 z-40 flex items-center gap-3 rounded-full bg-primary px-5 py-4 text-primary-foreground shadow-xl transition hover:-translate-y-1 focus-visible:ring-4 focus-visible:ring-brand"
+        className="fixed right-5 bottom-6 z-40 flex items-center gap-3 rounded-full bg-primary p-4 sm:px-5 text-primary-foreground shadow-xl transition hover:-translate-y-1 motion-reduce:transform-none focus-visible:ring-4 focus-visible:ring-brand"
         aria-label="Leave HQ360 a one-minute voice message"
       >
         <Mic size={22} />
-        <span className="text-left text-sm font-semibold">
+        <span className="hidden text-left text-sm font-semibold sm:block">
           Tell us your idea
           <span className="block text-xs font-normal opacity-80">A 1-minute voice message</span>
         </span>

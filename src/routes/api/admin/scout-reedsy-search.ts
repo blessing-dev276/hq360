@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
-import { isAdminRequest } from "@/lib/admin-auth.server";
+import { isAdminOrExpertRequest } from "@/lib/expert-auth.server";
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -66,7 +66,7 @@ export const Route = createFileRoute("/api/admin/scout-reedsy-search")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        if (!(await isAdminRequest(request)))
+        if (!(await isAdminOrExpertRequest(request)))
           return json({ ok: false, error: "unauthorized" }, 401);
         const parsed = schema.safeParse(await request.json().catch(() => null));
         if (!parsed.success) return json({ ok: false, error: "invalid" }, 400);

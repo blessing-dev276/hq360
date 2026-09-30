@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
-import { isAdminRequest } from "@/lib/admin-auth.server";
+import { isAdminOrExpertRequest } from "@/lib/expert-auth.server";
 import { asAuditDb, type AuditStatus } from "@/lib/author-audit/db";
 
 function json(body: unknown, status = 200) {
@@ -48,7 +48,7 @@ export const Route = createFileRoute("/api/admin/author-audits/$id")({
   server: {
     handlers: {
       DELETE: async ({ request, params }) => {
-        if (!(await isAdminRequest(request)))
+        if (!(await isAdminOrExpertRequest(request)))
           return json({ ok: false, error: "unauthorized" }, 401);
         if (!UUID.test(params.id)) return json({ ok: false, error: "not_found" }, 404);
         const origin = request.headers.get("origin");
@@ -71,7 +71,7 @@ export const Route = createFileRoute("/api/admin/author-audits/$id")({
         }
       },
       GET: async ({ request, params }) => {
-        if (!(await isAdminRequest(request)))
+        if (!(await isAdminOrExpertRequest(request)))
           return json({ ok: false, error: "unauthorized" }, 401);
         if (!UUID.test(params.id)) return json({ ok: false, error: "not_found" }, 404);
         try {
@@ -179,7 +179,7 @@ export const Route = createFileRoute("/api/admin/author-audits/$id")({
         }
       },
       PATCH: async ({ request, params }) => {
-        if (!(await isAdminRequest(request)))
+        if (!(await isAdminOrExpertRequest(request)))
           return json({ ok: false, error: "unauthorized" }, 401);
         if (!UUID.test(params.id)) return json({ ok: false, error: "not_found" }, 404);
         let body: z.infer<typeof patchSchema>;

@@ -1,5 +1,6 @@
 import type { ComponentType, SVGProps } from "react";
-import { Link } from "@tanstack/react-router";
+import { contextForPath, inquiryHref, readInquiryContext } from "@/lib/inquiry-context";
+import { Link, useRouterState } from "@tanstack/react-router";
 import { Instagram, Twitter } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { NewsletterSignup } from "@/components/site/NewsletterSignup";
@@ -30,6 +31,11 @@ const iconFor: Record<string, ComponentType<SVGProps<SVGSVGElement>>> = {
 };
 
 export function SiteFooter() {
+  const location = useRouterState({ select: (state) => state.location });
+  const contact = inquiryHref({
+    ...contextForPath(location.pathname),
+    ...readInquiryContext(location.search),
+  });
   return (
     <footer className="bg-carbon text-[oklch(0.9_0.006_90)]">
       <div className="mx-auto max-w-7xl px-5 py-16 sm:px-6 lg:px-8">
@@ -78,7 +84,7 @@ export function SiteFooter() {
                   {col.links.map((l) => (
                     <li key={`${col.heading}-${l.label}`}>
                       <Link
-                        to={l.to}
+                        to={l.to === "/contact" ? contact : l.to}
                         className="text-sm text-[oklch(0.85_0.006_90)] hover:text-brand"
                       >
                         {l.label}
@@ -95,10 +101,10 @@ export function SiteFooter() {
           <div className="grid gap-6 lg:grid-cols-[1.4fr_1fr] lg:items-center">
             <div>
               <p className="font-display text-lg text-[oklch(0.95_0.006_90)]">
-                One letter a month on growth systems.
+                Practical notes for your next project.
               </p>
               <p className="mt-1 text-sm text-[oklch(0.72_0.008_90)]">
-                Practical writing on brand, funnels, automation and demand. Unsubscribe any time.
+                Notes on websites, apps, automation and content. Unsubscribe any time.
               </p>
             </div>
             <NewsletterSignup variant="dark" />

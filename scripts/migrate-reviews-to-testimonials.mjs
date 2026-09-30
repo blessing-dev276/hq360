@@ -48,10 +48,7 @@ async function main() {
       console.error(`[insert failed] ${row.title}:`, insertError.message);
       continue;
     }
-    const { error: deleteError } = await supabase
-      .from("portfolio_items")
-      .delete()
-      .eq("id", row.id);
+    const { error: deleteError } = await supabase.from("portfolio_items").delete().eq("id", row.id);
     if (deleteError) {
       console.error(`[delete failed] ${row.title}:`, deleteError.message);
       continue;

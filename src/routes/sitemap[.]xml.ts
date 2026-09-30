@@ -11,7 +11,11 @@ export const Route = createFileRoute("/sitemap.xml")({
           return new Response(
             renderSitemap(
               studies
-                .filter((study) => study.status === "verified")
+                .filter(
+                  (study) =>
+                    study.status === "verified" &&
+                    !/illustrative/i.test(`${study.client} ${study.outcome}`),
+                )
                 .map((study) => `/work/${study.slug}`),
             ),
             {

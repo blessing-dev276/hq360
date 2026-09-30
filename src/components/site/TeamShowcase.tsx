@@ -71,13 +71,12 @@ export function TeamShowcase({
 
   const all: Person[] = query.data?.members.length
     ? query.data.members.map((m) => {
-        const key = m.name.trim().toLowerCase().split(/\s+/)[0] ?? m.id;
         return {
           key: m.id,
           name: m.name,
           role: m.title,
-          blurb: m.blurb || TEAM.find((t) => t.photo === key)?.blurb || "",
-          photo: key,
+          blurb: m.blurb || "",
+          photo: undefined,
           imageUrl: m.image_url ?? undefined,
         };
       })
@@ -119,8 +118,15 @@ function TeamCard({ person }: { person: Person }) {
       <button
         type="button"
         className="ts-photo-btn"
-        aria-expanded={open}
-        aria-label={open ? `Hide what ${firstName} owns` : `Show what ${firstName} owns`}
+        disabled={!person.blurb}
+        aria-expanded={person.blurb ? open : undefined}
+        aria-label={
+          person.blurb
+            ? open
+              ? `Hide what ${firstName} owns`
+              : `Show what ${firstName} owns`
+            : `${person.name}, ${person.role}`
+        }
         onClick={() => setOpen((o) => !o)}
       >
         <span className="ts-photo">

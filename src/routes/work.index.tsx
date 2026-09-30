@@ -1,21 +1,18 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Section, SectionHeader } from "@/components/site/Primitives";
-import { WorkGrid } from "@/components/site/WorkGrid";
-import { PortfolioStrip } from "@/components/site/PortfolioStrip";
+import { AgencyWork } from "@/components/site/AgencyWork";
 import { TestimonialStrip } from "@/components/site/TestimonialStrip";
 import { CtaBand } from "@/components/site/CtaBand";
 import { buildSeo, breadcrumbSchema } from "@/lib/seo";
-import { loadCaseStudies } from "@/lib/case-studies.functions";
 import { CTAS } from "@/config/brand";
 
 export const Route = createFileRoute("/work/")({
-  loader: () => loadCaseStudies({ data: {} }),
   head: () =>
     buildSeo(
       {
         title: "Work & Case Studies | HQ360",
         description:
-          "Selected HQ360 projects and the way we structure growth engagements. Real work is labelled as such; illustrative engagements are marked.",
+          "Published HQ360 projects across websites, author marketing and publishing support, labelled by service and audience.",
         path: "/work",
       },
       breadcrumbSchema([
@@ -27,37 +24,21 @@ export const Route = createFileRoute("/work/")({
 });
 
 function WorkPage() {
-  const { studies } = Route.useLoaderData();
   return (
     <>
       <Section>
         <SectionHeader
           as="h1"
-          align="center"
-          eyebrow="Work"
-          title="The work, and the way it is built"
-          intro="A growing set of projects, plus a few engagements shown as illustrative structures while the client-approved case studies are being written. Nothing here presents a number as a result unless it is real and checkable."
+          eyebrow="Our work"
+          title="Selected projects, with the work explained"
+          intro="Explore published websites, author campaigns and publishing work. Filter by service or audience to find relevant examples."
         />
-        <div className="mt-12">
-          <WorkGrid initialStudies={studies} />
-        </div>
+        <AgencyWork filters />
       </Section>
-
-      <PortfolioStrip industry="authors" title="Author & publishing portfolio" />
-      <Section tone="raised">
-        <SectionHeader
-          eyebrow="Proof of work"
-          title="Client reviews and campaign footage"
-          intro="Supplied by clients. No fabricated quotes or figures."
-        />
-        <div className="mt-10">
-          <TestimonialStrip industry="authors" />
-        </div>
-      </Section>
-
+      <TestimonialStrip />
       <CtaBand
-        title="What comes next for your book?"
-        body="The fastest way to understand how we work is to see what we would do for you. Start a project and we will map it."
+        title="What are you working on?"
+        body="Tell us what you need, and we’ll agree the scope and next steps."
         primary={CTAS.primary}
         secondary={{ label: "Explore services", to: "/services" }}
       />

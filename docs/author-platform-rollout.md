@@ -1,3 +1,5 @@
+> Follow-up: [agency-refresh.md](agency-refresh.md) describes the local multi-service refresh. This document records the preceding author-platform rollout; its sales, report and payment systems remain in place.
+
 # Author platform rollout
 
 ## Readiness review

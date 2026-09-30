@@ -7,9 +7,9 @@ export const Route = createFileRoute("/about")({
   head: () =>
     buildSeo(
       {
-        title: "About HQ360 | Author & Publishing Support",
+        title: "About HQ360 | Digital Services & Content",
         description:
-          "Meet the team helping authors develop books, publish and build reader relationships.",
+          "Meet the HQ360 team working on websites, apps, automation and written content.",
         path: "/about",
       },
       breadcrumbSchema([
@@ -26,8 +26,8 @@ function AboutPage() {
       <Section>
         <SectionHeader
           as="h1"
-          title="A team for your next chapter"
-          intro="HQ360 brings writing, publishing support, design and marketing together for authors and publishers. Formerly House of Synergy, we help you move from a book idea to a clearer path to your readers."
+          title="A team for your next project"
+          intro="HQ360 builds websites, mobile apps and automation systems, and provides writing, editing, translation and localization. We work with businesses, creators, authors and other agencies. Formerly House of Synergy, we bring the required work into an agreed scope, with clear review points and handover."
         />
       </Section>
       <Section id="team" tone="raised">

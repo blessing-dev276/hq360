@@ -4,6 +4,18 @@ import { chromium, expect } from "@playwright/test";
 const browser = await chromium.launch({ headless: true });
 const context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
 const page = await context.newPage();
+const goto = async (url) => {
+  await page.goto(url);
+  // SSR content is visible before React attaches event handlers.
+  await page.waitForFunction(() =>
+    Object.keys(document.querySelector("main") ?? {}).some((key) =>
+      key.startsWith("__reactProps$"),
+    ),
+  );
+  await page.evaluate(
+    () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))),
+  );
+};
 const errors = [];
 page.on("pageerror", (error) => errors.push(error.message));
 await context.addInitScript(() => {
@@ -40,13 +52,13 @@ await context.route("**/api/admin/leads", (route) => {
 });
 try {
   const base = process.env.BASE_URL || "http://localhost:8081";
-  await page.goto(base);
+  await goto(`${base}/authors`);
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Bring your book to life");
   const nav = page.getByRole("navigation", { name: "Primary", exact: true });
   await expect(nav.getByRole("link", { name: "Our Work" })).toBeVisible();
-  await expect(nav.getByRole("link", { name: "Free Visibility Check" })).toBeVisible();
+  await expect(nav.getByRole("button", { name: "Who We Help", exact: true })).toBeVisible();
   await nav.getByRole("button", { name: "Services", exact: true }).click();
-  await expect(nav.getByRole("link", { name: /Book Writing & Editing/ })).toBeVisible();
+  await expect(nav.getByRole("link", { name: /Website Development/ })).toBeVisible();
   await page.keyboard.press("Escape");
   await page.screenshot({ path: "/tmp/hq360-authors-desktop.png", fullPage: true });
   for (const slug of [
@@ -55,23 +67,21 @@ try {
     "author-visibility-marketing",
     "author-websites-email",
   ]) {
-    await page.goto(`${base}/services/${slug}`);
+    await goto(`${base}/services/${slug}`);
     await expect(page.getByRole("heading", { name: "What we can help you deliver" })).toBeVisible();
   }
-  await page.goto(`${base}/resources`);
+  await goto(`${base}/resources`);
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Guides, answers");
-  await page.goto(`${base}/contact`);
+  await goto(`${base}/contact?audience=authors&service=book-writing-editing&from=/authors`);
   const inquiry = page
     .locator("form")
     .filter({ has: page.getByRole("button", { name: "Send enquiry" }) });
   await inquiry.getByLabel("Full name").fill("Test Author");
   await inquiry.getByLabel("Email", { exact: true }).fill("author@example.com");
-  await page
-    .getByLabel("What do you need help with?")
-    .selectOption({ label: "Book Writing & Editing" });
+  await page.getByRole("checkbox", { name: "Book Writing & Editing" }).check();
   await page.getByRole("button", { name: "Send enquiry" }).click();
   await expect(page.getByRole("heading", { name: "Thanks — that's in." })).toBeVisible();
-  await page.goto(`${base}/tools/author-visibility-audit`);
+  await goto(`${base}/tools/author-visibility-audit`);
   const check = page.locator("#audit-form form");
   await check.getByLabel("Author name").fill("Test Author");
   await check.getByLabel("Book title").fill("Test Book");
@@ -83,7 +93,7 @@ try {
   await expect(page.getByRole("heading", { name: "Your next chapter starts here." })).toBeVisible();
   expect((await page.request.get(`${base}/api/admin/leads`)).status()).toBe(401);
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto(base);
+  await goto(base);
   await page.getByRole("button", { name: "Open menu" }).click();
   const mobile = page.getByRole("navigation", { name: "Mobile navigation" });
   await expect(mobile.getByRole("link", { name: "Our Work" })).toBeVisible();
@@ -92,7 +102,7 @@ try {
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.screenshot({ path: "/tmp/hq360-authors-mobile.png", fullPage: true });
   await page.setViewportSize({ width: 1440, height: 1000 });
-  await page.goto(`${base}/admin`);
+  await goto(`${base}/admin`);
   await expect(page.getByRole("heading", { name: "Leads & Follow-ups" })).toBeVisible();
   await page.getByRole("button", { name: "Add lead" }).click();
   await page.getByRole("textbox", { name: "Name", exact: true }).fill("Test Author");

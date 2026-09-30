@@ -46,6 +46,12 @@ export type SalesLead = z.infer<typeof leadSchema> & {
   created_at: string;
   source_kind: string;
   source_id: string | null;
+  inquiry_context?: {
+    industry: string | null;
+    help_with: string[] | null;
+    source_industry: string | null;
+    source_path: string | null;
+  } | null;
   updated_at: string;
 };
 export const label = (value: string) =>

@@ -5,6 +5,7 @@ import { INDUSTRIES } from "@/data/industries";
 import { uploadAdminMedia, type AdminBucket } from "@/lib/admin-upload";
 import type { SerializedCaseStudy } from "@/lib/case-study-shape";
 import { AuthorAuditAdmin } from "@/components/admin/AuthorAuditAdmin";
+import { ExpertsAdmin } from "@/components/admin/ExpertsAdmin";
 
 import {
   LayoutDashboard,
@@ -16,6 +17,7 @@ import {
   ArrowUpRight,
   LogOut,
   ChevronRight,
+  UserCheck,
 } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { PaymentsAdmin } from "./PaymentsAdmin";
@@ -137,7 +139,8 @@ function UploadField({
 
 /* ------------------------------------------------------------------- root */
 
-type Tab = "projects" | "overview" | "payments" | "work" | "team" | "testimonials" | "audits";
+type Tab =
+  "projects" | "overview" | "payments" | "work" | "team" | "testimonials" | "audits" | "experts";
 type WorkView = "cases" | "gallery";
 const NAV = [
   {
@@ -177,6 +180,12 @@ const NAV = [
     icon: ScanSearch,
     description: "Turn research into a clear growth direction.",
   },
+  {
+    id: "experts",
+    label: "Experts",
+    icon: UserCheck,
+    description: "Approve or reject expert account requests.",
+  },
 ] as const;
 const input =
   "w-full rounded-xl border border-border bg-background px-3.5 py-2.5 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring";
@@ -215,7 +224,7 @@ export function AdminApp() {
         </div>
         <p className="admin-nav-label">WORKSPACE</p>
         <nav aria-label="Admin navigation">
-          {["overview", "scout", "audits", "projects", "payments", "work"].map((key) =>
+          {["overview", "scout", "audits", "experts", "projects", "payments", "work"].map((key) =>
             key === "scout" ? (
               <a key="scout" href="/scout" className="admin-nav-item">
                 <ScanSearch size={18} />
@@ -305,6 +314,10 @@ export function AdminApp() {
             <LeadsAdmin projects />
           ) : tab === "payments" ? (
             <PaymentsAdmin />
+          ) : tab === "experts" ? (
+            <ExpertsAdmin />
+          ) : tab === "audits" ? (
+            <AuthorAuditAdmin />
           ) : (
             <section className="admin-content-panel">
               {(tab === "work" || tab === "team" || tab === "testimonials") && (
@@ -349,10 +362,8 @@ export function AdminApp() {
                 )
               ) : tab === "team" || (tab === "work" && contentTab === "team") ? (
                 <TeamDashboard />
-              ) : tab === "testimonials" || (tab === "work" && contentTab === "testimonials") ? (
-                <TestimonialDashboard />
               ) : (
-                <AuthorAuditAdmin />
+                <TestimonialDashboard />
               )}
             </section>
           )}

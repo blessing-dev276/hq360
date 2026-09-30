@@ -1,15 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { getIndustry } from "@/data/industries";
-import { industryHead } from "@/lib/page-heads";
-import { IndustryPage } from "@/components/site/IndustryPage";
-
-const industry = getIndustry("creators")!;
-
+import { createFileRoute, redirect } from "@tanstack/react-router";
 export const Route = createFileRoute("/creators")({
-  head: () => industryHead(industry),
-  component: RouteComponent,
+  beforeLoad: () => {
+    throw redirect({ to: "/ugc-creators", statusCode: 301 });
+  },
 });
-
-function RouteComponent() {
-  return <IndustryPage industry={industry} />;
-}

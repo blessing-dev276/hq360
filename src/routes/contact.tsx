@@ -1,5 +1,7 @@
+import { readInquiryContext, serviceName } from "@/lib/inquiry-context";
+import { getAudience } from "@/data/agency";
 import { createFileRoute } from "@tanstack/react-router";
-import { Container, Eyebrow, Section, SectionHeader } from "@/components/site/Primitives";
+import { Container, Section, SectionHeader } from "@/components/site/Primitives";
 import { ProjectInquiryForm } from "@/components/site/ProjectInquiryForm";
 import { FaqSection } from "@/components/site/FaqSection";
 import { BRAND } from "@/config/brand";
@@ -16,7 +18,7 @@ const CONTACT_FAQS = [
   },
   {
     q: "Are you US-based?",
-    a: "We work with businesses and brands worldwide, and a large share of our clients are in the US. Calls are scheduled to your hours.",
+    a: "We work with businesses worldwide. We agree communication channels and meeting times when scoping the project.",
   },
   {
     q: "Can you work with our existing team or agencies?",
@@ -25,12 +27,13 @@ const CONTACT_FAQS = [
 ];
 
 export const Route = createFileRoute("/contact")({
+  validateSearch: readInquiryContext,
   head: () =>
     buildSeo(
       {
         title: "Start a Project | HQ360",
         description:
-          "Tell HQ360 about your book. We reply within one working day with a first view of what we would build and whether we are the right fit.",
+          "Tell HQ360 about your website, app, automation, writing or translation project. We reply within one working day with a first view of what we would build and whether we are the right fit.",
         path: "/contact",
       },
       [
@@ -45,6 +48,7 @@ export const Route = createFileRoute("/contact")({
 });
 
 function ContactPage() {
+  const context = Route.useSearch();
   return (
     <>
       <Section>
@@ -53,13 +57,13 @@ function ContactPage() {
             <SectionHeader
               as="h1"
               eyebrow="Start a project"
-              title="Tell us about your next chapter"
-              intro="The more context you give, the more useful our first reply will be. Everything here is optional except your name, email and where you need help."
+              title="Tell us about your project"
+              intro="The more context you give, the more useful our first reply will be. Everything here is optional except your name and email."
             />
             <ul className="mt-10 space-y-3 text-sm text-muted-foreground">
               <li>One working day to a considered reply, not an autoresponder</li>
               <li>You own every account, asset and automation we build</li>
-              <li>Month-to-month on ongoing work, with 30 days' notice</li>
+              <li>We agree deliverables, review points and support in your proposal</li>
               <li>{BRAND.serviceArea}</li>
             </ul>
             <p className="mt-8 text-sm">
@@ -81,7 +85,14 @@ function ContactPage() {
             </p>
           </div>
 
-          <ProjectInquiryForm defaultIndustry="Authors & Publishers" sourceIndustry="authors" />
+          <ProjectInquiryForm
+            key={JSON.stringify(context)}
+            defaultIndustry={getAudience(context.audience ?? "")?.name}
+            sourceIndustry={context.audience}
+            sourceService={context.service}
+            sourcePath={context.from || "/contact"}
+            defaultServices={context.service ? [serviceName(context.service)] : []}
+          />
         </div>
       </Section>
 

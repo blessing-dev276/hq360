@@ -1,105 +1,84 @@
 import { Section, SectionHeader, ButtonLink } from "../Primitives";
-import { AuthorOffers } from "../AuthorOffers";
-import { FeaturedAuthor } from "../FeaturedAuthor";
-import { PortfolioStrip } from "../PortfolioStrip";
-import { TestimonialStrip } from "../TestimonialStrip";
+import { AgencyProcess, AudienceLinks, ServiceLinks } from "../AgencyPages";
+import { AgencyWork } from "../AgencyWork";
 import { TeamShowcase } from "../TeamShowcase";
+import { TestimonialStrip } from "../TestimonialStrip";
 import { ProjectInquiryForm } from "../ProjectInquiryForm";
 export function HomeExperience() {
   return (
     <>
       <Section tone="raised">
-        <div className="max-w-4xl">
+        <div className="max-w-5xl">
           <p className="text-sm font-semibold tracking-widest text-brand uppercase">
-            HQ360 / Authors & Publishers
+            HQ360 SPACE / Digital services & content
           </p>
-          <h1 className="mt-6 text-5xl leading-tight sm:text-6xl lg:text-7xl">
-            Bring your book to life.
+          <h1 className="mt-6 text-5xl leading-[1.08] tracking-tight sm:text-6xl lg:text-7xl">
+            Your next website.
             <br />
-            Help readers find it.
+            Your everyday systems.
+            <br />
+            Your words, made clear.
           </h1>
-          <p className="mt-7 max-w-2xl text-lg text-muted-foreground">
-            From your first draft to your next reader, we help you develop your book, prepare for
-            publication and build an author platform.
+          <p className="mt-8 max-w-2xl text-lg leading-relaxed text-muted-foreground">
+            HQ360 builds websites, mobile apps and automation systems, and provides writing, editing
+            and translation for businesses. We start with what you need to get done.
           </p>
           <div className="mt-9 flex flex-wrap gap-4">
-            <ButtonLink to="/contact">Start a Project</ButtonLink>
-            <ButtonLink to="/tools/author-visibility-audit" variant="secondary">
-              Free Visibility Check
+            <ButtonLink href="#project-inquiry">Start a Project</ButtonLink>
+            <ButtonLink to="/services" variant="secondary">
+              Explore Services
             </ButtonLink>
           </div>
         </div>
       </Section>
       <Section>
         <SectionHeader
-          eyebrow="Choose your next step"
-          title="Where are you in your author journey?"
+          eyebrow="Who we help"
+          title="Different businesses. Specific needs."
+          intro="Find a starting point that fits the way you work."
         />
-        <AuthorOffers />
+        <AudienceLinks />
       </Section>
-      <FeaturedAuthor />
-      <PortfolioStrip industry="authors" title="Selected author & publishing work" />
       <Section tone="raised">
-        <SectionHeader
-          eyebrow="Free Author Visibility Check"
-          title="See where readers might lose the trail."
-          intro="Request an initial assessment of your supplied book and author links, with a few practical priorities. We review the information before presenting findings."
-        />
-        <div className="mt-8 grid gap-5 sm:grid-cols-3">
-          {[
-            "Can readers recognise you across your profiles?",
-            "Does your book listing explain who it is for?",
-            "Is there a clear path to join your reader list?",
-          ].map((text) => (
-            <div key={text} className="rounded-2xl border border-border bg-card p-6">
-              <p className="text-xs text-brand">CHECK PREVIEW · EXAMPLE QUESTION</p>
-              <p className="mt-4 text-lg">{text}</p>
-            </div>
-          ))}
-        </div>
-        <p className="my-7 max-w-2xl text-muted-foreground">
-          Need a deeper review? A Detailed Author Visibility Report adds researched evidence and a
-          prioritised roadmap, subject to human review. We agree scope and pricing separately.
-        </p>
-        <ButtonLink to="/tools/author-visibility-audit">Request your free check</ButtonLink>
+        <SectionHeader eyebrow="Core services" title="Bring the right skills to your project." />
+        <ServiceLinks />
       </Section>
       <Section>
-        <SectionHeader title="A clear path from inquiry to delivery" />
-        <ol className="mt-10 grid gap-8 md:grid-cols-3">
-          {[
-            ["01 / Inquiry", "Tell us about your book, your readers and what you need next."],
-            [
-              "02 / Scope",
-              "We review your needs and agree the deliverables, schedule and price in a proposal.",
-            ],
-            [
-              "03 / Delivery",
-              "We complete the agreed work, review it with you and discuss ongoing support where useful.",
-            ],
-          ].map(([title, text]) => (
-            <li key={title}>
-              <h3 className="text-xl">{title}</h3>
-              <p className="mt-3 text-muted-foreground">{text}</p>
-            </li>
-          ))}
-        </ol>
+        <SectionHeader
+          eyebrow="Selected work"
+          title="A closer look at the work."
+          intro="Our published collection currently centres on websites and author projects. Each example is labelled by the work delivered and the audience it serves."
+        />
+        <AgencyWork limit={4} />
+        <div className="mt-8">
+          <ButtonLink to="/work" variant="secondary">
+            Explore Our Work
+          </ButtonLink>
+        </div>
       </Section>
-      <TestimonialStrip industry="authors" title="From authors we have worked with" />
       <Section tone="raised">
+        <SectionHeader
+          eyebrow="How we work"
+          title="Clear steps, from the first conversation to handover."
+        />
+        <AgencyProcess />
+      </Section>
+      <Section>
         <TeamShowcase
-          title="Meet the people behind your next chapter"
-          limit={3}
-          viewAll={{ label: "About our team", to: "/about" }}
+          title="The people behind HQ360"
+          limit={4}
+          viewAll={{ label: "Meet the team", to: "/about" }}
         />
       </Section>
-      <Section id="start-project">
+      <TestimonialStrip title="Feedback from our clients" />
+      <Section id="project-inquiry" tone="raised">
         <div className="grid gap-10 lg:grid-cols-2">
           <SectionHeader
             eyebrow="Start a Project"
-            title="Tell us what comes next for your book."
-            intro="Share where you are now and what you would like help with. We will review your needs and discuss a suitable scope."
+            title="What would you like to build or improve?"
+            intro="Tell us your business type and choose the services you need. A short starting brief is enough."
           />
-          <ProjectInquiryForm defaultIndustry="Authors & Publishers" sourceIndustry="authors" />
+          <ProjectInquiryForm />
         </div>
       </Section>
     </>

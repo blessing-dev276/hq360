@@ -3,13 +3,14 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { ArrowLeft, ArrowRight, CheckCircle2, Sparkles, X } from "lucide-react";
 import { useRouterState } from "@tanstack/react-router";
 import { z } from "zod";
-import { AUTHOR_OFFERS } from "@/data/author-offers";
+import { CORE_SERVICES } from "@/data/agency";
+import { contextForPath, inquirySourcePath } from "@/lib/inquiry-context";
 import "./lead-popup.css";
 
 const SESSION_KEY = "hq360-popup-shown";
 const EXCLUDED_PATH_PREFIXES = ["/contact", "/admin", "/tools"];
 const IDLE_DELAY_MS = 30_000;
-const HELP_OPTIONS = AUTHOR_OFFERS.map((c) => c.name);
+const HELP_OPTIONS = CORE_SERVICES.map((c) => c.name);
 
 const schema = z.object({
   name: z.string().min(2, "Enter your name").max(160),
@@ -144,13 +145,14 @@ export function LeadPopup() {
           email: parsed.data.email,
           helpWith: [parsed.data.helpWith],
           message: parsed.data.message,
-          sourcePath: window.location.pathname,
+          sourcePath: inquirySourcePath(pathname, contextForPath(pathname).service),
+          sourceIndustry: contextForPath(pathname).audience,
           company_url: String(fd.get("hp") ?? ""),
         }),
       });
       const body = (await res.json().catch(() => ({}))) as { ok?: boolean; emailed?: boolean };
       if (res.ok && body.ok) {
-        trackConversion("project_inquiry_submitted");
+        if (!fd.get("hp")) trackConversion("project_inquiry_submitted");
         setState("done");
         setEmailed(body.emailed === true);
       } else {

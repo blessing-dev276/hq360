@@ -86,7 +86,7 @@ export type SerializedCaseStudy = ReturnType<typeof serializeCaseStudy>;
 export function toCaseStudyShape(row: SerializedCaseStudy) {
   return {
     slug: row.slug,
-    status: row.status,
+    status: /illustrative/i.test(`${row.client} ${row.outcome}`) ? ("sample" as const) : row.status,
     title: row.title,
     client: row.client,
     industry: row.industry,

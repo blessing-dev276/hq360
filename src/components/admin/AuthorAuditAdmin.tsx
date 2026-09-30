@@ -472,15 +472,21 @@ function BulkImportPanel({ auditId, onImported }: { auditId: string; onImported:
     try {
       payload = JSON.parse(text);
     } catch {
-      setResult({ ok: false, error: "That isn't valid JSON — check for a missing comma or bracket." });
+      setResult({
+        ok: false,
+        error: "That isn't valid JSON — check for a missing comma or bracket.",
+      });
       return;
     }
     setBusy(true);
     setResult(null);
-    const { body } = await api<BulkImportResult>(`/api/admin/author-audits/${auditId}/bulk-import`, {
-      method: "POST",
-      body: JSON.stringify(payload),
-    });
+    const { body } = await api<BulkImportResult>(
+      `/api/admin/author-audits/${auditId}/bulk-import`,
+      {
+        method: "POST",
+        body: JSON.stringify(payload),
+      },
+    );
     setBusy(false);
     setResult(body);
     if (body.ok) {
@@ -503,8 +509,8 @@ function BulkImportPanel({ auditId, onImported }: { auditId: string; onImported:
           <code>roadmap</code>, <code>executiveAssessment</code> and{" "}
           <code>preparedByStaffName</code>. Everything lands pre-approved and client-visible, the
           audit status moves to Completed, and a client version is drafted automatically once the
-          result clears the publish gate — you only need to tick the QA checklist and click
-          Publish in the Report tab.
+          result clears the publish gate — you only need to tick the QA checklist and click Publish
+          in the Report tab.
         </p>
         <textarea
           value={text}

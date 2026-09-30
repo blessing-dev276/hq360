@@ -45,7 +45,21 @@ export function AuthorOfferPage({ offer }: { offer: AuthorOffer }) {
           proposal. Publishing decisions and sales outcomes depend on factors beyond the scope of
           our work.
         </p>
-        <ButtonLink to="/contact">Discuss your project</ButtonLink>
+        <ButtonLink href="#author-inquiry">Discuss your project</ButtonLink>
+        <p className="mt-5 text-sm">
+          For broader business needs, explore{" "}
+          <Link
+            to="/services/$slug"
+            params={{
+              slug:
+                offer.slug === "author-websites-email" ? "website-development" : "writing-editing",
+            }}
+            className="underline"
+          >
+            our related core service
+          </Link>
+          .
+        </p>
         {offer.slug === "author-visibility-marketing" && (
           <div className="mt-8">
             <ButtonLink to="/book-launch" variant="secondary">
@@ -55,13 +69,15 @@ export function AuthorOfferPage({ offer }: { offer: AuthorOffer }) {
         )}
       </Section>
       <TestimonialStrip industry="authors" capability={offer.capability} />
-      <Section tone="raised">
+      <Section tone="raised" id="author-inquiry">
         <SectionHeader title="Start with your next step" />
         <div className="mt-8 max-w-2xl">
           <ProjectInquiryForm
             defaultIndustry="Authors & Publishers"
             sourceIndustry="authors"
-            helpOptions={[offer.name]}
+            helpOptions={AUTHOR_OFFERS.map((item) => item.name)}
+            defaultServices={[offer.name]}
+            sourceService={offer.slug}
           />
         </div>
       </Section>

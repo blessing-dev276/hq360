@@ -1,3 +1,4 @@
+import { SERVICE_REDIRECTS } from "@/data/agency";
 import { createFileRoute, Link, notFound, redirect } from "@tanstack/react-router";
 import { CAPABILITIES, getCapability, type Capability } from "@/data/capabilities";
 import { INDUSTRIES } from "@/data/industries";
@@ -17,7 +18,12 @@ export const Route = createFileRoute("/capabilities/$slug")({
   beforeLoad: ({ params }) => {
     const capability = getCapability(params.slug);
     if (!capability) throw notFound();
-    throw redirect({ href: capability.path, statusCode: 301 });
+    throw redirect({
+      href: SERVICE_REDIRECTS[params.slug]
+        ? `/services/${SERVICE_REDIRECTS[params.slug]}`
+        : capability.path,
+      statusCode: 301,
+    });
   },
   loader: ({ params }): { capability: Capability } => {
     const capability = getCapability(params.slug);

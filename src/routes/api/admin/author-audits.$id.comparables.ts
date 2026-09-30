@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
-import { isAdminRequest } from "@/lib/admin-auth.server";
+import { isAdminOrExpertRequest } from "@/lib/expert-auth.server";
 import { asAuditDb } from "@/lib/author-audit/db";
 
 function json(body: unknown, status = 200) {
@@ -39,7 +39,7 @@ export const Route = createFileRoute("/api/admin/author-audits/$id/comparables")
   server: {
     handlers: {
       GET: async ({ request, params }) => {
-        if (!(await isAdminRequest(request)))
+        if (!(await isAdminOrExpertRequest(request)))
           return json({ ok: false, error: "unauthorized" }, 401);
         if (!UUID.test(params.id)) return json({ ok: false, error: "not_found" }, 404);
         try {
@@ -61,7 +61,7 @@ export const Route = createFileRoute("/api/admin/author-audits/$id/comparables")
         }
       },
       POST: async ({ request, params }) => {
-        if (!(await isAdminRequest(request)))
+        if (!(await isAdminOrExpertRequest(request)))
           return json({ ok: false, error: "unauthorized" }, 401);
         if (!UUID.test(params.id)) return json({ ok: false, error: "not_found" }, 404);
         let body: z.infer<typeof createSchema>;

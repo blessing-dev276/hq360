@@ -1,10 +1,4 @@
-/**
- * The HQ360 team. Names and photos are real (retained from the previous site).
- * Role titles are generalised from the team's own author-era descriptions to
- * match the multi-industry capabilities — CONFIRM these with each person before
- * publishing, and add short bios only if verified.
- */
-
+// Fallback roles reflect the published roster. Biographies require approved source material.
 export type TeamMember = {
   name: string;
   role: string;
@@ -16,46 +10,26 @@ export type TeamMember = {
 };
 
 export const TEAM: TeamMember[] = [
+  { name: "Blessing Daniel", role: "Founder & CEO", photo: "blessing", initials: "B", blurb: "" },
   {
-    name: "Blessing",
-    role: "CEO & Mobile App Developer",
-    photo: "blessing",
-    initials: "B",
-    blurb: "Runs the studio and leads native app builds — the product end of a growth system.",
-  },
-  {
-    name: "Richard",
-    role: "Digital Marketing Lead",
+    name: "Richard Promise",
+    role: "Digital Marketing Specialist",
     photo: "richard",
     initials: "R",
-    blurb: "Owns paid and lifecycle — the path from spend to qualified pipeline.",
+    blurb: "",
   },
   {
-    name: "Zainab",
-    role: "AI & Video Production Lead",
-    photo: "zainab",
-    initials: "Z",
-    blurb: "Turns strategy into video and AI-assisted creative at production pace.",
-  },
-  {
-    name: "Ebenezer",
-    role: "Brand & Creative Lead",
+    name: "Ebenezer Oluwajoba",
+    role: "Brand & Creatives Lead",
     photo: "ebenezer",
     initials: "E",
-    blurb: "Sets positioning and identity so everything downstream reads as one brand.",
+    blurb: "",
   },
   {
-    name: "Emmanuel",
-    role: "Web & Funnel Development Lead",
+    name: "Emmanuel Sunday",
+    role: "Website Development Specialist",
     photo: "emmanuel",
     initials: "E",
-    blurb: "Builds the sites and funnels where attention turns into a booked conversation.",
-  },
-  {
-    name: "Racheal",
-    role: "Social Media Manager",
-    photo: "racheal",
-    initials: "R",
-    blurb: "Keeps the brand present and consistent across social, day to day.",
+    blurb: "",
   },
 ];

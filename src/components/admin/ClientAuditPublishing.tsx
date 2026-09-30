@@ -85,7 +85,11 @@ function AccessPanel({
           <span
             className={cn(
               "size-2 rounded-full",
-              live ? "bg-emerald-500" : access.revoked_at ? "bg-destructive" : "bg-muted-foreground/50",
+              live
+                ? "bg-emerald-500"
+                : access.revoked_at
+                  ? "bg-destructive"
+                  : "bg-muted-foreground/50",
             )}
           />
           {live ? "Access enabled" : access.revoked_at ? "Access revoked" : "Access disabled"}
@@ -150,13 +154,17 @@ function AccessPanel({
           <div className="rounded-xl border border-border bg-secondary/40 p-3">
             <p className="text-xs font-semibold text-muted-foreground">First viewed</p>
             <p className="mt-1 text-sm">
-              {access.first_viewed_at ? new Date(access.first_viewed_at).toLocaleString() : "Not opened"}
+              {access.first_viewed_at
+                ? new Date(access.first_viewed_at).toLocaleString()
+                : "Not opened"}
             </p>
           </div>
           <div className="rounded-xl border border-border bg-secondary/40 p-3">
             <p className="text-xs font-semibold text-muted-foreground">Last viewed</p>
             <p className="mt-1 text-sm">
-              {access.last_viewed_at ? new Date(access.last_viewed_at).toLocaleString() : "Not opened"}
+              {access.last_viewed_at
+                ? new Date(access.last_viewed_at).toLocaleString()
+                : "Not opened"}
             </p>
           </div>
         </div>

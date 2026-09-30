@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
-import { isAdminRequest } from "@/lib/admin-auth.server";
+import { isAdminOrExpertRequest } from "@/lib/expert-auth.server";
 import { asScoutDb } from "@/lib/scout/db";
 import { toCsv, SCOUT_EXPORT_COLUMNS, buildScoutExportRow } from "@/lib/scout/csv";
 
@@ -12,7 +12,7 @@ export const Route = createFileRoute("/api/admin/scout-export")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        if (!(await isAdminRequest(request)))
+        if (!(await isAdminOrExpertRequest(request)))
           return new Response(JSON.stringify({ ok: false, error: "unauthorized" }), {
             status: 401,
           });

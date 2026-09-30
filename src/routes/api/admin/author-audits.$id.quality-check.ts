@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { isAdminRequest } from "@/lib/admin-auth.server";
+import { isAdminOrExpertRequest } from "@/lib/expert-auth.server";
 import { runQualityCheck } from "@/lib/author-audit/quality-check";
 
 function json(body: unknown, status = 200) {
@@ -15,7 +15,7 @@ export const Route = createFileRoute("/api/admin/author-audits/$id/quality-check
   server: {
     handlers: {
       GET: async ({ request, params }) => {
-        if (!(await isAdminRequest(request)))
+        if (!(await isAdminOrExpertRequest(request)))
           return json({ ok: false, error: "unauthorized" }, 401);
         if (!UUID.test(params.id)) return json({ ok: false, error: "not_found" }, 404);
         try {

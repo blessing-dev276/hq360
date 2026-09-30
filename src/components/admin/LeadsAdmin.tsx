@@ -310,6 +310,15 @@ export function LeadsAdmin({ projects = false }: { projects?: boolean }) {
                   <p className="text-sm text-muted-foreground">
                     {lead.email || "No email recorded"} · {label(lead.source_kind)}
                   </p>
+                  {lead.inquiry_context && (
+                    <p className="mt-2 text-sm text-muted-foreground">
+                      Business: {lead.inquiry_context.industry || "Not specified"} · Requested:{" "}
+                      {lead.inquiry_context.help_with?.join(", ") || "Not specified"}
+                      <br />
+                      Origin: {lead.inquiry_context.source_industry || "General inquiry"} —{" "}
+                      {lead.inquiry_context.source_path || "Unknown page"}
+                    </p>
+                  )}
                   <p className="mt-2 text-sm">
                     {label(lead.stage)} · {label(lead.project_status)} ·{" "}
                     {lead.assigned_to || "Unassigned"}

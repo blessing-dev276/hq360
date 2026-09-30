@@ -188,7 +188,7 @@ export const INDUSTRIES: Industry[] = [
   /* --------------------------------------------------------------- Creators */
   {
     slug: "creators",
-    path: "/creators",
+    path: "/ugc-creators",
     name: "Content & UGC Creators",
     shortName: "Content Creators",
     category: "Personal Brands & Experts",
@@ -1443,7 +1443,7 @@ export const INDUSTRIES: Industry[] = [
   /* --------------------------------------------------------- Local business */
   {
     slug: "local-business",
-    path: "/local-business",
+    path: "/local-businesses",
     name: "Local Businesses",
     shortName: "Local Business",
     category: "Local & Home Services",

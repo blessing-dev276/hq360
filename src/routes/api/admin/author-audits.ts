@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
-import { isAdminRequest } from "@/lib/admin-auth.server";
+import { isAdminOrExpertRequest } from "@/lib/expert-auth.server";
 import { asAuditDb, type Author, type Book } from "@/lib/author-audit/db";
 import { normalized } from "@/lib/author-audit/research";
 
@@ -24,7 +24,7 @@ export const Route = createFileRoute("/api/admin/author-audits")({
   server: {
     handlers: {
       GET: async ({ request }) => {
-        if (!(await isAdminRequest(request)))
+        if (!(await isAdminOrExpertRequest(request)))
           return json({ ok: false, error: "unauthorized" }, 401);
         try {
           const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -41,7 +41,7 @@ export const Route = createFileRoute("/api/admin/author-audits")({
         }
       },
       POST: async ({ request }) => {
-        if (!(await isAdminRequest(request)))
+        if (!(await isAdminOrExpertRequest(request)))
           return json({ ok: false, error: "unauthorized" }, 401);
         let body: z.infer<typeof createSchema>;
         try {

@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { isAdminRequest } from "@/lib/admin-auth.server";
+import { isAdminOrExpertRequest } from "@/lib/expert-auth.server";
 import { asAuditDb } from "@/lib/author-audit/db";
 import { buildReportData } from "@/lib/author-audit/report-data";
 import { runQualityCheck } from "@/lib/author-audit/quality-check";
@@ -27,7 +27,7 @@ export const Route = createFileRoute("/api/admin/author-audits/$id/report")({
   server: {
     handlers: {
       GET: async ({ request, params }) => {
-        if (!(await isAdminRequest(request))) return errorJson("unauthorized", 401);
+        if (!(await isAdminOrExpertRequest(request))) return errorJson("unauthorized", 401);
         if (!UUID.test(params.id)) return errorJson("not_found", 404);
         const url = new URL(request.url);
         const format = url.searchParams.get("format") === "image" ? "image" : "pdf";

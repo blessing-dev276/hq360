@@ -13,12 +13,16 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AgenciesRouteImport } from './routes/agencies'
+import { Route as AppointmentBasedBusinessesRouteImport } from './routes/appointment-based-businesses'
 import { Route as AuthorsRouteImport } from './routes/authors'
 import { Route as BookLaunchRouteImport } from './routes/book-launch'
+import { Route as CleaningBusinessesRouteImport } from './routes/cleaning-businesses'
 import { Route as CoachesRouteImport } from './routes/coaches'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as CreatorsRouteImport } from './routes/creators'
 import { Route as EcommerceRouteImport } from './routes/ecommerce'
+import { Route as ExpertRouteImport } from './routes/expert'
+import { Route as ExpertSignupRouteImport } from './routes/expert-signup'
 import { Route as FaqsRouteImport } from './routes/faqs'
 import { Route as GuaranteeRouteImport } from './routes/guarantee'
 import { Route as HomeServicesRouteImport } from './routes/home-services'
@@ -26,6 +30,7 @@ import { Route as HvacRouteImport } from './routes/hvac'
 import { Route as IndustriesRouteImport } from './routes/industries'
 import { Route as LawFirmsRouteImport } from './routes/law-firms'
 import { Route as LocalBusinessRouteImport } from './routes/local-business'
+import { Route as LocalBusinessesRouteImport } from './routes/local-businesses'
 import { Route as MedSpasRouteImport } from './routes/med-spas'
 import { Route as PlumbersRouteImport } from './routes/plumbers'
 import { Route as PrivacyRouteImport } from './routes/privacy'
@@ -39,6 +44,7 @@ import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as TeamRouteImport } from './routes/team'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as TestimonialsRouteImport } from './routes/testimonials'
+import { Route as UgcCreatorsRouteImport } from './routes/ugc-creators'
 import { Route as ApiPrivateAuditRouteImport } from './routes/api/private-audit'
 import { Route as AuthorAuditIndexRouteImport } from './routes/author-audit.index'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
@@ -60,6 +66,7 @@ import { Route as WorkSlugRouteImport } from './routes/work.$slug'
 import { Route as ApiAdminAuthorAuditLeadsRouteImport } from './routes/api/admin/author-audit-leads'
 import { Route as ApiAdminAuthorAuditsRouteImport } from './routes/api/admin/author-audits'
 import { Route as ApiAdminCaseStudiesRouteImport } from './routes/api/admin/case-studies'
+import { Route as ApiAdminExpertsRouteImport } from './routes/api/admin/experts'
 import { Route as ApiAdminInvoicesRouteImport } from './routes/api/admin/invoices'
 import { Route as ApiAdminLeadsRouteImport } from './routes/api/admin/leads'
 import { Route as ApiAdminPortfolioRouteImport } from './routes/api/admin/portfolio'
@@ -78,6 +85,7 @@ import { Route as ApiAdminTeamRouteImport } from './routes/api/admin/team'
 import { Route as ApiAdminTestimonialsRouteImport } from './routes/api/admin/testimonials'
 import { Route as ApiAdminUploadRouteImport } from './routes/api/admin/upload'
 import { Route as ApiAdminUploadUrlRouteImport } from './routes/api/admin/upload-url'
+import { Route as ApiExpertSessionRouteImport } from './routes/api/expert/session'
 import { Route as ApiPayTokenRouteImport } from './routes/api/pay/$token'
 import { Route as ApiPublicAuthorAuditRouteImport } from './routes/api/public/author-audit'
 import { Route as ApiPublicCaseStudiesRouteImport } from './routes/api/public/case-studies'
@@ -95,6 +103,7 @@ import { Route as InsightsGuidesSlugRouteImport } from './routes/insights.guides
 import { Route as ApiAdminAuthorAuditsIdRouteImport } from './routes/api/admin/author-audits.$id'
 import { Route as ApiAdminCaseStudiesIdRouteImport } from './routes/api/admin/case-studies.$id'
 import { Route as ApiAdminCaseStudiesReorderRouteImport } from './routes/api/admin/case-studies.reorder'
+import { Route as ApiAdminExpertsIdRouteImport } from './routes/api/admin/experts.$id'
 import { Route as ApiAdminInvoicesIdRouteImport } from './routes/api/admin/invoices.$id'
 import { Route as ApiAdminPortfolioIdRouteImport } from './routes/api/admin/portfolio.$id'
 import { Route as ApiAdminPortfolioReorderRouteImport } from './routes/api/admin/portfolio.reorder'
@@ -149,6 +158,12 @@ const AgenciesRoute = AgenciesRouteImport.update({
   path: '/agencies',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppointmentBasedBusinessesRoute =
+  AppointmentBasedBusinessesRouteImport.update({
+    id: '/appointment-based-businesses',
+    path: '/appointment-based-businesses',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AuthorsRoute = AuthorsRouteImport.update({
   id: '/authors',
   path: '/authors',
@@ -157,6 +172,11 @@ const AuthorsRoute = AuthorsRouteImport.update({
 const BookLaunchRoute = BookLaunchRouteImport.update({
   id: '/book-launch',
   path: '/book-launch',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CleaningBusinessesRoute = CleaningBusinessesRouteImport.update({
+  id: '/cleaning-businesses',
+  path: '/cleaning-businesses',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CoachesRoute = CoachesRouteImport.update({
@@ -177,6 +197,16 @@ const CreatorsRoute = CreatorsRouteImport.update({
 const EcommerceRoute = EcommerceRouteImport.update({
   id: '/ecommerce',
   path: '/ecommerce',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ExpertRoute = ExpertRouteImport.update({
+  id: '/expert',
+  path: '/expert',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ExpertSignupRoute = ExpertSignupRouteImport.update({
+  id: '/expert-signup',
+  path: '/expert-signup',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FaqsRoute = FaqsRouteImport.update({
@@ -212,6 +242,11 @@ const LawFirmsRoute = LawFirmsRouteImport.update({
 const LocalBusinessRoute = LocalBusinessRouteImport.update({
   id: '/local-business',
   path: '/local-business',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LocalBusinessesRoute = LocalBusinessesRouteImport.update({
+  id: '/local-businesses',
+  path: '/local-businesses',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MedSpasRoute = MedSpasRouteImport.update({
@@ -277,6 +312,11 @@ const TermsRoute = TermsRouteImport.update({
 const TestimonialsRoute = TestimonialsRouteImport.update({
   id: '/testimonials',
   path: '/testimonials',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UgcCreatorsRoute = UgcCreatorsRouteImport.update({
+  id: '/ugc-creators',
+  path: '/ugc-creators',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPrivateAuditRoute = ApiPrivateAuditRouteImport.update({
@@ -386,6 +426,11 @@ const ApiAdminCaseStudiesRoute = ApiAdminCaseStudiesRouteImport.update({
   path: '/api/admin/case-studies',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAdminExpertsRoute = ApiAdminExpertsRouteImport.update({
+  id: '/api/admin/experts',
+  path: '/api/admin/experts',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAdminInvoicesRoute = ApiAdminInvoicesRouteImport.update({
   id: '/api/admin/invoices',
   path: '/api/admin/invoices',
@@ -481,6 +526,11 @@ const ApiAdminUploadUrlRoute = ApiAdminUploadUrlRouteImport.update({
   path: '/api/admin/upload-url',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiExpertSessionRoute = ApiExpertSessionRouteImport.update({
+  id: '/api/expert/session',
+  path: '/api/expert/session',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPayTokenRoute = ApiPayTokenRouteImport.update({
   id: '/api/pay/$token',
   path: '/api/pay/$token',
@@ -568,6 +618,11 @@ const ApiAdminCaseStudiesReorderRoute =
     path: '/reorder',
     getParentRoute: () => ApiAdminCaseStudiesRoute,
   } as any)
+const ApiAdminExpertsIdRoute = ApiAdminExpertsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ApiAdminExpertsRoute,
+} as any)
 const ApiAdminInvoicesIdRoute = ApiAdminInvoicesIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -765,12 +820,16 @@ export interface FileRoutesByFullPath {
   '/about': typeof AboutRoute
   '/admin': typeof AdminRoute
   '/agencies': typeof AgenciesRoute
+  '/appointment-based-businesses': typeof AppointmentBasedBusinessesRoute
   '/authors': typeof AuthorsRoute
   '/book-launch': typeof BookLaunchRoute
+  '/cleaning-businesses': typeof CleaningBusinessesRoute
   '/coaches': typeof CoachesRoute
   '/contact': typeof ContactRoute
   '/creators': typeof CreatorsRoute
   '/ecommerce': typeof EcommerceRoute
+  '/expert': typeof ExpertRoute
+  '/expert-signup': typeof ExpertSignupRoute
   '/faqs': typeof FaqsRoute
   '/guarantee': typeof GuaranteeRoute
   '/home-services': typeof HomeServicesRoute
@@ -778,6 +837,7 @@ export interface FileRoutesByFullPath {
   '/industries': typeof IndustriesRoute
   '/law-firms': typeof LawFirmsRoute
   '/local-business': typeof LocalBusinessRoute
+  '/local-businesses': typeof LocalBusinessesRoute
   '/med-spas': typeof MedSpasRoute
   '/plumbers': typeof PlumbersRoute
   '/privacy': typeof PrivacyRoute
@@ -791,6 +851,7 @@ export interface FileRoutesByFullPath {
   '/team': typeof TeamRoute
   '/terms': typeof TermsRoute
   '/testimonials': typeof TestimonialsRoute
+  '/ugc-creators': typeof UgcCreatorsRoute
   '/api/private-audit': typeof ApiPrivateAuditRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/capabilities/$slug': typeof CapabilitiesSlugRoute
@@ -812,6 +873,7 @@ export interface FileRoutesByFullPath {
   '/api/admin/author-audit-leads': typeof ApiAdminAuthorAuditLeadsRoute
   '/api/admin/author-audits': typeof ApiAdminAuthorAuditsRouteWithChildren
   '/api/admin/case-studies': typeof ApiAdminCaseStudiesRouteWithChildren
+  '/api/admin/experts': typeof ApiAdminExpertsRouteWithChildren
   '/api/admin/invoices': typeof ApiAdminInvoicesRouteWithChildren
   '/api/admin/leads': typeof ApiAdminLeadsRoute
   '/api/admin/portfolio': typeof ApiAdminPortfolioRouteWithChildren
@@ -830,6 +892,7 @@ export interface FileRoutesByFullPath {
   '/api/admin/testimonials': typeof ApiAdminTestimonialsRouteWithChildren
   '/api/admin/upload': typeof ApiAdminUploadRoute
   '/api/admin/upload-url': typeof ApiAdminUploadUrlRoute
+  '/api/expert/session': typeof ApiExpertSessionRoute
   '/api/pay/$token': typeof ApiPayTokenRoute
   '/api/public/author-audit': typeof ApiPublicAuthorAuditRoute
   '/api/public/case-studies': typeof ApiPublicCaseStudiesRoute
@@ -847,6 +910,7 @@ export interface FileRoutesByFullPath {
   '/api/admin/author-audits/$id': typeof ApiAdminAuthorAuditsIdRouteWithChildren
   '/api/admin/case-studies/$id': typeof ApiAdminCaseStudiesIdRoute
   '/api/admin/case-studies/reorder': typeof ApiAdminCaseStudiesReorderRoute
+  '/api/admin/experts/$id': typeof ApiAdminExpertsIdRoute
   '/api/admin/invoices/$id': typeof ApiAdminInvoicesIdRoute
   '/api/admin/portfolio/$id': typeof ApiAdminPortfolioIdRoute
   '/api/admin/portfolio/reorder': typeof ApiAdminPortfolioReorderRoute
@@ -886,12 +950,16 @@ export interface FileRoutesByTo {
   '/about': typeof AboutRoute
   '/admin': typeof AdminRoute
   '/agencies': typeof AgenciesRoute
+  '/appointment-based-businesses': typeof AppointmentBasedBusinessesRoute
   '/authors': typeof AuthorsRoute
   '/book-launch': typeof BookLaunchRoute
+  '/cleaning-businesses': typeof CleaningBusinessesRoute
   '/coaches': typeof CoachesRoute
   '/contact': typeof ContactRoute
   '/creators': typeof CreatorsRoute
   '/ecommerce': typeof EcommerceRoute
+  '/expert': typeof ExpertRoute
+  '/expert-signup': typeof ExpertSignupRoute
   '/faqs': typeof FaqsRoute
   '/guarantee': typeof GuaranteeRoute
   '/home-services': typeof HomeServicesRoute
@@ -899,6 +967,7 @@ export interface FileRoutesByTo {
   '/industries': typeof IndustriesRoute
   '/law-firms': typeof LawFirmsRoute
   '/local-business': typeof LocalBusinessRoute
+  '/local-businesses': typeof LocalBusinessesRoute
   '/med-spas': typeof MedSpasRoute
   '/plumbers': typeof PlumbersRoute
   '/privacy': typeof PrivacyRoute
@@ -912,6 +981,7 @@ export interface FileRoutesByTo {
   '/team': typeof TeamRoute
   '/terms': typeof TermsRoute
   '/testimonials': typeof TestimonialsRoute
+  '/ugc-creators': typeof UgcCreatorsRoute
   '/api/private-audit': typeof ApiPrivateAuditRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/capabilities/$slug': typeof CapabilitiesSlugRoute
@@ -933,6 +1003,7 @@ export interface FileRoutesByTo {
   '/api/admin/author-audit-leads': typeof ApiAdminAuthorAuditLeadsRoute
   '/api/admin/author-audits': typeof ApiAdminAuthorAuditsRouteWithChildren
   '/api/admin/case-studies': typeof ApiAdminCaseStudiesRouteWithChildren
+  '/api/admin/experts': typeof ApiAdminExpertsRouteWithChildren
   '/api/admin/invoices': typeof ApiAdminInvoicesRouteWithChildren
   '/api/admin/leads': typeof ApiAdminLeadsRoute
   '/api/admin/portfolio': typeof ApiAdminPortfolioRouteWithChildren
@@ -951,6 +1022,7 @@ export interface FileRoutesByTo {
   '/api/admin/testimonials': typeof ApiAdminTestimonialsRouteWithChildren
   '/api/admin/upload': typeof ApiAdminUploadRoute
   '/api/admin/upload-url': typeof ApiAdminUploadUrlRoute
+  '/api/expert/session': typeof ApiExpertSessionRoute
   '/api/pay/$token': typeof ApiPayTokenRoute
   '/api/public/author-audit': typeof ApiPublicAuthorAuditRoute
   '/api/public/case-studies': typeof ApiPublicCaseStudiesRoute
@@ -968,6 +1040,7 @@ export interface FileRoutesByTo {
   '/api/admin/author-audits/$id': typeof ApiAdminAuthorAuditsIdRouteWithChildren
   '/api/admin/case-studies/$id': typeof ApiAdminCaseStudiesIdRoute
   '/api/admin/case-studies/reorder': typeof ApiAdminCaseStudiesReorderRoute
+  '/api/admin/experts/$id': typeof ApiAdminExpertsIdRoute
   '/api/admin/invoices/$id': typeof ApiAdminInvoicesIdRoute
   '/api/admin/portfolio/$id': typeof ApiAdminPortfolioIdRoute
   '/api/admin/portfolio/reorder': typeof ApiAdminPortfolioReorderRoute
@@ -1008,12 +1081,16 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/admin': typeof AdminRoute
   '/agencies': typeof AgenciesRoute
+  '/appointment-based-businesses': typeof AppointmentBasedBusinessesRoute
   '/authors': typeof AuthorsRoute
   '/book-launch': typeof BookLaunchRoute
+  '/cleaning-businesses': typeof CleaningBusinessesRoute
   '/coaches': typeof CoachesRoute
   '/contact': typeof ContactRoute
   '/creators': typeof CreatorsRoute
   '/ecommerce': typeof EcommerceRoute
+  '/expert': typeof ExpertRoute
+  '/expert-signup': typeof ExpertSignupRoute
   '/faqs': typeof FaqsRoute
   '/guarantee': typeof GuaranteeRoute
   '/home-services': typeof HomeServicesRoute
@@ -1021,6 +1098,7 @@ export interface FileRoutesById {
   '/industries': typeof IndustriesRoute
   '/law-firms': typeof LawFirmsRoute
   '/local-business': typeof LocalBusinessRoute
+  '/local-businesses': typeof LocalBusinessesRoute
   '/med-spas': typeof MedSpasRoute
   '/plumbers': typeof PlumbersRoute
   '/privacy': typeof PrivacyRoute
@@ -1034,6 +1112,7 @@ export interface FileRoutesById {
   '/team': typeof TeamRoute
   '/terms': typeof TermsRoute
   '/testimonials': typeof TestimonialsRoute
+  '/ugc-creators': typeof UgcCreatorsRoute
   '/api/private-audit': typeof ApiPrivateAuditRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/capabilities/$slug': typeof CapabilitiesSlugRoute
@@ -1055,6 +1134,7 @@ export interface FileRoutesById {
   '/api/admin/author-audit-leads': typeof ApiAdminAuthorAuditLeadsRoute
   '/api/admin/author-audits': typeof ApiAdminAuthorAuditsRouteWithChildren
   '/api/admin/case-studies': typeof ApiAdminCaseStudiesRouteWithChildren
+  '/api/admin/experts': typeof ApiAdminExpertsRouteWithChildren
   '/api/admin/invoices': typeof ApiAdminInvoicesRouteWithChildren
   '/api/admin/leads': typeof ApiAdminLeadsRoute
   '/api/admin/portfolio': typeof ApiAdminPortfolioRouteWithChildren
@@ -1073,6 +1153,7 @@ export interface FileRoutesById {
   '/api/admin/testimonials': typeof ApiAdminTestimonialsRouteWithChildren
   '/api/admin/upload': typeof ApiAdminUploadRoute
   '/api/admin/upload-url': typeof ApiAdminUploadUrlRoute
+  '/api/expert/session': typeof ApiExpertSessionRoute
   '/api/pay/$token': typeof ApiPayTokenRoute
   '/api/public/author-audit': typeof ApiPublicAuthorAuditRoute
   '/api/public/case-studies': typeof ApiPublicCaseStudiesRoute
@@ -1090,6 +1171,7 @@ export interface FileRoutesById {
   '/api/admin/author-audits/$id': typeof ApiAdminAuthorAuditsIdRouteWithChildren
   '/api/admin/case-studies/$id': typeof ApiAdminCaseStudiesIdRoute
   '/api/admin/case-studies/reorder': typeof ApiAdminCaseStudiesReorderRoute
+  '/api/admin/experts/$id': typeof ApiAdminExpertsIdRoute
   '/api/admin/invoices/$id': typeof ApiAdminInvoicesIdRoute
   '/api/admin/portfolio/$id': typeof ApiAdminPortfolioIdRoute
   '/api/admin/portfolio/reorder': typeof ApiAdminPortfolioReorderRoute
@@ -1131,12 +1213,16 @@ export interface FileRouteTypes {
     | '/about'
     | '/admin'
     | '/agencies'
+    | '/appointment-based-businesses'
     | '/authors'
     | '/book-launch'
+    | '/cleaning-businesses'
     | '/coaches'
     | '/contact'
     | '/creators'
     | '/ecommerce'
+    | '/expert'
+    | '/expert-signup'
     | '/faqs'
     | '/guarantee'
     | '/home-services'
@@ -1144,6 +1230,7 @@ export interface FileRouteTypes {
     | '/industries'
     | '/law-firms'
     | '/local-business'
+    | '/local-businesses'
     | '/med-spas'
     | '/plumbers'
     | '/privacy'
@@ -1157,6 +1244,7 @@ export interface FileRouteTypes {
     | '/team'
     | '/terms'
     | '/testimonials'
+    | '/ugc-creators'
     | '/api/private-audit'
     | '/blog/$slug'
     | '/capabilities/$slug'
@@ -1178,6 +1266,7 @@ export interface FileRouteTypes {
     | '/api/admin/author-audit-leads'
     | '/api/admin/author-audits'
     | '/api/admin/case-studies'
+    | '/api/admin/experts'
     | '/api/admin/invoices'
     | '/api/admin/leads'
     | '/api/admin/portfolio'
@@ -1196,6 +1285,7 @@ export interface FileRouteTypes {
     | '/api/admin/testimonials'
     | '/api/admin/upload'
     | '/api/admin/upload-url'
+    | '/api/expert/session'
     | '/api/pay/$token'
     | '/api/public/author-audit'
     | '/api/public/case-studies'
@@ -1213,6 +1303,7 @@ export interface FileRouteTypes {
     | '/api/admin/author-audits/$id'
     | '/api/admin/case-studies/$id'
     | '/api/admin/case-studies/reorder'
+    | '/api/admin/experts/$id'
     | '/api/admin/invoices/$id'
     | '/api/admin/portfolio/$id'
     | '/api/admin/portfolio/reorder'
@@ -1252,12 +1343,16 @@ export interface FileRouteTypes {
     | '/about'
     | '/admin'
     | '/agencies'
+    | '/appointment-based-businesses'
     | '/authors'
     | '/book-launch'
+    | '/cleaning-businesses'
     | '/coaches'
     | '/contact'
     | '/creators'
     | '/ecommerce'
+    | '/expert'
+    | '/expert-signup'
     | '/faqs'
     | '/guarantee'
     | '/home-services'
@@ -1265,6 +1360,7 @@ export interface FileRouteTypes {
     | '/industries'
     | '/law-firms'
     | '/local-business'
+    | '/local-businesses'
     | '/med-spas'
     | '/plumbers'
     | '/privacy'
@@ -1278,6 +1374,7 @@ export interface FileRouteTypes {
     | '/team'
     | '/terms'
     | '/testimonials'
+    | '/ugc-creators'
     | '/api/private-audit'
     | '/blog/$slug'
     | '/capabilities/$slug'
@@ -1299,6 +1396,7 @@ export interface FileRouteTypes {
     | '/api/admin/author-audit-leads'
     | '/api/admin/author-audits'
     | '/api/admin/case-studies'
+    | '/api/admin/experts'
     | '/api/admin/invoices'
     | '/api/admin/leads'
     | '/api/admin/portfolio'
@@ -1317,6 +1415,7 @@ export interface FileRouteTypes {
     | '/api/admin/testimonials'
     | '/api/admin/upload'
     | '/api/admin/upload-url'
+    | '/api/expert/session'
     | '/api/pay/$token'
     | '/api/public/author-audit'
     | '/api/public/case-studies'
@@ -1334,6 +1433,7 @@ export interface FileRouteTypes {
     | '/api/admin/author-audits/$id'
     | '/api/admin/case-studies/$id'
     | '/api/admin/case-studies/reorder'
+    | '/api/admin/experts/$id'
     | '/api/admin/invoices/$id'
     | '/api/admin/portfolio/$id'
     | '/api/admin/portfolio/reorder'
@@ -1373,12 +1473,16 @@ export interface FileRouteTypes {
     | '/about'
     | '/admin'
     | '/agencies'
+    | '/appointment-based-businesses'
     | '/authors'
     | '/book-launch'
+    | '/cleaning-businesses'
     | '/coaches'
     | '/contact'
     | '/creators'
     | '/ecommerce'
+    | '/expert'
+    | '/expert-signup'
     | '/faqs'
     | '/guarantee'
     | '/home-services'
@@ -1386,6 +1490,7 @@ export interface FileRouteTypes {
     | '/industries'
     | '/law-firms'
     | '/local-business'
+    | '/local-businesses'
     | '/med-spas'
     | '/plumbers'
     | '/privacy'
@@ -1399,6 +1504,7 @@ export interface FileRouteTypes {
     | '/team'
     | '/terms'
     | '/testimonials'
+    | '/ugc-creators'
     | '/api/private-audit'
     | '/blog/$slug'
     | '/capabilities/$slug'
@@ -1420,6 +1526,7 @@ export interface FileRouteTypes {
     | '/api/admin/author-audit-leads'
     | '/api/admin/author-audits'
     | '/api/admin/case-studies'
+    | '/api/admin/experts'
     | '/api/admin/invoices'
     | '/api/admin/leads'
     | '/api/admin/portfolio'
@@ -1438,6 +1545,7 @@ export interface FileRouteTypes {
     | '/api/admin/testimonials'
     | '/api/admin/upload'
     | '/api/admin/upload-url'
+    | '/api/expert/session'
     | '/api/pay/$token'
     | '/api/public/author-audit'
     | '/api/public/case-studies'
@@ -1455,6 +1563,7 @@ export interface FileRouteTypes {
     | '/api/admin/author-audits/$id'
     | '/api/admin/case-studies/$id'
     | '/api/admin/case-studies/reorder'
+    | '/api/admin/experts/$id'
     | '/api/admin/invoices/$id'
     | '/api/admin/portfolio/$id'
     | '/api/admin/portfolio/reorder'
@@ -1495,12 +1604,16 @@ export interface RootRouteChildren {
   AboutRoute: typeof AboutRoute
   AdminRoute: typeof AdminRoute
   AgenciesRoute: typeof AgenciesRoute
+  AppointmentBasedBusinessesRoute: typeof AppointmentBasedBusinessesRoute
   AuthorsRoute: typeof AuthorsRoute
   BookLaunchRoute: typeof BookLaunchRoute
+  CleaningBusinessesRoute: typeof CleaningBusinessesRoute
   CoachesRoute: typeof CoachesRoute
   ContactRoute: typeof ContactRoute
   CreatorsRoute: typeof CreatorsRoute
   EcommerceRoute: typeof EcommerceRoute
+  ExpertRoute: typeof ExpertRoute
+  ExpertSignupRoute: typeof ExpertSignupRoute
   FaqsRoute: typeof FaqsRoute
   GuaranteeRoute: typeof GuaranteeRoute
   HomeServicesRoute: typeof HomeServicesRoute
@@ -1508,6 +1621,7 @@ export interface RootRouteChildren {
   IndustriesRoute: typeof IndustriesRoute
   LawFirmsRoute: typeof LawFirmsRoute
   LocalBusinessRoute: typeof LocalBusinessRoute
+  LocalBusinessesRoute: typeof LocalBusinessesRoute
   MedSpasRoute: typeof MedSpasRoute
   PlumbersRoute: typeof PlumbersRoute
   PrivacyRoute: typeof PrivacyRoute
@@ -1521,6 +1635,7 @@ export interface RootRouteChildren {
   TeamRoute: typeof TeamRoute
   TermsRoute: typeof TermsRoute
   TestimonialsRoute: typeof TestimonialsRoute
+  UgcCreatorsRoute: typeof UgcCreatorsRoute
   ApiPrivateAuditRoute: typeof ApiPrivateAuditRoute
   BlogSlugRoute: typeof BlogSlugRoute
   CapabilitiesSlugRoute: typeof CapabilitiesSlugRoute
@@ -1542,6 +1657,7 @@ export interface RootRouteChildren {
   ApiAdminAuthorAuditLeadsRoute: typeof ApiAdminAuthorAuditLeadsRoute
   ApiAdminAuthorAuditsRoute: typeof ApiAdminAuthorAuditsRouteWithChildren
   ApiAdminCaseStudiesRoute: typeof ApiAdminCaseStudiesRouteWithChildren
+  ApiAdminExpertsRoute: typeof ApiAdminExpertsRouteWithChildren
   ApiAdminInvoicesRoute: typeof ApiAdminInvoicesRouteWithChildren
   ApiAdminLeadsRoute: typeof ApiAdminLeadsRoute
   ApiAdminPortfolioRoute: typeof ApiAdminPortfolioRouteWithChildren
@@ -1560,6 +1676,7 @@ export interface RootRouteChildren {
   ApiAdminTestimonialsRoute: typeof ApiAdminTestimonialsRouteWithChildren
   ApiAdminUploadRoute: typeof ApiAdminUploadRoute
   ApiAdminUploadUrlRoute: typeof ApiAdminUploadUrlRoute
+  ApiExpertSessionRoute: typeof ApiExpertSessionRoute
   ApiPayTokenRoute: typeof ApiPayTokenRoute
   ApiPublicAuthorAuditRoute: typeof ApiPublicAuthorAuditRoute
   ApiPublicCaseStudiesRoute: typeof ApiPublicCaseStudiesRoute
@@ -1609,6 +1726,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AgenciesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/appointment-based-businesses': {
+      id: '/appointment-based-businesses'
+      path: '/appointment-based-businesses'
+      fullPath: '/appointment-based-businesses'
+      preLoaderRoute: typeof AppointmentBasedBusinessesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/authors': {
       id: '/authors'
       path: '/authors'
@@ -1621,6 +1745,13 @@ declare module '@tanstack/react-router' {
       path: '/book-launch'
       fullPath: '/book-launch'
       preLoaderRoute: typeof BookLaunchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cleaning-businesses': {
+      id: '/cleaning-businesses'
+      path: '/cleaning-businesses'
+      fullPath: '/cleaning-businesses'
+      preLoaderRoute: typeof CleaningBusinessesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/coaches': {
@@ -1649,6 +1780,20 @@ declare module '@tanstack/react-router' {
       path: '/ecommerce'
       fullPath: '/ecommerce'
       preLoaderRoute: typeof EcommerceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/expert': {
+      id: '/expert'
+      path: '/expert'
+      fullPath: '/expert'
+      preLoaderRoute: typeof ExpertRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/expert-signup': {
+      id: '/expert-signup'
+      path: '/expert-signup'
+      fullPath: '/expert-signup'
+      preLoaderRoute: typeof ExpertSignupRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/faqs': {
@@ -1698,6 +1843,13 @@ declare module '@tanstack/react-router' {
       path: '/local-business'
       fullPath: '/local-business'
       preLoaderRoute: typeof LocalBusinessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/local-businesses': {
+      id: '/local-businesses'
+      path: '/local-businesses'
+      fullPath: '/local-businesses'
+      preLoaderRoute: typeof LocalBusinessesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/med-spas': {
@@ -1789,6 +1941,13 @@ declare module '@tanstack/react-router' {
       path: '/testimonials'
       fullPath: '/testimonials'
       preLoaderRoute: typeof TestimonialsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ugc-creators': {
+      id: '/ugc-creators'
+      path: '/ugc-creators'
+      fullPath: '/ugc-creators'
+      preLoaderRoute: typeof UgcCreatorsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/private-audit': {
@@ -1938,6 +2097,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAdminCaseStudiesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/admin/experts': {
+      id: '/api/admin/experts'
+      path: '/api/admin/experts'
+      fullPath: '/api/admin/experts'
+      preLoaderRoute: typeof ApiAdminExpertsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/admin/invoices': {
       id: '/api/admin/invoices'
       path: '/api/admin/invoices'
@@ -2064,6 +2230,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAdminUploadUrlRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/expert/session': {
+      id: '/api/expert/session'
+      path: '/api/expert/session'
+      fullPath: '/api/expert/session'
+      preLoaderRoute: typeof ApiExpertSessionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/pay/$token': {
       id: '/api/pay/$token'
       path: '/api/pay/$token'
@@ -2182,6 +2355,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/admin/case-studies/reorder'
       preLoaderRoute: typeof ApiAdminCaseStudiesReorderRouteImport
       parentRoute: typeof ApiAdminCaseStudiesRoute
+    }
+    '/api/admin/experts/$id': {
+      id: '/api/admin/experts/$id'
+      path: '/$id'
+      fullPath: '/api/admin/experts/$id'
+      preLoaderRoute: typeof ApiAdminExpertsIdRouteImport
+      parentRoute: typeof ApiAdminExpertsRoute
     }
     '/api/admin/invoices/$id': {
       id: '/api/admin/invoices/$id'
@@ -2526,6 +2706,18 @@ const ApiAdminCaseStudiesRouteChildren: ApiAdminCaseStudiesRouteChildren = {
 const ApiAdminCaseStudiesRouteWithChildren =
   ApiAdminCaseStudiesRoute._addFileChildren(ApiAdminCaseStudiesRouteChildren)
 
+interface ApiAdminExpertsRouteChildren {
+  ApiAdminExpertsIdRoute: typeof ApiAdminExpertsIdRoute
+}
+
+const ApiAdminExpertsRouteChildren: ApiAdminExpertsRouteChildren = {
+  ApiAdminExpertsIdRoute: ApiAdminExpertsIdRoute,
+}
+
+const ApiAdminExpertsRouteWithChildren = ApiAdminExpertsRoute._addFileChildren(
+  ApiAdminExpertsRouteChildren,
+)
+
 interface ApiAdminInvoicesRouteChildren {
   ApiAdminInvoicesIdRoute: typeof ApiAdminInvoicesIdRoute
 }
@@ -2642,12 +2834,16 @@ const rootRouteChildren: RootRouteChildren = {
   AboutRoute: AboutRoute,
   AdminRoute: AdminRoute,
   AgenciesRoute: AgenciesRoute,
+  AppointmentBasedBusinessesRoute: AppointmentBasedBusinessesRoute,
   AuthorsRoute: AuthorsRoute,
   BookLaunchRoute: BookLaunchRoute,
+  CleaningBusinessesRoute: CleaningBusinessesRoute,
   CoachesRoute: CoachesRoute,
   ContactRoute: ContactRoute,
   CreatorsRoute: CreatorsRoute,
   EcommerceRoute: EcommerceRoute,
+  ExpertRoute: ExpertRoute,
+  ExpertSignupRoute: ExpertSignupRoute,
   FaqsRoute: FaqsRoute,
   GuaranteeRoute: GuaranteeRoute,
   HomeServicesRoute: HomeServicesRoute,
@@ -2655,6 +2851,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndustriesRoute: IndustriesRoute,
   LawFirmsRoute: LawFirmsRoute,
   LocalBusinessRoute: LocalBusinessRoute,
+  LocalBusinessesRoute: LocalBusinessesRoute,
   MedSpasRoute: MedSpasRoute,
   PlumbersRoute: PlumbersRoute,
   PrivacyRoute: PrivacyRoute,
@@ -2668,6 +2865,7 @@ const rootRouteChildren: RootRouteChildren = {
   TeamRoute: TeamRoute,
   TermsRoute: TermsRoute,
   TestimonialsRoute: TestimonialsRoute,
+  UgcCreatorsRoute: UgcCreatorsRoute,
   ApiPrivateAuditRoute: ApiPrivateAuditRoute,
   BlogSlugRoute: BlogSlugRoute,
   CapabilitiesSlugRoute: CapabilitiesSlugRoute,
@@ -2689,6 +2887,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAdminAuthorAuditLeadsRoute: ApiAdminAuthorAuditLeadsRoute,
   ApiAdminAuthorAuditsRoute: ApiAdminAuthorAuditsRouteWithChildren,
   ApiAdminCaseStudiesRoute: ApiAdminCaseStudiesRouteWithChildren,
+  ApiAdminExpertsRoute: ApiAdminExpertsRouteWithChildren,
   ApiAdminInvoicesRoute: ApiAdminInvoicesRouteWithChildren,
   ApiAdminLeadsRoute: ApiAdminLeadsRoute,
   ApiAdminPortfolioRoute: ApiAdminPortfolioRouteWithChildren,
@@ -2707,6 +2906,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAdminTestimonialsRoute: ApiAdminTestimonialsRouteWithChildren,
   ApiAdminUploadRoute: ApiAdminUploadRoute,
   ApiAdminUploadUrlRoute: ApiAdminUploadUrlRoute,
+  ApiExpertSessionRoute: ApiExpertSessionRoute,
   ApiPayTokenRoute: ApiPayTokenRoute,
   ApiPublicAuthorAuditRoute: ApiPublicAuthorAuditRoute,
   ApiPublicCaseStudiesRoute: ApiPublicCaseStudiesRoute,

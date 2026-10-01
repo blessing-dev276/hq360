@@ -138,7 +138,7 @@ export function ExpertProfileEditor() {
     setError("");
     setNotice("");
     try {
-      const response = await fetch("/api/expert/profile/submit", { method: "POST" });
+      const response = await fetch("/api/expert/profile-submit", { method: "POST" });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(data.error || "Could not submit your profile.");
       setProfile(data.profile);

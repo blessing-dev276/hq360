@@ -20,7 +20,13 @@ const schema = z.object({
   specialties: z.array(z.string().trim().min(1).max(40)).max(12),
   website_url: httpsUrl.or(z.literal("")),
   linkedin_url: httpsUrl
-    .refine((value) => /(^|\.)linkedin\.com$/i.test(new URL(value).hostname), "Use a LinkedIn link")
+    .refine((value) => {
+      try {
+        return /(^|\.)linkedin\.com$/i.test(new URL(value).hostname);
+      } catch {
+        return false;
+      }
+    }, "Use a LinkedIn link")
     .or(z.literal("")),
   photo_url: z.string().trim().max(500),
 });

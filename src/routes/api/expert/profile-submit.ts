@@ -9,7 +9,7 @@ const FIELDS =
 
 /** Puts the expert's current profile content up for admin review. Doesn't
  *  publish anything itself -- only an admin "publish" action sets is_public. */
-export const Route = createFileRoute("/api/expert/profile/submit")({
+export const Route = createFileRoute("/api/expert/profile-submit")({
   server: {
     handlers: {
       POST: async ({ request }) => {

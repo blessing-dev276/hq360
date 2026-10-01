@@ -430,7 +430,7 @@
   max-width: none;
   margin: 0;
   opacity: 0;
-  filter: none;
+  filter: brightness(0.88);
   /* Keep faces clear; soften only the original photo's cropped outer edges. */
   -webkit-mask-image:
     linear-gradient(to right, transparent, #000 4%, #000 96%, transparent),

@@ -143,7 +143,7 @@ try {
       return { alpha: ctx.getImageData(0, 0, 1, 1).data[3], filter: getComputedStyle(img).filter };
     }),
   );
-  expect(alphas.every((x) => x.alpha === 0 && x.filter === "none")).toBe(true);
+  expect(alphas.every((x) => x.alpha === 0 && x.filter === "brightness(0.88)")).toBe(true);
   await page.screenshot({ path: "/tmp/hq-hero-desktop.png" });
   await noOverflow();
   await page.setViewportSize({ width: 390, height: 844 });

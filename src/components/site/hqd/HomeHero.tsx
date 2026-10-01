@@ -1,11 +1,11 @@
 import { useRef } from "react";
 import { Link } from "@tanstack/react-router";
 import { ArrowUpRight } from "lucide-react";
-import team1 from "@/assets/team-hero-1-cutout.webp";
-import team2 from "@/assets/team-hero-2-cutout.webp";
-import team3 from "@/assets/team-hero-3-cutout.webp";
-import team4 from "@/assets/team-hero-4-cutout.webp";
-import team5 from "@/assets/team-hero-5-cutout.webp";
+import team1 from "@/assets/team-hero-1-rim.webp";
+import team2 from "@/assets/team-hero-2-rim.webp";
+import team3 from "@/assets/team-hero-3-rim.webp";
+import team4 from "@/assets/team-hero-4-rim.webp";
+import team5 from "@/assets/team-hero-5-rim.webp";
 import { CORE_SERVICES } from "@/data/agency";
 import { Grain, Pill } from "./Hqd";
 

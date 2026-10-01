@@ -317,6 +317,18 @@
     linear-gradient(180deg, rgb(10 10 11 / 0) 48%, rgb(10 10 11 / 0.32) 76%, #0a0a0b 100%),
     linear-gradient(90deg, rgb(38 16 6 / 0.38) 0%, rgb(38 16 6 / 0) 42%);
 }
+/* Reference-style studio falloff, scoped to the homepage hero. */
+.hqd-hero-panel > .hqd-hero-shade {
+  background:
+    linear-gradient(
+      180deg,
+      transparent 28%,
+      rgb(10 10 11 / 0.35) 52%,
+      rgb(10 10 11 / 0.85) 82%,
+      #0a0a0b 100%
+    ),
+    linear-gradient(90deg, rgb(38 16 6 / 0.25), transparent 42%);
+}
 .hqd-hero-inner {
   position: relative;
   flex: 1;
@@ -430,7 +442,7 @@
   max-width: none;
   margin: 0;
   opacity: 0;
-  filter: brightness(0.88);
+  filter: brightness(0.58) contrast(1.12);
   /* Keep faces clear; soften only the original photo's cropped outer edges. */
   -webkit-mask-image:
     linear-gradient(to right, transparent, #000 4%, #000 96%, transparent),

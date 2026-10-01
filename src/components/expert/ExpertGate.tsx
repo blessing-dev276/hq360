@@ -79,7 +79,7 @@ export function ExpertGate({ children }: { children: ReactNode }) {
   return (
     <AuthShell
       audience="experts"
-      description="Access Author Reports and Scout with your approved HQ360 expert account."
+      description="Access Scouting with your approved HQ360 expert account. Author Reports are coming soon."
     >
       {state === "checking" ? (
         <p className="hq-auth-notice" role="status">

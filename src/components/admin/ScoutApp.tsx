@@ -1,5 +1,4 @@
-import { ReadersFavoriteScout } from "./ReadersFavoriteScout";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Bookmark,
   Check,
@@ -18,28 +17,33 @@ type Book = {
   id: string;
   title: string;
   asin: string | null;
+  isbn?: string | null;
+  publication_date?: string | null;
+  publication_year?: number | null;
+  publisher?: string | null;
+  book_format?: string | null;
   genre: string | null;
   source_url: string | null;
   source_slug: string;
   description?: string | null;
   discovered_at?: string | null;
   batch_id?: string | null;
-  scout_authors: { id: string; name: string; country: string | null } | null;
-  scout_review_counts: { platform: string; review_count: number | null }[];
+  scout_authors: {
+    id: string;
+    name: string;
+    country: string | null;
+    bio?: string | null;
+    website_url?: string | null;
+    contact_email?: string | null;
+    contact_form_url?: string | null;
+    publishing_type?: string | null;
+    author_profile_url?: string | null;
+    social_links?: string[];
+  } | null;
+  scout_review_counts: { platform: string; review_count: number | null; rating?: number | null }[];
   scout_prospects: { id: string; status: string }[];
   scout_batches?: { id: string; label: string; created_at: string } | null;
   localOnly?: boolean;
-};
-
-type UnqualifiedResult = {
-  key: string;
-  title: string;
-  authorName: string | null;
-  ratingLabel: string;
-  sourceUrl: string;
-  genre: string;
-  synopsis: string | null;
-  reasons: string[];
 };
 
 type ReedsyGenre = { id: number; name: string; emoji: string; depth: number; bookCount: number };
@@ -54,10 +58,6 @@ type ContactResult = {
   verified?: boolean;
 };
 
-type BatchGroup = { batchId: string; label: string; createdAt: string | null; books: Book[] };
-
-type View = "batch" | "imported" | "saved";
-
 function formatDiscoveredAt(value: string | null | undefined) {
   if (!value) return null;
   const date = new Date(value);
@@ -66,43 +66,6 @@ function formatDiscoveredAt(value: string | null | undefined) {
     dateStyle: "medium",
     timeStyle: "short",
   });
-}
-
-function groupByBatch(books: Book[]): BatchGroup[] {
-  const groups = new Map<string, BatchGroup>();
-  for (const book of books) {
-    const batchId = book.scout_batches?.id ?? book.batch_id ?? "ungrouped";
-    const existing = groups.get(batchId);
-    if (existing) {
-      existing.books.push(book);
-      continue;
-    }
-    groups.set(batchId, {
-      batchId,
-      label: book.scout_batches?.label ?? "Earlier / ungrouped saves",
-      createdAt: book.scout_batches?.created_at ?? null,
-      books: [book],
-    });
-  }
-  return [...groups.values()].sort((a, b) => {
-    if (!a.createdAt) return 1;
-    if (!b.createdAt) return -1;
-    return b.createdAt.localeCompare(a.createdAt);
-  });
-}
-
-function buildGenreSections(genres: ReedsyGenre[]) {
-  const sections: { header: ReedsyGenre; children: ReedsyGenre[] }[] = [];
-  let current: { header: ReedsyGenre; children: ReedsyGenre[] } | null = null;
-  for (const item of genres) {
-    if (item.depth === 0) {
-      current = { header: item, children: [] };
-      sections.push(current);
-    } else {
-      current?.children.push(item);
-    }
-  }
-  return sections;
 }
 
 async function api<T>(
@@ -124,12 +87,12 @@ async function api<T>(
       : AbortSignal.timeout(60000),
   });
   const result = await response.json();
-  if (!response.ok || !result.ok) {
+  if (!response.ok || result.ok === false) {
     const messages: Record<string, string> = {
       unauthorized:
         "Your sign-in has expired. Refresh and sign in again. Your browser copy can still be exported.",
     };
-    throw new Error(result.message ?? messages[result.error] ?? fallbackMessage);
+    throw new Error(result.message ?? messages[result.error] ?? result.error ?? fallbackMessage);
   }
   return result;
 }
@@ -147,101 +110,6 @@ function PublicLink({ url, children }: { url: string | null; children: React.Rea
       <ExternalLink className="h-3 w-3" />
     </a>
   ) : null;
-}
-
-function GenrePicker({
-  genres,
-  selectedId,
-  onSelect,
-}: {
-  genres: ReedsyGenre[];
-  selectedId: number | null;
-  onSelect: (id: number) => void;
-}) {
-  const [open, setOpen] = useState(false);
-  const [expanded, setExpanded] = useState<number | null>(null);
-  const sections = buildGenreSections(genres);
-  const selected = genres.find((item) => item.id === selectedId);
-
-  return (
-    <div className="relative">
-      <button
-        type="button"
-        onClick={() => setOpen((value) => !value)}
-        disabled={genres.length === 0}
-        className="mt-2 flex w-full items-center justify-between rounded-xl border border-border bg-background px-4 py-3 text-left text-sm"
-      >
-        <span>
-          {genres.length === 0
-            ? "Loading genres…"
-            : selected
-              ? `${selected.emoji} ${selected.name} (${selected.bookCount})`
-              : "Choose a genre"}
-        </span>
-        {open ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-      </button>
-      {open && (
-        <div className="absolute z-10 mt-2 max-h-80 w-full overflow-y-auto rounded-xl border border-border bg-card p-2 shadow-lg">
-          {sections.map((section) => (
-            <div key={section.header.id}>
-              <button
-                type="button"
-                onClick={() =>
-                  setExpanded((current) =>
-                    current === section.header.id ? null : section.header.id,
-                  )
-                }
-                className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm font-medium hover:bg-secondary"
-              >
-                <span>
-                  {section.header.emoji} {section.header.name} ({section.header.bookCount})
-                </span>
-                {expanded === section.header.id ? (
-                  <ChevronDown className="h-4 w-4" />
-                ) : (
-                  <ChevronRight className="h-4 w-4" />
-                )}
-              </button>
-              {expanded === section.header.id && (
-                <div className="ml-2 border-l border-border pl-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      onSelect(section.header.id);
-                      setOpen(false);
-                    }}
-                    className={cn(
-                      "block w-full rounded-lg px-3 py-1.5 text-left text-sm hover:bg-secondary",
-                      selectedId === section.header.id && "bg-primary/10 font-medium",
-                    )}
-                  >
-                    All {section.header.name} ({section.header.bookCount})
-                  </button>
-                  {section.children.map((child) => (
-                    <button
-                      type="button"
-                      key={child.id}
-                      onClick={() => {
-                        onSelect(child.id);
-                        setOpen(false);
-                      }}
-                      style={{ paddingLeft: `${(child.depth - 1) * 12 + 12}px` }}
-                      className={cn(
-                        "block w-full rounded-lg py-1.5 text-left text-sm hover:bg-secondary",
-                        selectedId === child.id && "bg-primary/10 font-medium",
-                      )}
-                    >
-                      {child.emoji} {child.name} ({child.bookCount})
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
 }
 
 function ContactFinder({
@@ -311,7 +179,7 @@ function ContactFinder({
 
 function csvCell(value: string | number | null | undefined) {
   let text = String(value ?? "");
-  if (/^[=+\-@]/.test(text)) text = `'${text}`;
+  if (/^[=+\-@\t\r]/.test(text)) text = `'${text}`;
   return `"${text.replaceAll('"', '""')}"`;
 }
 
@@ -335,7 +203,12 @@ function BookCard({
   onVerifyContact: (authorId: string, result: ContactResult) => void;
 }) {
   const saved = book.scout_prospects.length > 0;
-  const rating = book.scout_review_counts.find((item) => item.platform === "reedsy");
+  const rating = book.scout_review_counts.find(
+    (item) =>
+      item.platform === (book.source_slug === "reedsy_discovery" ? "reedsy" : "readers_favorite"),
+  );
+  const score = rating?.rating ?? (rating?.platform === "reedsy" ? rating.review_count : null);
+  const sourceLabel = book.source_slug === "reedsy_discovery" ? "Reedsy" : "Readers’ Favorite";
   return (
     <article className="rounded-2xl border border-border bg-card p-5">
       <div className="flex items-start justify-between gap-3">
@@ -354,17 +227,37 @@ function BookCard({
       </div>
       <p className="mt-3 text-sm text-muted-foreground">
         {book.genre} ·{" "}
-        {rating?.review_count === undefined || rating.review_count === null
-          ? "no Reedsy score on file"
-          : `${rating.review_count}/5 Reedsy score`}
+        {score === undefined || score === null
+          ? "Score unavailable"
+          : `${score}/5 · ${sourceLabel}`}
       </p>
-      {book.description && (
-        <p className="mt-2 line-clamp-3 text-sm text-muted-foreground">{book.description}</p>
-      )}
+      {book.description && <p className="mt-2 text-sm text-muted-foreground">{book.description}</p>}
       {formatDiscoveredAt(book.discovered_at) && (
         <p className="mt-1 text-xs text-muted-foreground">
           Found {formatDiscoveredAt(book.discovered_at)}
         </p>
+      )}
+      {book.scout_authors && (
+        <div className="mt-4 space-y-2 text-sm">
+          <p>{book.scout_authors.bio}</p>
+          <p className="text-muted-foreground">
+            Country: {book.scout_authors.country || "Unknown"} · Publishing:{" "}
+            {book.scout_authors.publishing_type || "Unknown"}
+          </p>
+          {book.scout_authors.contact_email && <p>Contact: {book.scout_authors.contact_email}</p>}
+          <div className="flex flex-wrap gap-4">
+            <PublicLink url={book.scout_authors.website_url ?? null}>Website</PublicLink>
+            <PublicLink url={book.scout_authors.contact_form_url ?? null}>Contact form</PublicLink>
+            <PublicLink url={book.scout_authors.author_profile_url ?? null}>
+              Author profile
+            </PublicLink>
+            {book.scout_authors.social_links?.map((url) => (
+              <PublicLink key={url} url={url}>
+                {url}
+              </PublicLink>
+            ))}
+          </div>
+        </div>
       )}
       {book.scout_authors && (
         <ContactFinder
@@ -377,264 +270,201 @@ function BookCard({
         />
       )}
       <div className="mt-4">
-        <PublicLink url={book.source_url}>View Reedsy listing</PublicLink>
+        <PublicLink url={book.source_url}>View {sourceLabel} listing</PublicLink>
       </div>
     </article>
   );
 }
 
+type Batch = {
+  id: string;
+  label: string;
+  created_at: string;
+  sources: string[];
+  genre: string | null;
+  item_count: number;
+};
+type Candidate = {
+  title: string;
+  authorName: string | null;
+  sourceUrl: string;
+  genre: string;
+  rating: number | null;
+  overview?: string | null;
+};
+const RF_DEFAULT = "/book-reviews/book-reviews-genre-fiction-thriller-general.htm";
+const field =
+  "mt-2 w-full rounded-xl border border-border bg-background px-4 py-3 text-sm disabled:opacity-50";
+
 export function ScoutApp() {
-  const [source, setSource] = useState("reedsy");
-  return (
-    <>
-      <nav aria-label="Scout sources" className="mx-auto flex max-w-5xl gap-3 px-5 pt-6">
-        {[
-          ["reedsy", "Reedsy Discovery"],
-          ["readers", "Readers’ Favorite"],
-        ].map(([value, label]) => (
-          <button
-            key={value}
-            aria-pressed={source === value}
-            onClick={() => setSource(value!)}
-            className={cn(
-              "rounded-full border px-4 py-3 text-sm",
-              source === value && "bg-primary text-primary-foreground",
-            )}
-          >
-            {label}
-          </button>
-        ))}
-      </nav>
-      {source === "readers" ? <ReadersFavoriteScout /> : <ReedsyScout />}
-    </>
-  );
-}
-function ReedsyScout() {
-  const [resultLimit, setResultLimit] = useState(20);
-  const [debutOnly, setDebutOnly] = useState(false);
-  const [reedsyMinRating, setReedsyMinRating] = useState(1);
-  const [reedsyBooks, setReedsyBooks] = useState<Book[]>([]);
-  const [reedsyUnqualified, setReedsyUnqualified] = useState<UnqualifiedResult[]>([]);
-  const [view, setView] = useState<View>("imported");
-  const [selectedBatchId, setSelectedBatchId] = useState<string | null>(null);
-  const [reedsyLoading, setReedsyLoading] = useState(true);
-  const [reedsyGenres, setReedsyGenres] = useState<ReedsyGenre[]>([]);
-  const [reedsyGenreId, setReedsyGenreId] = useState<number | null>(null);
-  const [contactBusy, setContactBusy] = useState("");
-  const [verifyBusy, setVerifyBusy] = useState("");
-  const [contactResults, setContactResults] = useState<Record<string, ContactResult>>({});
+  const [source, setSource] = useState("reedsy_discovery");
+  const [genres, setGenres] = useState<ReedsyGenre[]>([]);
+  const [genreId, setGenreId] = useState("");
+  const [rfGenres, setRfGenres] = useState([
+    { path: RF_DEFAULT, name: "Fiction - Thriller - General" },
+  ]);
+  const [rfLoading, setRfLoading] = useState(false);
+  const [catalog, setCatalog] = useState(RF_DEFAULT);
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(20);
+  const [batches, setBatches] = useState<Batch[]>([]);
+  const [selected, setSelected] = useState<Batch | null>(null);
+  const [books, setBooks] = useState<Book[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [detailLoading, setDetailLoading] = useState(false);
   const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
-  const [refresh, setRefresh] = useState(0);
-
-  const reedsyGenre = reedsyGenres.find((item) => item.id === reedsyGenreId) ?? null;
+  const [batchSource, setBatchSource] = useState("all");
+  const [reviewFilter, setReviewFilter] = useState("all");
+  const [contactBusy, setContactBusy] = useState("");
+  const [verifyBusy, setVerifyBusy] = useState("");
+  const [contactResults, setContactResults] = useState<Record<string, ContactResult>>({});
+  const [retry, setRetry] = useState<{ batch: Batch; items: Candidate[] } | null>(null);
 
   useEffect(() => {
     const controller = new AbortController();
-    api<{ genres: ReedsyGenre[] }>(
-      "/api/admin/scout-reedsy-genres",
-      undefined,
-      controller.signal,
-      "Could not load Reedsy genres.",
-    )
-      .then((data) => {
-        setReedsyGenres(data.genres);
-        setReedsyGenreId((current) => current ?? data.genres[0]?.id ?? null);
+    Promise.all([
+      api<{ items: Batch[] }>("/api/admin/scout-batches", undefined, controller.signal).then(
+        (data) => setBatches(data.items),
+      ),
+      api<{ genres: ReedsyGenre[] }>(
+        "/api/admin/scout-reedsy-genres",
+        undefined,
+        controller.signal,
+      ).then((data) => {
+        setGenres(data.genres);
+        setGenreId(String(data.genres[0]?.id ?? ""));
+      }),
+    ])
+      .catch((e) => {
+        if (!controller.signal.aborted) setError(e.message);
       })
-      .catch((caught) => {
-        if (!controller.signal.aborted)
-          setError(caught instanceof Error ? caught.message : "Could not load Reedsy genres.");
+      .finally(() => {
+        if (!controller.signal.aborted) setLoading(false);
       });
     return () => controller.abort();
   }, []);
 
-  const loadReedsyBooks = useCallback(
-    (signal?: AbortSignal) => {
-      if (!reedsyGenre) return Promise.resolve();
-      setReedsyLoading(true);
-      const params = new URLSearchParams({ source: "reedsy_discovery", genre: reedsyGenre.name });
-      return api<{ items: Book[] }>(
-        `/api/admin/scout-books?${params}`,
-        undefined,
-        signal,
-        "Could not load Reedsy books.",
+  useEffect(() => {
+    if (source !== "readers_favorite") return;
+    setRfLoading(true);
+    const controller = new AbortController();
+    api<{ genres: { path: string; name: string }[] }>(
+      "/api/admin/scout-readers-favorite",
+      { catalog: RF_DEFAULT, page: 1 },
+      controller.signal,
+    )
+      .then((data) =>
+        setRfGenres((current) => [
+          ...new Map([...current, ...data.genres].map((item) => [item.path, item])).values(),
+        ]),
       )
-        .then((data) => setReedsyBooks(data.items))
-        .catch((caught) => {
-          if (!signal?.aborted)
-            setError(caught instanceof Error ? caught.message : "Could not load Reedsy books.");
-        })
-        .finally(() => {
-          if (!signal?.aborted) setReedsyLoading(false);
-        });
-    },
-    [reedsyGenre],
-  );
+      .catch((e) => {
+        if (!controller.signal.aborted) setError(e.message);
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setRfLoading(false);
+      });
+    return () => controller.abort();
+  }, [source]);
 
   useEffect(() => {
+    if (!selected) return;
     const controller = new AbortController();
-    void loadReedsyBooks(controller.signal);
+    setDetailLoading(true);
+    setBooks([]);
+    setReviewFilter("all");
+    api<{ items: Book[] }>(`/api/admin/scout-batches/${selected.id}`, undefined, controller.signal)
+      .then((data) => setBooks(data.items))
+      .catch((e) => {
+        if (!controller.signal.aborted) setError(e.message);
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setDetailLoading(false);
+      });
     return () => controller.abort();
-  }, [loadReedsyBooks, refresh]);
+  }, [selected]);
 
-  async function ingestBook(book: Book, batch?: { id: string; label: string }) {
-    const reviewEntry = book.scout_review_counts[0];
-    const result = await api<{
-      item: {
-        book: Omit<Book, "scout_authors" | "scout_review_counts" | "scout_prospects">;
-        author: NonNullable<Book["scout_authors"]>;
-      };
-    }>(
-      "/api/admin/scout-manual-ingest",
-      {
-        sourceSlug: book.source_slug,
-        sourceUrl: book.source_url,
-        bookUrl: book.source_url,
-        authorName: book.scout_authors?.name,
-        bookTitle: book.title,
-        genre: book.genre,
-        description: book.description ?? undefined,
-        country: book.scout_authors?.country ?? undefined,
-        ...(reviewEntry && reviewEntry.review_count !== null
-          ? { reviewPlatform: reviewEntry.platform, reviewCount: reviewEntry.review_count }
-          : {}),
-        ...(batch ? { batchId: batch.id, batchLabel: batch.label } : {}),
-      },
-      undefined,
-      "The book could not be saved. Please try again.",
-    );
-    return {
-      ...book,
-      ...result.item.book,
-      scout_authors: result.item.author,
-      scout_batches: batch
-        ? { id: batch.id, label: batch.label, created_at: new Date().toISOString() }
-        : null,
-      localOnly: false,
-    } satisfies Book;
-  }
-
-  async function runReedsySearch() {
-    if (!reedsyGenre) return;
-    setBusy("reedsy-search");
-    setError("");
-    setNotice("Searching Reedsy Discovery and checking each result against your filters…");
-    try {
-      const result = await api<{
-        items: Array<{
-          title: string;
-          authorName: string | null;
-          sourceUrl: string;
-          verdictRating: number | null;
-          overview: string | null;
-          genre: string;
-          qualified: boolean;
-          reasons: string[];
-        }>;
-        searched: number;
-        qualifying: number;
-      }>(
-        "/api/admin/scout-reedsy-search",
-        {
-          genreId: reedsyGenre.id,
-          genreName: reedsyGenre.name,
-          limit: resultLimit,
-          minVerdictRating: reedsyMinRating,
-          debutOnly,
-        },
-        undefined,
-        "Reedsy search failed.",
-      );
-      const qualifiedItems = result.items.filter((item) => item.qualified);
-      const unqualifiedItems = result.items.filter((item) => !item.qualified);
-
-      // The same book being found again on a later search (same genre or
-      // not) must not create a second row -- skip re-ingesting anything
-      // whose source URL is already saved, rather than relying only on the
-      // server's upsert-on-conflict behavior.
-      const knownUrls = new Set(reedsyBooks.map((book) => book.source_url));
-      const alreadySavedCount = qualifiedItems.filter((item) =>
-        knownUrls.has(item.sourceUrl),
-      ).length;
-      const newQualifiedItems = qualifiedItems.filter((item) => !knownUrls.has(item.sourceUrl));
-
-      const batchId = crypto.randomUUID();
-      const batchLabel =
-        `Reedsy: ${reedsyGenre.name} · min ${reedsyMinRating}/5` +
-        `${debutOnly ? " · debut only" : ""} · ${new Date().toLocaleString()}`;
-      const batch = { id: batchId, label: batchLabel };
-
-      const candidates: Book[] = newQualifiedItems.map((item, index) => ({
-        id: `local-reedsy-${index}-${item.sourceUrl}`,
-        title: item.title,
-        asin: null,
-        genre: item.genre,
-        source_url: item.sourceUrl,
-        source_slug: "reedsy_discovery",
-        description: item.overview,
-        discovered_at: new Date().toISOString(),
-        scout_authors: {
-          id: `local-reedsy-${index}-${item.sourceUrl}`,
-          name: item.authorName!,
-          country: null,
-        },
-        scout_review_counts:
-          item.verdictRating === null
-            ? []
-            : [{ platform: "reedsy", review_count: item.verdictRating }],
-        scout_prospects: [],
-        localOnly: true,
-      }));
-      setView("imported");
-      setReedsyUnqualified(
-        unqualifiedItems.map((item, index) => ({
-          key: `${index}-${item.sourceUrl}`,
-          title: item.title,
-          authorName: item.authorName,
-          ratingLabel:
-            item.verdictRating === null ? "no review score found" : `${item.verdictRating}/5`,
+  async function persist(batch: Batch, items: Candidate[]) {
+    const failed: Candidate[] = [];
+    // Sequential writes preserve the existing batch counter and avoid overwhelming storage.
+    for (const item of items) {
+      try {
+        await api("/api/admin/scout-manual-ingest", {
+          sourceSlug: batch.sources[0],
           sourceUrl: item.sourceUrl,
+          bookUrl: item.sourceUrl,
+          authorName: item.authorName,
+          bookTitle: item.title,
           genre: item.genre,
-          synopsis: item.overview,
-          reasons: item.reasons,
-        })),
-      );
-      const settled = await Promise.allSettled(candidates.map((book) => ingestBook(book, batch)));
-      const saved = settled.flatMap((item) => (item.status === "fulfilled" ? [item.value] : []));
-      const failed = settled.length - saved.length;
-      setReedsyBooks((current) => [
-        ...saved,
-        ...current.filter((book) => !saved.some((item) => item.source_url === book.source_url)),
-      ]);
-      setNotice(
-        `${result.items.length} Reedsy results checked: ${candidates.length} new qualified` +
-          ` (${saved.length} saved to your account${failed ? `, ${failed} failed to save — rerun the search to retry them` : ""})` +
-          `${alreadySavedCount ? `, ${alreadySavedCount} already saved from an earlier search` : ""}` +
-          ` and ${unqualifiedItems.length} did not qualify. All results are available to export below.`,
-      );
-    } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "Reedsy search failed.");
-      setNotice("");
-    } finally {
-      setBusy("");
+          description: item.overview?.slice(0, 4000),
+          batchId: batch.id,
+          batchLabel: batch.label,
+          ...(item.rating === null
+            ? {}
+            : {
+                reviewPlatform:
+                  batch.sources[0] === "reedsy_discovery" ? "reedsy" : "readers_favorite",
+                reviewRating: item.rating,
+              }),
+        });
+      } catch {
+        failed.push(item);
+      }
     }
+    setRetry(failed.length ? { batch, items: failed } : null);
+    const data = await api<{ items: Batch[] }>("/api/admin/scout-batches");
+    setBatches(data.items);
+    setSelected({ ...batch });
+    setNotice(
+      `${items.length - failed.length} books added to this batch.${failed.length ? ` ${failed.length} could not be saved. Retry below.` : ""}`,
+    );
   }
 
-  async function save(book: Book) {
-    if (!book.scout_authors) return;
-    setBusy(book.id);
+  async function search() {
+    setBusy("search");
     setError("");
+    setNotice("");
     try {
-      await api(
-        "/api/admin/scout-prospects",
-        { scoutAuthorId: book.scout_authors.id, bookId: book.id },
-        undefined,
-        "Could not save this author.",
-      );
-      setRefresh((value) => value + 1);
-    } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "Could not save this author.");
+      const genre =
+        source === "reedsy_discovery"
+          ? genres.find((item) => String(item.id) === genreId)?.name
+          : rfGenres.find((item) => item.path === catalog)?.name;
+      const { item: batch } = await api<{ item: Batch }>("/api/admin/scout-batches", {
+        label: `${source === "reedsy_discovery" ? "Reedsy" : "Readers’ Favorite"} · ${genre ?? "Book reviews"}${source === "readers_favorite" ? ` · Page ${page}` : ""}`,
+        source,
+        genre,
+        requestedMax: source === "reedsy_discovery" ? limit : 10,
+      });
+      setBatchSource("all");
+      setBatches((current) => [batch, ...current]);
+      setSelected(batch);
+      let items: Candidate[];
+      if (source === "reedsy_discovery") {
+        const data = await api<{
+          items: (Omit<Candidate, "rating"> & { verdictRating: number | null })[];
+        }>("/api/admin/scout-reedsy-search", { genreId: Number(genreId), genreName: genre, limit });
+        items = data.items.map((item) => ({ ...item, rating: item.verdictRating }));
+      } else {
+        const data = await api<{ items: Candidate[]; genres: { path: string; name: string }[] }>(
+          "/api/admin/scout-readers-favorite",
+          { catalog, page },
+        );
+        items = data.items;
+        setRfGenres((current) => [
+          ...new Map([...current, ...data.genres].map((item) => [item.path, item])).values(),
+        ]);
+      }
+      const valid = items.filter((item) => item.authorName && item.title && item.sourceUrl);
+      await persist(batch, valid);
+      if (valid.length !== items.length)
+        setNotice(
+          (current) =>
+            `${current} ${items.length - valid.length} listings were missing an author name, title, or source URL.`,
+        );
+    } catch (e) {
+      setError((e as Error).message);
     } finally {
       setBusy("");
     }
@@ -647,403 +477,380 @@ function ReedsyScout() {
       const result = await api<ContactResult>(
         `/api/admin/scout-authors/${authorId}/find-contact`,
         {},
-        undefined,
-        "Could not search for this author's contact info.",
       );
       setContactResults((current) => ({ ...current, [authorId]: result }));
-    } catch (caught) {
-      setError(
-        caught instanceof Error
-          ? caught.message
-          : "Could not search for this author's contact info.",
-      );
+    } catch (e) {
+      setError((e as Error).message);
     } finally {
       setContactBusy("");
     }
   }
-
   async function verifyContact(authorId: string, result: ContactResult) {
     setVerifyBusy(authorId);
     setError("");
     try {
-      await api(
-        `/api/admin/scout-authors/${authorId}/confirm-contact`,
-        {
-          candidateUrl: result.candidateUrl,
-          contactEmail: result.contactEmail ?? undefined,
-          contactFormUrl: result.contactFormUrl ?? undefined,
-        },
-        undefined,
-        "Could not confirm this contact info.",
-      );
-      setContactResults((current) => ({
-        ...current,
-        [authorId]: { ...result, verified: true },
-      }));
-    } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "Could not confirm this contact info.");
+      await api(`/api/admin/scout-authors/${authorId}/confirm-contact`, {
+        candidateUrl: result.candidateUrl,
+        contactEmail: result.contactEmail ?? undefined,
+        contactFormUrl: result.contactFormUrl ?? undefined,
+      });
+      setContactResults((current) => ({ ...current, [authorId]: { ...result, verified: true } }));
+    } catch (e) {
+      setError((e as Error).message);
     } finally {
       setVerifyBusy("");
     }
   }
-
-  const notYetSaved = reedsyBooks.filter((book) => book.scout_prospects.length === 0);
-  const savedBooks = reedsyBooks.filter((book) => book.scout_prospects.length > 0);
-  const reedsyBatchGroups = groupByBatch(reedsyBooks);
-
-  function downloadCsv(
-    rows: (string | number | null | undefined)[][],
-    genreLabel: string,
-    filenameSuffix: string,
-  ) {
-    const header = [
-      "Author name",
-      "Book title",
-      "Rating",
-      "Genre",
-      "Synopsis",
-      "Reference",
-      "URL",
-      "Qualified",
-      "Notes",
-      "Discovered",
+  async function save(book: Book) {
+    setBusy(book.id);
+    setError("");
+    try {
+      await api("/api/admin/scout-prospects", {
+        scoutAuthorId: book.scout_authors?.id,
+        bookId: book.id,
+      });
+      setBooks((current) =>
+        current.map((item) =>
+          item.id === book.id
+            ? { ...item, scout_prospects: [{ id: book.id, status: "saved" }] }
+            : item,
+        ),
+      );
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy("");
+    }
+  }
+  const score = (book: Book) => {
+    const review = book.scout_review_counts.find(
+      (item) =>
+        item.platform === (book.source_slug === "reedsy_discovery" ? "reedsy" : "readers_favorite"),
+    );
+    return review?.rating ?? (review?.platform === "reedsy" ? review.review_count : null);
+  };
+  const visible = books.filter(
+    (book) =>
+      reviewFilter === "all" ||
+      (reviewFilter === "unknown" ? score(book) == null : score(book) === Number(reviewFilter)),
+  );
+  const visibleBatches = batches.filter(
+    (batch) => batchSource === "all" || batch.sources.includes(batchSource),
+  );
+  function exportCsv() {
+    const rows = [
+      [
+        "Author",
+        "Book",
+        "Genre",
+        "Review score",
+        "Synopsis",
+        "Country",
+        "Website",
+        "Email",
+        "Contact form",
+        "Source",
+      ],
+      ...visible.map((book) => [
+        book.scout_authors?.name,
+        book.title,
+        book.genre,
+        score(book),
+        book.description,
+        book.scout_authors?.country,
+        book.scout_authors?.website_url,
+        book.scout_authors?.contact_email,
+        book.scout_authors?.contact_form_url,
+        book.source_url,
+      ]),
     ];
-    const csv = [header, ...rows].map((row) => row.map(csvCell).join(",")).join("\r\n");
-    const url = URL.createObjectURL(new Blob([`\uFEFF${csv}`], { type: "text/csv;charset=utf-8" }));
+    const url = URL.createObjectURL(
+      new Blob(["\uFEFF" + rows.map((row) => row.map(csvCell).join(",")).join("\r\n")], {
+        type: "text/csv;charset=utf-8",
+      }),
+    );
     const link = document.createElement("a");
     link.href = url;
-    link.download = `hq360-${genreLabel.toLowerCase().replaceAll(/[^a-z0-9]+/g, "-")}-${filenameSuffix}.csv`;
-    document.body.append(link);
+    link.download = `hq360-batch-${selected?.id}.csv`;
     link.click();
-    link.remove();
     window.setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
-
-  function bookRow(book: Book) {
-    const rating = book.scout_review_counts.find((item) => item.platform === "reedsy");
-    return [
-      book.scout_authors?.name,
-      book.title,
-      rating?.review_count === undefined || rating.review_count === null
-        ? null
-        : `${rating.review_count}/5`,
-      book.genre,
-      book.description ?? null,
-      null,
-      book.source_url,
-      "Yes",
-      "",
-      formatDiscoveredAt(book.discovered_at),
-    ];
-  }
-
-  function exportReedsyCsv(books: Book[], filenameSuffix: string, includeUnqualified: boolean) {
-    const qualifiedRows = books.map(bookRow);
-    const unqualifiedRows = includeUnqualified
-      ? reedsyUnqualified.map((item) => [
-          item.authorName,
-          item.title,
-          item.ratingLabel,
-          item.genre,
-          item.synopsis,
-          null,
-          item.sourceUrl,
-          "No",
-          item.reasons.join("; "),
-          null,
-        ])
-      : [];
-    downloadCsv(
-      [...qualifiedRows, ...unqualifiedRows],
-      reedsyGenre?.name ?? "reedsy",
-      filenameSuffix,
-    );
-  }
-
   return (
-    <div className="min-h-[70vh] bg-secondary/30">
-      <div className="mx-auto max-w-5xl px-5 py-10 sm:px-6">
-        <p className="text-xs font-semibold tracking-widest text-brand uppercase">HQ360 Scout</p>
-        <h1 className="mt-2 font-display text-3xl">Find new and debut authors on Reedsy</h1>
-        <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
-          Reedsy Discovery only features self-published and indie authors who submitted a book for
-          editorial review — the pool is inherently new/aspiring authors. Each book gets one
-          reviewer's 1–5 score instead of a rating count.
+    <main className="mx-auto max-w-6xl space-y-7 px-4 py-8 sm:px-6">
+      <header className="rounded-3xl border border-border bg-secondary/40 p-6 sm:p-8">
+        <p className="text-xs font-semibold uppercase tracking-widest text-brand">
+          HQ360 · Expert tools
         </p>
-
-        <section className="mt-7 rounded-2xl border border-border bg-card p-5">
-          <h2 className="font-semibold">Search Reedsy Discovery and save qualified authors</h2>
-          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            <label className="text-sm font-medium" htmlFor="reedsy-genre">
-              Genre
-              <GenrePicker
-                genres={reedsyGenres}
-                selectedId={reedsyGenreId}
-                onSelect={setReedsyGenreId}
-              />
-            </label>
-            <label className="text-sm font-medium" htmlFor="reedsy-limit">
-              Authors to find
-              <input
-                id="reedsy-limit"
-                type="number"
-                min="1"
-                max="50"
-                value={resultLimit}
-                onChange={(event) =>
-                  setResultLimit(Math.min(50, Math.max(1, Number(event.target.value) || 1)))
+        <h1 className="mt-3 font-display text-3xl sm:text-4xl">Author scouting</h1>
+        <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
+          Discover authors through book reviews. Every search creates a batch you can open, review
+          and export from HQ360.
+        </p>
+      </header>
+      <form
+        className="rounded-2xl border border-border bg-card p-5 sm:p-6"
+        onSubmit={(event) => {
+          event.preventDefault();
+          void search();
+        }}
+      >
+        <h2 className="text-lg font-semibold">Start a search</h2>
+        <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <label className="text-sm font-medium">
+            Review source
+            <select
+              aria-label="Review source"
+              className={field}
+              value={source}
+              disabled={Boolean(busy)}
+              onChange={(event) => setSource(event.target.value)}
+            >
+              <option value="reedsy_discovery">Reedsy Discovery</option>
+              <option value="readers_favorite">Readers’ Favorite</option>
+            </select>
+          </label>
+          <label className="text-sm font-medium">
+            Book review category
+            <select
+              aria-label="Book review category"
+              className={field}
+              value={source === "reedsy_discovery" ? genreId : catalog}
+              disabled={Boolean(busy) || (source === "reedsy_discovery" && !genres.length)}
+              onChange={(event) => {
+                if (source === "reedsy_discovery") setGenreId(event.target.value);
+                else {
+                  setCatalog(event.target.value);
+                  setPage(1);
                 }
-                className="mt-2 w-full rounded-xl border border-border bg-background px-4 py-3"
-              />
-            </label>
-            <label className="text-sm font-medium" htmlFor="reedsy-min-rating">
-              Minimum Reedsy score
+              }}
+            >
+              {source === "reedsy_discovery"
+                ? genres.map((item) => (
+                    <option key={item.id} value={item.id}>
+                      {"— ".repeat(item.depth)}
+                      {item.name} ({item.bookCount})
+                    </option>
+                  ))
+                : rfGenres.map((item) => (
+                    <option key={item.path} value={item.path}>
+                      {item.name}
+                    </option>
+                  ))}
+            </select>
+          </label>
+          {source === "reedsy_discovery" ? (
+            <label className="text-sm font-medium">
+              Authors to find
               <select
-                id="reedsy-min-rating"
-                value={reedsyMinRating}
-                onChange={(event) => setReedsyMinRating(Number(event.target.value))}
-                className="mt-2 w-full rounded-xl border border-border bg-background px-4 py-3"
+                aria-label="Authors to find"
+                className={field}
+                value={limit}
+                disabled={Boolean(busy)}
+                onChange={(event) => setLimit(Number(event.target.value))}
               >
-                <option value={1}>Any score</option>
-                <option value={2}>2/5 or higher</option>
-                <option value={3}>3/5 or higher</option>
-                <option value={4}>4/5 or higher</option>
-                <option value={5}>5/5 only</option>
+                {[10, 20, 30, 50].map((value) => (
+                  <option key={value} value={value}>
+                    {value} authors
+                  </option>
+                ))}
               </select>
             </label>
-            <label className="flex items-center gap-2 self-end pb-3 text-sm font-medium">
-              <input
-                type="checkbox"
-                checked={debutOnly}
-                onChange={(event) => setDebutOnly(event.target.checked)}
-                className="h-4 w-4 rounded border-border"
-              />
-              Debut authors only
+          ) : (
+            <label className="text-sm font-medium">
+              Results page
+              <select
+                aria-label="Results page"
+                className={field}
+                value={page}
+                disabled={Boolean(busy)}
+                onChange={(event) => setPage(Number(event.target.value))}
+              >
+                {Array.from({ length: 100 }, (_, index) => (
+                  <option key={index + 1} value={index + 1}>
+                    Page {index + 1}
+                  </option>
+                ))}
+              </select>
             </label>
-          </div>
+          )}
+        </div>
+        <div className="mt-5 flex flex-wrap items-center gap-4">
           <button
-            type="button"
-            disabled={Boolean(busy) || !reedsyGenre}
-            onClick={runReedsySearch}
-            className="mt-4 inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground"
+            disabled={
+              Boolean(busy) ||
+              Boolean(retry) ||
+              (source === "readers_favorite" && rfLoading) ||
+              (source === "reedsy_discovery" && !genreId)
+            }
+            className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground disabled:opacity-50"
           >
-            {busy === "reedsy-search" ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
+            {busy === "search" ? (
+              <Loader2 className="size-4 animate-spin" />
             ) : (
-              <Search className="h-4 w-4" />
+              <Search className="size-4" />
             )}
-            {busy === "reedsy-search" ? "Searching and saving…" : "Search Reedsy"}
+            {busy === "search" ? "Creating batch…" : "Search & create batch"}
           </button>
-          <p className="mt-3 text-xs text-muted-foreground">
-            Genres and book counts come straight from Reedsy's own catalog. Results are saved
-            automatically with the date found, grouped below by the search that found them;
-            searching the same genre again skips anything already saved rather than duplicating it.
+          <p className="text-xs text-muted-foreground">
+            Results are saved automatically, including books found in earlier searches.
           </p>
-        </section>
-
-        {error && (
-          <p
-            role="alert"
-            className="mt-4 rounded-xl bg-destructive/10 p-4 text-sm text-destructive"
-          >
-            {error}
+        </div>
+      </form>
+      {error && (
+        <p
+          role="alert"
+          className="rounded-xl border border-destructive/30 p-4 text-sm text-destructive"
+        >
+          {error}
+        </p>
+      )}
+      {notice && (
+        <p role="status" className="rounded-xl bg-secondary p-4 text-sm">
+          {notice}
+        </p>
+      )}
+      {retry && (
+        <button
+          disabled={Boolean(busy)}
+          className="rounded-xl border px-4 py-2"
+          onClick={async () => {
+            setBusy("search");
+            setError("");
+            try {
+              await persist(retry.batch, retry.items);
+            } catch (e) {
+              setError((e as Error).message);
+            } finally {
+              setBusy("");
+            }
+          }}
+        >
+          Retry {retry.items.length} unsaved results
+        </button>
+      )}
+      <section className="space-y-4" aria-label="Batch">
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <h2 className="text-2xl font-semibold">Batch</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Open a search to see its authors and book details.
+            </p>
+          </div>
+          <label className="text-sm">
+            Filter batches
+            <select
+              aria-label="Filter batches"
+              className={field}
+              value={batchSource}
+              onChange={(event) => setBatchSource(event.target.value)}
+            >
+              <option value="all">All review sources</option>
+              <option value="reedsy_discovery">Reedsy Discovery</option>
+              <option value="readers_favorite">Readers’ Favorite</option>
+            </select>
+          </label>
+        </div>
+        {loading ? (
+          <p role="status">Loading batches…</p>
+        ) : !visibleBatches.length ? (
+          <p className="rounded-2xl border border-dashed p-8 text-center text-muted-foreground">
+            No batches yet for this source. Run a search to get started.
           </p>
-        )}
-        {notice && (
-          <p role="status" className="mt-4 rounded-xl bg-primary/10 p-4 text-sm">
-            {notice}
-          </p>
-        )}
-
-        <div className="mt-7 flex flex-wrap items-center justify-between gap-3">
-          <div className="flex gap-1 rounded-full border bg-card p-1">
-            {(
-              [
-                ["imported", "Imported authors"],
-                ["batch", "Batch"],
-                ["saved", "Saved authors"],
-              ] as const
-            ).map(([value, label]) => (
+        ) : (
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {visibleBatches.map((batch) => (
               <button
-                key={value}
-                onClick={() => {
-                  setView(value);
-                  setSelectedBatchId(null);
-                }}
+                key={batch.id}
+                type="button"
+                aria-pressed={selected?.id === batch.id}
+                onClick={() => setSelected(batch)}
                 className={cn(
-                  "rounded-full px-4 py-2 text-sm",
-                  view === value ? "bg-primary text-primary-foreground" : "text-muted-foreground",
+                  "rounded-2xl border p-5 text-left transition hover:border-primary",
+                  selected?.id === batch.id
+                    ? "border-primary bg-primary/5"
+                    : "border-border bg-card",
                 )}
               >
-                {label}
+                <span className="flex items-start justify-between gap-3 font-semibold">
+                  {batch.label}
+                  <ChevronRight className="size-4 shrink-0" />
+                </span>
+                <span className="mt-3 block text-xs text-muted-foreground">
+                  {formatDiscoveredAt(batch.created_at)}
+                </span>
+                <span className="mt-2 block text-sm">{batch.item_count} books · View authors</span>
               </button>
             ))}
           </div>
-          <div className="flex items-center gap-3">
-            <p className="text-sm text-muted-foreground">
-              {reedsyBooks.length} saved · {reedsyUnqualified.length} not qualified
-            </p>
-            <button
-              type="button"
-              disabled={reedsyBooks.length === 0 && reedsyUnqualified.length === 0}
-              onClick={() => exportReedsyCsv(reedsyBooks, "reedsy-authors", true)}
-              className="inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium disabled:opacity-40"
-            >
-              <Download className="h-4 w-4" /> Export Reedsy results (CSV)
-            </button>
-          </div>
-        </div>
-
-        {reedsyLoading && reedsyBooks.length === 0 ? (
-          <div role="status" className="flex justify-center py-16">
-            <Loader2 className="h-6 w-6 animate-spin" />
-            <span className="sr-only">Loading Reedsy authors</span>
-          </div>
-        ) : view === "batch" ? (
-          reedsyBatchGroups.length === 0 ? (
-            <div className="mt-5 rounded-2xl border border-dashed p-12 text-center">
-              <h2 className="font-semibold">No qualifying Reedsy authors imported yet</h2>
-              <p className="mt-2 text-sm text-muted-foreground">
-                Choose the genre above, then run the Reedsy search.
+        )}
+      </section>
+      {selected && (
+        <section className="space-y-4 border-t border-border pt-6" aria-label="Batch details">
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <p className="text-xs uppercase tracking-widest text-brand">Batch details</p>
+              <h2 className="mt-2 text-xl font-semibold">{selected.label}</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {visible.length} of {books.length} books
               </p>
             </div>
-          ) : selectedBatchId === null ? (
-            <div className="mt-5 divide-y divide-border rounded-2xl border border-border bg-card">
-              {reedsyBatchGroups.map((group) => (
-                <button
-                  type="button"
-                  key={group.batchId}
-                  onClick={() => setSelectedBatchId(group.batchId)}
-                  className="flex w-full items-center justify-between gap-3 px-5 py-4 text-left hover:bg-secondary"
+            <div className="flex flex-wrap items-end gap-3">
+              <label className="text-sm">
+                Book reviews
+                <select
+                  aria-label="Book reviews"
+                  className={field}
+                  value={reviewFilter}
+                  onChange={(event) => setReviewFilter(event.target.value)}
                 >
-                  <div>
-                    <p className="font-medium">{group.label}</p>
-                    <p className="mt-0.5 text-xs text-muted-foreground">
-                      {group.books.length} authors
-                      {group.createdAt ? ` · ${formatDiscoveredAt(group.createdAt)}` : ""}
-                    </p>
-                  </div>
-                  <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
-                </button>
-              ))}
-            </div>
-          ) : (
-            (() => {
-              const group = reedsyBatchGroups.find((item) => item.batchId === selectedBatchId);
-              if (!group) return null;
-              return (
-                <div className="mt-5">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <div>
-                      <button
-                        type="button"
-                        onClick={() => setSelectedBatchId(null)}
-                        className="text-sm text-brand hover:underline"
-                      >
-                        ← All batches
-                      </button>
-                      <h2 className="mt-1 font-semibold">{group.label}</h2>
-                      <p className="text-xs text-muted-foreground">{group.books.length} authors</p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        exportReedsyCsv(group.books, `reedsy-batch-${group.batchId}`, false)
-                      }
-                      className="inline-flex items-center gap-1 rounded-full border px-3 py-1.5 text-xs"
-                    >
-                      <Download className="h-3.5 w-3.5" /> Export this batch
-                    </button>
-                  </div>
-                  <div className="mt-3 grid gap-4 sm:grid-cols-2">
-                    {group.books.map((book) => (
-                      <BookCard
-                        key={book.id}
-                        book={book}
-                        busy={busy}
-                        contactBusy={contactBusy}
-                        verifyBusy={verifyBusy}
-                        contactResult={
-                          book.scout_authors ? contactResults[book.scout_authors.id] : undefined
-                        }
-                        onSave={save}
-                        onFindContact={findContact}
-                        onVerifyContact={verifyContact}
-                      />
-                    ))}
-                  </div>
-                </div>
-              );
-            })()
-          )
-        ) : (
-          <>
-            {(view === "imported" ? notYetSaved : savedBooks).length === 0 ? (
-              <div className="mt-5 rounded-2xl border border-dashed p-12 text-center">
-                <h2 className="font-semibold">
-                  {view === "imported" ? "No newly imported authors yet" : "No saved authors yet"}
-                </h2>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  {view === "imported"
-                    ? "Run the Reedsy search above to bring in new authors."
-                    : 'Use "Save" on an author to add them to your saved list.'}
-                </p>
-              </div>
-            ) : (
-              <div className="mt-5 grid gap-4 sm:grid-cols-2">
-                {(view === "imported" ? notYetSaved : savedBooks).map((book) => (
-                  <BookCard
-                    key={book.id}
-                    book={book}
-                    busy={busy}
-                    contactBusy={contactBusy}
-                    verifyBusy={verifyBusy}
-                    contactResult={
-                      book.scout_authors ? contactResults[book.scout_authors.id] : undefined
-                    }
-                    onSave={save}
-                    onFindContact={findContact}
-                    onVerifyContact={verifyContact}
-                  />
-                ))}
-              </div>
-            )}
-          </>
-        )}
-
-        {reedsyUnqualified.length > 0 && (
-          <div className="mt-10">
-            <h2 className="font-semibold">Not qualified from the last Reedsy search</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              These didn't meet your filters, but are shown here and included in the export so
-              nothing found is hidden.
-            </p>
-            <div className="mt-4 grid gap-4 sm:grid-cols-2">
-              {reedsyUnqualified.map((item) => (
-                <article
-                  key={item.key}
-                  className="rounded-2xl border border-dashed border-border bg-card/60 p-5"
-                >
-                  <h3 className="text-lg font-semibold">{item.authorName ?? "Unknown author"}</h3>
-                  <p className="mt-1 text-sm font-medium">{item.title}</p>
-                  <p className="mt-3 text-sm text-muted-foreground">
-                    {item.genre} · {item.ratingLabel}
-                  </p>
-                  {item.synopsis && (
-                    <p className="mt-2 line-clamp-3 text-sm text-muted-foreground">
-                      {item.synopsis}
-                    </p>
-                  )}
-                  <p className="mt-2 text-xs text-destructive">{item.reasons.join("; ")}</p>
-                  <div className="mt-4">
-                    <PublicLink url={item.sourceUrl}>View Reedsy listing</PublicLink>
-                  </div>
-                </article>
-              ))}
+                  <option value="all">All review scores</option>
+                  {[5, 4, 3, 2, 1].map((value) => (
+                    <option key={value} value={value}>
+                      {value} / 5
+                    </option>
+                  ))}
+                  <option value="unknown">Score unavailable</option>
+                </select>
+              </label>
+              <button
+                onClick={exportCsv}
+                disabled={!visible.length || detailLoading}
+                className="inline-flex items-center gap-2 rounded-xl border px-4 py-3 text-sm disabled:opacity-50"
+              >
+                <Download className="size-4" />
+                Export CSV
+              </button>
             </div>
           </div>
-        )}
-      </div>
-    </div>
+          {detailLoading ? (
+            <p role="status">Loading author details…</p>
+          ) : !visible.length ? (
+            <p className="rounded-xl bg-secondary/40 p-6 text-sm">
+              {books.length
+                ? "No books match this review filter."
+                : busy === "search"
+                  ? "Collecting this batch’s results…"
+                  : "This batch has no saved results."}
+            </p>
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2">
+              {visible.map((book) => (
+                <BookCard
+                  key={book.id}
+                  book={book}
+                  busy={busy}
+                  contactBusy={contactBusy}
+                  verifyBusy={verifyBusy}
+                  contactResult={contactResults[book.scout_authors?.id ?? ""]}
+                  onSave={save}
+                  onFindContact={findContact}
+                  onVerifyContact={verifyContact}
+                />
+              ))}
+            </div>
+          )}
+        </section>
+      )}
+    </main>
   );
 }

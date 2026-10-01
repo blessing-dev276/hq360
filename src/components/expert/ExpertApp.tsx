@@ -3,7 +3,6 @@ import { ChevronRight, FileText, LogOut, ScanSearch, UserRound } from "lucide-re
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { Logo } from "@/components/Logo";
-import { AuthorAuditAdmin } from "@/components/admin/AuthorAuditAdmin";
 import { ScoutApp } from "@/components/admin/ScoutApp";
 import { ExpertProfileEditor } from "./ExpertProfileEditor";
 import "@/components/admin/admin-workspace.css";
@@ -12,7 +11,7 @@ type Tab = "profile" | "reports" | "scout";
 const NAV = [
   { id: "profile", label: "My profile", icon: UserRound },
   { id: "reports", label: "Author Reports", icon: FileText },
-  { id: "scout", label: "Scout", icon: ScanSearch },
+  { id: "scout", label: "Scouting", icon: ScanSearch },
 ] as const;
 
 export function ExpertApp() {
@@ -92,7 +91,23 @@ export function ExpertApp() {
           {tab === "profile" ? (
             <ExpertProfileEditor />
           ) : tab === "reports" ? (
-            <AuthorAuditAdmin />
+            <section className="rounded-2xl border border-border bg-card p-8 sm:p-12">
+              <FileText className="mb-5 size-10 text-muted-foreground" />
+              <span className="rounded-full bg-secondary px-3 py-1 text-xs font-semibold">
+                Coming soon
+              </span>
+              <h1 className="mt-5 font-display text-3xl">Author Reports</h1>
+              <p className="mt-3 max-w-lg text-muted-foreground">
+                Author Reports are coming to your expert workspace. You can explore authors and
+                their book reviews in Scouting today.
+              </p>
+              <button
+                onClick={() => navigate("scout")}
+                className="mt-6 rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground"
+              >
+                Open Scouting
+              </button>
+            </section>
           ) : (
             <ScoutApp />
           )}

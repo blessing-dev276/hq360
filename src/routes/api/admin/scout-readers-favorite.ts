@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import robotsParser from "robots-parser";
-import { isAdminRequest } from "@/lib/admin-auth.server";
+import { isAdminOrExpertRequest } from "@/lib/expert-auth.server";
 import {
   RF_DEFAULT,
   RF_ORIGIN,
@@ -53,7 +53,7 @@ export const Route = createFileRoute("/api/admin/scout-readers-favorite")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        if (!(await isAdminRequest(request)))
+        if (!(await isAdminOrExpertRequest(request)))
           return Response.json({ error: "unauthorized" }, { status: 401 });
         const parsed = schema.safeParse(await request.json().catch(() => null));
         if (!parsed.success)

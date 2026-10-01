@@ -233,7 +233,8 @@ export const Route = createFileRoute("/api/admin/scout-manual-ingest")({
                 genre: body.genre ?? null,
                 query: null,
                 sources: [body.sourceSlug],
-                requested_max: 1,
+                requested_max:
+                  (existingBatch as { requested_max: number | null } | null)?.requested_max ?? 1,
                 total_available: null,
                 item_count: existingItemCount + (book ? 0 : 1),
               })

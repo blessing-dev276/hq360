@@ -133,7 +133,9 @@ function AboutPage() {
               </h2>
             </div>
             <div className="hqd-split-aside">
-              <p className="hqd-body">Tap a card to see what each person does.</p>
+              <p className="hqd-body">
+                Meet a few of the people who shape and deliver HQ360 projects.
+              </p>
               <div style={{ display: "flex", flexWrap: "wrap", gap: "0.75rem" }}>
                 <Pill to="/experts" tone="orange">
                   Meet the full team
@@ -145,7 +147,7 @@ function AboutPage() {
             </div>
           </Reveal>
           <div className="hqd-people">
-            {team.slice(0, 4).map((person, index) => (
+            {team.slice(0, 3).map((person, index) => (
               <Reveal key={person.slug} delay={(index % 4) * 70}>
                 <PersonCard person={person} />
               </Reveal>
@@ -179,7 +181,6 @@ function AboutPage() {
       <CtaBand
         title="Ready to build what’s next?"
         body="Tell us what you need, and we’ll agree the scope and next steps."
-        secondary={{ label: "See pricing", to: "/pricing" }}
       />
     </>
   );

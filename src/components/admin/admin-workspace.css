@@ -1005,3 +1005,14 @@
     font-size: 8px;
   }
 }
+
+/* Keep visually hidden upload controls from inheriting full-width form styling. */
+.admin-invoice-form input[type="file"].sr-only {
+  width: 1px;
+  padding: 0;
+  border: 0;
+}
+.admin-invoice-form label.admin-button:focus-within {
+  outline: 2px solid var(--brand);
+  outline-offset: 3px;
+}

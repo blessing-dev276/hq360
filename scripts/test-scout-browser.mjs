@@ -129,6 +129,31 @@ await context.route("**/api/admin/scout-manual-ingest", (route) => {
   memberships.get(body.batchId).add(body.sourceUrl);
   return route.fulfill({ json: { ok: true } });
 });
+let contactCalls = 0;
+let contactMode = "success";
+await context.route("**/api/admin/scout-authors/**/find-contact", async (route) => {
+  contactCalls++;
+  if (contactMode === "fail")
+    return route.fulfill({
+      status: 503,
+      json: { ok: false, message: "Fixture contact search unavailable" },
+    });
+  if (contactMode === "slow") {
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+    return route.fulfill({ json: { ok: true, found: false } }).catch(() => {});
+  }
+  await new Promise((resolve) => setTimeout(resolve, 200));
+  return route.fulfill({
+    json: {
+      ok: true,
+      found: true,
+      candidateUrl: "https://example.com",
+      candidateTitle: "Author website",
+      contactEmail: `author${contactCalls}@example.com`,
+      contactFormUrl: null,
+    },
+  });
+});
 try {
   await page.goto(`${process.env.SCOUT_TEST_URL || "http://localhost:8081"}/scout`);
   const search = page.getByRole("button", { name: "Search & create batch" });
@@ -141,21 +166,27 @@ try {
   await expect(page.getByRole("heading", { name: "Second author" })).toBeVisible();
   await expect(page.getByRole("heading", { name, exact: true })).toHaveCount(0);
   await page.getByRole("combobox", { name: /^Book reviews/ }).selectOption("all");
+  await page.getByRole("button", { name: "Find emails for entire batch" }).click();
+  await expect(page.getByRole("button", { name: "Stop email search" })).toBeVisible();
+  await expect(page.getByText(/2 of 2 authors checked/)).toBeVisible();
+  expect(contactCalls).toBe(2);
+  await page.getByRole("button", { name: "Find emails for entire batch" }).click();
+  await expect(page.getByRole("button", { name: "Find emails for entire batch" })).toBeEnabled();
+  expect(contactCalls).toBe(2);
   const downloadEvent = page.waitForEvent("download");
   await page.getByRole("button", { name: "Export CSV" }).click();
   const csv = await readFile(await (await downloadEvent).path(), "utf8");
   expect(csv).toContain('"Test Author, ""Quoted""","First book"');
   expect(csv).toContain("Second author");
+  expect(csv).toContain("@example.com");
+  expect(csv).toContain("Unverified");
   await search.click();
   await expect(page.getByRole("heading", { name, exact: true })).toBeVisible();
   expect(batches).toHaveLength(2);
   await expect.poll(() => memberships.get(batches[0].id).size).toBe(2);
   await expect(search).toBeEnabled();
   await page.reload();
-  await page
-    .getByRole("button", { name: /Reedsy · Fiction/ })
-    .first()
-    .click();
+  await page.getByLabel("Choose a batch").selectOption(batches[0].id);
   await expect(page.getByRole("heading", { name, exact: true })).toBeVisible();
   await page.getByRole("combobox", { name: /^Review source/ }).selectOption("readers_favorite");
   await expect(
@@ -169,9 +200,25 @@ try {
   await page.getByRole("button", { name: "Retry 1 unsaved results" }).click();
   await expect(page.getByRole("heading", { name: "Reader author" })).toBeVisible();
   await expect(page.getByText("5/5 · Readers’ Favorite", { exact: false })).toBeVisible();
+  contactMode = "fail";
+  await page.getByRole("button", { name: "Find emails for entire batch" }).click();
+  await expect(
+    page.getByText(/1 of 1 authors checked · 0 emails available · 1 failed/),
+  ).toBeVisible();
+  contactMode = "slow";
+  await page.getByRole("button", { name: "Find emails for entire batch" }).click();
+  await page.getByRole("button", { name: "Stop email search" }).click();
+  await expect(page.getByText(/^Stopped\./)).toBeVisible();
+  contactMode = "success";
+  await page.getByRole("button", { name: "Find emails for entire batch" }).click();
+  await expect(
+    page.getByText(/1 of 1 authors checked · 1 emails available · 0 failed/),
+  ).toBeVisible();
   await page.screenshot({ path: "/tmp/hq360-scout-desktop.png", fullPage: true });
   await page.getByLabel("Filter batches").selectOption("readers_favorite");
-  await expect(page.getByRole("button", { name: /Reedsy · Fiction/ })).toHaveCount(0);
+  await expect(
+    page.getByLabel("Choose a batch").getByRole("option", { name: /Reedsy · Fiction/ }),
+  ).toHaveCount(0);
   await page.setViewportSize({ width: 390, height: 844 });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
     true,
@@ -184,7 +231,7 @@ try {
   expect(errors).toEqual([]);
   await page.screenshot({ path: "/tmp/hq360-scout-mobile.png", fullPage: true });
   console.log(
-    "PASS: batches, repeat searches, reload persistence, both sources, review filtering, CSV, retry, empty results, mobile layout.",
+    "PASS: batches, repeat searches, reload persistence, both sources, review filtering, CSV, retry, bulk emails, email failure/cancellation/retry, empty results, mobile layout.",
   );
 } finally {
   await browser.close();

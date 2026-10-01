@@ -1,16 +1,15 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Bookmark,
   Check,
-  ChevronDown,
-  ChevronRight,
   Download,
   ExternalLink,
   Loader2,
   Search,
   ShieldCheck,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { GlassLoading } from "@/components/ui/glass-loading";
+import { useQueryClient } from "@tanstack/react-query";
 import { canonicalUrl } from "@/lib/scout/normalize";
 
 type Book = {
@@ -35,6 +34,7 @@ type Book = {
     bio?: string | null;
     website_url?: string | null;
     contact_email?: string | null;
+    contact_verification_status?: string | null;
     contact_form_url?: string | null;
     publishing_type?: string | null;
     author_profile_url?: string | null;
@@ -83,7 +83,7 @@ async function api<T>(
           body: JSON.stringify(body),
         }),
     signal: signal
-      ? AbortSignal.any([signal, AbortSignal.timeout(20000)])
+      ? AbortSignal.any([signal, AbortSignal.timeout(60000)])
       : AbortSignal.timeout(60000),
   });
   const result = await response.json();
@@ -244,7 +244,14 @@ function BookCard({
             Country: {book.scout_authors.country || "Unknown"} · Publishing:{" "}
             {book.scout_authors.publishing_type || "Unknown"}
           </p>
-          {book.scout_authors.contact_email && <p>Contact: {book.scout_authors.contact_email}</p>}
+          {book.scout_authors.contact_email && (
+            <p className="break-all">
+              Contact: {book.scout_authors.contact_email} ·{" "}
+              {book.scout_authors.contact_verification_status === "verified"
+                ? "Verified"
+                : "Unverified"}
+            </p>
+          )}
           <div className="flex flex-wrap gap-4">
             <PublicLink url={book.scout_authors.website_url ?? null}>Website</PublicLink>
             <PublicLink url={book.scout_authors.contact_form_url ?? null}>Contact form</PublicLink>
@@ -262,9 +269,22 @@ function BookCard({
       {book.scout_authors && (
         <ContactFinder
           authorId={book.scout_authors.id}
-          busy={contactBusy === book.scout_authors.id}
+          busy={busy === "emails" || contactBusy === book.scout_authors.id}
           verifyBusy={verifyBusy === book.scout_authors.id}
-          result={contactResult}
+          result={
+            contactResult ??
+            (book.scout_authors.website_url &&
+            (book.scout_authors.contact_email || book.scout_authors.contact_form_url)
+              ? {
+                  found: true,
+                  candidateUrl: book.scout_authors.website_url,
+                  candidateTitle: book.scout_authors.name,
+                  contactEmail: book.scout_authors.contact_email ?? null,
+                  contactFormUrl: book.scout_authors.contact_form_url ?? null,
+                  verified: book.scout_authors.contact_verification_status === "verified",
+                }
+              : undefined)
+          }
           onFind={onFindContact}
           onVerify={onVerifyContact}
         />
@@ -297,6 +317,21 @@ const field =
   "mt-2 w-full rounded-xl border border-border bg-background px-4 py-3 text-sm disabled:opacity-50";
 
 export function ScoutApp() {
+  const queryClient = useQueryClient();
+  const [genreLoading, setGenreLoading] = useState(true);
+  const [loadAttempt, setLoadAttempt] = useState(0);
+  const [detailError, setDetailError] = useState("");
+  const [progress, setProgress] = useState({ done: 0, total: 0 });
+  const [stage, setStage] = useState("");
+  const [emailRun, setEmailRun] = useState<{
+    done: number;
+    total: number;
+    found: number;
+    failed: number;
+  } | null>(null);
+  const emailController = useRef<AbortController | null>(null);
+  useEffect(() => () => emailController.current?.abort(), []);
+
   const [source, setSource] = useState("reedsy_discovery");
   const [genres, setGenres] = useState<ReedsyGenre[]>([]);
   const [genreId, setGenreId] = useState("");
@@ -324,37 +359,54 @@ export function ScoutApp() {
 
   useEffect(() => {
     const controller = new AbortController();
-    Promise.all([
-      api<{ items: Batch[] }>("/api/admin/scout-batches", undefined, controller.signal).then(
-        (data) => setBatches(data.items),
-      ),
-      api<{ genres: ReedsyGenre[] }>(
-        "/api/admin/scout-reedsy-genres",
-        undefined,
-        controller.signal,
-      ).then((data) => {
-        setGenres(data.genres);
-        setGenreId(String(data.genres[0]?.id ?? ""));
-      }),
-    ])
+    setLoading(true);
+    setError("");
+    api<{ items: Batch[] }>("/api/admin/scout-batches", undefined, controller.signal)
+      .then((data) => {
+        if (!controller.signal.aborted) setBatches(data.items);
+      })
       .catch((e) => {
         if (!controller.signal.aborted) setError(e.message);
       })
       .finally(() => {
         if (!controller.signal.aborted) setLoading(false);
       });
+    setGenreLoading(true);
+    queryClient
+      .fetchQuery({
+        queryKey: ["scout-genres"],
+        staleTime: 300000,
+        queryFn: () => api<{ genres: ReedsyGenre[] }>("/api/admin/scout-reedsy-genres"),
+      })
+      .then((data) => {
+        if (!controller.signal.aborted) {
+          setGenres(data.genres);
+          setGenreId((current) => current || String(data.genres[0]?.id ?? ""));
+        }
+      })
+      .catch((e) => {
+        if (!controller.signal.aborted) setError(e.message);
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setGenreLoading(false);
+      });
     return () => controller.abort();
-  }, []);
+  }, [loadAttempt, queryClient]);
 
   useEffect(() => {
     if (source !== "readers_favorite") return;
     setRfLoading(true);
     const controller = new AbortController();
-    api<{ genres: { path: string; name: string }[] }>(
-      "/api/admin/scout-readers-favorite",
-      { catalog: RF_DEFAULT, page: 1 },
-      controller.signal,
-    )
+    queryClient
+      .fetchQuery({
+        queryKey: ["scout-rf-genres"],
+        staleTime: 300000,
+        queryFn: () =>
+          api<{ genres: { path: string; name: string }[] }>("/api/admin/scout-readers-favorite", {
+            catalog: RF_DEFAULT,
+            page: 1,
+          }),
+      })
       .then((data) =>
         setRfGenres((current) => [
           ...new Map([...current, ...data.genres].map((item) => [item.path, item])).values(),
@@ -367,18 +419,19 @@ export function ScoutApp() {
         if (!controller.signal.aborted) setRfLoading(false);
       });
     return () => controller.abort();
-  }, [source]);
+  }, [source, loadAttempt, queryClient]);
 
   useEffect(() => {
     if (!selected) return;
     const controller = new AbortController();
     setDetailLoading(true);
+    setDetailError("");
     setBooks([]);
     setReviewFilter("all");
     api<{ items: Book[] }>(`/api/admin/scout-batches/${selected.id}`, undefined, controller.signal)
       .then((data) => setBooks(data.items))
       .catch((e) => {
-        if (!controller.signal.aborted) setError(e.message);
+        if (!controller.signal.aborted) setDetailError(e.message);
       })
       .finally(() => {
         if (!controller.signal.aborted) setDetailLoading(false);
@@ -388,6 +441,8 @@ export function ScoutApp() {
 
   async function persist(batch: Batch, items: Candidate[]) {
     const failed: Candidate[] = [];
+    setStage("Saving authors to your batch");
+    setProgress({ done: 0, total: items.length });
     // Sequential writes preserve the existing batch counter and avoid overwhelming storage.
     for (const item of items) {
       try {
@@ -411,6 +466,8 @@ export function ScoutApp() {
         });
       } catch {
         failed.push(item);
+      } finally {
+        setProgress((current) => ({ ...current, done: current.done + 1 }));
       }
     }
     setRetry(failed.length ? { batch, items: failed } : null);
@@ -424,6 +481,8 @@ export function ScoutApp() {
 
   async function search() {
     setBusy("search");
+    setStage("Searching the review catalogue");
+    setProgress({ done: 0, total: 0 });
     setError("");
     setNotice("");
     try {
@@ -468,6 +527,69 @@ export function ScoutApp() {
     } finally {
       setBusy("");
     }
+  }
+
+  async function findBatchEmails() {
+    if (emailController.current || !books.length) return;
+    const controller = new AbortController();
+    emailController.current = controller;
+    const authors = [
+      ...new Map(
+        books.flatMap((book) =>
+          book.scout_authors ? [[book.scout_authors.id, book.scout_authors] as const] : [],
+        ),
+      ).values(),
+    ];
+    const pending = authors.filter(
+      (author) => !author.contact_email && !contactResults[author.id]?.contactEmail,
+    );
+    const summary = {
+      done: authors.length - pending.length,
+      total: authors.length,
+      found: authors.length - pending.length,
+      failed: 0,
+    };
+    setEmailRun({ ...summary });
+    setBusy("emails");
+    setError("");
+    let next = 0;
+    async function worker() {
+      while (!controller.signal.aborted && next < pending.length) {
+        const author = pending[next++]!;
+        try {
+          const result = await api<ContactResult>(
+            `/api/admin/scout-authors/${author.id}/find-contact`,
+            {},
+            controller.signal,
+          );
+          if (controller.signal.aborted) return;
+          setContactResults((current) => ({ ...current, [author.id]: result }));
+          if (result.contactEmail) summary.found++;
+        } catch (e) {
+          if (controller.signal.aborted) return;
+          summary.failed++;
+          setContactResults((current) => ({
+            ...current,
+            [author.id]: {
+              found: false,
+              candidateUrl: null,
+              candidateTitle: null,
+              contactEmail: null,
+              contactFormUrl: null,
+              message: `Search failed: ${(e as Error).message}`,
+            },
+          }));
+        }
+        summary.done++;
+        setEmailRun({ ...summary });
+      }
+    }
+    await Promise.all([worker(), worker()]);
+    setNotice(
+      `${controller.signal.aborted ? "Stopped. " : ""}${summary.done} of ${summary.total} authors checked · ${summary.found} emails available · ${summary.failed} failed. Found addresses remain unverified until you confirm them.`,
+    );
+    emailController.current = null;
+    setBusy("");
   }
 
   async function findContact(authorId: string) {
@@ -548,6 +670,7 @@ export function ScoutApp() {
         "Country",
         "Website",
         "Email",
+        "Email verification",
         "Contact form",
         "Source",
       ],
@@ -559,7 +682,11 @@ export function ScoutApp() {
         book.description,
         book.scout_authors?.country,
         book.scout_authors?.website_url,
-        book.scout_authors?.contact_email,
+        book.scout_authors?.contact_email ??
+          contactResults[book.scout_authors?.id ?? ""]?.contactEmail,
+        contactResults[book.scout_authors?.id ?? ""]?.verified
+          ? "Verified"
+          : (book.scout_authors?.contact_verification_status ?? "Unverified"),
         book.scout_authors?.contact_form_url,
         book.source_url,
       ]),
@@ -579,7 +706,7 @@ export function ScoutApp() {
     <main className="mx-auto max-w-6xl space-y-7 px-4 py-8 sm:px-6">
       <header className="rounded-3xl border border-border bg-secondary/40 p-6 sm:p-8">
         <p className="text-xs font-semibold uppercase tracking-widest text-brand">
-          HQ360 · Expert tools
+          HQ360 · Scouting workspace
         </p>
         <h1 className="mt-3 font-display text-3xl sm:text-4xl">Author scouting</h1>
         <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
@@ -696,12 +823,29 @@ export function ScoutApp() {
           </p>
         </div>
       </form>
+      {(source === "reedsy_discovery" ? genreLoading : rfLoading) && (
+        <GlassLoading label="Loading review categories…" />
+      )}
+      {busy === "search" && (
+        <GlassLoading
+          label={progress.total ? `${stage} · ${progress.done} of ${progress.total}` : stage}
+          progress={progress.total ? progress : undefined}
+        />
+      )}
       {error && (
         <p
           role="alert"
           className="rounded-xl border border-destructive/30 p-4 text-sm text-destructive"
         >
-          {error}
+          {error}{" "}
+          <button
+            type="button"
+            className="ml-3 underline"
+            disabled={Boolean(busy)}
+            onClick={() => setLoadAttempt((value) => value + 1)}
+          >
+            Retry loading
+          </button>
         </p>
       )}
       {notice && (
@@ -742,7 +886,13 @@ export function ScoutApp() {
               aria-label="Filter batches"
               className={field}
               value={batchSource}
-              onChange={(event) => setBatchSource(event.target.value)}
+              disabled={Boolean(busy)}
+              onChange={(event) => {
+                setBatchSource(event.target.value);
+                setSelected(null);
+                setBooks([]);
+                setEmailRun(null);
+              }}
             >
               <option value="all">All review sources</option>
               <option value="reedsy_discovery">Reedsy Discovery</option>
@@ -751,37 +901,30 @@ export function ScoutApp() {
           </label>
         </div>
         {loading ? (
-          <p role="status">Loading batches…</p>
-        ) : !visibleBatches.length ? (
-          <p className="rounded-2xl border border-dashed p-8 text-center text-muted-foreground">
-            No batches yet for this source. Run a search to get started.
-          </p>
+          <GlassLoading label="Loading your batches…" />
         ) : (
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {visibleBatches.map((batch) => (
-              <button
-                key={batch.id}
-                type="button"
-                aria-pressed={selected?.id === batch.id}
-                onClick={() => setSelected(batch)}
-                className={cn(
-                  "rounded-2xl border p-5 text-left transition hover:border-primary",
-                  selected?.id === batch.id
-                    ? "border-primary bg-primary/5"
-                    : "border-border bg-card",
-                )}
-              >
-                <span className="flex items-start justify-between gap-3 font-semibold">
-                  {batch.label}
-                  <ChevronRight className="size-4 shrink-0" />
-                </span>
-                <span className="mt-3 block text-xs text-muted-foreground">
-                  {formatDiscoveredAt(batch.created_at)}
-                </span>
-                <span className="mt-2 block text-sm">{batch.item_count} books · View authors</span>
-              </button>
-            ))}
-          </div>
+          <label className="block text-sm font-medium">
+            Choose a batch
+            <select
+              aria-label="Choose a batch"
+              className={field}
+              value={selected?.id ?? ""}
+              disabled={Boolean(busy) || !visibleBatches.length}
+              onChange={(event) => {
+                setSelected(batches.find((batch) => batch.id === event.target.value) ?? null);
+                setEmailRun(null);
+              }}
+            >
+              <option value="">
+                {visibleBatches.length ? "Select a saved search" : "No batches for this source"}
+              </option>
+              {visibleBatches.map((batch) => (
+                <option key={batch.id} value={batch.id}>
+                  {batch.label} · {formatDiscoveredAt(batch.created_at)} · {batch.item_count} books
+                </option>
+              ))}
+            </select>
+          </label>
         )}
       </section>
       {selected && (
@@ -795,6 +938,14 @@ export function ScoutApp() {
               </p>
             </div>
             <div className="flex flex-wrap items-end gap-3">
+              <button
+                type="button"
+                disabled={Boolean(busy) || detailLoading || !books.length}
+                onClick={() => void findBatchEmails()}
+                className="rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground disabled:opacity-50"
+              >
+                Find emails for entire batch
+              </button>
               <label className="text-sm">
                 Book reviews
                 <select
@@ -822,9 +973,34 @@ export function ScoutApp() {
               </button>
             </div>
           </div>
+          {busy === "emails" && emailRun && (
+            <div className="space-y-3">
+              <GlassLoading
+                label={`Finding emails · ${emailRun.done} of ${emailRun.total} authors · ${emailRun.found} found`}
+                progress={emailRun}
+              />
+              <button
+                className="rounded-xl border px-4 py-2 text-sm"
+                onClick={() => emailController.current?.abort()}
+              >
+                Stop email search
+              </button>
+            </div>
+          )}
+          {detailError && (
+            <p role="alert" className="text-sm text-destructive">
+              {detailError}{" "}
+              <button
+                className="underline"
+                onClick={() => setSelected((current) => (current ? { ...current } : null))}
+              >
+                Retry batch details
+              </button>
+            </p>
+          )}
           {detailLoading ? (
-            <p role="status">Loading author details…</p>
-          ) : !visible.length ? (
+            <GlassLoading label="Loading author details…" cards />
+          ) : detailError ? null : !visible.length ? (
             <p className="rounded-xl bg-secondary/40 p-6 text-sm">
               {books.length
                 ? "No books match this review filter."

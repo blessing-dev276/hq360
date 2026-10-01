@@ -1,3 +1,4 @@
+import { GlassLoading } from "@/components/ui/glass-loading";
 import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { ArrowUpRight } from "lucide-react";
 import { AuthShell } from "@/components/auth/AuthShell";
@@ -82,9 +83,7 @@ export function ExpertGate({ children }: { children: ReactNode }) {
       description="Access Scouting with your approved HQ360 expert account. Author Reports are coming soon."
     >
       {state === "checking" ? (
-        <p className="hq-auth-notice" role="status">
-          Checking your session…
-        </p>
+        <GlassLoading label="Opening your workspace…" />
       ) : state === "pending" ? (
         <p className="hq-auth-notice" role="status">
           Your account is created and waiting on admin approval. Check back soon.

@@ -1,3 +1,4 @@
+import { GlassLoading } from "@/components/ui/glass-loading";
 import { useEffect, useState, type FormEvent } from "react";
 import { AlertCircle, ArrowUpRight, CircleCheck, ImageUp, Send } from "lucide-react";
 import { initials } from "@/lib/experts";
@@ -54,23 +55,32 @@ function ReviewStatus({ profile }: { profile: Profile }) {
 
 export function ExpertProfileEditor() {
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [dirty, setDirty] = useState(false);
+  const [loadAttempt, setLoadAttempt] = useState(0);
   const [photo, setPhoto] = useState("");
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState<"" | "save" | "photo" | "submit">("");
 
   useEffect(() => {
-    fetch("/api/expert/profile")
+    const controller = new AbortController();
+    setError("");
+    fetch("/api/expert/profile", {
+      signal: AbortSignal.any([controller.signal, AbortSignal.timeout(20000)]),
+    })
       .then(async (response) => {
         const data = await response.json().catch(() => ({}));
         if (!response.ok) throw new Error(data.error || "Could not load your profile.");
+        if (controller.signal.aborted) return;
         setProfile(data.profile);
         setPhoto(data.profile.photo_url ?? "");
       })
-      .catch((err: unknown) =>
-        setError(err instanceof Error ? err.message : "Could not load your profile."),
-      );
-  }, []);
+      .catch((err: unknown) => {
+        if (!controller.signal.aborted)
+          setError(err instanceof Error ? err.message : "Could not load your profile.");
+      });
+    return () => controller.abort();
+  }, [loadAttempt]);
 
   async function uploadPhoto(file: File) {
     setBusy("photo");
@@ -90,6 +100,7 @@ export function ExpertProfileEditor() {
       });
       if (!put.ok) throw new Error("Could not upload your photo.");
       setPhoto(data.publicUrl);
+      setDirty(true);
       setNotice("Photo uploaded. Save your profile to publish it.");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not upload your photo.");
@@ -125,6 +136,7 @@ export function ExpertProfileEditor() {
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(data.error || "Could not save your profile.");
       setProfile(data.profile);
+      setDirty(false);
       setNotice("Profile saved.");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not save your profile.");
@@ -156,168 +168,302 @@ export function ExpertProfileEditor() {
         {error ? (
           <div className="admin-alert" role="alert">
             <AlertCircle size={18} />
-            {error}
+            {error}{" "}
+            <button className="admin-button" onClick={() => setLoadAttempt((value) => value + 1)}>
+              Retry
+            </button>
           </div>
         ) : (
-          <div className="admin-empty" role="status">
-            Loading your profile…
-          </div>
+          <GlassLoading label="Loading your expert profile…" cards />
         )}
       </section>
     );
 
+  const checklist = [
+    { label: "Profile photo", complete: Boolean(photo) },
+    { label: "Name & headline", complete: Boolean(profile.full_name && profile.headline) },
+    { label: "Your story", complete: Boolean(profile.bio) },
+    { label: "Specialties", complete: Boolean(profile.specialties?.length) },
+    { label: "Location", complete: Boolean(profile.location) },
+    {
+      label: "Website or LinkedIn",
+      complete: Boolean(profile.website_url || profile.linkedin_url),
+    },
+  ];
+  const completed = checklist.filter((item) => item.complete).length;
   return (
-    <section className="admin-content-panel">
-      <div className="admin-panel-heading" style={{ padding: "0 0 1.5rem" }}>
-        <div>
-          <h2>Your public profile</h2>
-          <p>Shown at /experts/{profile.slug} when you choose to publish it.</p>
-        </div>
-        {profile.is_public && (
-          <a
-            className="admin-button"
-            href={`/experts/${profile.slug}`}
-            target="_blank"
-            rel="noreferrer"
-          >
-            View public page <ArrowUpRight size={15} />
-          </a>
-        )}
-      </div>
-      <ReviewStatus profile={profile} />
-      {error && (
-        <div className="admin-alert" role="alert">
-          <AlertCircle size={18} />
-          {error}
-        </div>
-      )}
-      {notice && (
-        <div className="admin-notice" role="status">
-          <CircleCheck size={18} />
-          {notice}
-        </div>
-      )}
-      <form className="admin-invoice-form" onSubmit={save}>
-        <div className="admin-setup" style={{ marginBottom: 0 }}>
-          {photo ? (
-            <img
-              src={photo}
-              alt=""
-              style={{ width: 64, height: 64, borderRadius: 16, objectFit: "cover" }}
-            />
-          ) : (
-            <span className="admin-action-icon" style={{ width: 64, height: 64, fontWeight: 700 }}>
-              {initials(profile.full_name || profile.email)}
-            </span>
-          )}
+    <section className="space-y-6">
+      <header className="rounded-3xl border border-border bg-secondary/40 p-6 sm:p-8">
+        <p className="text-xs font-semibold uppercase tracking-widest text-brand">
+          Your expert identity
+        </p>
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-4">
           <div>
-            <strong>Profile photo</strong>
-            <p>A clear, well-lit portrait works best. PNG, JPG or WebP.</p>
+            <h1 className="font-display text-3xl">Make your expertise stand out.</h1>
+            <p className="mt-3 max-w-xl text-sm text-muted-foreground">
+              Tell clients who you help, show what you do best, and bring your work together in one
+              profile.
+            </p>
           </div>
-          <label className="admin-button" style={{ cursor: "pointer" }}>
-            <ImageUp size={15} />
-            {busy === "photo" ? "Uploading…" : photo ? "Replace" : "Upload"}
-            <input
-              type="file"
-              accept="image/png,image/jpeg,image/webp"
-              className="sr-only"
-              disabled={!!busy}
-              onChange={(event) => {
-                const file = event.target.files?.[0];
-                if (file) void uploadPhoto(file);
-                event.target.value = "";
-              }}
-            />
-          </label>
-        </div>
-        <div className="admin-form-grid">
-          <label>
-            Full name
-            <input
-              name="full_name"
-              required
-              minLength={2}
-              maxLength={150}
-              defaultValue={profile.full_name ?? ""}
-            />
-          </label>
-          <label>
-            Headline
-            <input
-              name="headline"
-              maxLength={160}
-              placeholder="e.g. Book editor & publishing consultant"
-              defaultValue={profile.headline ?? ""}
-            />
-          </label>
-          <label>
-            Location
-            <input
-              name="location"
-              maxLength={120}
-              placeholder="City, Country"
-              defaultValue={profile.location ?? ""}
-            />
-          </label>
-          <label>
-            Specialties (comma separated)
-            <input
-              name="specialties"
-              placeholder="Editing, Formatting, Book marketing"
-              defaultValue={(profile.specialties ?? []).join(", ")}
-            />
-          </label>
-          <label>
-            Website
-            <input
-              name="website_url"
-              type="url"
-              placeholder="https://"
-              defaultValue={profile.website_url ?? ""}
-            />
-          </label>
-          <label>
-            LinkedIn
-            <input
-              name="linkedin_url"
-              type="url"
-              placeholder="https://www.linkedin.com/in/…"
-              defaultValue={profile.linkedin_url ?? ""}
-            />
-          </label>
-        </div>
-        <label>
-          About you
-          <textarea
-            name="bio"
-            rows={6}
-            maxLength={4000}
-            placeholder="What you do, who you help and how you work. Separate paragraphs with a blank line."
-            defaultValue={profile.bio ?? ""}
-          />
-        </label>
-        <div className="admin-button-row">
-          <button className="admin-button admin-button-primary" disabled={!!busy}>
-            {busy === "save" ? "Saving…" : "Save profile"}
-          </button>
-          {profile.profile_status !== "approved" || !profile.is_public ? (
-            <button
-              type="button"
+          {profile.is_public && (
+            <a
               className="admin-button"
-              disabled={!!busy || profile.profile_status === "submitted"}
-              onClick={() => void submitForReview()}
+              href={`/experts/${profile.slug}`}
+              target="_blank"
+              rel="noreferrer"
             >
-              <Send size={14} />
-              {busy === "submit"
-                ? "Submitting…"
-                : profile.profile_status === "submitted"
-                  ? "Submitted"
-                  : "Submit for review"}
-            </button>
-          ) : null}
+              View public profile <ArrowUpRight size={15} />
+            </a>
+          )}
         </div>
-      </form>
-      <ExpertPortfolio />
+      </header>
+      <div className="grid items-start gap-6 xl:grid-cols-[280px_minmax(0,1fr)]">
+        <aside className="space-y-5 xl:sticky xl:top-6">
+          <div className="overflow-hidden rounded-2xl border border-border bg-card">
+            <div className="h-20 bg-gradient-to-br from-primary/10 via-secondary to-brand/10" />
+            <div className="px-5 pb-5">
+              <div className="-mt-9 mb-4 flex size-20 items-center justify-center overflow-hidden rounded-2xl border-4 border-card bg-secondary text-2xl font-semibold">
+                {photo ? (
+                  <img src={photo} alt="Your profile" className="size-full object-cover" />
+                ) : (
+                  initials(profile.full_name || profile.email)
+                )}
+              </div>
+              <h2 className="text-xl font-semibold">{profile.full_name || "Your name"}</h2>
+              <p className="mt-2 text-sm text-muted-foreground">
+                {profile.headline || "Add a headline that describes your expertise"}
+              </p>
+              <p className="mt-3 text-xs text-muted-foreground">
+                {profile.location || "Add your location"}
+              </p>
+              <div className="mt-4 flex flex-wrap gap-2">
+                {profile.specialties?.map((item) => (
+                  <span className="rounded-full bg-secondary px-3 py-1 text-xs" key={item}>
+                    {item}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+          <div className="rounded-2xl border border-border bg-card p-5">
+            <div className="flex justify-between text-sm font-semibold">
+              <span>Profile completeness</span>
+              <span>
+                {completed}/{checklist.length}
+              </span>
+            </div>
+            <progress
+              aria-label="Saved profile completeness"
+              className="mt-3 h-1.5 w-full accent-primary"
+              value={completed}
+              max={checklist.length}
+            />
+            <ul className="mt-4 space-y-3">
+              {checklist.map((item) => (
+                <li key={item.label} className="flex items-center gap-2 text-xs">
+                  <CircleCheck
+                    className={
+                      item.complete ? "size-4 text-brand" : "size-4 text-muted-foreground/40"
+                    }
+                  />
+                  <span>{item.label}</span>
+                  <span className="sr-only">{item.complete ? "Complete" : "Not added"}</span>
+                </li>
+              ))}
+            </ul>
+            <p className="mt-4 text-xs text-muted-foreground">
+              Updates after you save your profile.
+            </p>
+          </div>
+          <nav aria-label="Profile sections" className="flex flex-wrap gap-3 text-sm">
+            <a href="#expert-details" className="underline underline-offset-4">
+              Profile details
+            </a>
+            <a href="#expert-portfolio" className="underline underline-offset-4">
+              Portfolio
+            </a>
+          </nav>
+        </aside>
+        <div className="min-w-0 space-y-5">
+          <ReviewStatus profile={profile} />
+          {error && (
+            <div className="admin-alert" role="alert">
+              <AlertCircle size={18} />
+              {error}
+            </div>
+          )}
+          {notice && (
+            <div className="admin-notice" role="status">
+              <CircleCheck size={18} />
+              {notice}
+            </div>
+          )}
+          <form
+            id="expert-details"
+            className="admin-invoice-form rounded-2xl border border-border bg-card p-5 sm:p-7"
+            onSubmit={save}
+            onChange={() => setDirty(true)}
+          >
+            <div>
+              <p className="text-xs uppercase tracking-widest text-brand">01 · Introduction</p>
+              <h2 className="mt-2 text-xl font-semibold">Profile details</h2>
+              <p className="mt-2 text-sm text-muted-foreground">
+                A clear introduction helps the right clients find you.
+              </p>
+            </div>
+            <fieldset disabled={Boolean(busy)} className="min-w-0 space-y-6 border-0 p-0">
+              <div className="admin-setup" style={{ marginBottom: 0 }}>
+                {photo ? (
+                  <img
+                    src={photo}
+                    alt=""
+                    style={{ width: 64, height: 64, borderRadius: 16, objectFit: "cover" }}
+                  />
+                ) : (
+                  <span
+                    className="admin-action-icon"
+                    style={{ width: 64, height: 64, fontWeight: 700 }}
+                  >
+                    {initials(profile.full_name || profile.email)}
+                  </span>
+                )}
+                <div>
+                  <strong>Profile photo</strong>
+                  <p>A clear, well-lit portrait works best. PNG, JPG or WebP.</p>
+                </div>
+                <label className="admin-button" style={{ cursor: "pointer" }}>
+                  <ImageUp size={15} />
+                  {busy === "photo" ? "Uploading…" : photo ? "Replace" : "Upload"}
+                  <input
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp"
+                    className="sr-only"
+                    disabled={!!busy}
+                    onChange={(event) => {
+                      const file = event.target.files?.[0];
+                      if (file) void uploadPhoto(file);
+                      event.target.value = "";
+                    }}
+                  />
+                </label>
+              </div>
+              <div className="admin-form-grid">
+                <label>
+                  Full name
+                  <input
+                    name="full_name"
+                    required
+                    minLength={2}
+                    maxLength={150}
+                    defaultValue={profile.full_name ?? ""}
+                  />
+                </label>
+                <label>
+                  Headline
+                  <input
+                    name="headline"
+                    maxLength={160}
+                    placeholder="e.g. Book editor & publishing consultant"
+                    defaultValue={profile.headline ?? ""}
+                  />
+                </label>
+                <label>
+                  Location
+                  <input
+                    name="location"
+                    maxLength={120}
+                    placeholder="City, Country"
+                    defaultValue={profile.location ?? ""}
+                  />
+                </label>
+                <label>
+                  Specialties (comma separated)
+                  <input
+                    name="specialties"
+                    placeholder="Editing, Formatting, Book marketing"
+                    defaultValue={(profile.specialties ?? []).join(", ")}
+                  />
+                </label>
+                <label>
+                  Website
+                  <input
+                    name="website_url"
+                    type="url"
+                    placeholder="https://"
+                    defaultValue={profile.website_url ?? ""}
+                  />
+                </label>
+                <label>
+                  LinkedIn
+                  <input
+                    name="linkedin_url"
+                    type="url"
+                    placeholder="https://www.linkedin.com/in/…"
+                    defaultValue={profile.linkedin_url ?? ""}
+                  />
+                </label>
+              </div>
+              <div>
+                <p className="text-xs uppercase tracking-widest text-brand">02 · Your story</p>
+                <h2 className="mt-2 text-xl font-semibold">What makes your work different?</h2>
+              </div>
+              <label>
+                About you
+                <textarea
+                  name="bio"
+                  rows={6}
+                  maxLength={4000}
+                  placeholder="What you do, who you help and how you work. Separate paragraphs with a blank line."
+                  defaultValue={profile.bio ?? ""}
+                />
+              </label>
+            </fieldset>
+            {busy && (
+              <GlassLoading
+                label={
+                  busy === "photo"
+                    ? "Uploading your portrait…"
+                    : busy === "save"
+                      ? "Saving your profile…"
+                      : "Submitting for review…"
+                }
+              />
+            )}
+            <div className="admin-button-row sticky bottom-3 z-10 rounded-xl border border-border/60 bg-background/85 p-3 shadow-sm backdrop-blur-xl">
+              <button className="admin-button admin-button-primary" disabled={!!busy}>
+                {busy === "save" ? "Saving…" : "Save profile"}
+              </button>
+              {profile.profile_status !== "approved" || !profile.is_public ? (
+                <button
+                  type="button"
+                  className="admin-button"
+                  disabled={!!busy || dirty || profile.profile_status === "submitted"}
+                  onClick={() => void submitForReview()}
+                >
+                  <Send size={14} />
+                  {busy === "submit"
+                    ? "Submitting…"
+                    : profile.profile_status === "submitted"
+                      ? "Submitted"
+                      : "Submit for review"}
+                </button>
+              ) : null}
+              {dirty && (
+                <span className="text-xs text-muted-foreground" role="status">
+                  Unsaved changes · Save before submitting.
+                </span>
+              )}
+            </div>
+          </form>
+          <section
+            id="expert-portfolio"
+            className="rounded-2xl border border-border bg-card p-5 sm:p-7"
+          >
+            <p className="mb-4 text-xs uppercase tracking-widest text-brand">03 · Selected work</p>
+            <ExpertPortfolio />
+          </section>
+        </div>
+      </div>
     </section>
   );
 }

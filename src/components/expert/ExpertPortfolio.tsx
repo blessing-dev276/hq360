@@ -1,3 +1,4 @@
+import { GlassLoading } from "@/components/ui/glass-loading";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { AlertCircle, CircleCheck, ImageUp, Pencil, Trash2 } from "lucide-react";
 import { CORE_SERVICES, AUDIENCES } from "@/data/agency";
@@ -298,9 +299,7 @@ export function ExpertPortfolio() {
       )}
 
       {loading ? (
-        <div className="admin-empty" role="status">
-          Loading…
-        </div>
+        <GlassLoading label="Loading your portfolio…" cards />
       ) : items.length === 0 ? (
         !showForm && (
           <div className="admin-empty">

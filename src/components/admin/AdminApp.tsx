@@ -1,3 +1,4 @@
+import { ScoutApp } from "./ScoutApp";
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { cn } from "@/lib/utils";
 import { CAPABILITIES } from "@/data/capabilities";
@@ -140,9 +141,23 @@ function UploadField({
 /* ------------------------------------------------------------------- root */
 
 type Tab =
-  "projects" | "overview" | "payments" | "work" | "team" | "testimonials" | "audits" | "experts";
+  | "scout"
+  | "projects"
+  | "overview"
+  | "payments"
+  | "work"
+  | "team"
+  | "testimonials"
+  | "audits"
+  | "experts";
 type WorkView = "cases" | "gallery";
 const NAV = [
+  {
+    id: "scout",
+    label: "Scouting",
+    icon: ScanSearch,
+    description: "Discover authors, review batches and find contact information.",
+  },
   {
     id: "projects",
     label: "Projects",
@@ -190,8 +205,8 @@ const NAV = [
 const input =
   "w-full rounded-xl border border-border bg-background px-3.5 py-2.5 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
-export function AdminApp() {
-  const [tab, setTab] = useState<Tab>("overview");
+export function AdminApp({ initialTab = "overview" }: { initialTab?: Tab }) {
+  const [tab, setTab] = useState<Tab>(initialTab);
   const [contentTab, setContentTab] = useState<"work" | "team" | "testimonials">("work");
   const [workView, setWorkView] = useState<WorkView>("cases");
   const [logoutError, setLogoutError] = useState("");
@@ -225,27 +240,20 @@ export function AdminApp() {
         <p className="admin-nav-label">WORKSPACE</p>
         <nav aria-label="Admin navigation">
           {["overview", "scout", "audits", "experts", "projects", "payments", "work"].map((key) =>
-            key === "scout" ? (
-              <a key="scout" href="/scout" className="admin-nav-item">
-                <ScanSearch size={18} />
-                <span>Scout</span>
-              </a>
-            ) : (
-              (() => {
-                const { id, label, icon: Icon } = NAV.find((item) => item.id === key)!;
-                return (
-                  <button
-                    key={id}
-                    onClick={() => navigate(id)}
-                    className={cn("admin-nav-item", tab === id && "active")}
-                    aria-current={tab === id ? "page" : undefined}
-                  >
-                    <Icon size={18} />
-                    <span>{label}</span>
-                  </button>
-                );
-              })()
-            ),
+            (() => {
+              const { id, label, icon: Icon } = NAV.find((item) => item.id === key)!;
+              return (
+                <button
+                  key={id}
+                  onClick={() => navigate(id)}
+                  className={cn("admin-nav-item", tab === id && "active")}
+                  aria-current={tab === id ? "page" : undefined}
+                >
+                  <Icon size={18} />
+                  <span>{label}</span>
+                </button>
+              );
+            })(),
           )}
         </nav>
 
@@ -294,21 +302,25 @@ export function AdminApp() {
           </div>
         </header>
         <div className="admin-page">
-          <div className="admin-page-heading">
-            <div>
-              <p className="admin-eyebrow">YOUR BUSINESS, IN FOCUS</p>
-              <h1>{current.label}</h1>
-              <p>{current.description}</p>
+          {tab !== "scout" && (
+            <div className="admin-page-heading">
+              <div>
+                <p className="admin-eyebrow">YOUR BUSINESS, IN FOCUS</p>
+                <h1>{current.label}</h1>
+                <p>{current.description}</p>
+              </div>
+              <span className="admin-date">
+                {new Date().toLocaleDateString("en-GB", {
+                  day: "numeric",
+                  month: "long",
+                  year: "numeric",
+                })}
+              </span>
             </div>
-            <span className="admin-date">
-              {new Date().toLocaleDateString("en-GB", {
-                day: "numeric",
-                month: "long",
-                year: "numeric",
-              })}
-            </span>
-          </div>
-          {tab === "overview" ? (
+          )}
+          {tab === "scout" ? (
+            <ScoutApp />
+          ) : tab === "overview" ? (
             <LeadsAdmin />
           ) : tab === "projects" ? (
             <LeadsAdmin projects />

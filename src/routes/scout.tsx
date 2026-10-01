@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AdminGate } from "@/components/admin/AdminGate";
-import { ScoutApp } from "@/components/admin/ScoutApp";
+import { AdminApp } from "@/components/admin/AdminApp";
 
 export const Route = createFileRoute("/scout")({
   head: () => ({
@@ -15,7 +15,7 @@ export const Route = createFileRoute("/scout")({
 function ScoutPage() {
   return (
     <AdminGate>
-      <ScoutApp />
+      <AdminApp initialTab="scout" />
     </AdminGate>
   );
 }

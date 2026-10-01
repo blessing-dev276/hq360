@@ -128,9 +128,13 @@ export const Route = createFileRoute("/api/admin/scout-authors/$id/find-contact"
             );
             let fallback: { candidate: Candidate; extracted: Extracted } | null = null;
             for (const item of fresh.slice(0, 8)) {
+              if (searchController.signal.aborted) break;
               seenLinks.add(item.link);
               try {
-                const result = await extractContact(item.link, AbortSignal.timeout(15_000));
+                const result = await extractContact(
+                  item.link,
+                  AbortSignal.any([searchController.signal, AbortSignal.timeout(8000)]),
+                );
                 // An email address is the only thing worth stopping for --
                 // a contact form alone doesn't end the search.
                 if (result.contactEmail) return { candidate: item, extracted: result };
@@ -149,7 +153,11 @@ export const Route = createFileRoute("/api/admin/scout-authors/$id/find-contact"
               `"${author.name}" books contact`,
             ];
             for (const query of attempts) {
-              const result = await tryQuery(query);
+              if (searchController.signal.aborted) break;
+              const result = await tryQuery(query).catch((error) => {
+                if (searchController.signal.aborted) return null;
+                throw error;
+              });
               if (result?.extracted.contactEmail) {
                 best = result;
                 break;
@@ -160,8 +168,11 @@ export const Route = createFileRoute("/api/admin/scout-authors/$id/find-contact"
             clearTimeout(searchTimeout);
           }
 
-          if (!best)
+          if (!best) {
+            if (searchController.signal.aborted)
+              return json({ ok: false, message: "Search timed out. Retry this author." }, 504);
             return json({ ok: true, found: false, message: "No likely official website found." });
+          }
           const { candidate, extracted } = best;
 
           await db.from("scout_research_notes").insert({
@@ -180,16 +191,28 @@ export const Route = createFileRoute("/api/admin/scout-authors/$id/find-contact"
             added_by: "scout_find_contact",
           });
 
+          const updates: Record<string, unknown> = { updated_at: new Date().toISOString() };
           if (!author.website_url) {
-            await db
-              .from("scout_authors")
-              .update({
-                website_url: candidate.link,
-                website_verification_status: "unverified",
-                updated_at: new Date().toISOString(),
-              })
-              .eq("id", author.id);
+            updates.website_url = candidate.link;
+            updates.website_verification_status = "unverified";
           }
+          if (
+            author.contact_verification_status !== "verified" &&
+            (extracted.contactEmail || extracted.contactFormUrl)
+          ) {
+            updates.contact_email = extracted.contactEmail ?? author.contact_email;
+            updates.contact_form_url = extracted.contactFormUrl ?? author.contact_form_url;
+            updates.contact_verification_status = "unverified";
+          }
+          const { error: saveError } = await db
+            .from("scout_authors")
+            .update(updates)
+            .eq("id", author.id);
+          if (saveError)
+            return json(
+              { ok: false, message: "Contact found, but could not be saved. Please retry." },
+              503,
+            );
 
           return json({
             ok: true,

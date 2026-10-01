@@ -16,6 +16,7 @@ export const Route = createFileRoute("/api/admin/experts/$id")({
           "unpublish",
           "request_changes",
           "claim",
+          "assign_portfolio",
         ];
         if (!actions.includes(action))
           return Response.json({ error: "Invalid action" }, { status: 400 });
@@ -65,6 +66,38 @@ export const Route = createFileRoute("/api/admin/experts/$id")({
             .eq("id", params.id);
           if (error)
             return Response.json({ error: "Could not update this profile." }, { status: 503 });
+          return Response.json({ ok: true });
+        }
+
+        if (action === "assign_portfolio") {
+          // Copy one of the admin's already-uploaded site portfolio_items
+          // into this expert's own portfolio, pre-approved since admin is
+          // the one attaching it.
+          const portfolioItemId =
+            typeof body?.portfolio_item_id === "string" ? body.portfolio_item_id : "";
+          if (!portfolioItemId)
+            return Response.json({ error: "Missing portfolio_item_id" }, { status: 400 });
+          const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+          const { data: source, error: sourceError } = await supabaseAdmin
+            .from("portfolio_items")
+            .select("title, description, media_url, thumbnail_url, external_link")
+            .eq("id", portfolioItemId)
+            .maybeSingle();
+          if (sourceError || !source)
+            return Response.json({ error: "Portfolio item not found." }, { status: 404 });
+          const { expertPortfolioItems } = await import("@/lib/expert-auth.server");
+          const { error: assignError } = await expertPortfolioItems().insert({
+            expert_id: params.id,
+            title: source.title,
+            description: source.description,
+            image_url: source.thumbnail_url || source.media_url,
+            external_link: source.external_link,
+            status: "approved",
+            reviewed_at: new Date().toISOString(),
+            reviewed_by: admin,
+          });
+          if (assignError)
+            return Response.json({ error: "Could not assign this item." }, { status: 503 });
           return Response.json({ ok: true });
         }
 

@@ -52,9 +52,20 @@ export const Route = createFileRoute("/api/expert/profile")({
         if (!parsed.success)
           return json({ error: parsed.error.issues[0]?.message || "Check your details." }, 400);
         const input = parsed.data;
-        // Portraits may only point at this expert's own folder in our bucket.
+        // Portraits the expert uploads themselves must point at their own
+        // folder in our bucket. A photo an admin backfilled from a claimed
+        // team_members row (or set some other way) lives elsewhere and is
+        // left alone unless the expert actually changes it here.
+        const { data: current } = await expertProfiles()
+          .select("photo_url")
+          .eq("id", expertId)
+          .maybeSingle();
         const photoPrefix = `${(process.env.SUPABASE_URL ?? "").replace(/\/$/, "")}/storage/v1/object/public/expert-photos/${expertId}/`;
-        if (input.photo_url && !input.photo_url.startsWith(photoPrefix))
+        if (
+          input.photo_url &&
+          input.photo_url !== (current as { photo_url?: string } | null)?.photo_url &&
+          !input.photo_url.startsWith(photoPrefix)
+        )
           return json({ error: "Upload your photo using the photo button." }, 400);
         const { data, error } = await expertProfiles()
           .update({

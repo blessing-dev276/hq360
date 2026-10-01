@@ -40,6 +40,8 @@ type Expert = {
 
 type TeamMember = { id: string; name: string; title: string; claimed_by_expert_id: string | null };
 
+type SitePortfolioItem = { id: string; title: string };
+
 type PortfolioItem = {
   id: string;
   expert_id: string;
@@ -127,20 +129,23 @@ export function ExpertsAdmin() {
   const [experts, setExperts] = useState<Expert[]>([]);
   const [team, setTeam] = useState<TeamMember[]>([]);
   const [portfolioItems, setPortfolioItems] = useState<PortfolioItem[]>([]);
+  const [sitePortfolio, setSitePortfolio] = useState<SitePortfolioItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState("");
   const [expanded, setExpanded] = useState<string | null>(null);
   const [claimPick, setClaimPick] = useState<Record<string, string>>({});
+  const [assignPick, setAssignPick] = useState<Record<string, string>>({});
 
   const load = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
-      const [expertsRes, teamRes, portfolioRes] = await Promise.all([
+      const [expertsRes, teamRes, portfolioRes, sitePortfolioRes] = await Promise.all([
         fetch("/api/admin/experts"),
         fetch("/api/admin/team"),
         fetch("/api/admin/expert-portfolio"),
+        fetch("/api/admin/portfolio"),
       ]);
       const expertsData = await expertsRes.json().catch(() => ({}));
       if (!expertsRes.ok) throw new Error(expertsData.error || "Could not load experts.");
@@ -149,6 +154,8 @@ export function ExpertsAdmin() {
       if (teamRes.ok) setTeam(teamData.members ?? []);
       const portfolioData = await portfolioRes.json().catch(() => ({}));
       if (portfolioRes.ok) setPortfolioItems(portfolioData.items ?? []);
+      const sitePortfolioData = await sitePortfolioRes.json().catch(() => ({}));
+      if (sitePortfolioRes.ok) setSitePortfolio(sitePortfolioData.items ?? []);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not load experts.");
     } finally {
@@ -161,7 +168,15 @@ export function ExpertsAdmin() {
 
   async function act(
     expert: Expert,
-    action: "approve" | "reject" | "delete" | "publish" | "unpublish" | "request_changes" | "claim",
+    action:
+      | "approve"
+      | "reject"
+      | "delete"
+      | "publish"
+      | "unpublish"
+      | "request_changes"
+      | "claim"
+      | "assign_portfolio",
     extra?: Record<string, unknown>,
   ) {
     setBusy(expert.id + action);
@@ -246,6 +261,42 @@ export function ExpertsAdmin() {
           onClick={() =>
             claimPick[expert.id] &&
             void act(expert, "claim", { team_member_id: claimPick[expert.id] })
+          }
+        >
+          <Link2 size={15} />
+        </button>
+      </div>
+    );
+  }
+
+  function AssignPortfolioControls({ expert }: { expert: Expert }) {
+    const alreadyAssigned = new Set(
+      portfolioItems.filter((i) => i.expert_id === expert.id).map((i) => i.title),
+    );
+    const available = sitePortfolio.filter((item) => !alreadyAssigned.has(item.title));
+    if (available.length === 0) return null;
+    return (
+      <div className="admin-button-row" style={{ marginTop: "0.6rem" }}>
+        <select
+          value={assignPick[expert.id] ?? ""}
+          onChange={(e) => setAssignPick((p) => ({ ...p, [expert.id]: e.target.value }))}
+          className="admin-search"
+          style={{ padding: "8px 10px" }}
+        >
+          <option value="">Assign uploaded portfolio item…</option>
+          {available.map((item) => (
+            <option key={item.id} value={item.id}>
+              {item.title}
+            </option>
+          ))}
+        </select>
+        <button
+          className="admin-icon-button"
+          disabled={!!busy || !assignPick[expert.id]}
+          aria-label="Assign portfolio item"
+          onClick={() =>
+            assignPick[expert.id] &&
+            void act(expert, "assign_portfolio", { portfolio_item_id: assignPick[expert.id] })
           }
         >
           <Link2 size={15} />
@@ -467,6 +518,7 @@ export function ExpertsAdmin() {
                       </div>
                       {e.status === "approved" && <PublishControls expert={e} />}
                       {e.status === "approved" && <ClaimControls expert={e} />}
+                      {e.status === "approved" && <AssignPortfolioControls expert={e} />}
                       {expanded === e.id && (
                         <div style={{ marginTop: "0.75rem" }}>
                           <ProfilePreview expert={e} />

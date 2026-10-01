@@ -207,7 +207,10 @@ export type ScoutTable =
   | "scout_prospects"
   | "scout_outreach_drafts"
   | "scout_research_notes"
-  | "scout_batches";
+  | "scout_batches"
+  | "scout_audience_batches"
+  | "scout_audience_leads"
+  | "scout_audience_batch_leads";
 
 export function asScoutDb(supabaseAdmin: SupabaseClient) {
   return supabaseAdmin as unknown as {

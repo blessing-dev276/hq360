@@ -1,3 +1,5 @@
+import { AudienceScout } from "./AudienceScout";
+import { SCOUT_AUDIENCES } from "@/lib/scout/audiences";
 import { useEffect, useRef, useState } from "react";
 import {
   Bookmark,
@@ -317,6 +319,38 @@ const field =
   "mt-2 w-full rounded-xl border border-border bg-background px-4 py-3 text-sm disabled:opacity-50";
 
 export function ScoutApp() {
+  const [audienceId, setAudienceId] = useState("authors");
+  const [locked, setLocked] = useState(false);
+  const audience = SCOUT_AUDIENCES.find((item) => item.id === audienceId)!;
+  return (
+    <div>
+      <div className="mx-auto max-w-6xl px-4 pt-6 sm:px-6">
+        <label className="block text-sm font-medium">
+          Audience
+          <select
+            aria-label="Audience"
+            className={field}
+            value={audienceId}
+            disabled={locked}
+            onChange={(event) => setAudienceId(event.target.value)}
+          >
+            {SCOUT_AUDIENCES.map((item) => (
+              <option key={item.id} value={item.id}>
+                {item.label}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
+      {audienceId === "authors" ? (
+        <AuthorScout onBusyChange={setLocked} />
+      ) : (
+        <AudienceScout key={audienceId} audience={audience} onBusyChange={setLocked} />
+      )}
+    </div>
+  );
+}
+function AuthorScout({ onBusyChange }: { onBusyChange: (busy: boolean) => void }) {
   const queryClient = useQueryClient();
   const [genreLoading, setGenreLoading] = useState(true);
   const [loadAttempt, setLoadAttempt] = useState(0);
@@ -348,6 +382,10 @@ export function ScoutApp() {
   const [loading, setLoading] = useState(true);
   const [detailLoading, setDetailLoading] = useState(false);
   const [busy, setBusy] = useState("");
+  useEffect(() => {
+    onBusyChange(Boolean(busy));
+    return () => onBusyChange(false);
+  }, [busy, onBusyChange]);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [batchSource, setBatchSource] = useState("all");

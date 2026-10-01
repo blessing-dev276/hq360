@@ -75,6 +75,7 @@ import { Route as ApiAdminInvoicesRouteImport } from './routes/api/admin/invoice
 import { Route as ApiAdminLeadsRouteImport } from './routes/api/admin/leads'
 import { Route as ApiAdminPortfolioRouteImport } from './routes/api/admin/portfolio'
 import { Route as ApiAdminScoutAmazonSearchRouteImport } from './routes/api/admin/scout-amazon-search'
+import { Route as ApiAdminScoutAudienceBatchesRouteImport } from './routes/api/admin/scout-audience-batches'
 import { Route as ApiAdminScoutBatchesRouteImport } from './routes/api/admin/scout-batches'
 import { Route as ApiAdminScoutBooksRouteImport } from './routes/api/admin/scout-books'
 import { Route as ApiAdminScoutDiscoverCountRouteImport } from './routes/api/admin/scout-discover-count'
@@ -120,6 +121,8 @@ import { Route as ApiAdminExpertsIdRouteImport } from './routes/api/admin/expert
 import { Route as ApiAdminInvoicesIdRouteImport } from './routes/api/admin/invoices.$id'
 import { Route as ApiAdminPortfolioIdRouteImport } from './routes/api/admin/portfolio.$id'
 import { Route as ApiAdminPortfolioReorderRouteImport } from './routes/api/admin/portfolio.reorder'
+import { Route as ApiAdminScoutAudienceBatchesIdRouteImport } from './routes/api/admin/scout-audience-batches.$id'
+import { Route as ApiAdminScoutAudienceLeadsIdRouteImport } from './routes/api/admin/scout-audience-leads.$id'
 import { Route as ApiAdminScoutAuthorsIdRouteImport } from './routes/api/admin/scout-authors.$id'
 import { Route as ApiAdminScoutBatchesIdRouteImport } from './routes/api/admin/scout-batches.$id'
 import { Route as ApiAdminScoutProspectsIdRouteImport } from './routes/api/admin/scout-prospects.$id'
@@ -486,6 +489,12 @@ const ApiAdminScoutAmazonSearchRoute =
     path: '/api/admin/scout-amazon-search',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiAdminScoutAudienceBatchesRoute =
+  ApiAdminScoutAudienceBatchesRouteImport.update({
+    id: '/api/admin/scout-audience-batches',
+    path: '/api/admin/scout-audience-batches',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiAdminScoutBatchesRoute = ApiAdminScoutBatchesRouteImport.update({
   id: '/api/admin/scout-batches',
   path: '/api/admin/scout-batches',
@@ -720,6 +729,18 @@ const ApiAdminPortfolioReorderRoute =
     id: '/reorder',
     path: '/reorder',
     getParentRoute: () => ApiAdminPortfolioRoute,
+  } as any)
+const ApiAdminScoutAudienceBatchesIdRoute =
+  ApiAdminScoutAudienceBatchesIdRouteImport.update({
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => ApiAdminScoutAudienceBatchesRoute,
+  } as any)
+const ApiAdminScoutAudienceLeadsIdRoute =
+  ApiAdminScoutAudienceLeadsIdRouteImport.update({
+    id: '/api/admin/scout-audience-leads/$id',
+    path: '/api/admin/scout-audience-leads/$id',
+    getParentRoute: () => rootRouteImport,
   } as any)
 const ApiAdminScoutAuthorsIdRoute = ApiAdminScoutAuthorsIdRouteImport.update({
   id: '/api/admin/scout-authors/$id',
@@ -969,6 +990,7 @@ export interface FileRoutesByFullPath {
   '/api/admin/leads': typeof ApiAdminLeadsRoute
   '/api/admin/portfolio': typeof ApiAdminPortfolioRouteWithChildren
   '/api/admin/scout-amazon-search': typeof ApiAdminScoutAmazonSearchRoute
+  '/api/admin/scout-audience-batches': typeof ApiAdminScoutAudienceBatchesRouteWithChildren
   '/api/admin/scout-batches': typeof ApiAdminScoutBatchesRouteWithChildren
   '/api/admin/scout-books': typeof ApiAdminScoutBooksRoute
   '/api/admin/scout-discover-count': typeof ApiAdminScoutDiscoverCountRoute
@@ -1014,6 +1036,8 @@ export interface FileRoutesByFullPath {
   '/api/admin/invoices/$id': typeof ApiAdminInvoicesIdRoute
   '/api/admin/portfolio/$id': typeof ApiAdminPortfolioIdRoute
   '/api/admin/portfolio/reorder': typeof ApiAdminPortfolioReorderRoute
+  '/api/admin/scout-audience-batches/$id': typeof ApiAdminScoutAudienceBatchesIdRoute
+  '/api/admin/scout-audience-leads/$id': typeof ApiAdminScoutAudienceLeadsIdRoute
   '/api/admin/scout-authors/$id': typeof ApiAdminScoutAuthorsIdRouteWithChildren
   '/api/admin/scout-batches/$id': typeof ApiAdminScoutBatchesIdRouteWithChildren
   '/api/admin/scout-prospects/$id': typeof ApiAdminScoutProspectsIdRoute
@@ -1113,6 +1137,7 @@ export interface FileRoutesByTo {
   '/api/admin/leads': typeof ApiAdminLeadsRoute
   '/api/admin/portfolio': typeof ApiAdminPortfolioRouteWithChildren
   '/api/admin/scout-amazon-search': typeof ApiAdminScoutAmazonSearchRoute
+  '/api/admin/scout-audience-batches': typeof ApiAdminScoutAudienceBatchesRouteWithChildren
   '/api/admin/scout-batches': typeof ApiAdminScoutBatchesRouteWithChildren
   '/api/admin/scout-books': typeof ApiAdminScoutBooksRoute
   '/api/admin/scout-discover-count': typeof ApiAdminScoutDiscoverCountRoute
@@ -1158,6 +1183,8 @@ export interface FileRoutesByTo {
   '/api/admin/invoices/$id': typeof ApiAdminInvoicesIdRoute
   '/api/admin/portfolio/$id': typeof ApiAdminPortfolioIdRoute
   '/api/admin/portfolio/reorder': typeof ApiAdminPortfolioReorderRoute
+  '/api/admin/scout-audience-batches/$id': typeof ApiAdminScoutAudienceBatchesIdRoute
+  '/api/admin/scout-audience-leads/$id': typeof ApiAdminScoutAudienceLeadsIdRoute
   '/api/admin/scout-authors/$id': typeof ApiAdminScoutAuthorsIdRouteWithChildren
   '/api/admin/scout-batches/$id': typeof ApiAdminScoutBatchesIdRouteWithChildren
   '/api/admin/scout-prospects/$id': typeof ApiAdminScoutProspectsIdRoute
@@ -1258,6 +1285,7 @@ export interface FileRoutesById {
   '/api/admin/leads': typeof ApiAdminLeadsRoute
   '/api/admin/portfolio': typeof ApiAdminPortfolioRouteWithChildren
   '/api/admin/scout-amazon-search': typeof ApiAdminScoutAmazonSearchRoute
+  '/api/admin/scout-audience-batches': typeof ApiAdminScoutAudienceBatchesRouteWithChildren
   '/api/admin/scout-batches': typeof ApiAdminScoutBatchesRouteWithChildren
   '/api/admin/scout-books': typeof ApiAdminScoutBooksRoute
   '/api/admin/scout-discover-count': typeof ApiAdminScoutDiscoverCountRoute
@@ -1303,6 +1331,8 @@ export interface FileRoutesById {
   '/api/admin/invoices/$id': typeof ApiAdminInvoicesIdRoute
   '/api/admin/portfolio/$id': typeof ApiAdminPortfolioIdRoute
   '/api/admin/portfolio/reorder': typeof ApiAdminPortfolioReorderRoute
+  '/api/admin/scout-audience-batches/$id': typeof ApiAdminScoutAudienceBatchesIdRoute
+  '/api/admin/scout-audience-leads/$id': typeof ApiAdminScoutAudienceLeadsIdRoute
   '/api/admin/scout-authors/$id': typeof ApiAdminScoutAuthorsIdRouteWithChildren
   '/api/admin/scout-batches/$id': typeof ApiAdminScoutBatchesIdRouteWithChildren
   '/api/admin/scout-prospects/$id': typeof ApiAdminScoutProspectsIdRoute
@@ -1404,6 +1434,7 @@ export interface FileRouteTypes {
     | '/api/admin/leads'
     | '/api/admin/portfolio'
     | '/api/admin/scout-amazon-search'
+    | '/api/admin/scout-audience-batches'
     | '/api/admin/scout-batches'
     | '/api/admin/scout-books'
     | '/api/admin/scout-discover-count'
@@ -1449,6 +1480,8 @@ export interface FileRouteTypes {
     | '/api/admin/invoices/$id'
     | '/api/admin/portfolio/$id'
     | '/api/admin/portfolio/reorder'
+    | '/api/admin/scout-audience-batches/$id'
+    | '/api/admin/scout-audience-leads/$id'
     | '/api/admin/scout-authors/$id'
     | '/api/admin/scout-batches/$id'
     | '/api/admin/scout-prospects/$id'
@@ -1548,6 +1581,7 @@ export interface FileRouteTypes {
     | '/api/admin/leads'
     | '/api/admin/portfolio'
     | '/api/admin/scout-amazon-search'
+    | '/api/admin/scout-audience-batches'
     | '/api/admin/scout-batches'
     | '/api/admin/scout-books'
     | '/api/admin/scout-discover-count'
@@ -1593,6 +1627,8 @@ export interface FileRouteTypes {
     | '/api/admin/invoices/$id'
     | '/api/admin/portfolio/$id'
     | '/api/admin/portfolio/reorder'
+    | '/api/admin/scout-audience-batches/$id'
+    | '/api/admin/scout-audience-leads/$id'
     | '/api/admin/scout-authors/$id'
     | '/api/admin/scout-batches/$id'
     | '/api/admin/scout-prospects/$id'
@@ -1692,6 +1728,7 @@ export interface FileRouteTypes {
     | '/api/admin/leads'
     | '/api/admin/portfolio'
     | '/api/admin/scout-amazon-search'
+    | '/api/admin/scout-audience-batches'
     | '/api/admin/scout-batches'
     | '/api/admin/scout-books'
     | '/api/admin/scout-discover-count'
@@ -1737,6 +1774,8 @@ export interface FileRouteTypes {
     | '/api/admin/invoices/$id'
     | '/api/admin/portfolio/$id'
     | '/api/admin/portfolio/reorder'
+    | '/api/admin/scout-audience-batches/$id'
+    | '/api/admin/scout-audience-leads/$id'
     | '/api/admin/scout-authors/$id'
     | '/api/admin/scout-batches/$id'
     | '/api/admin/scout-prospects/$id'
@@ -1837,6 +1876,7 @@ export interface RootRouteChildren {
   ApiAdminLeadsRoute: typeof ApiAdminLeadsRoute
   ApiAdminPortfolioRoute: typeof ApiAdminPortfolioRouteWithChildren
   ApiAdminScoutAmazonSearchRoute: typeof ApiAdminScoutAmazonSearchRoute
+  ApiAdminScoutAudienceBatchesRoute: typeof ApiAdminScoutAudienceBatchesRouteWithChildren
   ApiAdminScoutBatchesRoute: typeof ApiAdminScoutBatchesRouteWithChildren
   ApiAdminScoutBooksRoute: typeof ApiAdminScoutBooksRoute
   ApiAdminScoutDiscoverCountRoute: typeof ApiAdminScoutDiscoverCountRoute
@@ -1874,6 +1914,7 @@ export interface RootRouteChildren {
   AuthorAuditAuthorBookRoute: typeof AuthorAuditAuthorBookRoute
   InsightsAnswersSlugRoute: typeof InsightsAnswersSlugRoute
   InsightsGuidesSlugRoute: typeof InsightsGuidesSlugRoute
+  ApiAdminScoutAudienceLeadsIdRoute: typeof ApiAdminScoutAudienceLeadsIdRoute
   ApiAdminScoutAuthorsIdRoute: typeof ApiAdminScoutAuthorsIdRouteWithChildren
   ApiPaymentsNowpaymentsIpnRoute: typeof ApiPaymentsNowpaymentsIpnRoute
   ApiPaymentsPaystackWebhookRoute: typeof ApiPaymentsPaystackWebhookRoute
@@ -2343,6 +2384,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAdminScoutAmazonSearchRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/admin/scout-audience-batches': {
+      id: '/api/admin/scout-audience-batches'
+      path: '/api/admin/scout-audience-batches'
+      fullPath: '/api/admin/scout-audience-batches'
+      preLoaderRoute: typeof ApiAdminScoutAudienceBatchesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/admin/scout-batches': {
       id: '/api/admin/scout-batches'
       path: '/api/admin/scout-batches'
@@ -2657,6 +2705,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/admin/portfolio/reorder'
       preLoaderRoute: typeof ApiAdminPortfolioReorderRouteImport
       parentRoute: typeof ApiAdminPortfolioRoute
+    }
+    '/api/admin/scout-audience-batches/$id': {
+      id: '/api/admin/scout-audience-batches/$id'
+      path: '/$id'
+      fullPath: '/api/admin/scout-audience-batches/$id'
+      preLoaderRoute: typeof ApiAdminScoutAudienceBatchesIdRouteImport
+      parentRoute: typeof ApiAdminScoutAudienceBatchesRoute
+    }
+    '/api/admin/scout-audience-leads/$id': {
+      id: '/api/admin/scout-audience-leads/$id'
+      path: '/api/admin/scout-audience-leads/$id'
+      fullPath: '/api/admin/scout-audience-leads/$id'
+      preLoaderRoute: typeof ApiAdminScoutAudienceLeadsIdRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/admin/scout-authors/$id': {
       id: '/api/admin/scout-authors/$id'
@@ -3037,6 +3099,20 @@ const ApiAdminPortfolioRouteChildren: ApiAdminPortfolioRouteChildren = {
 const ApiAdminPortfolioRouteWithChildren =
   ApiAdminPortfolioRoute._addFileChildren(ApiAdminPortfolioRouteChildren)
 
+interface ApiAdminScoutAudienceBatchesRouteChildren {
+  ApiAdminScoutAudienceBatchesIdRoute: typeof ApiAdminScoutAudienceBatchesIdRoute
+}
+
+const ApiAdminScoutAudienceBatchesRouteChildren: ApiAdminScoutAudienceBatchesRouteChildren =
+  {
+    ApiAdminScoutAudienceBatchesIdRoute: ApiAdminScoutAudienceBatchesIdRoute,
+  }
+
+const ApiAdminScoutAudienceBatchesRouteWithChildren =
+  ApiAdminScoutAudienceBatchesRoute._addFileChildren(
+    ApiAdminScoutAudienceBatchesRouteChildren,
+  )
+
 interface ApiAdminScoutBatchesIdRouteChildren {
   ApiAdminScoutBatchesIdExportRoute: typeof ApiAdminScoutBatchesIdExportRoute
 }
@@ -3202,6 +3278,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAdminLeadsRoute: ApiAdminLeadsRoute,
   ApiAdminPortfolioRoute: ApiAdminPortfolioRouteWithChildren,
   ApiAdminScoutAmazonSearchRoute: ApiAdminScoutAmazonSearchRoute,
+  ApiAdminScoutAudienceBatchesRoute:
+    ApiAdminScoutAudienceBatchesRouteWithChildren,
   ApiAdminScoutBatchesRoute: ApiAdminScoutBatchesRouteWithChildren,
   ApiAdminScoutBooksRoute: ApiAdminScoutBooksRoute,
   ApiAdminScoutDiscoverCountRoute: ApiAdminScoutDiscoverCountRoute,
@@ -3239,6 +3317,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthorAuditAuthorBookRoute: AuthorAuditAuthorBookRoute,
   InsightsAnswersSlugRoute: InsightsAnswersSlugRoute,
   InsightsGuidesSlugRoute: InsightsGuidesSlugRoute,
+  ApiAdminScoutAudienceLeadsIdRoute: ApiAdminScoutAudienceLeadsIdRoute,
   ApiAdminScoutAuthorsIdRoute: ApiAdminScoutAuthorsIdRouteWithChildren,
   ApiPaymentsNowpaymentsIpnRoute: ApiPaymentsNowpaymentsIpnRoute,
   ApiPaymentsPaystackWebhookRoute: ApiPaymentsPaystackWebhookRoute,

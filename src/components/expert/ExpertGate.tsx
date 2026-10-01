@@ -54,7 +54,11 @@ export function ExpertGate({ children }: { children: ReactNode }) {
         password: String(form.get("password") || ""),
       });
       if (authError) {
-        setError("The email or password is incorrect.");
+        setError(
+          /email not confirmed/i.test(authError.message)
+            ? "Your email hasn't been confirmed yet. Contact HQ360 if this persists."
+            : "The email or password is incorrect.",
+        );
         return;
       }
       const next = await syncServerSession();

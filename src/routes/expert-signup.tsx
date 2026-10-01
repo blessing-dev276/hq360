@@ -10,7 +10,6 @@ import {
   UserRound,
   Users,
 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { buildSeo } from "@/lib/seo";
 import { Eyebrow, Grain, Pill } from "@/components/site/hqd/Hqd";
 
@@ -68,21 +67,20 @@ function BecomeAnExpert() {
     setSubmitting(true);
     setError("");
     const form = new FormData(event.currentTarget);
-    const { error: authError } = await supabase.auth.signUp({
-      email: String(form.get("email") || ""),
-      password: String(form.get("password") || ""),
-      options: {
-        emailRedirectTo: `${window.location.origin}/expert`,
-        data: {
-          account_type: "expert",
-          full_name: String(form.get("full_name") || "").trim(),
-          headline: String(form.get("headline") || "").trim(),
-        },
-      },
-    });
+    const response = await fetch("/api/expert/signup", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        email: String(form.get("email") || ""),
+        password: String(form.get("password") || ""),
+        full_name: String(form.get("full_name") || "").trim(),
+        headline: String(form.get("headline") || "").trim(),
+      }),
+    }).catch(() => null);
+    const body = await response?.json().catch(() => ({}));
     setSubmitting(false);
-    if (authError) {
-      setError(authError.message || "Could not create your account. Please try again.");
+    if (!response?.ok) {
+      setError(body?.error || "Could not create your account. Please try again.");
       return;
     }
     setDone(true);
@@ -144,8 +142,8 @@ function BecomeAnExpert() {
                   Application received.
                 </h2>
                 <p className="hqd-body">
-                  If we sent a confirmation email, confirm your address first. Once HQ360 approves
-                  your account you can sign in and publish your profile.
+                  HQ360 will review your application. Once approved, sign in with the email and
+                  password you just set to publish your profile.
                 </p>
                 <div>
                   <Pill to="/expert">Go to expert sign-in</Pill>

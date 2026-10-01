@@ -7,8 +7,17 @@ export const Route = createFileRoute("/api/admin/experts/$id")({
         if (!(await isAdminRequest(request)))
           return Response.json({ error: "Unauthorized" }, { status: 401 });
         const body = await request.json().catch(() => null);
-        if (!["approve", "reject"].includes(body?.action))
+        if (!["approve", "reject", "delete"].includes(body?.action))
           return Response.json({ error: "Invalid action" }, { status: 400 });
+
+        if (body.action === "delete") {
+          const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+          // Deletes the auth.users row; expert_profiles cascades (on delete cascade FK).
+          const { error } = await supabaseAdmin.auth.admin.deleteUser(params.id);
+          if (error) return Response.json({ error: "Could not delete expert." }, { status: 503 });
+          return Response.json({ ok: true });
+        }
+
         const { expertProfiles } = await import("@/lib/expert-auth.server");
         const { configuredUsername } = await import("@/lib/admin-auth.server");
         const { error } = await expertProfiles()

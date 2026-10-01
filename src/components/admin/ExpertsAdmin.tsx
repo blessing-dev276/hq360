@@ -1,5 +1,13 @@
 import { useCallback, useEffect, useState } from "react";
-import { AlertCircle, ArrowUpRight, CircleCheck, RefreshCw, UserCheck, UserX } from "lucide-react";
+import {
+  AlertCircle,
+  ArrowUpRight,
+  CircleCheck,
+  RefreshCw,
+  Trash2,
+  UserCheck,
+  UserX,
+} from "lucide-react";
 
 type Expert = {
   id: string;
@@ -37,7 +45,7 @@ export function ExpertsAdmin() {
     void load();
   }, [load]);
 
-  async function act(expert: Expert, action: "approve" | "reject") {
+  async function act(expert: Expert, action: "approve" | "reject" | "delete") {
     setBusy(expert.id + action);
     setError("");
     try {
@@ -54,6 +62,16 @@ export function ExpertsAdmin() {
     } finally {
       setBusy("");
     }
+  }
+
+  function remove(expert: Expert) {
+    if (
+      !window.confirm(
+        `Permanently delete ${expert.full_name || expert.email}? This deletes their login and expert profile for good — it cannot be undone.`,
+      )
+    )
+      return;
+    void act(expert, "delete");
   }
 
   const pending = experts.filter((e) => e.status === "pending");
@@ -136,6 +154,14 @@ export function ExpertsAdmin() {
                         <UserX size={15} />
                         {busy === e.id + "reject" ? "Rejecting…" : "Reject"}
                       </button>
+                      <button
+                        className="admin-icon-button text-destructive"
+                        aria-label="Delete permanently"
+                        disabled={!!busy}
+                        onClick={() => remove(e)}
+                      >
+                        <Trash2 size={15} />
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -191,19 +217,31 @@ export function ExpertsAdmin() {
                       )}
                     </td>
                     <td>
-                      <button
-                        className={`admin-button ${e.status === "approved" ? "text-destructive" : ""}`}
-                        disabled={!!busy}
-                        onClick={() => void act(e, e.status === "approved" ? "reject" : "approve")}
-                      >
-                        {e.status === "approved"
-                          ? busy === e.id + "reject"
-                            ? "Revoking…"
-                            : "Revoke access"
-                          : busy === e.id + "approve"
-                            ? "Approving…"
-                            : "Approve"}
-                      </button>
+                      <div className="admin-button-row">
+                        <button
+                          className={`admin-button ${e.status === "approved" ? "text-destructive" : ""}`}
+                          disabled={!!busy}
+                          onClick={() =>
+                            void act(e, e.status === "approved" ? "reject" : "approve")
+                          }
+                        >
+                          {e.status === "approved"
+                            ? busy === e.id + "reject"
+                              ? "Revoking…"
+                              : "Revoke access"
+                            : busy === e.id + "approve"
+                              ? "Approving…"
+                              : "Approve"}
+                        </button>
+                        <button
+                          className="admin-icon-button text-destructive"
+                          aria-label="Delete permanently"
+                          disabled={!!busy}
+                          onClick={() => remove(e)}
+                        >
+                          <Trash2 size={15} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}

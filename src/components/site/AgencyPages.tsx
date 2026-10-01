@@ -9,10 +9,59 @@ import {
   type CoreService,
 } from "@/data/agency";
 import { AUTHOR_OFFERS } from "@/data/author-offers";
+import { PLANS } from "@/data/pricing";
 import { Section, SectionHeader, ButtonLink } from "./Primitives";
 import { ProjectInquiryForm } from "./ProjectInquiryForm";
 import { FaqSection } from "./FaqSection";
 import { AgencyWork } from "./AgencyWork";
+
+/** Starting price per service, where one of the /pricing packages covers it.
+ *  Mobile apps, writing/translation and digital marketing are scoped and
+ *  quoted individually, matching PRICING_NOTES on /pricing. */
+const SERVICE_PRICE: Record<string, string> = {
+  "website-development": PLANS[0]!.price,
+  "automation-crm": PLANS[1]!.price,
+};
+
+/** The /pricing package that best fits each audience's typical project. */
+const AUDIENCE_PLAN: Record<string, string> = {
+  authors: "Author",
+  "ugc-creators": "Starter",
+  agencies: "Growth",
+  "cleaning-businesses": "Growth",
+  "appointment-based-businesses": "Growth",
+  "local-businesses": "Starter",
+};
+
+function PriceCallout({
+  label,
+  price,
+  cadence,
+  note,
+}: {
+  label: string;
+  price: string;
+  cadence?: string;
+  note: string;
+}) {
+  return (
+    <div className="mt-8 flex flex-wrap items-center gap-5 rounded-2xl border border-border bg-card p-6">
+      <div>
+        <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+          {label}
+        </p>
+        <p className="mt-1 text-3xl">
+          {price}
+          {cadence ? <span className="text-base text-muted-foreground"> /{cadence}</span> : null}
+        </p>
+        <p className="mt-1 text-sm text-muted-foreground">{note}</p>
+      </div>
+      <ButtonLink to="/pricing" variant="secondary" className="ml-auto">
+        See all packages
+      </ButtonLink>
+    </div>
+  );
+}
 export function AudienceLinks() {
   return (
     <div className="mt-10 grid gap-x-8 gap-y-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -93,6 +142,19 @@ export function CoreServicePage({
         <div className="mt-8">
           <ButtonLink href="#project-inquiry">Discuss {service.name.toLowerCase()}</ButtonLink>
         </div>
+        {SERVICE_PRICE[service.slug] ? (
+          <PriceCallout
+            label="Starting from"
+            price={SERVICE_PRICE[service.slug]!}
+            note="One-time, with a written scope before any work begins."
+          />
+        ) : (
+          <PriceCallout
+            label="Pricing"
+            price="Custom quote"
+            note="Scoped and priced after a short brief — no fixed package covers this service."
+          />
+        )}
       </Section>
       <Section>
         <div className="grid gap-12 lg:grid-cols-2">
@@ -191,6 +253,17 @@ export function AudiencePage({ audience }: { audience: Audience }) {
             Start a project for {audience.name.toLowerCase()}
           </ButtonLink>
         </div>
+        {(() => {
+          const planName = AUDIENCE_PLAN[audience.slug];
+          const plan = PLANS.find((p) => p.name === planName);
+          return plan ? (
+            <PriceCallout
+              label={`Recommended package for ${audience.name.toLowerCase()}`}
+              price={plan.price}
+              note={plan.note}
+            />
+          ) : null;
+        })()}
       </Section>
       <Section>
         <SectionHeader title="Does this sound familiar?" />

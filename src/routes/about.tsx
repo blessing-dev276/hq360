@@ -11,7 +11,6 @@ import { Reveal } from "@/components/site/Reveal";
 import { CtaBand } from "@/components/site/CtaBand";
 import { Eyebrow, Grain, Num, PersonCard, Pill } from "@/components/site/hqd/Hqd";
 import { ServiceCards } from "@/components/site/hqd/ServiceCards";
-import { Packages } from "@/components/site/hqd/Packages";
 
 export const Route = createFileRoute("/about")({
   head: () =>
@@ -137,7 +136,7 @@ function AboutPage() {
               <p className="hqd-body">Tap a card to see what each person does.</p>
               <div style={{ display: "flex", flexWrap: "wrap", gap: "0.75rem" }}>
                 <Pill to="/experts" tone="orange">
-                  Meet all experts
+                  Meet the full team
                 </Pill>
                 <Pill to="/expert-signup" tone="ghost">
                   Become an Expert
@@ -146,7 +145,7 @@ function AboutPage() {
             </div>
           </Reveal>
           <div className="hqd-people">
-            {team.map((person, index) => (
+            {team.slice(0, 4).map((person, index) => (
               <Reveal key={person.slug} delay={(index % 4) * 70}>
                 <PersonCard person={person} />
               </Reveal>
@@ -174,12 +173,6 @@ function AboutPage() {
               </li>
             ))}
           </ol>
-        </div>
-      </section>
-
-      <section className="hqd-section" style={{ paddingTop: 0 }}>
-        <div className="hqd-wrap">
-          <Packages />
         </div>
       </section>
 

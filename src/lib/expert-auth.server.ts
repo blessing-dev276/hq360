@@ -3,8 +3,12 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { isAdminRequest } from "@/lib/admin-auth.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
-// expert_profiles isn't in the generated Database type yet (pending migration push).
+// expert_profiles/expert_portfolio_items, and team_members.claimed_by_expert_id,
+// aren't in the generated Database type yet (pending migration push).
 export const expertProfiles = () => (supabaseAdmin as SupabaseClient).from("expert_profiles");
+export const expertPortfolioItems = () =>
+  (supabaseAdmin as SupabaseClient).from("expert_portfolio_items");
+export const teamMembersUntyped = () => (supabaseAdmin as SupabaseClient).from("team_members");
 
 const COOKIE_NAME = "hq360_expert";
 const SESSION_AGE_SECONDS = 60 * 60 * 12;

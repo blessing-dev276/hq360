@@ -23,11 +23,10 @@ const schema = z.object({
     .refine((value) => /(^|\.)linkedin\.com$/i.test(new URL(value).hostname), "Use a LinkedIn link")
     .or(z.literal("")),
   photo_url: z.string().trim().max(500),
-  is_public: z.boolean(),
 });
 
 const FIELDS =
-  "id, email, slug, full_name, headline, bio, photo_url, specialties, location, website_url, linkedin_url, is_public, status";
+  "id, email, slug, full_name, headline, bio, photo_url, specialties, location, website_url, linkedin_url, is_public, status, profile_status, profile_submitted_at, profile_reviewed_at, profile_review_note, claimed_team_member_id";
 
 export const Route = createFileRoute("/api/expert/profile")({
   server: {
@@ -67,7 +66,6 @@ export const Route = createFileRoute("/api/expert/profile")({
             website_url: input.website_url || null,
             linkedin_url: input.linkedin_url || null,
             photo_url: input.photo_url || null,
-            is_public: input.is_public,
             updated_at: new Date().toISOString(),
           })
           .eq("id", expertId)

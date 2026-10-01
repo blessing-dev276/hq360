@@ -9,7 +9,7 @@ export const Route = createFileRoute("/api/admin/experts")({
         const { expertProfiles } = await import("@/lib/expert-auth.server");
         const { data, error } = await expertProfiles()
           .select(
-            "id, email, full_name, headline, status, created_at, reviewed_at, slug, is_public",
+            "id, email, full_name, headline, bio, photo_url, specialties, location, website_url, linkedin_url, status, created_at, reviewed_at, slug, is_public, profile_status, profile_submitted_at, profile_reviewed_at, profile_review_note, claimed_team_member_id",
           )
           .order("created_at", { ascending: false });
         if (error) {

@@ -1,6 +1,9 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { AlertCircle, ArrowUpRight, CircleCheck, ImageUp } from "lucide-react";
+import { AlertCircle, ArrowUpRight, CircleCheck, ImageUp, Send } from "lucide-react";
 import { initials } from "@/lib/experts";
+import { ExpertPortfolio } from "./ExpertPortfolio";
+
+type ProfileStatus = "draft" | "submitted" | "approved" | "changes_requested";
 
 type Profile = {
   email: string;
@@ -14,14 +17,47 @@ type Profile = {
   website_url: string | null;
   linkedin_url: string | null;
   is_public: boolean;
+  profile_status: ProfileStatus;
+  profile_review_note: string | null;
 };
+
+function ReviewStatus({ profile }: { profile: Profile }) {
+  if (profile.is_public)
+    return (
+      <div className="admin-notice" role="status">
+        <CircleCheck size={18} />
+        Live on your public profile.
+      </div>
+    );
+  if (profile.profile_status === "submitted")
+    return (
+      <div className="admin-notice" role="status">
+        Submitted — waiting on admin review. You can keep editing while you wait.
+      </div>
+    );
+  if (profile.profile_status === "changes_requested")
+    return (
+      <div className="admin-alert" role="alert">
+        <AlertCircle size={18} />
+        Admin requested changes
+        {profile.profile_review_note ? `: "${profile.profile_review_note}"` : "."} Update your
+        profile and submit again.
+      </div>
+    );
+  return (
+    <div className="admin-alert" role="status">
+      <AlertCircle size={18} />
+      Not submitted yet. Fill in your profile, then submit it for admin review to go live.
+    </div>
+  );
+}
 
 export function ExpertProfileEditor() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [photo, setPhoto] = useState("");
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
-  const [busy, setBusy] = useState<"" | "save" | "photo">("");
+  const [busy, setBusy] = useState<"" | "save" | "photo" | "submit">("");
 
   useEffect(() => {
     fetch("/api/expert/profile")
@@ -84,19 +120,31 @@ export function ExpertProfileEditor() {
           website_url: form.get("website_url"),
           linkedin_url: form.get("linkedin_url"),
           photo_url: photo,
-          is_public: form.get("is_public") === "on",
         }),
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(data.error || "Could not save your profile.");
       setProfile(data.profile);
-      setNotice(
-        data.profile.is_public
-          ? "Profile saved and published."
-          : "Profile saved. It stays private until you choose to show it publicly.",
-      );
+      setNotice("Profile saved.");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not save your profile.");
+    } finally {
+      setBusy("");
+    }
+  }
+
+  async function submitForReview() {
+    setBusy("submit");
+    setError("");
+    setNotice("");
+    try {
+      const response = await fetch("/api/expert/profile/submit", { method: "POST" });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || "Could not submit your profile.");
+      setProfile(data.profile);
+      setNotice("Submitted for admin review.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not submit your profile.");
     } finally {
       setBusy("");
     }
@@ -136,6 +184,7 @@ export function ExpertProfileEditor() {
           </a>
         )}
       </div>
+      <ReviewStatus profile={profile} />
       {error && (
         <div className="admin-alert" role="alert">
           <AlertCircle size={18} />
@@ -247,21 +296,28 @@ export function ExpertProfileEditor() {
             defaultValue={profile.bio ?? ""}
           />
         </label>
-        <label style={{ display: "flex", gap: 10, alignItems: "center" }}>
-          <input
-            type="checkbox"
-            name="is_public"
-            defaultChecked={profile.is_public}
-            style={{ width: 16, height: 16 }}
-          />
-          Show my profile publicly on the HQ360 experts page
-        </label>
-        <div>
+        <div className="admin-button-row">
           <button className="admin-button admin-button-primary" disabled={!!busy}>
             {busy === "save" ? "Saving…" : "Save profile"}
           </button>
+          {profile.profile_status !== "approved" || !profile.is_public ? (
+            <button
+              type="button"
+              className="admin-button"
+              disabled={!!busy || profile.profile_status === "submitted"}
+              onClick={() => void submitForReview()}
+            >
+              <Send size={14} />
+              {busy === "submit"
+                ? "Submitting…"
+                : profile.profile_status === "submitted"
+                  ? "Submitted"
+                  : "Submit for review"}
+            </button>
+          ) : null}
         </div>
       </form>
+      <ExpertPortfolio />
     </section>
   );
 }

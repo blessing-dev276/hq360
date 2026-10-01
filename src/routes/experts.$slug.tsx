@@ -1,9 +1,34 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { ArrowUpRight, Globe, Linkedin, MapPin } from "lucide-react";
 import { buildSeo } from "@/lib/seo";
 import { FALLBACK_TEAM, initials, useExpertDirectory, type PublicExpert } from "@/lib/experts";
+import { fetchPublicContent } from "@/lib/public-content";
+import { getCoreService, getAudience } from "@/data/agency";
 import { Reveal } from "@/components/site/Reveal";
 import { Eyebrow, Grain, PersonCard, Pill } from "@/components/site/hqd/Hqd";
+
+type PortfolioItem = {
+  id: string;
+  title: string;
+  description: string | null;
+  image_url: string | null;
+  external_link: string | null;
+  service_slugs: string[];
+  audience_slugs: string[];
+};
+
+function usePortfolio(slug: string) {
+  const query = useQuery({
+    queryKey: ["public", "expert-portfolio", slug],
+    queryFn: ({ signal }) =>
+      fetchPublicContent<{ items: PortfolioItem[] }>(
+        `/api/public/expert-portfolio?slug=${encodeURIComponent(slug)}`,
+        signal,
+      ),
+  });
+  return query.data?.items ?? [];
+}
 
 export const Route = createFileRoute("/experts/$slug")({
   head: ({ params }) => {
@@ -34,6 +59,7 @@ function ExpertProfilePage() {
   const { slug } = Route.useParams();
   const { all, loading } = useExpertDirectory();
   const person = all.find((item) => item.slug === slug);
+  const portfolio = usePortfolio(slug);
 
   if (!person) {
     return (
@@ -198,6 +224,77 @@ function ExpertProfilePage() {
           )}
         </div>
       </section>
+
+      {portfolio.length > 0 && (
+        <section className="hqd-section" style={{ paddingTop: 0 }}>
+          <div className="hqd-wrap">
+            <Reveal className="hqd-arc-head">
+              <Eyebrow>Portfolio</Eyebrow>
+              <h2 className="hqd-h2">Recent work</h2>
+            </Reveal>
+            <div className="hqd-cards" style={{ marginTop: "1.5rem" }}>
+              {portfolio.map((item) => {
+                const tags = [
+                  ...item.service_slugs.map((s) => getCoreService(s)?.name).filter(Boolean),
+                  ...item.audience_slugs.map((s) => getAudience(s)?.name).filter(Boolean),
+                ] as string[];
+                return (
+                  <div key={item.id} className="hqd-card" style={{ minHeight: "16rem" }}>
+                    {item.image_url && (
+                      <img
+                        src={item.image_url}
+                        alt=""
+                        style={{
+                          width: "100%",
+                          aspectRatio: "16/9",
+                          objectFit: "cover",
+                          borderRadius: "1rem",
+                        }}
+                      />
+                    )}
+                    <span className="hqd-card-body">
+                      <h3>{item.title}</h3>
+                      {item.description && <p>{item.description}</p>}
+                      {tags.length > 0 && (
+                        <div
+                          style={{
+                            display: "flex",
+                            flexWrap: "wrap",
+                            gap: "0.4rem",
+                            marginTop: "0.75rem",
+                          }}
+                        >
+                          {tags.map((tag) => (
+                            <span key={tag} className="hqd-tag">
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                      {item.external_link && (
+                        <a
+                          href={item.external_link}
+                          target="_blank"
+                          rel="noopener noreferrer nofollow"
+                          className="hqd-tag"
+                          style={{
+                            display: "inline-flex",
+                            gap: "0.4rem",
+                            alignItems: "center",
+                            marginTop: "0.75rem",
+                          }}
+                        >
+                          View <ArrowUpRight size={13} aria-hidden="true" />
+                        </a>
+                      )}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+      )}
 
       {others.length > 0 && (
         <section className="hqd-section" style={{ paddingTop: 0 }}>

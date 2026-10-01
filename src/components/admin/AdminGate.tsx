@@ -55,22 +55,37 @@ export function AdminGate({ children }: { children: ReactNode }) {
 
   if (state !== "signed-in") {
     return (
-      <main className="grid min-h-screen place-items-center bg-secondary/40 px-5 py-12">
-        <section className="w-full max-w-md rounded-3xl border border-border bg-card p-7 shadow-xl sm:p-9">
-          <Logo size={48} />
-          <div className="mt-8 inline-flex size-11 items-center justify-center rounded-full bg-brand/10 text-brand">
+      <main
+        className="grid min-h-screen place-items-center px-5 py-12"
+        style={{ background: "#0a0a0b", color: "#f5f2ed" }}
+      >
+        <section
+          className="w-full max-w-md rounded-3xl p-7 shadow-xl sm:p-9"
+          style={{ background: "#141415", border: "1px solid rgb(255 255 255 / 0.09)" }}
+        >
+          <Logo size={48} variant="mono" />
+          <div
+            className="mt-8 inline-flex size-11 items-center justify-center rounded-full"
+            style={{ background: "rgb(255 90 0 / 0.14)", color: "#ff5a00" }}
+          >
             <LockKeyhole className="size-5" aria-hidden="true" />
           </div>
-          <p className="mt-5 text-xs font-semibold tracking-[0.18em] text-brand uppercase">
+          <p
+            className="mt-5 text-xs font-semibold tracking-[0.18em] uppercase"
+            style={{ color: "#ff5a00" }}
+          >
             HQ360 admin
           </p>
           <h1 className="mt-2 font-display text-3xl">Sign in to continue</h1>
-          <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+          <p className="mt-3 text-sm leading-relaxed" style={{ color: "rgb(245 242 237 / 0.62)" }}>
             This area is restricted to authorised HQ360 staff.
           </p>
 
           {state === "unconfigured" ? (
-            <p className="mt-6 rounded-xl bg-destructive/10 p-4 text-sm text-destructive">
+            <p
+              className="mt-6 rounded-xl p-4 text-sm"
+              style={{ background: "rgb(248 113 113 / 0.12)", color: "oklch(0.78 0.14 35)" }}
+            >
               Admin access is disabled until ADMIN_PASSWORD is available to the production server.
             </p>
           ) : (
@@ -82,7 +97,12 @@ export function AdminGate({ children }: { children: ReactNode }) {
                   autoComplete="username"
                   required
                   autoFocus
-                  className="mt-2 w-full rounded-xl border border-border bg-background px-4 py-3 outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  className="mt-2 w-full rounded-xl px-4 py-3 outline-none focus-visible:ring-2"
+                  style={{
+                    border: "1px solid rgb(255 255 255 / 0.14)",
+                    background: "#0a0a0b",
+                    color: "#f5f2ed",
+                  }}
                 />
               </label>
               <label className="block text-sm font-semibold">
@@ -92,18 +112,24 @@ export function AdminGate({ children }: { children: ReactNode }) {
                   name="password"
                   autoComplete="current-password"
                   required
-                  className="mt-2 w-full rounded-xl border border-border bg-background px-4 py-3 outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  className="mt-2 w-full rounded-xl px-4 py-3 outline-none focus-visible:ring-2"
+                  style={{
+                    border: "1px solid rgb(255 255 255 / 0.14)",
+                    background: "#0a0a0b",
+                    color: "#f5f2ed",
+                  }}
                 />
               </label>
               {error ? (
-                <p className="text-sm text-destructive" role="alert">
+                <p className="text-sm" role="alert" style={{ color: "oklch(0.78 0.14 35)" }}>
                   {error}
                 </p>
               ) : null}
               <button
                 type="submit"
                 disabled={submitting}
-                className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-primary px-5 py-3 font-semibold text-primary-foreground transition hover:-translate-y-0.5 disabled:cursor-wait disabled:opacity-60"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-full px-5 py-3 font-semibold transition hover:-translate-y-0.5 disabled:cursor-wait disabled:opacity-60"
+                style={{ background: "#ff5a00", color: "#0a0a0b" }}
               >
                 {submitting ? "Signing in…" : "Sign in"}
                 {!submitting ? <ArrowRight className="size-4" aria-hidden="true" /> : null}

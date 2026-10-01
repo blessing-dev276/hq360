@@ -98,6 +98,11 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  // Admin, Scout, the expert dashboard, private audit links and checkout
+  // all have their own dedicated shell and manage their own theming --
+  // they never get the public SiteHeader/SiteFooter/CookieBanner/etc, and
+  // admin-workspace.css / expert-signup.tsx apply hqd's dark palette to
+  // themselves directly rather than relying on this wrapper.
   const privateAudit = useRouterState({
     select: (state) =>
       state.location.pathname === "/expert" ||

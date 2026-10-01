@@ -6,7 +6,9 @@ import {
   CheckCircle2,
   FileText,
   ScanSearch,
+  Sparkles,
   UserRound,
+  Users,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { buildSeo } from "@/lib/seo";
@@ -38,6 +40,16 @@ const PERKS = [
     icon: ScanSearch,
     title: "Scout",
     body: "Find and research new and debut authors with the prospecting workspace.",
+  },
+  {
+    icon: Users,
+    title: "Listed in the directory",
+    body: "Once approved, you appear on hq360.space/experts, where clients browse and link straight to your profile.",
+  },
+  {
+    icon: Sparkles,
+    title: "You’re in control",
+    body: "Edit your bio, specialties and links anytime, and toggle your profile public or private whenever you want.",
   },
   {
     icon: BadgeCheck,

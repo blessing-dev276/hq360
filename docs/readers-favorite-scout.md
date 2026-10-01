@@ -15,7 +15,7 @@ Source inspection: [Readers’ Favorite](https://readersfavorite.com/), its [pub
 
 ## Activation
 
-Apply `supabase/migrations/20260930130000_scout_readers_favorite.sql` before deploying this feature. It registers the source and permits its rating platform without removing legacy platforms or records. This migration is prepared and tested locally; it has **not** been applied to production. The UI explains a missing source migration when an import is attempted before activation.
+Verified on 1 October 2026: the linked project `ihvccuqytxrxnqectivg` is up to date, the Readers’ Favorite source is enabled, and the review-platform constraint includes `readers_favorite`. Migration: `supabase/migrations/20260930130000_scout_readers_favorite.sql`. Counts before and after verification remain 295 authors, 333 discovered books, 5 prospects, 232 review records and 2 invoices. No test imports, outreach or payments were made.
 
 ## Validation
 

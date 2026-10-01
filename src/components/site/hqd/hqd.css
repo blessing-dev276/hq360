@@ -431,8 +431,15 @@
   margin: 0;
   opacity: 0;
   filter: none;
-  -webkit-mask-image: radial-gradient(ellipse 50% 56% at 50% 40%, #000 60%, transparent 88%);
-  mask-image: radial-gradient(ellipse 50% 56% at 50% 40%, #000 60%, transparent 88%);
+  /* Keep faces clear; soften only the original photo's cropped outer edges. */
+  -webkit-mask-image:
+    linear-gradient(to right, transparent, #000 4%, #000 96%, transparent),
+    linear-gradient(to bottom, #000 78%, transparent 100%);
+  mask-image:
+    linear-gradient(to right, transparent, #000 4%, #000 96%, transparent),
+    linear-gradient(to bottom, #000 78%, transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
   animation: hqd-slide 12.5s var(--ease-standard) infinite both;
   will-change: opacity, transform;
 }

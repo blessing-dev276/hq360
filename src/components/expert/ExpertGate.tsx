@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent, type ReactNode } from "react";
-import { ArrowRight, LockKeyhole } from "lucide-react";
-import { Logo } from "@/components/Logo";
+import { ArrowUpRight } from "lucide-react";
+import { AuthShell } from "@/components/auth/AuthShell";
 import { supabase } from "@/integrations/supabase/client";
 
 type AuthState = "checking" | "signed-out" | "signed-in" | "pending" | "rejected";
@@ -29,99 +29,91 @@ export function ExpertGate({ children }: { children: ReactNode }) {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    void syncServerSession().then(setState);
+    let active = true;
+    void syncServerSession()
+      .then((next) => {
+        if (active) setState(next);
+      })
+      .catch(() => {
+        if (active) setState("signed-out");
+      });
+    return () => {
+      active = false;
+    };
   }, []);
 
   async function login(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (submitting) return;
     setSubmitting(true);
     setError("");
     const form = new FormData(event.currentTarget);
-    const { error: authError } = await supabase.auth.signInWithPassword({
-      email: String(form.get("email") || ""),
-      password: String(form.get("password") || ""),
-    });
-    if (authError) {
+    try {
+      const { error: authError } = await supabase.auth.signInWithPassword({
+        email: String(form.get("email") || ""),
+        password: String(form.get("password") || ""),
+      });
+      if (authError) {
+        setError("The email or password is incorrect.");
+        return;
+      }
+      const next = await syncServerSession();
+      setState(next);
+      if (next !== "signed-in") {
+        if (next === "signed-out") setError("Could not open your workspace. Please try again.");
+        await supabase.auth.signOut();
+      }
+    } catch {
+      setError("Could not connect. Please try again.");
+    } finally {
       setSubmitting(false);
-      setError("The email or password is incorrect.");
-      return;
     }
-    const next = await syncServerSession();
-    setSubmitting(false);
-    setState(next);
-    if (next !== "signed-in") await supabase.auth.signOut();
   }
 
   if (state === "signed-in") return children;
 
   return (
-    <main className="grid min-h-screen place-items-center bg-secondary/40 px-5 py-12">
-      <section className="w-full max-w-md rounded-3xl border border-border bg-card p-7 shadow-xl sm:p-9">
-        <Logo size={48} />
-        <div className="mt-8 inline-flex size-11 items-center justify-center rounded-full bg-brand/10 text-brand">
-          <LockKeyhole className="size-5" aria-hidden="true" />
-        </div>
-        <p className="mt-5 text-xs font-semibold tracking-[0.18em] text-brand uppercase">
-          HQ360 experts
+    <AuthShell
+      audience="experts"
+      description="Access Author Reports and Scout with your approved HQ360 expert account."
+    >
+      {state === "checking" ? (
+        <p className="hq-auth-notice" role="status">
+          Checking your session…
         </p>
-        <h1 className="mt-2 font-display text-3xl">Sign in to continue</h1>
-        <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-          Access to Author Reports and Scout for approved HQ360 experts.
+      ) : state === "pending" ? (
+        <p className="hq-auth-notice" role="status">
+          Your account is created and waiting on admin approval. Check back soon.
         </p>
-
-        {state === "pending" ? (
-          <p className="mt-6 rounded-xl bg-secondary p-4 text-sm text-muted-foreground">
-            Your account is created and waiting on admin approval. Check back soon.
+      ) : state === "rejected" ? (
+        <p className="hq-auth-notice" role="alert">
+          This account was not approved. Contact HQ360 if you believe this is a mistake.
+        </p>
+      ) : (
+        <form onSubmit={login} aria-busy={submitting}>
+          <label>
+            Email
+            <input type="email" name="email" autoComplete="email" required />
+          </label>
+          <label>
+            Password
+            <input type="password" name="password" autoComplete="current-password" required />
+          </label>
+          {error ? <p role="alert">{error}</p> : null}
+          <button type="submit" disabled={submitting}>
+            {submitting ? "Signing in…" : "Sign in"}
+            <ArrowUpRight aria-hidden="true" />
+          </button>
+          <p className="hq-auth-account">
+            New expert? <a href="/expert-signup">Create an account</a>
           </p>
-        ) : state === "rejected" ? (
-          <p className="mt-6 rounded-xl bg-destructive/10 p-4 text-sm text-destructive">
-            This account was not approved. Contact HQ360 if you believe this is a mistake.
-          </p>
-        ) : (
-          <form className="mt-7 space-y-5" onSubmit={login}>
-            <label className="block text-sm font-semibold">
-              Email
-              <input
-                type="email"
-                name="email"
-                autoComplete="email"
-                required
-                autoFocus
-                className="mt-2 w-full rounded-xl border border-border bg-background px-4 py-3 outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              />
-            </label>
-            <label className="block text-sm font-semibold">
-              Password
-              <input
-                type="password"
-                name="password"
-                autoComplete="current-password"
-                required
-                className="mt-2 w-full rounded-xl border border-border bg-background px-4 py-3 outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              />
-            </label>
-            {error ? (
-              <p className="text-sm text-destructive" role="alert">
-                {error}
-              </p>
-            ) : null}
-            <button
-              type="submit"
-              disabled={submitting}
-              className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-primary px-5 py-3 font-semibold text-primary-foreground transition hover:-translate-y-0.5 disabled:cursor-wait disabled:opacity-60"
-            >
-              {submitting ? "Signing in…" : "Sign in"}
-              {!submitting ? <ArrowRight className="size-4" aria-hidden="true" /> : null}
-            </button>
-            <p className="text-center text-sm text-muted-foreground">
-              New expert?{" "}
-              <a href="/expert-signup" className="text-brand">
-                Create an account
-              </a>
-            </p>
-          </form>
-        )}
-      </section>
-    </main>
+        </form>
+      )}
+      {state === "pending" || state === "rejected" ? (
+        <p className="hq-auth-account" style={{ marginTop: "1rem" }}>
+          <a href="/contact">Contact HQ360</a>
+        </p>
+      ) : null}
+    </AuthShell>
   );
 }

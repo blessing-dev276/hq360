@@ -12,9 +12,23 @@ export const Route = createFileRoute("/api/admin/expert-testimonials/$id")({
           return Response.json({ error: "Invalid action" }, { status: 400 });
         const { expertTestimonials } = await import("@/lib/expert-testimonials.server");
         if (body.action === "delete") {
-          const { error } = await expertTestimonials().delete().eq("id", params.id);
+          const { data: removed, error } = await expertTestimonials()
+            .delete()
+            .eq("id", params.id)
+            .select("expert_id, client_name")
+            .maybeSingle();
           if (error)
             return Response.json({ error: "Could not delete this video." }, { status: 503 });
+          if (removed) {
+            const { notifyExpert } = await import("@/lib/notifications.server");
+            await notifyExpert(
+              removed.expert_id,
+              "testimonial_removed",
+              "Testimonial video removed",
+              `HQ360 removed the video from ${removed.client_name}.`,
+              "portfolio",
+            );
+          }
           return Response.json({ ok: true });
         }
         const { configuredUsername } = await import("@/lib/admin-auth.server");

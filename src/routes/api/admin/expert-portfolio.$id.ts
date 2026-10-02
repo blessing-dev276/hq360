@@ -21,21 +21,47 @@ export const Route = createFileRoute("/api/admin/expert-portfolio/$id")({
               { status: 400 },
             );
           // Admin edits stay live; editing detaches it from the site original.
-          const { error } = await expertPortfolioItems()
+          const { data: updated, error } = await expertPortfolioItems()
             .update({
               ...portfolioRow(parsed.data),
               source_portfolio_item_id: null,
               updated_at: new Date().toISOString(),
             })
-            .eq("id", params.id);
+            .eq("id", params.id)
+            .select("expert_id, title")
+            .maybeSingle();
           if (error) return Response.json({ error: "Could not save this item." }, { status: 503 });
+          if (updated) {
+            const { notifyExpert } = await import("@/lib/notifications.server");
+            await notifyExpert(
+              updated.expert_id,
+              "portfolio_edited",
+              "Portfolio item updated",
+              `HQ360 edited "${updated.title}" in your portfolio.`,
+              "portfolio",
+            );
+          }
           return Response.json({ ok: true });
         }
 
         if (body.action === "delete") {
-          const { error } = await expertPortfolioItems().delete().eq("id", params.id);
+          const { data: removed, error } = await expertPortfolioItems()
+            .delete()
+            .eq("id", params.id)
+            .select("expert_id, title")
+            .maybeSingle();
           if (error)
             return Response.json({ error: "Could not delete this item." }, { status: 503 });
+          if (removed) {
+            const { notifyExpert } = await import("@/lib/notifications.server");
+            await notifyExpert(
+              removed.expert_id,
+              "portfolio_removed",
+              "Portfolio item removed",
+              `HQ360 removed "${removed.title}" from your portfolio.`,
+              "portfolio",
+            );
+          }
           return Response.json({ ok: true });
         }
 

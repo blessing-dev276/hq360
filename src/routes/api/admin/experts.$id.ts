@@ -69,6 +69,17 @@ export const Route = createFileRoute("/api/admin/experts/$id")({
             .eq("id", params.id);
           if (error)
             return Response.json({ error: "Could not update this profile." }, { status: 503 });
+          // Publish / request-changes notify via the database trigger.
+          if (action === "unpublish") {
+            const { notifyExpert } = await import("@/lib/notifications.server");
+            await notifyExpert(
+              params.id,
+              "profile_unpublished",
+              "Your profile is no longer public",
+              "HQ360 has taken your public profile offline. Contact HQ360 if you have questions.",
+              "profile",
+            );
+          }
           return Response.json({ ok: true });
         }
 
@@ -119,6 +130,14 @@ export const Route = createFileRoute("/api/admin/experts/$id")({
           });
           if (assignError)
             return Response.json({ error: "Could not assign this item." }, { status: 503 });
+          const { notifyExpert } = await import("@/lib/notifications.server");
+          await notifyExpert(
+            params.id,
+            "portfolio_added",
+            "Portfolio item added",
+            `HQ360 added "${source.title}" to your portfolio.`,
+            "portfolio",
+          );
           return Response.json({ ok: true });
         }
 
@@ -135,6 +154,14 @@ export const Route = createFileRoute("/api/admin/experts/$id")({
             .update({ role, permissions })
             .eq("id", params.id);
           if (error) return Response.json({ error: "Could not save access." }, { status: 503 });
+          const { notifyExpert } = await import("@/lib/notifications.server");
+          await notifyExpert(
+            params.id,
+            "access_updated",
+            "Your workspace access changed",
+            "HQ360 updated which tools you can use. Open your workspace to see what's available.",
+            "dashboard",
+          );
           return Response.json({ ok: true });
         }
 
@@ -163,6 +190,14 @@ export const Route = createFileRoute("/api/admin/experts/$id")({
             .eq("id", params.id);
           if (error)
             return Response.json({ error: "Could not save the profile." }, { status: 503 });
+          const { notifyExpert } = await import("@/lib/notifications.server");
+          await notifyExpert(
+            params.id,
+            "profile_updated",
+            "Your profile was updated",
+            "HQ360 made changes to your profile. Have a look to make sure it reads the way you want.",
+            "profile",
+          );
           return Response.json({ ok: true });
         }
 

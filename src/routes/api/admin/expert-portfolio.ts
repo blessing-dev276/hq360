@@ -39,6 +39,14 @@ export const Route = createFileRoute("/api/admin/expert-portfolio")({
           reviewed_by: configuredUsername(),
         });
         if (error) return Response.json({ error: "Could not add this item." }, { status: 503 });
+        const { notifyExpert } = await import("@/lib/notifications.server");
+        await notifyExpert(
+          body.expert_id,
+          "portfolio_added",
+          "Portfolio item added",
+          `HQ360 added "${parsed.data.title}" to your portfolio.`,
+          "portfolio",
+        );
         return Response.json({ ok: true });
       },
     },

@@ -29,8 +29,26 @@ import {
   type PaymentSetup,
 } from "@/lib/payments/types";
 
+type InvoiceRequest = {
+  id: string;
+  expert_id: string;
+  buyer_name: string;
+  buyer_email: string;
+  buyer_phone: string;
+  description: string;
+  amount_minor: number;
+  due_date: string;
+  payment_type: "card" | "crypto";
+  status: "pending" | "fulfilled" | "declined";
+  admin_note: string | null;
+  invoice_id: string | null;
+  created_at: string;
+  expert_profiles: { full_name: string | null; email: string } | null;
+};
+
 const PROVIDERS = [
   { value: "nowpayments", label: "NOWPayments", hint: "Crypto checkout" },
+  { value: "flutterwave", label: "Flutterwave", hint: "Card & bank checkout" },
 ] as const;
 
 async function call(url: string, body?: unknown) {
@@ -57,9 +75,11 @@ export function PaymentsAdmin() {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
   const [creating, setCreating] = useState(false);
-  const provider = "nowpayments" as const;
+  const [provider, setProvider] = useState<Invoice["provider"]>("nowpayments");
   const [selected, setSelected] = useState<Invoice | null>(null);
   const [busy, setBusy] = useState("");
+  const [requests, setRequests] = useState<InvoiceRequest[]>([]);
+  const [requestsError, setRequestsError] = useState("");
   const createId = useRef("");
   const load = useCallback(async () => {
     setLoading(true);
@@ -74,6 +94,15 @@ export function PaymentsAdmin() {
       setError(err instanceof Error ? err.message : "Could not load invoices.");
     } finally {
       setLoading(false);
+    }
+    try {
+      const response = await fetch("/api/admin/invoice-requests");
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error);
+      setRequests(data.requests ?? []);
+      setRequestsError("");
+    } catch (err) {
+      setRequestsError(err instanceof Error ? err.message : "Could not load invoice requests.");
     }
   }, []);
   useEffect(() => {
@@ -127,6 +156,37 @@ export function PaymentsAdmin() {
       setBusy("");
     }
   }
+  async function requestAct(req: InvoiceRequest, action: "fulfill" | "decline") {
+    setBusy(req.id + action);
+    setError("");
+    setNotice("");
+    try {
+      const note =
+        action === "decline" ? (window.prompt("Reason (shown to the expert)") ?? "") : undefined;
+      const data = await call(`/api/admin/invoice-requests/${req.id}`, { action, note });
+      setRequests((list) =>
+        list.map((r) =>
+          r.id === req.id
+            ? {
+                ...r,
+                status: action === "fulfill" ? "fulfilled" : "declined",
+                invoice_id: data.invoice?.id ?? null,
+              }
+            : r,
+        ),
+      );
+      if (data.invoice) merge(data.invoice);
+      setNotice(
+        action === "fulfill"
+          ? `Invoice ${data.invoice?.number ?? ""} created from ${req.expert_profiles?.full_name || "expert"}'s request.`
+          : "Request declined.",
+      );
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not update this request.");
+    } finally {
+      setBusy("");
+    }
+  }
   async function create(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
@@ -161,7 +221,7 @@ export function PaymentsAdmin() {
         .includes(search.toLowerCase()),
   );
   const setupFor = (p: Invoice["provider"]) =>
-    p === "nowpayments" ? setup?.nowpayments : undefined;
+    p === "nowpayments" ? setup?.nowpayments : p === "flutterwave" ? setup?.flutterwave : undefined;
   const sum = (status: string) =>
     invoices
       .filter((i) => i.status === status && i.currency === "USD")
@@ -237,6 +297,7 @@ export function PaymentsAdmin() {
             className="admin-button admin-button-primary"
             onClick={() => {
               createId.current = crypto.randomUUID();
+              setProvider("nowpayments");
               setError("");
               setNotice("");
               setCreating(true);
@@ -248,19 +309,30 @@ export function PaymentsAdmin() {
         </div>
       </div>
       {!creating && !selected && feedback}
-      {setup && !setup.nowpayments.configured && (
+      {setup && (!setup.nowpayments.configured || !setup.flutterwave.configured) && (
         <div className="admin-setup">
           <CreditCard size={22} />
           <div>
             <strong>Your payment workspace is ready.</strong>
             <p>
-              You can save drafts now. Connect your NOWPayments merchant credentials to issue
-              invoices and accept payments.
+              You can save drafts now.{" "}
+              {!setup.nowpayments.configured && !setup.flutterwave.configured
+                ? "Connect your NOWPayments or Flutterwave credentials to issue invoices and accept payments."
+                : !setup.nowpayments.configured
+                  ? "Connect your NOWPayments merchant credentials to issue crypto invoices too."
+                  : "Connect your Flutterwave merchant credentials to issue card invoices too."}
             </p>
           </div>
-          <a href="https://account.nowpayments.io/" target="_blank" rel="noreferrer">
-            NOWPayments setup <ArrowUpRight size={15} />
-          </a>
+          {!setup.nowpayments.configured && (
+            <a href="https://account.nowpayments.io/" target="_blank" rel="noreferrer">
+              NOWPayments setup <ArrowUpRight size={15} />
+            </a>
+          )}
+          {!setup.flutterwave.configured && (
+            <a href="https://dashboard.flutterwave.com/" target="_blank" rel="noreferrer">
+              Flutterwave setup <ArrowUpRight size={15} />
+            </a>
+          )}
         </div>
       )}
       <div className="admin-stats">
@@ -368,6 +440,11 @@ export function PaymentsAdmin() {
                         {i.number}
                       </button>
                       <small>{i.buyer_name}</small>
+                      {i.requested_by && (
+                        <small>
+                          Requested by {i.requested_by.full_name || i.requested_by.email}
+                        </small>
+                      )}
                     </td>
                     <td className="admin-numeric">{money(i.amount_minor, i.currency)}</td>
                     <td>
@@ -384,13 +461,25 @@ export function PaymentsAdmin() {
                       <span className="admin-delivery">{i.sent_at ? "Emailed" : "Not sent"}</span>
                     </td>
                     <td>
-                      <button
-                        className="admin-icon-button"
-                        aria-label={`View ${i.number}`}
-                        onClick={() => setSelected(i)}
-                      >
-                        <ArrowUpRight size={17} />
-                      </button>
+                      <div className="admin-button-row">
+                        <button
+                          className="admin-icon-button"
+                          aria-label={`View ${i.number}`}
+                          onClick={() => setSelected(i)}
+                        >
+                          <ArrowUpRight size={17} />
+                        </button>
+                        {i.status === "draft" && !i.provider_invoice_id && (
+                          <button
+                            className="admin-icon-button text-destructive"
+                            aria-label={`Delete draft ${i.number}`}
+                            disabled={!!busy}
+                            onClick={() => void removeDraft(i)}
+                          >
+                            <Trash2 size={17} />
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -419,6 +508,116 @@ export function PaymentsAdmin() {
           <span>Currency shown per invoice</span>
         </div>
       </section>
+      <section className="admin-panel" style={{ marginTop: "1.5rem" }}>
+        <div className="admin-panel-heading">
+          <div>
+            <h2>
+              Invoice requests{" "}
+              <span className="admin-count">
+                {requests.filter((r) => r.status === "pending").length}
+              </span>
+            </h2>
+            <p>Experts request invoices for their own clients; you review and create them.</p>
+          </div>
+        </div>
+        {requestsError && (
+          <div className="admin-alert" role="alert">
+            <AlertCircle size={18} />
+            {requestsError}
+          </div>
+        )}
+        {requests.length === 0 ? (
+          <div className="admin-empty">
+            <h3>No invoice requests yet</h3>
+            <p>When an expert requests an invoice for a client, it'll show up here.</p>
+          </div>
+        ) : (
+          <div className="admin-table-scroll">
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>Expert / Client</th>
+                  <th>Amount</th>
+                  <th>Payment type</th>
+                  <th>Status</th>
+                  <th>
+                    <span className="sr-only">Actions</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {requests.map((r) => (
+                  <tr key={r.id}>
+                    <td>
+                      <span className="admin-invoice-name">
+                        {r.expert_profiles?.full_name ||
+                          r.expert_profiles?.email ||
+                          "Unknown expert"}
+                      </span>
+                      <small>
+                        {r.buyer_name} · {r.buyer_email}
+                      </small>
+                      <small>{r.description.slice(0, 80)}</small>
+                    </td>
+                    <td className="admin-numeric">{money(r.amount_minor)}</td>
+                    <td>
+                      <span className="admin-status pending">
+                        {r.payment_type === "crypto" ? "Crypto" : "Card"}
+                      </span>
+                    </td>
+                    <td>
+                      <span
+                        className={`admin-status ${
+                          r.status === "fulfilled"
+                            ? "paid"
+                            : r.status === "declined"
+                              ? "overdue"
+                              : "pending"
+                        }`}
+                      >
+                        {r.status}
+                      </span>
+                      {r.status === "fulfilled" && r.invoice_id && (
+                        <div style={{ marginTop: 4 }}>
+                          <button
+                            className="admin-text-button"
+                            onClick={() => {
+                              const invoice = invoices.find((i) => i.id === r.invoice_id);
+                              if (invoice) setSelected(invoice);
+                            }}
+                          >
+                            View invoice
+                          </button>
+                        </div>
+                      )}
+                    </td>
+                    <td>
+                      {r.status === "pending" && (
+                        <div className="admin-button-row">
+                          <button
+                            className="admin-button admin-button-primary"
+                            disabled={!!busy}
+                            onClick={() => void requestAct(r, "fulfill")}
+                          >
+                            {busy === r.id + "fulfill" ? "Creating…" : "Create invoice"}
+                          </button>
+                          <button
+                            className="admin-button text-destructive"
+                            disabled={!!busy}
+                            onClick={() => void requestAct(r, "decline")}
+                          >
+                            {busy === r.id + "decline" ? "Declining…" : "Decline"}
+                          </button>
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
       <Dialog
         open={creating}
         onOpenChange={(value) => {
@@ -432,7 +631,26 @@ export function PaymentsAdmin() {
           </DialogHeader>
           {feedback}
           <form onSubmit={create} className="admin-invoice-form">
-            <p className="admin-form-note">Payments are processed through NOWPayments.</p>
+            <div>
+              <strong style={{ fontSize: 11, color: "var(--muted-foreground)" }}>
+                Payment method
+              </strong>
+              <div className="admin-segmented" style={{ marginTop: "0.5rem" }}>
+                {PROVIDERS.map((p) => (
+                  <button
+                    key={p.value}
+                    type="button"
+                    className={provider === p.value ? "active" : ""}
+                    onClick={() => setProvider(p.value)}
+                  >
+                    {p.label}
+                  </button>
+                ))}
+              </div>
+              <p className="admin-form-note" style={{ marginTop: "0.4rem" }}>
+                {PROVIDERS.find((p) => p.value === provider)?.hint}
+              </p>
+            </div>
             <div className="admin-form-grid">
               <label>
                 Buyer name
@@ -541,6 +759,12 @@ export function PaymentsAdmin() {
                   <dt>Due date</dt>
                   <dd>{selected.due_date}</dd>
                 </div>
+                {selected.requested_by && (
+                  <div>
+                    <dt>Requested by</dt>
+                    <dd>{selected.requested_by.full_name || selected.requested_by.email}</dd>
+                  </div>
+                )}
                 <div>
                   <dt>{providerLabel(selected.provider)} reference</dt>
                   <dd>{selected.provider_invoice_id || "Not issued yet"}</dd>

@@ -3,6 +3,7 @@ import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { sendEmail } from "@/lib/email.server";
 import * as nowpayments from "./nowpayments.server";
+import * as flutterwave from "./flutterwave.server";
 import {
   money,
   providerLabel,
@@ -11,14 +12,14 @@ import {
   type PaymentSetup,
 } from "./types";
 
-const HOSTED_PROVIDERS = ["nowpayments"] as const;
+const HOSTED_PROVIDERS = ["nowpayments", "flutterwave"] as const;
 type HostedProvider = (typeof HOSTED_PROVIDERS)[number];
 type ProviderModule = {
   paymentSetup: () => { configured: boolean; environment: Invoice["environment"] };
   assertReady: (environment: Invoice["environment"]) => void;
   createHostedInvoice: (
     invoice: Invoice,
-  ) => Promise<{ provider_invoice_id: string; checkout_url: string }>;
+  ) => Promise<{ provider_invoice_id: string; checkout_url: string; payment_id?: string }>;
   checkPayment: (
     reference: string,
     environment: Invoice["environment"],
@@ -27,10 +28,11 @@ type ProviderModule = {
   isVerifiedPayment: (result: Record<string, unknown>, invoice: Invoice) => boolean;
   statusOf: (result: Record<string, unknown>) => string;
   isRefunded: (result: Record<string, unknown>) => boolean;
+  checkoutUrl: (value: unknown, environment: Invoice["environment"]) => string;
 };
-const providers: Record<HostedProvider, ProviderModule> = { nowpayments };
+const providers: Record<HostedProvider, ProviderModule> = { nowpayments, flutterwave };
 function providerModule(name: Invoice["provider"]) {
-  if (name !== "nowpayments")
+  if (name !== "nowpayments" && name !== "flutterwave")
     throw new Error("This provider is no longer supported for new invoices.");
   return providers[name];
 }
@@ -38,7 +40,11 @@ export function combinedSetup(): PaymentSetup {
   return {
     emailConfigured: process.env.EMAIL_PROVIDER === "resend" && Boolean(process.env.RESEND_API_KEY),
     nowpayments: nowpayments.paymentSetup(),
+    flutterwave: flutterwave.paymentSetup(),
   };
+}
+export function checkoutUrlFor(invoice: Invoice) {
+  return providerModule(invoice.provider).checkoutUrl(invoice.checkout_url, invoice.environment);
 }
 
 const db = () => (supabaseAdmin as SupabaseClient).from("payment_invoices");
@@ -61,6 +67,7 @@ export const invoiceSchema = z.object({
         !Number.isNaN(Date.parse(value)) && new Date(value).toISOString().slice(0, 10) === value,
       "Invalid date",
     ),
+  requested_by_expert_id: z.string().uuid().optional(),
 });
 export function paymentJson(body: unknown, status = 200) {
   return Response.json(body, {
@@ -77,7 +84,7 @@ export function sameOrigin(request: Request) {
 }
 export async function listInvoices() {
   const { data, error } = await db()
-    .select("*")
+    .select("*, requested_by:expert_profiles(full_name, email)")
     .in("provider", HOSTED_PROVIDERS)
     .order("created_at", { ascending: false })
     .limit(1000);

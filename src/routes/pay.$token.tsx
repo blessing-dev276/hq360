@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { ArrowUpRight, CheckCircle2, LockKeyhole, RefreshCw, Printer } from "lucide-react";
-import { money, providerLabel, type Invoice } from "@/lib/payments/types";
+import { money, paymentKind, providerLabel, type Invoice } from "@/lib/payments/types";
 import "@/components/admin/admin-workspace.css";
 import "@/components/admin/buyer-invoice.css";
 
@@ -176,12 +176,16 @@ function BuyerInvoice() {
                     href={data.checkout.url}
                     rel="noreferrer"
                   >
-                    Pay with crypto via NOWPayments <ArrowUpRight size={17} />
+                    {paymentKind(data.invoice.provider) === "crypto"
+                      ? `Pay with crypto via ${providerLabel(data.invoice.provider)}`
+                      : `Pay by card via ${providerLabel(data.invoice.provider)}`}
+                    <ArrowUpRight size={17} />
                   </a>
                 )}
                 <p className="admin-form-note">
-                  Choose your cryptocurrency and network at checkout. Payment is confirmed after
-                  processing completes.
+                  {paymentKind(data.invoice.provider) === "crypto"
+                    ? "Choose your cryptocurrency and network at checkout. Payment is confirmed after processing completes."
+                    : "You'll be taken to a secure checkout page to pay by card or bank transfer."}
                 </p>
                 {data.invoice.provider_status && (
                   <p className="admin-form-note">

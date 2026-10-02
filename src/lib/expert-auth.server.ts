@@ -9,6 +9,8 @@ export const expertProfiles = () => (supabaseAdmin as SupabaseClient).from("expe
 export const expertPortfolioItems = () =>
   (supabaseAdmin as SupabaseClient).from("expert_portfolio_items");
 export const teamMembersUntyped = () => (supabaseAdmin as SupabaseClient).from("team_members");
+export const expertInvoiceRequests = () =>
+  (supabaseAdmin as SupabaseClient).from("expert_invoice_requests");
 
 const COOKIE_NAME = "hq360_expert";
 const SESSION_AGE_SECONDS = 60 * 60 * 12;

@@ -1,17 +1,19 @@
 import { useEffect, useState } from "react";
-import { ChevronRight, FileText, LogOut, ScanSearch, UserRound } from "lucide-react";
+import { ChevronRight, CreditCard, FileText, LogOut, ScanSearch, UserRound } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { Logo } from "@/components/Logo";
 import { ScoutApp } from "@/components/admin/ScoutApp";
 import { ExpertProfileEditor } from "./ExpertProfileEditor";
+import { ExpertInvoiceRequests } from "./ExpertInvoiceRequests";
 import "@/components/admin/admin-workspace.css";
 
-type Tab = "profile" | "reports" | "scout";
+type Tab = "profile" | "reports" | "scout" | "invoices";
 const NAV = [
   { id: "profile", label: "My profile", icon: UserRound },
   { id: "reports", label: "Author Reports", icon: FileText },
   { id: "scout", label: "Scouting", icon: ScanSearch },
+  { id: "invoices", label: "Invoices", icon: CreditCard },
 ] as const;
 
 export function ExpertApp() {
@@ -108,6 +110,8 @@ export function ExpertApp() {
                 Open Scouting
               </button>
             </section>
+          ) : tab === "invoices" ? (
+            <ExpertInvoiceRequests />
           ) : (
             <ScoutApp />
           )}

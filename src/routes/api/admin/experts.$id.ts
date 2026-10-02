@@ -80,6 +80,23 @@ export const Route = createFileRoute("/api/admin/experts/$id")({
             typeof body?.portfolio_item_id === "string" ? body.portfolio_item_id : "";
           if (!portfolioItemId)
             return Response.json({ error: "Missing portfolio_item_id" }, { status: 400 });
+          const { expertPortfolioItems: taken } = await import("@/lib/expert-auth.server");
+          const { data: owner } = await taken()
+            .select("expert_id, expert_profiles(full_name, email)")
+            .eq("source_portfolio_item_id", portfolioItemId)
+            .limit(1)
+            .maybeSingle();
+          if (owner) {
+            const p = (
+              Array.isArray(owner.expert_profiles)
+                ? owner.expert_profiles[0]
+                : owner.expert_profiles
+            ) as { full_name: string | null; email: string } | null;
+            return Response.json(
+              { error: `Already assigned to ${p?.full_name || p?.email || "another expert"}.` },
+              { status: 409 },
+            );
+          }
           const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
           const { data: source, error: sourceError } = await supabaseAdmin
             .from("portfolio_items")

@@ -636,6 +636,11 @@ export function ExpertsAdmin() {
                 expert={selected}
                 items={itemsByExpert.get(selected.id) ?? []}
                 sitePortfolio={sitePortfolio}
+                assignedSourceIds={
+                  new Set(
+                    portfolio.map((i) => i.source_portfolio_item_id).filter(Boolean) as string[],
+                  )
+                }
                 busy={busy}
                 onItem={(item, action, extra) => portfolioAct(item, action, extra)}
                 onAssign={(id) =>
@@ -1235,6 +1240,7 @@ function PortfolioTab({
   expert,
   items,
   sitePortfolio,
+  assignedSourceIds,
   busy,
   onItem,
   onAssign,
@@ -1243,6 +1249,7 @@ function PortfolioTab({
   expert: Expert;
   items: PortfolioItem[];
   sitePortfolio: SitePortfolioItem[];
+  assignedSourceIds: Set<string>;
   busy: string;
   onItem: (
     item: PortfolioItem,
@@ -1254,8 +1261,8 @@ function PortfolioTab({
 }) {
   const [editing, setEditing] = useState<PortfolioItem | "new" | null>(null);
   const [assign, setAssign] = useState("");
-  const assigned = new Set(items.map((i) => i.source_portfolio_item_id).filter(Boolean));
-  const available = sitePortfolio.filter((s) => !assigned.has(s.id));
+  // A website portfolio item can belong to only one expert.
+  const available = sitePortfolio.filter((s) => !assignedSourceIds.has(s.id));
 
   if (editing)
     return (

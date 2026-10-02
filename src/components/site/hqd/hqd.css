@@ -1926,3 +1926,40 @@ body:has(.hqd-site) {
   border-color: var(--hqd-orange);
   color: var(--hqd-orange);
 }
+
+/* Package "Pay now" checkout overlay. */
+.hqd-checkout-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgb(0 0 0 / 0.72);
+  backdrop-filter: blur(6px);
+}
+.hqd-checkout {
+  position: relative;
+  background: var(--hqd-panel);
+  border: 1px solid var(--hqd-line);
+  box-shadow: 0 30px 80px rgb(0 0 0 / 0.6);
+  width: min(100%, 28rem);
+  max-height: calc(100dvh - 2rem);
+  overflow-y: auto;
+  display: grid;
+  gap: 0.5rem;
+}
+.hqd-checkout-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  display: grid;
+  place-items: center;
+  width: 2.2rem;
+  height: 2.2rem;
+  border-radius: 999px;
+  border: 1px solid var(--hqd-line);
+  background: transparent;
+  color: var(--hqd-text);
+  cursor: pointer;
+}

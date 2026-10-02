@@ -218,6 +218,13 @@ export const PLANS: Plan[] = [
     ],
   },
 ];
+/** Stable key for a plan, used by the website checkout ("starter", "growth"…). */
+export const planKey = (plan: Plan) => plan.name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+/** "$1,299" -> 129900 (US cents). */
+export const planAmountMinor = (plan: Plan) =>
+  Math.round(Number(plan.price.replace(/[^\d.]/g, "")) * 100);
+export const getPlan = (key: string) => PLANS.find((plan) => planKey(plan) === key);
+
 export const CARE_PLAN = { price: "$49", cadence: "/month" };
 export const PRICING_NOTES = [
   "All prices are starting points in USD; a written proposal confirms deliverables and the final amount.",

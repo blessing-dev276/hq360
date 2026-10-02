@@ -46,6 +46,7 @@ import { Route as TeamRouteImport } from './routes/team'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as TestimonialsRouteImport } from './routes/testimonials'
 import { Route as UgcCreatorsRouteImport } from './routes/ugc-creators'
+import { Route as ApiCheckoutRouteImport } from './routes/api/checkout'
 import { Route as ApiPrivateAuditRouteImport } from './routes/api/private-audit'
 import { Route as AuthorAuditIndexRouteImport } from './routes/author-audit.index'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
@@ -344,6 +345,11 @@ const TestimonialsRoute = TestimonialsRouteImport.update({
 const UgcCreatorsRoute = UgcCreatorsRouteImport.update({
   id: '/ugc-creators',
   path: '/ugc-creators',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiCheckoutRoute = ApiCheckoutRouteImport.update({
+  id: '/api/checkout',
+  path: '/api/checkout',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPrivateAuditRoute = ApiPrivateAuditRouteImport.update({
@@ -995,6 +1001,7 @@ export interface FileRoutesByFullPath {
   '/terms': typeof TermsRoute
   '/testimonials': typeof TestimonialsRoute
   '/ugc-creators': typeof UgcCreatorsRoute
+  '/api/checkout': typeof ApiCheckoutRoute
   '/api/private-audit': typeof ApiPrivateAuditRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/capabilities/$slug': typeof CapabilitiesSlugRoute
@@ -1147,6 +1154,7 @@ export interface FileRoutesByTo {
   '/terms': typeof TermsRoute
   '/testimonials': typeof TestimonialsRoute
   '/ugc-creators': typeof UgcCreatorsRoute
+  '/api/checkout': typeof ApiCheckoutRoute
   '/api/private-audit': typeof ApiPrivateAuditRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/capabilities/$slug': typeof CapabilitiesSlugRoute
@@ -1300,6 +1308,7 @@ export interface FileRoutesById {
   '/terms': typeof TermsRoute
   '/testimonials': typeof TestimonialsRoute
   '/ugc-creators': typeof UgcCreatorsRoute
+  '/api/checkout': typeof ApiCheckoutRoute
   '/api/private-audit': typeof ApiPrivateAuditRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/capabilities/$slug': typeof CapabilitiesSlugRoute
@@ -1454,6 +1463,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/testimonials'
     | '/ugc-creators'
+    | '/api/checkout'
     | '/api/private-audit'
     | '/blog/$slug'
     | '/capabilities/$slug'
@@ -1606,6 +1616,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/testimonials'
     | '/ugc-creators'
+    | '/api/checkout'
     | '/api/private-audit'
     | '/blog/$slug'
     | '/capabilities/$slug'
@@ -1758,6 +1769,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/testimonials'
     | '/ugc-creators'
+    | '/api/checkout'
     | '/api/private-audit'
     | '/blog/$slug'
     | '/capabilities/$slug'
@@ -1911,6 +1923,7 @@ export interface RootRouteChildren {
   TermsRoute: typeof TermsRoute
   TestimonialsRoute: typeof TestimonialsRoute
   UgcCreatorsRoute: typeof UgcCreatorsRoute
+  ApiCheckoutRoute: typeof ApiCheckoutRoute
   ApiPrivateAuditRoute: typeof ApiPrivateAuditRoute
   BlogSlugRoute: typeof BlogSlugRoute
   CapabilitiesSlugRoute: typeof CapabilitiesSlugRoute
@@ -2247,6 +2260,13 @@ declare module '@tanstack/react-router' {
       path: '/ugc-creators'
       fullPath: '/ugc-creators'
       preLoaderRoute: typeof UgcCreatorsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/checkout': {
+      id: '/api/checkout'
+      path: '/api/checkout'
+      fullPath: '/api/checkout'
+      preLoaderRoute: typeof ApiCheckoutRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/private-audit': {
@@ -3366,6 +3386,7 @@ const rootRouteChildren: RootRouteChildren = {
   TermsRoute: TermsRoute,
   TestimonialsRoute: TestimonialsRoute,
   UgcCreatorsRoute: UgcCreatorsRoute,
+  ApiCheckoutRoute: ApiCheckoutRoute,
   ApiPrivateAuditRoute: ApiPrivateAuditRoute,
   BlogSlugRoute: BlogSlugRoute,
   CapabilitiesSlugRoute: CapabilitiesSlugRoute,

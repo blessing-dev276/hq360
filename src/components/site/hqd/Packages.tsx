@@ -2,6 +2,7 @@ import { Check } from "lucide-react";
 import { CARE_PLAN, PLANS, PRICING_NOTES } from "@/data/pricing";
 import { Reveal } from "../Reveal";
 import { Eyebrow, Pill } from "./Hqd";
+import { PackageCheckout } from "./PackageCheckout";
 
 export function Packages({
   heading = true,
@@ -50,12 +51,15 @@ export function Packages({
                   </li>
                 ))}
               </ul>
-              <Pill
-                {...(ctaHref.startsWith("#") ? { href: ctaHref } : { to: ctaHref })}
-                tone={plan.featured ? "light" : "dark"}
-              >
-                Get Started
-              </Pill>
+              <div style={{ display: "grid", gap: "0.6rem", marginTop: "auto" }}>
+                <PackageCheckout plan={plan} featured={!!plan.featured} />
+                <Pill
+                  {...(ctaHref.startsWith("#") ? { href: ctaHref } : { to: ctaHref })}
+                  tone={plan.featured ? "light" : "dark"}
+                >
+                  Talk to us first
+                </Pill>
+              </div>
             </article>
           </Reveal>
         ))}

@@ -190,27 +190,99 @@ export function ExpertDashboard({
       </div>
 
       <div className="admin-overview-grid">
-        <section className="admin-panel">
+        <section className="admin-panel" style={{ alignSelf: "start" }}>
           <div className="admin-panel-heading">
             <div>
-              <h2>Finish your profile</h2>
-              <p>A complete profile is reviewed faster and converts better.</p>
+              <h2>{done === checks.length ? "Your profile is complete" : "Finish your profile"}</h2>
+              <p>
+                {done === checks.length
+                  ? "Every section is filled in."
+                  : `${checks.length - done} left — a complete profile is reviewed faster and converts better.`}
+              </p>
+            </div>
+            <strong style={{ fontSize: 13 }}>
+              {done}/{checks.length}
+            </strong>
+          </div>
+          <div style={{ padding: "0 25px" }}>
+            <div
+              className="expert-progress"
+              role="progressbar"
+              aria-valuenow={pct}
+              aria-valuemin={0}
+              aria-valuemax={100}
+            >
+              <span style={{ width: `${pct}%` }} />
             </div>
           </div>
-          <div className="admin-quick-actions">
-            {checks.map(([label, ok]) => (
-              <button key={label} onClick={() => onNavigate("profile")}>
-                <span className="admin-action-icon" style={{ width: 32, height: 32 }}>
-                  {ok ? <CircleCheck size={16} /> : <Clock3 size={16} />}
-                </span>
-                <span>
-                  <strong>{label}</strong>
-                  <small>{ok ? "Done" : "Not added yet"}</small>
-                </span>
-                <ArrowUpRight size={15} />
-              </button>
-            ))}
-          </div>
+          {done === checks.length ? (
+            <div className="expert-complete">
+              <span className="admin-action-icon" style={{ width: 44, height: 44 }}>
+                <CircleCheck size={22} />
+              </span>
+              <div style={{ flex: 1 }}>
+                <strong>
+                  {profile.is_public
+                    ? "Live on the HQ360 experts page"
+                    : profile.profile_status === "submitted"
+                      ? "Waiting on HQ360 review"
+                      : "Ready to submit for review"}
+                </strong>
+                <small>
+                  {profile.is_public
+                    ? "Keep it fresh — update it whenever your work changes."
+                    : profile.profile_status === "submitted"
+                      ? "We'll notify you as soon as it's reviewed."
+                      : "Send it to HQ360 to publish it on the experts page."}
+                </small>
+              </div>
+              {profile.is_public ? (
+                <a
+                  className="admin-button"
+                  href={`/experts/${profile.slug}`}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  View page <ArrowUpRight size={15} />
+                </a>
+              ) : profile.profile_status !== "submitted" ? (
+                <button
+                  className="admin-button admin-button-primary"
+                  onClick={() => onNavigate("profile")}
+                >
+                  Submit for review
+                </button>
+              ) : null}
+            </div>
+          ) : (
+            <div className="admin-quick-actions">
+              {checks
+                .filter(([, ok]) => !ok)
+                .map(([label]) => (
+                  <button key={label} onClick={() => onNavigate("profile")}>
+                    <span className="admin-action-icon" style={{ width: 32, height: 32 }}>
+                      <Clock3 size={16} />
+                    </span>
+                    <span>
+                      <strong>{label}</strong>
+                      <small>Not added yet — add it now</small>
+                    </span>
+                    <ArrowUpRight size={15} />
+                  </button>
+                ))}
+            </div>
+          )}
+          {done > 0 && done < checks.length && (
+            <div className="expert-done-chips" aria-label="Completed sections">
+              {checks
+                .filter(([, ok]) => ok)
+                .map(([label]) => (
+                  <span key={label}>
+                    <CircleCheck size={12} /> {label}
+                  </span>
+                ))}
+            </div>
+          )}
         </section>
 
         <div style={{ display: "grid", gap: 22, alignContent: "start" }}>

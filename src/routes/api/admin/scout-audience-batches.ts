@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { isAdminOrExpertRequest } from "@/lib/expert-auth.server";
+import { resolveScoutAccess } from "@/lib/scout/owner.server";
 import { asScoutDb } from "@/lib/scout/db";
 import { SCOUT_AUDIENCES } from "@/lib/scout/audiences";
 import { audienceSearchSchema, searchAudience } from "@/lib/scout/audience-search.server";
@@ -9,8 +9,8 @@ export const Route = createFileRoute("/api/admin/scout-audience-batches")({
   server: {
     handlers: {
       GET: async ({ request }) => {
-        if (!(await isAdminOrExpertRequest(request)))
-          return json({ ok: false, error: "unauthorized" }, 401);
+        const access = await resolveScoutAccess(request);
+        if (!access) return json({ ok: false, error: "unauthorized" }, 401);
         const audience = new URL(request.url).searchParams.get("audience");
         if (!SCOUT_AUDIENCES.some((item) => item.id === audience))
           return json({ ok: false, message: "Choose an audience." }, 400);
@@ -19,6 +19,7 @@ export const Route = createFileRoute("/api/admin/scout-audience-batches")({
           .from("scout_audience_batches")
           .select("*")
           .eq("audience", audience)
+          .eq("owner", access.owner)
           .order("created_at", { ascending: false })
           .limit(500);
         if (error)
@@ -33,8 +34,8 @@ export const Route = createFileRoute("/api/admin/scout-audience-batches")({
         return json({ ok: true, items: data ?? [] });
       },
       POST: async ({ request }) => {
-        if (!(await isAdminOrExpertRequest(request)))
-          return json({ ok: false, error: "unauthorized" }, 401);
+        const access = await resolveScoutAccess(request);
+        if (!access) return json({ ok: false, error: "unauthorized" }, 401);
         const parsed = audienceSearchSchema.safeParse(await request.json().catch(() => null));
         if (!parsed.success)
           return json(
@@ -59,7 +60,11 @@ export const Route = createFileRoute("/api/admin/scout-audience-batches")({
             },
             503,
           );
-        if (existing) return json({ ok: true, batch: existing });
+        if (existing) {
+          if ((existing as { owner?: string }).owner !== access.owner)
+            return json({ ok: false, message: "Start a new search." }, 409);
+          return json({ ok: true, batch: existing });
+        }
         try {
           const { items, query } = await searchAudience(
             input,
@@ -77,7 +82,14 @@ export const Route = createFileRoute("/api/admin/scout-audience-batches")({
             p_limit: input.limit,
             p_items: items,
           });
-          if (error)
+          // The save RPC is shared; claim the new batch for this workspace.
+          const claimed = error
+            ? { error }
+            : await db
+                .from("scout_audience_batches")
+                .update({ owner: access.owner })
+                .eq("id", input.requestId);
+          if (error || claimed.error)
             return json(
               {
                 ok: false,

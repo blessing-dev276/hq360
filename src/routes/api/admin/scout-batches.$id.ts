@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { isAdminOrExpertRequest } from "@/lib/expert-auth.server";
+import { resolveScoutAccess } from "@/lib/scout/owner.server";
 import { asScoutDb } from "@/lib/scout/db";
 
 function json(body: unknown, status = 200) {
@@ -15,8 +15,8 @@ export const Route = createFileRoute("/api/admin/scout-batches/$id")({
   server: {
     handlers: {
       GET: async ({ request, params }) => {
-        if (!(await isAdminOrExpertRequest(request)))
-          return json({ ok: false, error: "unauthorized" }, 401);
+        const access = await resolveScoutAccess(request);
+        if (!access) return json({ ok: false, error: "unauthorized" }, 401);
         if (!UUID.test(params.id)) return json({ ok: false, error: "invalid" }, 400);
         try {
           const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -26,6 +26,7 @@ export const Route = createFileRoute("/api/admin/scout-batches/$id")({
             .from("scout_batches")
             .select("*")
             .eq("id", params.id)
+            .eq("owner", access.owner)
             .maybeSingle();
           if (!batch) return json({ ok: false, error: "not_found" }, 404);
 
@@ -35,6 +36,8 @@ export const Route = createFileRoute("/api/admin/scout-batches/$id")({
               "*, scout_batch_books!inner(batch_id), scout_authors(*), scout_review_counts(platform, review_count, rating, verified), scout_prospects(id, status)",
             )
             .eq("scout_batch_books.batch_id", params.id)
+            // Only this workspace's own prospect status for each book.
+            .eq("scout_prospects.owner", access.owner)
             .order("discovered_at", { ascending: false });
           if (error) return json({ ok: false, error: "storage" }, 500);
 

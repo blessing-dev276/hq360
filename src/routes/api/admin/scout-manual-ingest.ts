@@ -2,7 +2,7 @@ import { canonicalUrl } from "@/lib/scout/normalize";
 import { amazonProduct } from "@/lib/scout/amazon-url";
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
-import { isAdminOrExpertRequest } from "@/lib/expert-auth.server";
+import { resolveScoutAccess } from "@/lib/scout/owner.server";
 import { asScoutDb, normalizedName, type ScoutAuthor, type ScoutBook } from "@/lib/scout/db";
 
 function json(body: unknown, status = 200) {
@@ -100,8 +100,8 @@ export const Route = createFileRoute("/api/admin/scout-manual-ingest")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        if (!(await isAdminOrExpertRequest(request)))
-          return json({ ok: false, error: "unauthorized" }, 401);
+        const access = await resolveScoutAccess(request);
+        if (!access) return json({ ok: false, error: "unauthorized" }, 401);
         let body: z.infer<typeof bodySchema>;
         try {
           body = bodySchema.parse(await request.json());
@@ -219,6 +219,8 @@ export const Route = createFileRoute("/api/admin/scout-manual-ingest")({
                 db.from("scout_batches").select("*").eq("id", newBatchId).maybeSingle(),
               )
             : { data: null };
+          if (existingBatch && (existingBatch as { owner?: string }).owner !== access.owner)
+            return json({ ok: false, error: "batch_not_found" }, 404);
           const existingItemCount =
             (existingBatch as { item_count: number } | null)?.item_count ?? 0;
           const { data: batch, error: batchErr } = await withDatabaseRetry(() =>
@@ -226,6 +228,7 @@ export const Route = createFileRoute("/api/admin/scout-manual-ingest")({
               .from("scout_batches")
               .upsert({
                 id: newBatchId,
+                owner: access.owner,
                 label:
                   (existingBatch as { label: string } | null)?.label ??
                   body.batchLabel ??

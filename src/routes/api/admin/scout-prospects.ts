@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
-import { isAdminOrExpertRequest } from "@/lib/expert-auth.server";
+import { canSeeAuthor, canSeeBook, resolveScoutAccess } from "@/lib/scout/owner.server";
 import { asScoutDb, type ScoutProspect } from "@/lib/scout/db";
 
 function json(body: unknown, status = 200) {
@@ -19,8 +19,8 @@ export const Route = createFileRoute("/api/admin/scout-prospects")({
   server: {
     handlers: {
       GET: async ({ request }) => {
-        if (!(await isAdminOrExpertRequest(request)))
-          return json({ ok: false, error: "unauthorized" }, 401);
+        const access = await resolveScoutAccess(request);
+        if (!access) return json({ ok: false, error: "unauthorized" }, 401);
         try {
           const url = new URL(request.url);
           const status = url.searchParams.get("status") ?? undefined;
@@ -31,6 +31,7 @@ export const Route = createFileRoute("/api/admin/scout-prospects")({
             .select(
               "*, scout_authors(*), scout_discovered_books(*, scout_review_counts(platform, review_count, rating, verified))",
             )
+            .eq("owner", access.owner)
             .order("created_at", { ascending: false });
           if (status) query = query.eq("status", status);
           const { data, error } = await query;
@@ -42,8 +43,8 @@ export const Route = createFileRoute("/api/admin/scout-prospects")({
         }
       },
       POST: async ({ request }) => {
-        if (!(await isAdminOrExpertRequest(request)))
-          return json({ ok: false, error: "unauthorized" }, 401);
+        const access = await resolveScoutAccess(request);
+        if (!access) return json({ ok: false, error: "unauthorized" }, 401);
         let body: z.infer<typeof createSchema>;
         try {
           body = createSchema.parse(await request.json());
@@ -57,9 +58,16 @@ export const Route = createFileRoute("/api/admin/scout-prospects")({
           // A prospect already marked excluded or do-not-contact for this
           // author must not be silently resurrected by a fresh save from
           // discovery -- surface it instead of inserting a duplicate.
+          // Only authors/books surfaced in this workspace's own batches can be saved.
+          const visible =
+            (await canSeeAuthor(db, access.owner, body.scoutAuthorId)) &&
+            (!body.bookId || (await canSeeBook(db, access.owner, body.bookId)));
+          if (!visible) return json({ ok: false, error: "not_found" }, 404);
+
           let dupeQuery = db
             .from("scout_prospects")
             .select("*")
+            .eq("owner", access.owner)
             .eq("scout_author_id", body.scoutAuthorId);
           dupeQuery = body.bookId
             ? dupeQuery.eq("book_id", body.bookId)
@@ -76,6 +84,7 @@ export const Route = createFileRoute("/api/admin/scout-prospects")({
           const { data: created, error } = await db
             .from("scout_prospects")
             .insert({
+              owner: access.owner,
               scout_author_id: body.scoutAuthorId,
               book_id: body.bookId ?? null,
               status: "new",

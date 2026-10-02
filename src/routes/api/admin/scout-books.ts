@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { isAdminOrExpertRequest } from "@/lib/expert-auth.server";
+import { resolveScoutAccess } from "@/lib/scout/owner.server";
 import { asScoutDb } from "@/lib/scout/db";
 
 function json(body: unknown, status = 200) {
@@ -15,8 +15,8 @@ export const Route = createFileRoute("/api/admin/scout-books")({
   server: {
     handlers: {
       GET: async ({ request }) => {
-        if (!(await isAdminOrExpertRequest(request)))
-          return json({ ok: false, error: "unauthorized" }, 401);
+        const access = await resolveScoutAccess(request);
+        if (!access) return json({ ok: false, error: "unauthorized" }, 401);
         try {
           const url = new URL(request.url);
           const page = Math.max(0, Number(url.searchParams.get("page") ?? "0") || 0);
@@ -38,9 +38,12 @@ export const Route = createFileRoute("/api/admin/scout-books")({
           let query = db
             .from("scout_discovered_books")
             .select(
-              "*, scout_authors(id, name, country, publishing_type, website_url, contact_email, contact_form_url), scout_review_counts(platform, review_count, rating, verified, retrieved_at), scout_prospects(id, status), scout_batches!batch_id(id, label, created_at)",
+              "*, scout_authors(id, name, country, publishing_type, website_url, contact_email, contact_form_url), scout_review_counts(platform, review_count, rating, verified, retrieved_at), scout_prospects(id, status, owner), scout_batch_books!inner(scout_batches!inner(id, label, created_at, owner))",
               { count: "exact" },
             )
+            // Only books in this workspace's own batches, with its own prospect status.
+            .eq("scout_batch_books.scout_batches.owner", access.owner)
+            .eq("scout_prospects.owner", access.owner)
             .order("discovered_at", { ascending: false })
             .range(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE - 1);
 
@@ -57,7 +60,15 @@ export const Route = createFileRoute("/api/admin/scout-books")({
           // prospect status filters cut across joined rows, which
           // PostgREST can't express cleanly in a single filtered query, so
           // they're applied in-process against the page just fetched.
-          let items = (data ?? []) as Array<Record<string, unknown>>;
+          let items: Array<Record<string, unknown>> = (
+            (data ?? []) as Array<Record<string, unknown>>
+          ).map(({ scout_batch_books, ...row }) => ({
+            ...row,
+            // Keep the previous single-batch shape, using this workspace's batch.
+            scout_batches:
+              (scout_batch_books as { scout_batches: unknown }[] | undefined)?.[0]?.scout_batches ??
+              null,
+          }));
           if (platform && (reviewMin || reviewMax)) {
             const min = reviewMin ? Number(reviewMin) : -Infinity;
             const max = reviewMax ? Number(reviewMax) : Infinity;

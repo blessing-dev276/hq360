@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
-import { isAdminOrExpertRequest } from "@/lib/expert-auth.server";
+import { resolveScoutAccess } from "@/lib/scout/owner.server";
 import { asScoutDb } from "@/lib/scout/db";
 
 function json(body: unknown, status = 200) {
@@ -25,8 +25,8 @@ export const Route = createFileRoute("/api/admin/scout-prospects/$id")({
   server: {
     handlers: {
       PATCH: async ({ request, params }) => {
-        if (!(await isAdminOrExpertRequest(request)))
-          return json({ ok: false, error: "unauthorized" }, 401);
+        const access = await resolveScoutAccess(request);
+        if (!access) return json({ ok: false, error: "unauthorized" }, 401);
         if (!UUID.test(params.id)) return json({ ok: false, error: "invalid" }, 400);
         let body: z.infer<typeof patchSchema>;
         try {
@@ -56,6 +56,7 @@ export const Route = createFileRoute("/api/admin/scout-prospects/$id")({
             .from("scout_prospects")
             .update(update)
             .eq("id", params.id)
+            .eq("owner", access.owner)
             .select("*")
             .single();
           if (error || !data) return json({ ok: false, error: "storage" }, 500);
@@ -69,13 +70,17 @@ export const Route = createFileRoute("/api/admin/scout-prospects/$id")({
         }
       },
       DELETE: async ({ request, params }) => {
-        if (!(await isAdminOrExpertRequest(request)))
-          return json({ ok: false, error: "unauthorized" }, 401);
+        const access = await resolveScoutAccess(request);
+        if (!access) return json({ ok: false, error: "unauthorized" }, 401);
         if (!UUID.test(params.id)) return json({ ok: false, error: "invalid" }, 400);
         try {
           const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
           const db = asScoutDb(supabaseAdmin);
-          const { error } = await db.from("scout_prospects").delete().eq("id", params.id);
+          const { error } = await db
+            .from("scout_prospects")
+            .delete()
+            .eq("id", params.id)
+            .eq("owner", access.owner);
           if (error) return json({ ok: false, error: "storage" }, 500);
           return json({ ok: true });
         } catch (err) {

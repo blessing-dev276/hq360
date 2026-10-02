@@ -1,13 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { isAdminOrExpertRequest } from "@/lib/expert-auth.server";
+import { resolveScoutAccess } from "@/lib/scout/owner.server";
 import { asScoutDb } from "@/lib/scout/db";
 import { z } from "zod";
 export const Route = createFileRoute("/api/admin/scout-audience-batches/$id")({
   server: {
     handlers: {
       GET: async ({ request, params }) => {
-        if (!(await isAdminOrExpertRequest(request)))
-          return Response.json({ ok: false, error: "unauthorized" }, { status: 401 });
+        const access = await resolveScoutAccess(request);
+        if (!access) return Response.json({ ok: false, error: "unauthorized" }, { status: 401 });
         if (!z.string().uuid().safeParse(params.id).success)
           return Response.json({ ok: false, message: "Invalid batch." }, { status: 400 });
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -16,6 +16,7 @@ export const Route = createFileRoute("/api/admin/scout-audience-batches/$id")({
           .from("scout_audience_batches")
           .select("*")
           .eq("id", params.id)
+          .eq("owner", access.owner)
           .maybeSingle();
         if (batchError)
           return Response.json(
@@ -34,8 +35,26 @@ export const Route = createFileRoute("/api/admin/scout-audience-batches/$id")({
             { ok: false, message: "Could not load batch leads." },
             { status: 503 },
           );
+        const { data: shortlist } = await db
+          .from("scout_audience_shortlist")
+          .select("lead_id")
+          .eq("owner", access.owner)
+          .in(
+            "lead_id",
+            (data ?? []).map((lead: { id: string }) => lead.id),
+          );
+        const shortlisted = new Set(
+          (shortlist ?? []).map((row: { lead_id: string }) => row.lead_id),
+        );
         return Response.json(
-          { ok: true, batch, items: data ?? [] },
+          {
+            ok: true,
+            batch,
+            items: (data ?? []).map((lead: { id: string }) => ({
+              ...lead,
+              shortlisted: shortlisted.has(lead.id),
+            })),
+          },
           { headers: { "Cache-Control": "no-store" } },
         );
       },

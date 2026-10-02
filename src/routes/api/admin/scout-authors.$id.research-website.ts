@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
-import { isAdminOrExpertRequest } from "@/lib/expert-auth.server";
+import { canSeeAuthor, resolveScoutAccess } from "@/lib/scout/owner.server";
 import { asScoutDb, type ScoutAuthor } from "@/lib/scout/db";
 import { researchAuthorWebsite } from "@/lib/scout/adapters/website-research";
 
@@ -18,8 +18,8 @@ export const Route = createFileRoute("/api/admin/scout-authors/$id/research-webs
   server: {
     handlers: {
       POST: async ({ request, params }) => {
-        if (!(await isAdminOrExpertRequest(request)))
-          return json({ ok: false, error: "unauthorized" }, 401);
+        const access = await resolveScoutAccess(request);
+        if (!access) return json({ ok: false, error: "unauthorized" }, 401);
         if (!UUID.test(params.id)) return json({ ok: false, error: "invalid" }, 400);
         let body: z.infer<typeof bodySchema>;
         try {
@@ -31,6 +31,8 @@ export const Route = createFileRoute("/api/admin/scout-authors/$id/research-webs
         try {
           const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
           const db = asScoutDb(supabaseAdmin);
+          if (!(await canSeeAuthor(db, access.owner, params.id)))
+            return json({ ok: false, error: "not_found" }, 404);
 
           const { data: authorRow } = await db
             .from("scout_authors")

@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { isAdminOrExpertRequest } from "@/lib/expert-auth.server";
+import { canSeeAudienceLead, resolveScoutAccess } from "@/lib/scout/owner.server";
 import { asScoutDb } from "@/lib/scout/db";
 import {
   publicResultUrl,
@@ -14,8 +14,8 @@ export const Route = createFileRoute("/api/admin/scout-audience-leads/$id")({
   server: {
     handlers: {
       POST: async ({ request, params }) => {
-        if (!(await isAdminOrExpertRequest(request)))
-          return json({ ok: false, error: "unauthorized" }, 401);
+        const access = await resolveScoutAccess(request);
+        if (!access) return json({ ok: false, error: "unauthorized" }, 401);
         const parsed = z
           .object({ action: z.enum(["find-email", "verify-email", "shortlist"]) })
           .safeParse(await request.json().catch(() => null));
@@ -29,21 +29,43 @@ export const Route = createFileRoute("/api/admin/scout-audience-leads/$id")({
           .eq("id", params.id)
           .maybeSingle();
         if (error) return json({ ok: false, message: "Could not load this lead." }, 503);
-        if (!lead) return json({ ok: false, message: "Lead not found." }, 404);
+        if (!lead || !(await canSeeAudienceLead(db, access.owner, params.id)))
+          return json({ ok: false, message: "Lead not found." }, 404);
+        const withShortlist = async (item: Record<string, unknown>) => {
+          const { data: entry } = await db
+            .from("scout_audience_shortlist")
+            .select("lead_id")
+            .eq("owner", access.owner)
+            .eq("lead_id", params.id)
+            .maybeSingle();
+          return { ...item, shortlisted: Boolean(entry) };
+        };
+        if (parsed.data.action === "shortlist") {
+          // Shortlists are per workspace, not a flag on the shared lead.
+          const { error: shortlistError } = await db
+            .from("scout_audience_shortlist")
+            .upsert({ owner: access.owner, lead_id: params.id }, { ignoreDuplicates: true });
+          if (shortlistError)
+            return json({ ok: false, message: "Could not save this lead. Retry." }, 503);
+          return json({ ok: true, item: await withShortlist(lead) });
+        }
         let updates: Record<string, unknown>;
-        if (parsed.data.action === "shortlist") updates = { shortlisted: true };
-        else if (parsed.data.action === "verify-email") {
+        if (parsed.data.action === "verify-email") {
           if (!lead.contact_email)
             return json({ ok: false, message: "Find an email before verifying it." }, 400);
           updates = { contact_status: "verified" };
         } else {
           if (lead.contact_email)
-            return json({ ok: true, item: lead, message: "An email is already saved." });
+            return json({
+              ok: true,
+              item: await withShortlist(lead),
+              message: "An email is already saved.",
+            });
           const website = publicResultUrl(lead.website_url);
           if (!website)
             return json({
               ok: true,
-              item: lead,
+              item: await withShortlist(lead),
               message: "No website is listed for this lead. No email search was run.",
             });
           try {
@@ -51,7 +73,7 @@ export const Route = createFileRoute("/api/admin/scout-audience-leads/$id")({
             if (!scope)
               return json({
                 ok: true,
-                item: lead,
+                item: await withShortlist(lead),
                 message:
                   "This is a directory homepage. Open the listing to identify a specific business website.",
               });
@@ -63,7 +85,7 @@ export const Route = createFileRoute("/api/admin/scout-audience-leads/$id")({
             if (!found)
               return json({
                 ok: true,
-                item: lead,
+                item: await withShortlist(lead),
                 message: "No publicly indexed email was found on this website.",
               });
             updates = {
@@ -97,7 +119,7 @@ export const Route = createFileRoute("/api/admin/scout-audience-leads/$id")({
           .single();
         if (readError)
           return json({ ok: false, message: "Lead saved. Reopen the batch to refresh." }, 503);
-        return json({ ok: true, item });
+        return json({ ok: true, item: await withShortlist(item) });
       },
     },
   },

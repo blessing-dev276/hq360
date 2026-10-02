@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
-import { isAdminOrExpertRequest } from "@/lib/expert-auth.server";
+import { ownsBatch, resolveScoutAccess } from "@/lib/scout/owner.server";
 import { asScoutDb } from "@/lib/scout/db";
 import { ARC_SOURCES, isArcSource } from "@/lib/scout/arc-sources";
 const json = (body: unknown, status = 200) => Response.json(body, { status });
@@ -8,7 +8,8 @@ export const Route = createFileRoute("/api/admin/scout-arc-discovery")({
   server: {
     handlers: {
       GET: async ({ request }) => {
-        if (!(await isAdminOrExpertRequest(request))) return json({ error: "unauthorized" }, 401);
+        const access = await resolveScoutAccess(request);
+        if (!access) return json({ error: "unauthorized" }, 401);
         const params = new URL(request.url).searchParams,
           source = params.get("source") ?? "",
           id = params.get("batchId");
@@ -18,6 +19,8 @@ export const Route = createFileRoute("/api/admin/scout-arc-discovery")({
           const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
           const db = asScoutDb(supabaseAdmin);
           if (id) {
+            if (!(await ownsBatch(db, access.owner, id)))
+              return json({ error: "Batch not found." }, 404);
             const result = await db
               .from("scout_arc_listings")
               .select("*")
@@ -30,6 +33,7 @@ export const Route = createFileRoute("/api/admin/scout-arc-discovery")({
             .from("scout_batches")
             .select("id,label,created_at,sources,item_count")
             .contains("sources", [source])
+            .eq("owner", access.owner)
             .order("created_at", { ascending: false });
           if (result.error) throw result.error;
           return json({ items: result.data });
@@ -38,7 +42,8 @@ export const Route = createFileRoute("/api/admin/scout-arc-discovery")({
         }
       },
       POST: async ({ request }) => {
-        if (!(await isAdminOrExpertRequest(request))) return json({ error: "unauthorized" }, 401);
+        const access = await resolveScoutAccess(request);
+        if (!access) return json({ error: "unauthorized" }, 401);
         const { arcSearchSchema, discoverArc } = await import("@/lib/scout/arc-discovery.server");
         const parsed = arcSearchSchema.safeParse(await request.json().catch(() => null));
         if (!parsed.success)
@@ -54,6 +59,8 @@ export const Route = createFileRoute("/api/admin/scout-arc-discovery")({
             .maybeSingle();
           if (prior.error) throw prior.error;
           if (prior.data) {
+            if (prior.data.owner !== access.owner)
+              return json({ error: "Start a new search." }, 409);
             if (!prior.data.sources.includes(input.source))
               return json({ error: "Request already used for another source." }, 409);
             return json({ batch: prior.data, message: "Saved batch restored." });
@@ -88,6 +95,12 @@ export const Route = createFileRoute("/api/admin/scout-arc-discovery")({
             p_items: found.items,
           });
           if (saved.error) throw saved.error;
+          // The save RPC is shared; claim the new batch for this workspace.
+          const claimed = await db
+            .from("scout_batches")
+            .update({ owner: access.owner })
+            .eq("id", input.requestId);
+          if (claimed.error) throw claimed.error;
           return json({
             batch: {
               id: input.requestId,
@@ -106,7 +119,8 @@ export const Route = createFileRoute("/api/admin/scout-arc-discovery")({
         }
       },
       PATCH: async ({ request }) => {
-        if (!(await isAdminOrExpertRequest(request))) return json({ error: "unauthorized" }, 401);
+        const access = await resolveScoutAccess(request);
+        if (!access) return json({ error: "unauthorized" }, 401);
         const body = z
           .object({ listingId: z.string().uuid(), bookId: z.string().uuid() })
           .safeParse(await request.json().catch(() => null));
@@ -120,6 +134,8 @@ export const Route = createFileRoute("/api/admin/scout-arc-discovery")({
             .eq("id", body.data.listingId)
             .single();
           if (listing.error) throw listing.error;
+          if (!(await ownsBatch(db, access.owner, listing.data.batch_id)))
+            return json({ error: "Listing not found." }, 404);
           const book = await db
             .from("scout_discovered_books")
             .select("id,source_slug,source_url")

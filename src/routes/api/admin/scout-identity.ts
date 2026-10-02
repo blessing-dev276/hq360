@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { isAdminOrExpertRequest } from "@/lib/expert-auth.server";
+import { isAdminRequest } from "@/lib/admin-auth.server";
 import { asScoutDb } from "@/lib/scout/db";
 import { z } from "zod";
 const schema = z.object({
@@ -12,8 +12,7 @@ export const Route = createFileRoute("/api/admin/scout-identity")({
   server: {
     handlers: {
       GET: async ({ request }) => {
-        if (!(await isAdminOrExpertRequest(request)))
-          return Response.json({ ok: false }, { status: 401 });
+        if (!(await isAdminRequest(request))) return Response.json({ ok: false }, { status: 401 });
         try {
           const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
           const db = asScoutDb(supabaseAdmin);
@@ -40,8 +39,7 @@ export const Route = createFileRoute("/api/admin/scout-identity")({
         }
       },
       POST: async ({ request }) => {
-        if (!(await isAdminOrExpertRequest(request)))
-          return Response.json({ ok: false }, { status: 401 });
+        if (!(await isAdminRequest(request))) return Response.json({ ok: false }, { status: 401 });
         const parsed = schema.safeParse(await request.json().catch(() => null));
         if (!parsed.success)
           return Response.json(

@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { createFileRoute } from "@tanstack/react-router";
-import { isAdminOrExpertRequest } from "@/lib/expert-auth.server";
+import { resolveScoutAccess } from "@/lib/scout/owner.server";
 import { asScoutDb, type ScoutBatch } from "@/lib/scout/db";
 
 function json(body: unknown, status = 200) {
@@ -14,8 +14,8 @@ export const Route = createFileRoute("/api/admin/scout-batches")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        if (!(await isAdminOrExpertRequest(request)))
-          return json({ ok: false, error: "unauthorized" }, 401);
+        const access = await resolveScoutAccess(request);
+        if (!access) return json({ ok: false, error: "unauthorized" }, 401);
         const parsed = z
           .object({
             label: z.string().trim().min(1).max(200),
@@ -30,6 +30,7 @@ export const Route = createFileRoute("/api/admin/scout-batches")({
           const { data, error } = await asScoutDb(supabaseAdmin)
             .from("scout_batches")
             .insert({
+              owner: access.owner,
               label: parsed.data.label,
               sources: [parsed.data.source],
               genre: parsed.data.genre ?? null,
@@ -45,14 +46,15 @@ export const Route = createFileRoute("/api/admin/scout-batches")({
         }
       },
       GET: async ({ request }) => {
-        if (!(await isAdminOrExpertRequest(request)))
-          return json({ ok: false, error: "unauthorized" }, 401);
+        const access = await resolveScoutAccess(request);
+        if (!access) return json({ ok: false, error: "unauthorized" }, 401);
         try {
           const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
           const db = asScoutDb(supabaseAdmin);
           const { data, error } = await db
             .from("scout_batches")
             .select("*, scout_batch_books(count)")
+            .eq("owner", access.owner)
             .order("created_at", { ascending: false });
           if (error) return json({ ok: false, error: "storage" }, 500);
           return json({

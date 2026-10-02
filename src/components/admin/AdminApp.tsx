@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { PaymentsAdmin } from "./PaymentsAdmin";
+import { AdminDashboard } from "./AdminDashboard";
 import { LeadsAdmin } from "./LeadsAdmin";
 import "./admin-workspace.css";
 
@@ -165,9 +166,9 @@ const NAV = [
   },
   {
     id: "overview",
-    label: "Leads & Follow-ups",
+    label: "Dashboard",
     icon: LayoutDashboard,
-    description: "Review needs, assign ownership and keep the next conversation moving.",
+    description: "Everything happening across HQ360, at a glance.",
   },
   {
     id: "payments",
@@ -297,7 +298,7 @@ export function AdminApp({ initialTab = "overview" }: { initialTab?: Tab }) {
           {tab === "scout" ? (
             <ScoutApp />
           ) : tab === "overview" ? (
-            <LeadsAdmin />
+            <AdminDashboard onNavigate={navigate} />
           ) : tab === "projects" ? (
             <LeadsAdmin projects />
           ) : tab === "payments" ? (

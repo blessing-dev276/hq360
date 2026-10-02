@@ -33,7 +33,8 @@ export const Route = createFileRoute("/api/expert/photo-url")({
           if (error || !data) return json({ error: "Photo storage is unavailable." }, 503);
           const base = process.env.SUPABASE_URL!.replace(/\/$/, "");
           return json({
-            uploadUrl: `${base}${data.signedUrl}`,
+            // storage-js may return a full URL or a path; resolve either against base.
+            uploadUrl: new URL(data.signedUrl, base).href,
             publicUrl: bucket.getPublicUrl(path).data.publicUrl,
           });
         } catch {

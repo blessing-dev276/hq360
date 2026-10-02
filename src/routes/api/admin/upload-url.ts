@@ -67,7 +67,8 @@ export const Route = createFileRoute("/api/admin/upload-url")({
             ok: true,
             path,
             token: data.token,
-            uploadUrl: `${base}${data.signedUrl}`,
+            // storage-js may return a full URL or a path; resolve either against base.
+            uploadUrl: new URL(data.signedUrl, base).href,
             publicUrl: pub.publicUrl,
           });
         } catch (err) {

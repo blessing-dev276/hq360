@@ -153,19 +153,25 @@ export async function issueInvoice(invoice: Invoice) {
   if (invoice.provider_invoice_id) return invoice;
   // Validate local configuration before claiming the one-shot provider request.
   mod.assertReady(invoice.environment);
-  const claim = db()
-    .update({ issue_locked_at: new Date().toISOString() })
-    .eq("id", invoice.id)
-    .is("provider_invoice_id", null);
   // Flutterwave payments are keyed by our own tx_ref (the invoice id), so a
   // retry can't create a second payable record; a lock left by a crashed or
   // rejected attempt may be reclaimed once it's stale. Other providers stay
   // one-shot until reconciled by hand.
-  const staleBefore = new Date(Date.now() - 2 * 60 * 1000).toISOString();
+  const current = await db()
+    .select("issue_locked_at")
+    .eq("id", invoice.id)
+    .maybeSingle<{ issue_locked_at: string | null }>();
+  const lockedAt = current.data?.issue_locked_at ?? null;
+  const stale =
+    invoice.provider === "flutterwave" &&
+    lockedAt !== null &&
+    Date.now() - new Date(lockedAt).getTime() > 60 * 1000;
+  const claim = db()
+    .update({ issue_locked_at: new Date().toISOString() })
+    .eq("id", invoice.id)
+    .is("provider_invoice_id", null);
   const { data, error } = await (
-    invoice.provider === "flutterwave"
-      ? claim.or(`issue_locked_at.is.null,issue_locked_at.lt.${staleBefore}`)
-      : claim.is("issue_locked_at", null)
+    stale && lockedAt ? claim.eq("issue_locked_at", lockedAt) : claim.is("issue_locked_at", null)
   ).select("id");
   if (error || !data?.length)
     throw new Error(

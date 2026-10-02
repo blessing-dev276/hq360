@@ -29,18 +29,20 @@ or interest in commercial services. Review counts remain unknown.
 ## Batch workflow
 
 1. Pick a source and filters, then search to save a discovery batch.
-2. Open the batch dropdown. Follow a listing’s source link and confirm its book
-   title, author name and optional publication date.
-3. Save the author; incomplete listings remain in the discovery batch.
+2. Authors with a name and book title save automatically, with progress shown.
+   Missing publication dates do not block saving. Discovery metadata remains
+   unverified; saving does not confirm identity or contact details.
+3. **Save all ready authors** saves complete records from existing batches and
+   retries unsuccessful saves. Incomplete listings remain visible; only missing
+   names or titles need to be supplied.
 4. Open **author details & batch email discovery** to use the existing author
-   cards, entire-batch email search, verification and CSV export. Only confirmed
-   author records participate in email discovery. Found addresses remain
-   unverified until confirmed; this action does not send messages.
+   cards, entire-batch email search, verification and CSV export. Found addresses
+   remain unverified until confirmed; this action does not send messages.
 
 The new API uses the existing Admin-or-Expert authorization gate. Discovery
 records have RLS and no anonymous/authenticated database grants. The service-role
 RPC saves a batch and its listings atomically. Retrying the same request ID
-restores its batch; a new search creates a separate batch. Author confirmation
+restores its batch; a new search creates a separate batch. Automatic author saving
 uses the existing manual ingest flow; retrying a failed link step reuses its
 saved author/book. Discovery batch counts describe listings; author batch views
 count saved books.

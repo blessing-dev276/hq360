@@ -74,6 +74,8 @@ function Listing({
         <p className="mt-4 text-sm font-medium text-brand">
           Author saved to {batch.label}. Open author details below for email discovery.
         </p>
+      ) : item.title.trim() && item.author_name?.trim() ? (
+        <p className="mt-4 text-sm text-muted-foreground">Ready to save with the batch.</p>
       ) : (
         <form
           className="mt-4 space-y-3"
@@ -83,7 +85,7 @@ function Listing({
           }}
         >
           <p className="text-xs text-muted-foreground">
-            Check the source page, then confirm the author and book details.
+            Add the missing details to save this author.
           </p>
           <div className="grid gap-3 sm:grid-cols-3">
             <label className="text-sm">
@@ -120,7 +122,7 @@ function Listing({
             </label>
           </div>
           <button className={button} disabled={disabled || !title.trim() || !author.trim()}>
-            Confirm and save author
+            Save author details
           </button>
         </form>
       )}
@@ -146,6 +148,7 @@ export function ArcScout({
     [selected, setSelected] = useState(""),
     [items, setItems] = useState<ArcListing[]>([]),
     [busy, setBusy] = useState(""),
+    [progress, setProgress] = useState<{ done: number; total: number } | undefined>(),
     [batchesLoading, setBatchesLoading] = useState(true),
     [detailsLoading, setDetailsLoading] = useState(false),
     [error, setError] = useState(""),
@@ -225,10 +228,14 @@ export function ArcScout({
         ...values,
         requestId: retry.current.id,
       });
+      const discovered = await api<{ items: ArcListing[] }>(
+        `${endpoint}?source=${source}&batchId=${result.batch.id}`,
+      );
+      const summary = await saveReady(discovered.items, result.batch);
       retry.current = null;
       setBatches((current) => [result.batch, ...current.filter((b) => b.id !== result.batch.id)]);
       setSelected(result.batch.id);
-      setNotice(result.message);
+      setNotice(`${result.message} ${summary}`);
       setReload((n) => n + 1);
     } catch (e) {
       setError((e as Error).message);
@@ -236,31 +243,86 @@ export function ArcScout({
       setBusy("");
     }
   }
+  async function persistAuthor(
+    item: ArcListing,
+    target: ArcBatch,
+    values: { title: string; author: string; date: string },
+  ) {
+    const result = await api<{ item: { book: { id: string } } }>(
+      "/api/admin/scout-manual-ingest",
+      "POST",
+      {
+        sourceSlug: source,
+        sourceUrl: item.source_url,
+        bookUrl: item.source_url,
+        bookTitle: values.title.trim(),
+        authorName: values.author.trim(),
+        ...(values.date ? { publicationDate: values.date } : {}),
+        ...(item.genre ? { genre: item.genre } : {}),
+        description: item.evidence,
+        batchId: target.id,
+        batchLabel: target.label,
+      },
+    );
+    await api(endpoint, "PATCH", { listingId: item.id, bookId: result.item.book.id });
+    setItems((current) =>
+      current.map((row) =>
+        row.id === item.id
+          ? {
+              ...row,
+              book_id: result.item.book.id,
+              title: values.title,
+              author_name: values.author,
+              publication_date: values.date || null,
+            }
+          : row,
+      ),
+    );
+  }
+  async function saveReady(rows: ArcListing[], target: ArcBatch) {
+    const pending = rows.filter(
+      (item) => !item.book_id && item.title.trim() && item.author_name?.trim(),
+    );
+    const incomplete = rows.filter(
+      (item) => !item.book_id && (!item.title.trim() || !item.author_name?.trim()),
+    ).length;
+    let saved = 0,
+      failed = 0;
+    setProgress({ done: 0, total: pending.length });
+    for (const [index, item] of pending.entries()) {
+      setBusy(`Saving authors ${index + 1} of ${pending.length}…`);
+      try {
+        await persistAuthor(item, target, {
+          title: item.title,
+          author: item.author_name!,
+          date: item.publication_date ?? "",
+        });
+        saved++;
+      } catch {
+        failed++;
+      }
+      setProgress({ done: index + 1, total: pending.length });
+    }
+    setProgress(undefined);
+    return `${saved} authors saved automatically.${incomplete ? ` ${incomplete} listings need a name or book title.` : ""}${failed ? ` ${failed} could not be saved. Use Save all ready authors to retry.` : ""}`;
+  }
+  async function saveBatch() {
+    if (!batch || busy) return;
+    setBusy("Saving batch authors…");
+    setError("");
+    try {
+      setNotice(await saveReady(items, batch));
+    } finally {
+      setBusy("");
+      setProgress(undefined);
+    }
+  }
   async function save(item: ArcListing, values: { title: string; author: string; date: string }) {
     if (!batch) return;
     setBusy("Saving author details…");
     setError("");
     try {
-      const result = await api<{ item: { book: { id: string } } }>(
-        "/api/admin/scout-manual-ingest",
-        "POST",
-        {
-          sourceSlug: source,
-          sourceUrl: item.source_url,
-          bookUrl: item.source_url,
-          bookTitle: values.title.trim(),
-          authorName: values.author.trim(),
-          ...(values.date ? { publicationDate: values.date } : {}),
-          ...(item.genre ? { genre: item.genre } : {}),
-          description: item.evidence,
-          batchId: batch.id,
-          batchLabel: batch.label,
-        },
-      );
-      await api(endpoint, "PATCH", { listingId: item.id, bookId: result.item.book.id });
-      setItems((current) =>
-        current.map((row) => (row.id === item.id ? { ...row, book_id: result.item.book.id } : row)),
-      );
+      await persistAuthor(item, batch, values);
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -404,7 +466,7 @@ export function ArcScout({
           {notice}
         </p>
       )}
-      {busy && <GlassLoading label={busy} cards />}
+      {busy && <GlassLoading label={busy} progress={progress} cards />}
       <section className="space-y-4">
         <label className="block text-sm font-medium">
           Batch
@@ -423,6 +485,20 @@ export function ArcScout({
             ))}
           </select>
         </label>
+        <p className="text-sm text-muted-foreground">
+          Authors with a name and book title are saved automatically after each search. Missing
+          dates do not block saving.
+        </p>
+        {batch &&
+          items.some((item) => !item.book_id && item.title.trim() && item.author_name?.trim()) && (
+            <button
+              className={button}
+              disabled={!!busy || loading}
+              onClick={() => void saveBatch()}
+            >
+              Save all ready authors
+            </button>
+          )}
         {loading ? (
           <GlassLoading label="Loading saved discoveries…" cards />
         ) : items.length && batch ? (

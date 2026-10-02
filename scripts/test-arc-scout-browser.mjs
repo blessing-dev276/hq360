@@ -56,7 +56,7 @@ await page.route("**/api/admin/scout-arc-discovery**", async (route) => {
       source: body.source,
       source_url: body.listingUrl || "https://www.netgalley.com/catalog/book/123",
       title: body.listingUrl ? "" : "Fixture Book",
-      author_name: null,
+      author_name: body.listingUrl ? null : "Fixture Author",
       publication_date: null,
       genre: null,
       evidence: "A public listing",
@@ -107,7 +107,7 @@ try {
   await page.getByRole("button", { name: "Search and create batch" }).click();
   await expect(page.getByRole("status").filter({ hasText: "Discovering NetGalley" })).toBeVisible();
   await expect(
-    page.getByText("Author unknown · Publication date unknown · Review count unknown", {
+    page.getByText("Fixture Author · Publication date unknown · Review count unknown", {
       exact: true,
     }),
   ).toBeVisible();
@@ -117,9 +117,8 @@ try {
     from: "2026-10-01",
     includeUnknown: true,
   });
-  await expect(page.getByRole("button", { name: "Confirm and save author" })).toBeDisabled();
-  await page.getByLabel("Author name", { exact: true }).fill("Fixture Author");
-  await page.getByRole("button", { name: "Confirm and save author" }).click();
+  await expect(page.getByRole("button", { name: "Save author details" })).toHaveCount(0);
+  await expect(page.getByText(/1 authors saved automatically/)).toBeVisible();
   await expect(
     page.getByRole("button", { name: "Open author details & batch email discovery" }),
   ).toBeVisible();
@@ -137,9 +136,20 @@ try {
     .fill("https://booksprout.co/reviewer/review-copy/view/123/test-book");
   await page.getByRole("button", { name: "Add to new batch" }).click();
   await expect(page.getByRole("heading", { name: "Book details needed" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Save author details" })).toBeDisabled();
+  const incomplete = listings.get(batches[0].id)[0];
+  expect(incomplete.book_id).toBeNull();
+  // Simulate an older complete listing or an interrupted automatic save.
+  incomplete.title = "Recovered Book";
+  incomplete.author_name = "Recovered Author";
+  await page.getByLabel("Review source", { exact: true }).selectOption("netgalley");
+  await page.getByLabel("Review source", { exact: true }).selectOption("booksprout");
+  await page.getByRole("button", { name: "Save all ready authors" }).click();
+  await expect(page.getByText(/Author saved to/)).toBeVisible();
+  expect(incomplete.book_id).toBeTruthy();
   expect(errors).toEqual([]);
   console.log(
-    "ARC browser checks passed: sources, filters, glass loading, saved batches, confirmation, email handoff and manual links.",
+    "ARC browser checks passed: sources, filters, glass loading, saved batches, automatic saving, batch recovery, email handoff and manual links.",
   );
 } catch (error) {
   console.error((await page.locator("body").innerText()).slice(0, 6000));

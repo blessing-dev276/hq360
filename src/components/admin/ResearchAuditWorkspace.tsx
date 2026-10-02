@@ -1125,14 +1125,20 @@ export function ResearchAuditWorkspace({
                     alt={a.caption || "Listopia evidence"}
                   />
                 ))}
-              <a
-                href={l.list_url}
-                target="_blank"
-                rel="noreferrer"
-                className="text-sm text-brand underline"
-              >
-                Open list ↗
-              </a>
+              {l.list_url ? (
+                <a
+                  href={l.list_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-sm text-brand underline"
+                >
+                  Open list ↗
+                </a>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  List URL unknown. Add it when you verify this list.
+                </p>
+              )}
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                 {[
                   ["Current position", l.position === null ? "Unknown" : `#${l.position}`],

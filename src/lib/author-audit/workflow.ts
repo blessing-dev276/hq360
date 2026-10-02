@@ -93,7 +93,8 @@ export const findingInput = z
 export const listopiaInput = z
   .object({
     list_name: text.min(1).max(300),
-    list_url: safeUrl,
+    // Empty when the research couldn't find the list's URL.
+    list_url: safeUrl.or(z.literal("")).default(""),
     book_present: z.boolean().nullable().default(null),
     position: z.number().int().positive().nullable().default(null),
     page: z.number().int().positive().nullable().default(null),
@@ -259,6 +260,89 @@ export function narrativeText(value: unknown): string {
   return "";
 }
 const normalized = (s: string) => s.normalize("NFKC").trim().replace(/\s+/g, " ").toLowerCase();
+const PRIORITY_ALIASES: Record<string, string> = {
+  critical: "immediate",
+  urgent: "immediate",
+  high: "high_impact",
+  high_priority: "high_impact",
+  medium: "medium_priority",
+  normal: "medium_priority",
+  low: "optional",
+  low_priority: "optional",
+  long: "long_term",
+  long_term_priority: "long_term",
+};
+const HORIZON_ALIASES: Record<string, string> = {
+  immediate: "do_first",
+  now: "do_first",
+  first: "do_first",
+  "30_days": "next_30_days",
+  next_30: "next_30_days",
+  "90_days": "next_90_days",
+  next_90: "next_90_days",
+  longer_term: "long_term",
+};
+const slugValue = (v: unknown) =>
+  typeof v === "string"
+    ? v
+        .trim()
+        .toLowerCase()
+        .replace(/[\s-]+/g, "_")
+    : v;
+const isObj = (v: unknown): v is Record<string, unknown> =>
+  Boolean(v) && typeof v === "object" && !Array.isArray(v);
+
+/** Map common AI phrasings onto the import schema before strict validation,
+ *  e.g. `priority: "high_priority"`, action items as {order, action, reason}
+ *  and queue items as {item, reason}. Only renames known aliases; anything
+ *  else still fails validation with a precise error. */
+export function normalizeResearch(value: unknown): unknown {
+  if (!isObj(value)) return value;
+  const out: Record<string, unknown> = { ...value };
+  if (Array.isArray(out.audit_findings))
+    out.audit_findings = out.audit_findings.map((f) => {
+      if (!isObj(f)) return f;
+      const p = slugValue(f.priority);
+      return typeof p === "string" ? { ...f, priority: PRIORITY_ALIASES[p] ?? p } : f;
+    });
+  if (Array.isArray(out.goodreads_listopia_audit))
+    out.goodreads_listopia_audit = out.goodreads_listopia_audit.map((l) =>
+      isObj(l) && l.list_url === null ? { ...l, list_url: "" } : l,
+    );
+  if (Array.isArray(out.priority_action_plan)) {
+    const order = (a: unknown) => (isObj(a) && typeof a.order === "number" ? a.order : Infinity);
+    out.priority_action_plan = [...out.priority_action_plan]
+      .sort((a, b) => order(a) - order(b))
+      .map((a) => {
+        if (!isObj(a)) return a;
+        const { order: _order, action, reason, timeframe, ...rest } = a;
+        const horizon = slugValue(rest.horizon ?? timeframe);
+        return {
+          ...rest,
+          title: rest.title ?? action,
+          ...(rest.description === undefined && reason !== undefined
+            ? { description: reason }
+            : {}),
+          ...(typeof horizon === "string" ? { horizon: HORIZON_ALIASES[horizon] ?? horizon } : {}),
+        };
+      });
+  }
+  for (const key of ["manual_review_queue", "screenshot_queue"] as const)
+    if (Array.isArray(out[key]))
+      out[key] = (out[key] as unknown[]).map((t) => {
+        if (!isObj(t)) return t;
+        const { item, reason, capture, ...rest } = t;
+        return {
+          ...rest,
+          title: rest.title ?? item ?? capture,
+          ...(rest.instructions === undefined && reason !== undefined
+            ? { instructions: reason }
+            : {}),
+        };
+      });
+  return out;
+}
+
 export function validateResearch(
   raw: string,
   expected: { id: string; author: string; book: string },
@@ -267,7 +351,7 @@ export function validateResearch(
   const errors: string[] = [];
   let value: unknown;
   try {
-    value = JSON.parse(raw);
+    value = normalizeResearch(JSON.parse(raw));
   } catch (e) {
     return { valid: false as const, errors: [`JSON syntax: ${(e as Error).message}`] };
   }
@@ -447,7 +531,7 @@ export function reviewIssues(
     .forEach((a) => errors.push(`Action references unapproved or hidden findings: ${a.title}`));
   return errors;
 }
-export const DEFAULT_PROMPT = `You are researching an evidence-led HQ360 book visibility consultancy audit. Return valid JSON only: no Markdown fences, HTML, scripts or invented evidence. Research public sources deeply. Distinguish verified_fact, direct_observation, supported_inference, possible_opportunity and unknown. Never treat lack of search results as proof of absence. Do not assume Listopia ranking algorithms or an author's interest in services. Cite exact source URLs and retrieval dates in evidence. Never invent screenshots; request specific captures in screenshot_queue. Unknown metrics must be null. Include strengths and services_not_to_pitch. Recommend only relevant services supported by evidence. All output is a research draft requiring human review.\n\nAudit: {{audit_id}}\nAuthor: {{author_name}}\nBook: {{book_title}}\nDate: {{date}}\nURLs and notes: {{context}}\n\nUse this exact JSON shape (all keys are required; narrative sections may be null or plain-text objects, queues may be empty). Each finding requires a title, category, what_we_found; use the demonstrated remaining fields. No review/approval/publication flags.\n{{schema}}`;
+export const DEFAULT_PROMPT = `You are researching an evidence-led HQ360 book visibility consultancy audit. Return valid JSON only: no Markdown fences, HTML, scripts or invented evidence. Research public sources deeply. Distinguish verified_fact, direct_observation, supported_inference, possible_opportunity and unknown. Never treat lack of search results as proof of absence. Do not assume Listopia ranking algorithms or an author's interest in services. Cite exact source URLs and retrieval dates in evidence. Never invent screenshots; request specific captures in screenshot_queue. Unknown metrics must be null. Include strengths and services_not_to_pitch. Recommend only relevant services supported by evidence. All output is a research draft requiring human review.\n\nAudit: {{audit_id}}\nAuthor: {{author_name}}\nBook: {{book_title}}\nDate: {{date}}\nURLs and notes: {{context}}\n\nUse this exact JSON shape (all keys are required; narrative sections may be null or plain-text objects, queues may be empty). Each finding requires a title, category, what_we_found; use the demonstrated remaining fields. No review/approval/publication flags. Use exactly these values -- priority: immediate, high_impact, medium_priority, long_term or optional; classification: verified_fact, direct_observation, supported_inference, possible_opportunity or unknown; horizon: do_first, next_30_days, next_90_days or long_term; competition: low, medium, high or unknown. Use the field names shown and no others; use "" for an unknown list_url.\n{{schema}}`;
 export function promptFor(template: string, state: WorkflowState["audit"]) {
   const sample: Record<string, unknown> = {
     audit_meta: {
@@ -495,9 +579,23 @@ export function promptFor(template: string, state: WorkflowState["audit"]) {
         evidence: "",
       },
     ],
-    priority_action_plan: [],
+    priority_action_plan: [
+      {
+        title: "Specific action to take",
+        description: "Why, tied to the findings above",
+        horizon: "do_first",
+        service: "",
+      },
+    ],
     screenshot_queue: [],
-    manual_review_queue: [],
+    manual_review_queue: [
+      {
+        title: "What a human needs to check",
+        category: "amazon_audit",
+        instructions: "Why it needs manual verification and how to check it",
+        required: true,
+      },
+    ],
     custom_sections: [],
     client_site: {},
   };

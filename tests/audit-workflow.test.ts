@@ -2,6 +2,7 @@ import { beforeAll, afterAll, test, expect } from "bun:test";
 import { PGlite } from "@electric-sql/pglite";
 import { readFile } from "node:fs/promises";
 import {
+  normalizeResearch,
   SECTION_KEYS,
   validateResearch,
   promptFor,
@@ -215,4 +216,33 @@ test("workflow records and publish functions are inaccessible to anonymous clien
     db.query("SELECT audit_publish_reviewed($1,$1,'test/book','hash','admin','')", [id]),
   ).rejects.toThrow();
   await db.exec("RESET ROLE");
+});
+
+test("normalizes common AI phrasings before validation", () => {
+  const out = normalizeResearch({
+    audit_findings: [
+      { title: "a", priority: "high_priority" },
+      { title: "b", priority: "low_priority" },
+      { title: "c", priority: "Medium" },
+    ],
+    goodreads_listopia_audit: [{ list_name: "Best debuts", list_url: null }],
+    priority_action_plan: [
+      { order: 2, action: "Second", reason: "Because two" },
+      { order: 1, action: "First", reason: "Because one", timeframe: "30 days" },
+    ],
+    manual_review_queue: [{ item: "Check Amazon", reason: "Region-locked" }],
+  });
+  expect(out.audit_findings.map((f: { priority: string }) => f.priority)).toEqual([
+    "high_impact",
+    "optional",
+    "medium_priority",
+  ]);
+  expect(out.goodreads_listopia_audit[0].list_url).toBe("");
+  expect(out.priority_action_plan).toEqual([
+    { title: "First", description: "Because one", horizon: "next_30_days" },
+    { title: "Second", description: "Because two" },
+  ]);
+  expect(out.manual_review_queue).toEqual([
+    { title: "Check Amazon", instructions: "Region-locked" },
+  ]);
 });

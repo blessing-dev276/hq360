@@ -162,14 +162,18 @@ export function ResearchAuditReport({
             <h2 className="font-display text-3xl">Goodreads Listopia</h2>
             {r.listopia.map((l) => (
               <div key={l.id} className="rounded-3xl border border-white/10 p-6">
-                <a
-                  className="text-xl text-emerald-300"
-                  href={l.list_url}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  {l.list_name} ↗
-                </a>
+                {l.list_url ? (
+                  <a
+                    className="text-xl text-emerald-300"
+                    href={l.list_url}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    {l.list_name} ↗
+                  </a>
+                ) : (
+                  <p className="text-xl text-emerald-300">{l.list_name}</p>
+                )}
                 <div className="my-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
                   {[
                     ["Current position", l.position === null ? "Unknown" : `#${l.position}`],

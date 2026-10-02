@@ -262,7 +262,7 @@ export function clientSnapshot(state: Awaited<ReturnType<typeof workflowState>>)
   const urls = [
     ...new Set([
       ...findings.flatMap((f) => f.source_urls),
-      ...listopia.map((l) => l.list_url),
+      ...listopia.map((l) => l.list_url).filter(Boolean),
       ...assets.map((a) => a.source).filter(Boolean),
     ]),
   ];

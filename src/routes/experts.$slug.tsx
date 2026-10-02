@@ -231,11 +231,7 @@ function ExpertProfilePage() {
                 className="hqd-chip"
                 style={{ position: "static", display: "inline-block", marginTop: "1.25rem" }}
               >
-                {person.portfolioSlug
-                  ? "HQ360 team expert"
-                  : person.kind === "team"
-                    ? "HQ360 core team"
-                    : "Approved HQ360 expert"}
+                {person.kind === "team" ? "HQ360 Team" : "Approved HQ360 expert"}
               </span>
             </div>
             <div className="hqd-hero-aside">

@@ -78,9 +78,7 @@ export function PersonCard({ person }: { person: PublicExpert }) {
           </span>
         )}
       </div>
-      <span className="hqd-chip">
-        {person.portfolioSlug ? "HQ360 Expert" : person.kind === "team" ? "HQ360 team" : "Expert"}
-      </span>
+      <span className="hqd-chip">{person.kind === "team" ? "HQ360 Team" : "Expert"}</span>
       <div className="hqd-person-meta">
         <span>
           <strong>{person.name}</strong>

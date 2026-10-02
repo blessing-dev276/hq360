@@ -1861,3 +1861,68 @@ body:has(.hqd-site) {
 .hqd-hero-section [class*="eyebrow"]:not(.hqd-eyebrow) {
   color: rgb(255 255 255 / 0.9);
 }
+
+/* Expert portfolio cards: content-height, compact titles, clamped copy. */
+.hqd-work-cards {
+  align-items: start;
+}
+.hqd-work-card {
+  min-height: 0;
+  gap: 0.9rem;
+}
+.hqd-work-card img {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: 1.1rem;
+}
+.hqd-work-card h3 {
+  font-size: clamp(1.2rem, 1.6vw, 1.45rem);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.hqd-work-card p {
+  white-space: pre-line;
+}
+.hqd-work-clamp {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.hqd-work-more {
+  justify-self: start;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--hqd-orange);
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.hqd-work-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+.hqd-work-link {
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.55rem 1rem;
+  border-radius: 999px;
+  border: 1px solid var(--hqd-line);
+  color: var(--hqd-text);
+  font-size: 0.88rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+.hqd-work-link:hover {
+  border-color: var(--hqd-orange);
+  color: var(--hqd-orange);
+}

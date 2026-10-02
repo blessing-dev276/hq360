@@ -909,9 +909,15 @@ function ItemForm({
       </div>
 
       <label className="mt-4 block">
-        <span className="text-sm font-medium">Description (optional)</span>
+        <span className="flex justify-between text-sm font-medium">
+          Description (optional)
+          <small className="font-normal text-muted-foreground">
+            {draft.description.length}/600
+          </small>
+        </span>
         <textarea
-          rows={2}
+          rows={3}
+          maxLength={600}
           className={cn(input, "mt-1.5 resize-y")}
           value={draft.description}
           onChange={(e) => set("description", e.target.value)}

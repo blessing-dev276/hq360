@@ -88,6 +88,7 @@ export const Route = createFileRoute("/api/admin/experts/$id")({
           const { expertPortfolioItems } = await import("@/lib/expert-auth.server");
           const { error: assignError } = await expertPortfolioItems().insert({
             expert_id: params.id,
+            source_portfolio_item_id: portfolioItemId,
             title: source.title,
             description: source.description,
             image_url: source.thumbnail_url || source.media_url,

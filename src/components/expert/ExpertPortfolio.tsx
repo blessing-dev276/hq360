@@ -218,10 +218,13 @@ export function ExpertPortfolio() {
             />
           </label>
           <label>
-            Description
+            <span style={{ display: "flex", justifyContent: "space-between" }}>
+              Description
+              <small style={{ fontWeight: 400, opacity: 0.7 }}>{form.description.length}/600</small>
+            </span>
             <textarea
               rows={4}
-              maxLength={2000}
+              maxLength={600}
               value={form.description}
               onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
             />

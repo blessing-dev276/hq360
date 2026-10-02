@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowUpRight, Globe, Linkedin, MapPin } from "lucide-react";
 import { buildSeo } from "@/lib/seo";
@@ -53,6 +54,52 @@ function paragraphs(person: PublicExpert) {
   return person.kind === "team"
     ? [`${person.name} is part of the HQ360 core team as ${person.headline}.`]
     : [`${person.name} is an approved HQ360 expert.`];
+}
+
+const DESCRIPTION_PREVIEW = 160;
+
+function PortfolioCard({ item }: { item: PortfolioItem }) {
+  const [open, setOpen] = useState(false);
+  const tags = [
+    ...item.service_slugs.map((s) => getCoreService(s)?.name),
+    ...item.audience_slugs.map((s) => getAudience(s)?.name),
+  ].filter(Boolean) as string[];
+  const long = (item.description?.length ?? 0) > DESCRIPTION_PREVIEW;
+  return (
+    <article className="hqd-card hqd-work-card">
+      {item.image_url && <img src={item.image_url} alt="" loading="lazy" />}
+      <div className="hqd-card-body">
+        <h3>{item.title}</h3>
+        {item.description && (
+          <p className={open ? undefined : "hqd-work-clamp"}>{item.description}</p>
+        )}
+        {long && (
+          <button type="button" className="hqd-work-more" onClick={() => setOpen((v) => !v)}>
+            {open ? "Show less" : "Read more"}
+          </button>
+        )}
+        {tags.length > 0 && (
+          <div className="hqd-work-tags">
+            {tags.map((tag) => (
+              <span key={tag} className="hqd-tag">
+                {tag}
+              </span>
+            ))}
+          </div>
+        )}
+        {item.external_link && (
+          <a
+            href={item.external_link}
+            target="_blank"
+            rel="noopener noreferrer nofollow"
+            className="hqd-work-link"
+          >
+            View project <ArrowUpRight size={14} aria-hidden="true" />
+          </a>
+        )}
+      </div>
+    </article>
+  );
 }
 
 /** Hero line: the expert's own short intro, never a repeat of the bio below. */
@@ -247,65 +294,10 @@ function ExpertProfilePage() {
               <Eyebrow>Portfolio</Eyebrow>
               <h2 className="hqd-h2">Recent work</h2>
             </Reveal>
-            <div className="hqd-cards" style={{ marginTop: "1.5rem" }}>
-              {portfolio.map((item) => {
-                const tags = [
-                  ...item.service_slugs.map((s) => getCoreService(s)?.name).filter(Boolean),
-                  ...item.audience_slugs.map((s) => getAudience(s)?.name).filter(Boolean),
-                ] as string[];
-                return (
-                  <div key={item.id} className="hqd-card" style={{ minHeight: "16rem" }}>
-                    {item.image_url && (
-                      <img
-                        src={item.image_url}
-                        alt=""
-                        style={{
-                          width: "100%",
-                          aspectRatio: "16/9",
-                          objectFit: "cover",
-                          borderRadius: "1rem",
-                        }}
-                      />
-                    )}
-                    <span className="hqd-card-body">
-                      <h3>{item.title}</h3>
-                      {item.description && <p>{item.description}</p>}
-                      {tags.length > 0 && (
-                        <div
-                          style={{
-                            display: "flex",
-                            flexWrap: "wrap",
-                            gap: "0.4rem",
-                            marginTop: "0.75rem",
-                          }}
-                        >
-                          {tags.map((tag) => (
-                            <span key={tag} className="hqd-tag">
-                              {tag}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                      {item.external_link && (
-                        <a
-                          href={item.external_link}
-                          target="_blank"
-                          rel="noopener noreferrer nofollow"
-                          className="hqd-tag"
-                          style={{
-                            display: "inline-flex",
-                            gap: "0.4rem",
-                            alignItems: "center",
-                            marginTop: "0.75rem",
-                          }}
-                        >
-                          View <ArrowUpRight size={13} aria-hidden="true" />
-                        </a>
-                      )}
-                    </span>
-                  </div>
-                );
-              })}
+            <div className="hqd-cards hqd-work-cards" style={{ marginTop: "1.5rem" }}>
+              {portfolio.map((item) => (
+                <PortfolioCard key={item.id} item={item} />
+              ))}
             </div>
           </div>
         </section>

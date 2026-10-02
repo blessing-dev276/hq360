@@ -10,7 +10,7 @@ const FIELDS =
 
 const schema = z.object({
   title: z.string().trim().min(2).max(150),
-  description: z.string().trim().max(2000),
+  description: z.string().trim().max(600),
   image_url: z.string().trim().max(500),
   external_link: z.string().trim().max(300).url().or(z.literal("")),
   service_slugs: z.array(z.string().trim().min(1).max(60)).max(10),

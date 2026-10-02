@@ -1,30 +1,41 @@
 import { useEffect, useState } from "react";
-import { CreditCard, FileText, LogOut, ScanSearch, UserRound } from "lucide-react";
+import {
+  CreditCard,
+  FileText,
+  Images,
+  LayoutDashboard,
+  LogOut,
+  ScanSearch,
+  UserRound,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { Logo } from "@/components/Logo";
-import { ScoutApp } from "@/components/admin/ScoutApp";
+import { ExpertDashboard } from "./ExpertDashboard";
 import { ExpertProfileEditor } from "./ExpertProfileEditor";
-import { ExpertInvoiceRequests } from "./ExpertInvoiceRequests";
+import { ExpertPortfolio } from "./ExpertPortfolio";
 import "@/components/admin/admin-workspace.css";
 
-type Tab = "profile" | "reports" | "scout" | "invoices";
+type Tab = "dashboard" | "profile" | "portfolio";
 const NAV = [
+  { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
   { id: "profile", label: "My profile", icon: UserRound },
-  { id: "reports", label: "Audit", icon: FileText },
-  { id: "scout", label: "Scouting", icon: ScanSearch },
-  { id: "invoices", label: "Invoices", icon: CreditCard },
+  { id: "portfolio", label: "Portfolio", icon: Images },
+] as const;
+const COMING_SOON = [
+  { label: "Audit", icon: FileText },
+  { label: "Scouting", icon: ScanSearch },
+  { label: "Invoices", icon: CreditCard },
 ] as const;
 
 const DESCRIPTIONS: Record<Tab, string> = {
-  profile: "Tell clients who you help and bring your work together in one profile.",
-  reports: "Turn research into a clear growth direction for every author.",
-  scout: "Discover authors, review batches and find contact information.",
-  invoices: "Request invoices and follow each payment to the end.",
+  dashboard: "Your profile, your work and what's next — at a glance.",
+  profile: "Tell clients who you help and how you work.",
+  portfolio: "Show the work you've delivered. Each item is reviewed before it goes live.",
 };
 
 export function ExpertApp() {
-  const [tab, setTab] = useState<Tab>("profile");
+  const [tab, setTab] = useState<Tab>("dashboard");
   const [logoutError, setLogoutError] = useState("");
 
   useEffect(() => {
@@ -69,6 +80,22 @@ export function ExpertApp() {
               <span>{label}</span>
             </button>
           ))}
+          <p className="admin-nav-label" style={{ marginTop: 18 }}>
+            COMING SOON
+          </p>
+          {COMING_SOON.map(({ label, icon: Icon }) => (
+            <button
+              key={label}
+              className="admin-nav-item"
+              disabled
+              title={`${label} is coming soon`}
+              style={{ opacity: 0.5, cursor: "not-allowed" }}
+            >
+              <Icon size={18} />
+              <span>{label}</span>
+              <span className="admin-new">SOON</span>
+            </button>
+          ))}
         </nav>
         <div className="admin-sidebar-bottom">
           <a href="/experts" target="_blank" rel="noreferrer" className="admin-nav-item">
@@ -97,30 +124,12 @@ export function ExpertApp() {
           </div>
         </header>
         <div className="admin-page">
-          {tab === "profile" ? (
+          {tab === "dashboard" ? (
+            <ExpertDashboard onNavigate={navigate} />
+          ) : tab === "profile" ? (
             <ExpertProfileEditor />
-          ) : tab === "reports" ? (
-            <section className="rounded-2xl border border-border bg-card p-8 sm:p-12">
-              <FileText className="mb-5 size-10 text-muted-foreground" />
-              <span className="rounded-full bg-secondary px-3 py-1 text-xs font-semibold text-brand">
-                Coming soon
-              </span>
-              <h2 className="mt-5 font-display text-3xl">Audit</h2>
-              <p className="mt-3 max-w-lg text-muted-foreground">
-                Audit is coming to your expert workspace. You can explore authors and their book
-                reviews in Scouting today.
-              </p>
-              <button
-                onClick={() => navigate("scout")}
-                className="mt-6 rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground"
-              >
-                Open Scouting
-              </button>
-            </section>
-          ) : tab === "invoices" ? (
-            <ExpertInvoiceRequests />
           ) : (
-            <ScoutApp />
+            <ExpertPortfolio />
           )}
           <footer className="admin-footer">
             <span>HQ360 · Expert workspace</span>

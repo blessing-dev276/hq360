@@ -2,7 +2,6 @@ import { GlassLoading } from "@/components/ui/glass-loading";
 import { useEffect, useState, type FormEvent } from "react";
 import { AlertCircle, ArrowUpRight, CircleCheck, ImageUp, Send } from "lucide-react";
 import { initials } from "@/lib/experts";
-import { ExpertPortfolio } from "./ExpertPortfolio";
 
 type ProfileStatus = "draft" | "submitted" | "approved" | "changes_requested";
 
@@ -279,7 +278,7 @@ export function ExpertProfileEditor() {
             <a href="#expert-details" className="underline underline-offset-4">
               Profile details
             </a>
-            <a href="#expert-portfolio" className="underline underline-offset-4">
+            <a href="#portfolio" className="underline underline-offset-4">
               Portfolio
             </a>
           </nav>
@@ -455,13 +454,6 @@ export function ExpertProfileEditor() {
               )}
             </div>
           </form>
-          <section
-            id="expert-portfolio"
-            className="rounded-2xl border border-border bg-card p-5 sm:p-7"
-          >
-            <p className="mb-4 text-xs uppercase tracking-widest text-brand">03 · Selected work</p>
-            <ExpertPortfolio />
-          </section>
         </div>
       </div>
     </section>

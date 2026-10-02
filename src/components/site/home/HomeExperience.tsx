@@ -171,7 +171,7 @@ export function HomeExperience() {
 
       <section className="hqd-section" style={{ paddingTop: 0 }}>
         <div className="hqd-wrap">
-          <Packages ctaHref="#project-inquiry" />
+          <Packages />
         </div>
       </section>
 

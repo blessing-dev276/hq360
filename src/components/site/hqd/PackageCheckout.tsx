@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { createPortal } from "react-dom";
-import { ArrowUpRight, LockKeyhole, X } from "lucide-react";
+import { ArrowRight, ArrowUpRight, LockKeyhole, X } from "lucide-react";
 import type { Plan } from "@/data/pricing";
 import { planKey } from "@/data/pricing";
 
@@ -49,14 +49,11 @@ export function PackageCheckout({ plan, featured }: { plan: Plan; featured?: boo
     <>
       <button
         type="button"
-        className={`hqd-pill ${featured ? "" : "hqd-pill--orange"}`}
-        style={{ border: 0, cursor: "pointer", justifyContent: "space-between", width: "100%" }}
+        className={`hqd-pay ${featured ? "hqd-pay--light" : ""}`}
         onClick={() => setOpen(true)}
       >
         <span>Pay now</span>
-        <span className="hqd-pill-dot" aria-hidden="true">
-          <ArrowUpRight size={17} strokeWidth={2.4} />
-        </span>
+        <ArrowRight size={17} strokeWidth={2.2} aria-hidden="true" />
       </button>
       {open &&
         createPortal(

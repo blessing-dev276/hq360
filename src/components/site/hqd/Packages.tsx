@@ -1,16 +1,11 @@
-import { Check } from "lucide-react";
+import { Check, MessageCircle } from "lucide-react";
+import { BRAND } from "@/config/brand";
 import { CARE_PLAN, PLANS, PRICING_NOTES } from "@/data/pricing";
 import { Reveal } from "../Reveal";
-import { Eyebrow, Pill } from "./Hqd";
+import { Eyebrow } from "./Hqd";
 import { PackageCheckout } from "./PackageCheckout";
 
-export function Packages({
-  heading = true,
-  ctaHref = "/contact",
-}: {
-  heading?: boolean;
-  ctaHref?: string;
-}) {
+export function Packages({ heading = true }: { heading?: boolean }) {
   return (
     <>
       {heading && (
@@ -51,14 +46,20 @@ export function Packages({
                   </li>
                 ))}
               </ul>
-              <div style={{ display: "grid", gap: "0.6rem", marginTop: "auto" }}>
+              <div className="hqd-plan-actions">
                 <PackageCheckout plan={plan} featured={!!plan.featured} />
-                <Pill
-                  {...(ctaHref.startsWith("#") ? { href: ctaHref } : { to: ctaHref })}
-                  tone={plan.featured ? "light" : "dark"}
+                <a
+                  className="hqd-plan-chat"
+                  href={`${BRAND.whatsappHref}?text=${encodeURIComponent(
+                    `Hi HQ360, I have a question about the ${plan.name} package.`,
+                  )}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={`Chat with us about the ${plan.name} package`}
+                  title="Chat with us"
                 >
-                  Talk to us first
-                </Pill>
+                  <MessageCircle size={19} aria-hidden="true" />
+                </a>
               </div>
             </article>
           </Reveal>

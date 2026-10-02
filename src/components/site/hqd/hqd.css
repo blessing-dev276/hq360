@@ -1978,3 +1978,81 @@ body:has(.hqd-site) {
 .hqd-about-toggle {
   margin-top: 0.6rem;
 }
+
+/* ------------------------------------------------------- package actions */
+
+.hqd-plan-actions {
+  display: flex;
+  align-items: stretch;
+  gap: 0.6rem;
+  margin-top: auto;
+}
+.hqd-pay {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 3.25rem;
+  padding: 0 1.4rem;
+  border: 0;
+  border-radius: 999px;
+  background: var(--hqd-orange);
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.95rem;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  transition:
+    background 200ms ease,
+    transform 200ms ease,
+    box-shadow 200ms ease;
+}
+.hqd-pay svg {
+  transition: transform 200ms ease;
+}
+.hqd-pay:hover {
+  background: var(--hqd-orange-2);
+  transform: translateY(-1px);
+  box-shadow: 0 16px 34px -18px rgb(255 90 0 / 0.8);
+}
+.hqd-pay:hover svg {
+  transform: translateX(3px);
+}
+.hqd-pay--light {
+  background: #fff;
+  color: #111416;
+}
+.hqd-pay--light:hover {
+  background: #f1ede8;
+}
+.hqd-plan-chat {
+  flex: 0 0 3.25rem;
+  display: grid;
+  place-items: center;
+  height: 3.25rem;
+  border-radius: 999px;
+  border: 1px solid rgb(255 255 255 / 0.16);
+  color: var(--hqd-text);
+  background: rgb(255 255 255 / 0.04);
+  transition:
+    border-color 200ms ease,
+    background 200ms ease,
+    color 200ms ease;
+}
+.hqd-plan-chat:hover {
+  border-color: var(--hqd-orange);
+  background: rgb(255 90 0 / 0.12);
+  color: var(--hqd-orange-2);
+}
+.hqd-pay:focus-visible,
+.hqd-plan-chat:focus-visible {
+  outline: 2px solid var(--hqd-orange-2);
+  outline-offset: 3px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hqd-pay,
+  .hqd-pay svg,
+  .hqd-plan-chat {
+    transition: none;
+  }
+}

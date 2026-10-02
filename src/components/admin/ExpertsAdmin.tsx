@@ -947,7 +947,7 @@ function OverviewTab({
         text={
           linked
             ? `Linked to ${linked.name} — ${linked.title}. Shown in that team slot.`
-            : "Link this expert to a team member you added manually."
+            : "Link this expert to a team member you added manually. Team members become Associates."
         }
       >
         {linked ? (
@@ -979,7 +979,11 @@ function OverviewTab({
               className="admin-button"
               disabled={!!busy || !pick}
               onClick={() =>
-                onAct("claim", { team_member_id: pick }, "Team profile linked and prefilled.")
+                onAct(
+                  "claim",
+                  { team_member_id: pick },
+                  "Linked to the team — now an Associate with every expert tool.",
+                )
               }
             >
               <Link2 size={15} /> Link
@@ -1592,6 +1596,11 @@ function AccessTab({
   return (
     <div style={{ display: "grid", gap: 16 }}>
       <div>
+        {expert.claimed_team_member_id && (
+          <div className="admin-notice" style={{ marginBottom: 12 }}>
+            On the team — team members are Associates with every expert tool.
+          </div>
+        )}
         <strong style={{ fontSize: 12 }}>Role</strong>
         <div className="admin-role-grid">
           {EXPERT_ROLES.map((r) => (

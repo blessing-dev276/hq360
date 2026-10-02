@@ -43,6 +43,9 @@ export async function claimTeamMember(expertId: string, teamMemberId: string) {
   const { error: fillError } = await expertProfiles()
     .update({
       claimed_team_member_id: teamMemberId,
+      // Everyone on the team is an expert with Associate access.
+      role: "associate",
+      permissions: ["scout", "audit", "invoices"],
       full_name: expert.full_name || teamMember.name,
       headline: expert.headline || teamMember.title || null,
       bio: expert.bio || teamMember.blurb || null,

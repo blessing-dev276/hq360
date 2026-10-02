@@ -36,12 +36,20 @@ export function siteOrigin() {
     throw new Error("Configure a public HTTPS SITE_URL for Flutterwave callbacks.");
   return site.origin;
 }
-export function checkoutUrl(value: unknown, _environment?: Invoice["environment"]) {
+// Live checkouts are always on checkout.flutterwave.com; test-mode keys get
+// links on Flutterwave's sandbox hosts instead.
+const LIVE_CHECKOUT_HOSTS = ["checkout.flutterwave.com"];
+const TEST_CHECKOUT_HOSTS = [
+  ...LIVE_CHECKOUT_HOSTS,
+  "checkout-testing.flutterwave.com",
+  "ravemodal-dev.herokuapp.com",
+];
+export function checkoutUrl(value: unknown, environment?: Invoice["environment"]) {
   if (typeof value !== "string") throw new Error("Flutterwave returned an invalid checkout link.");
   const url = new URL(value);
   if (
     url.protocol !== "https:" ||
-    url.hostname !== "checkout.flutterwave.com" ||
+    !(environment === "live" ? LIVE_CHECKOUT_HOSTS : TEST_CHECKOUT_HOSTS).includes(url.hostname) ||
     url.username ||
     url.password ||
     url.port
@@ -106,7 +114,7 @@ export async function createHostedInvoice(invoice: Invoice) {
   if (typeof link !== "string") throw new Error("Flutterwave did not return a checkout link.");
   return {
     provider_invoice_id: invoice.id,
-    checkout_url: checkoutUrl(link),
+    checkout_url: checkoutUrl(link, invoice.environment),
     // Known up front (our own tx_ref), so the buyer can check status right away
     // instead of waiting on the webhook to populate it.
     payment_id: invoice.id,

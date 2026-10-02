@@ -134,6 +134,21 @@ export async function deleteDraft(id: string) {
       "Only unissued drafts can be deleted. This invoice may have been issued, be awaiting reconciliation, or already be deleted.",
     );
 }
+export async function cancelInvoice(id: string) {
+  if (!z.string().uuid().safeParse(id).success) throw new Error("Invalid invoice ID.");
+  // Cancel, not delete: the checkout link stays live at the provider, so the
+  // row must survive for a late webhook to find and ignore. Only an unpaid,
+  // unrefunded invoice can be cancelled.
+  const { data, error } = await db()
+    .update({ status: "cancelled" })
+    .eq("id", id)
+    .in("provider", HOSTED_PROVIDERS)
+    .eq("status", "pending")
+    .select("id");
+  if (error) throw new Error("Could not cancel this invoice. Please try again.");
+  if (!data?.length)
+    throw new Error("Only an issued, unpaid invoice can be cancelled.");
+}
 export async function issueInvoice(invoice: Invoice) {
   const mod = providerModule(invoice.provider);
   if (invoice.provider_invoice_id) return invoice;

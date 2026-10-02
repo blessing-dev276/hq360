@@ -22,9 +22,13 @@ export const Route = createFileRoute("/api/admin/invoices/$id")({
         if (!(await isAdminRequest(request))) return p.paymentJson({ error: "Unauthorized" }, 401);
         if (!p.sameOrigin(request)) return p.paymentJson({ error: "Invalid origin" }, 403);
         const body = await request.json().catch(() => null);
-        if (!["issue", "send", "verify"].includes(body?.action))
+        if (!["issue", "send", "verify", "cancel"].includes(body?.action))
           return p.paymentJson({ error: "Invalid action" }, 400);
         try {
+          if (body.action === "cancel") {
+            await p.cancelInvoice(params.id);
+            return p.paymentJson({ invoice: await p.getInvoice(params.id) });
+          }
           const invoice = await p.getInvoice(params.id);
           const updated =
             body.action === "issue"

@@ -8,7 +8,7 @@ export type Invoice = {
   amount_minor: number;
   currency: "USD" | "NGN";
   due_date: string;
-  status: "draft" | "pending" | "paid" | "refunded";
+  status: "draft" | "pending" | "paid" | "refunded" | "cancelled";
   provider: "nowpayments" | "flutterwave" | "paystack" | "remita";
   provider_invoice_id: string | null;
   checkout_url: string | null;

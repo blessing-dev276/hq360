@@ -119,7 +119,9 @@ function BuyerInvoice() {
                   ? "Paid"
                   : data.invoice.status === "refunded"
                     ? "Refunded"
-                    : "Awaiting payment"}
+                    : data.invoice.status === "cancelled"
+                      ? "Cancelled"
+                      : "Awaiting payment"}
               </span>
             </div>
             <div className="buyer-total">
@@ -168,6 +170,11 @@ function BuyerInvoice() {
                 <CheckCircle2 size={22} /> Payment confirmed by{" "}
                 {providerLabel(data.invoice.provider)}
               </div>
+            ) : data.invoice.status === "cancelled" ? (
+              <p className="admin-form-note">
+                This invoice was cancelled and can no longer be paid. Please contact HQ360 if you
+                have questions.
+              </p>
             ) : (
               <div className="buyer-actions">
                 {data.invoice.status !== "refunded" && (

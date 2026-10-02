@@ -146,8 +146,7 @@ export async function cancelInvoice(id: string) {
     .eq("status", "pending")
     .select("id");
   if (error) throw new Error("Could not cancel this invoice. Please try again.");
-  if (!data?.length)
-    throw new Error("Only an issued, unpaid invoice can be cancelled.");
+  if (!data?.length) throw new Error("Only an issued, unpaid invoice can be cancelled.");
 }
 export async function issueInvoice(invoice: Invoice) {
   const mod = providerModule(invoice.provider);
@@ -228,6 +227,7 @@ export function invoiceLink(invoice: Invoice) {
 export async function emailInvoice(invoice: Invoice) {
   providerModule(invoice.provider);
   if (!invoice.provider_invoice_id) throw new Error("Issue the invoice before sending it.");
+  if (invoice.status === "cancelled") throw new Error("This invoice was cancelled.");
   if (["paid", "refunded"].includes(invoice.status))
     throw new Error("This invoice has already been paid.");
   const result = await sendEmail({

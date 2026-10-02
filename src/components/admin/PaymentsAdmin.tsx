@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import {
+  Ban,
   Plus,
   Trash2,
   Search,
@@ -134,6 +135,26 @@ export function PaymentsAdmin() {
       );
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not update invoice.");
+    } finally {
+      setBusy("");
+    }
+  }
+  async function cancel(invoice: Invoice) {
+    if (
+      !window.confirm(
+        `Cancel ${invoice.number}? It stops being collectible and moves out of Outstanding. The record is kept so a late payment can still be traced.`,
+      )
+    )
+      return;
+    setBusy("cancel");
+    setError("");
+    setNotice("");
+    try {
+      const data = await call(`/api/admin/invoices/${invoice.id}`, { action: "cancel" });
+      merge(data.invoice);
+      setNotice(`${invoice.number} cancelled.`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not cancel this invoice.");
     } finally {
       setBusy("");
     }
@@ -385,16 +406,18 @@ export function PaymentsAdmin() {
         </div>
         <div className="admin-table-toolbar">
           <div className="admin-filters" aria-label="Filter invoices">
-            {["all", "draft", "pending", "paid", "overdue", "refunded"].map((value) => (
-              <button
-                key={value}
-                aria-pressed={filter === value}
-                className={filter === value ? "active" : ""}
-                onClick={() => setFilter(value)}
-              >
-                {value === "all" ? "All invoices" : value}
-              </button>
-            ))}
+            {["all", "draft", "pending", "paid", "overdue", "refunded", "cancelled"].map(
+              (value) => (
+                <button
+                  key={value}
+                  aria-pressed={filter === value}
+                  className={filter === value ? "active" : ""}
+                  onClick={() => setFilter(value)}
+                >
+                  {value === "all" ? "All invoices" : value}
+                </button>
+              ),
+            )}
           </div>
           <label className="admin-search">
             <Search size={16} />
@@ -477,6 +500,17 @@ export function PaymentsAdmin() {
                             onClick={() => void removeDraft(i)}
                           >
                             <Trash2 size={17} />
+                          </button>
+                        )}
+                        {i.status === "pending" && (
+                          <button
+                            className="admin-icon-button text-destructive"
+                            aria-label={`Cancel ${i.number}`}
+                            title="Cancel invoice"
+                            disabled={!!busy}
+                            onClick={() => void cancel(i)}
+                          >
+                            <Ban size={17} />
                           </button>
                         )}
                       </div>
@@ -787,6 +821,16 @@ export function PaymentsAdmin() {
                   >
                     <Trash2 size={15} />
                     {busy === "delete" ? "Deleting…" : "Delete draft"}
+                  </button>
+                )}
+                {selected.status === "pending" && (
+                  <button
+                    className="admin-button text-destructive"
+                    disabled={!!busy}
+                    onClick={() => void cancel(selected)}
+                  >
+                    <Ban size={15} />
+                    {busy === "cancel" ? "Cancelling…" : "Cancel invoice"}
                   </button>
                 )}
                 {!selected.provider_invoice_id ? (

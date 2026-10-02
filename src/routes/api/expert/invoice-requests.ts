@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 function json(body: unknown, status = 200) {
   return Response.json(body, { status, headers: { "Cache-Control": "no-store" } });
@@ -40,7 +41,37 @@ export const Route = createFileRoute("/api/expert/invoice-requests")({
           .eq("expert_id", expertId)
           .order("created_at", { ascending: false });
         if (error) return json({ error: "Could not load your invoice requests." }, 503);
-        return json({ requests: data ?? [] });
+        // Attach the buyer pay link for requests admin has turned into an invoice.
+        const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+        const invoiceIds = (data ?? []).map((row) => row.invoice_id).filter(Boolean);
+        const invoices = new Map<
+          string,
+          { number: string; status: string; payment_token: string }
+        >();
+        if (invoiceIds.length) {
+          const { data: rows } = await (supabaseAdmin as SupabaseClient)
+            .from("payment_invoices")
+            .select("id, number, status, payment_token")
+            .in("id", invoiceIds);
+          for (const row of rows ?? []) invoices.set(row.id, row);
+        }
+        const origin = new URL(request.url).origin;
+        return json({
+          requests: (data ?? []).map(({ invoice_id, ...row }) => {
+            const invoice = invoice_id ? invoices.get(invoice_id) : undefined;
+            return {
+              ...row,
+              invoice: invoice
+                ? {
+                    number: invoice.number,
+                    status: invoice.status,
+                    pay_url:
+                      invoice.status === "draft" ? null : `${origin}/pay/${invoice.payment_token}`,
+                  }
+                : null,
+            };
+          }),
+        });
       },
       POST: async ({ request }) => {
         const { isExpertRequest, expertInvoiceRequests } = await import("@/lib/expert-auth.server");

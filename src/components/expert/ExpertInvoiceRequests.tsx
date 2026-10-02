@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
-import { AlertCircle, CircleCheck, Send } from "lucide-react";
+import { AlertCircle, Check, CircleCheck, Copy, Send } from "lucide-react";
 import { money } from "@/lib/payments/types";
 
 type InvoiceRequest = {
@@ -14,7 +14,31 @@ type InvoiceRequest = {
   status: "pending" | "fulfilled" | "declined";
   admin_note: string | null;
   created_at: string;
+  invoice: { number: string; status: string; pay_url: string | null } | null;
 };
+
+function CopyPayLink({ url }: { url: string }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <button
+      type="button"
+      className="admin-button"
+      onClick={async () => {
+        try {
+          await navigator.clipboard.writeText(url);
+        } catch {
+          window.prompt("Copy this invoice link:", url);
+          return;
+        }
+        setCopied(true);
+        window.setTimeout(() => setCopied(false), 2000);
+      }}
+    >
+      {copied ? <Check size={14} /> : <Copy size={14} />}
+      {copied ? "Copied" : "Copy invoice link"}
+    </button>
+  );
+}
 
 function StatusBadge({ status }: { status: InvoiceRequest["status"] }) {
   const tone = status === "fulfilled" ? "paid" : status === "declined" ? "overdue" : "pending";
@@ -207,6 +231,7 @@ export function ExpertInvoiceRequests() {
                 <th>Client</th>
                 <th>Amount</th>
                 <th>Status</th>
+                <th>Invoice link</th>
               </tr>
             </thead>
             <tbody>
@@ -224,6 +249,20 @@ export function ExpertInvoiceRequests() {
                       <div style={{ marginTop: 4 }}>
                         <small>Reason: {r.admin_note}</small>
                       </div>
+                    )}
+                  </td>
+                  <td>
+                    {r.invoice?.pay_url ? (
+                      <>
+                        <CopyPayLink url={r.invoice.pay_url} />
+                        <small>
+                          {r.invoice.number} · {r.invoice.status}
+                        </small>
+                      </>
+                    ) : r.invoice ? (
+                      <small>{r.invoice.number} · being prepared</small>
+                    ) : (
+                      <small>—</small>
                     )}
                   </td>
                 </tr>

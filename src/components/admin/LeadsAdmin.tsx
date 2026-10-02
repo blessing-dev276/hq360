@@ -33,7 +33,7 @@ const empty = {
   notes: "",
 } as const;
 const input = "mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm";
-export function LeadsAdmin({ projects = false }: { projects?: boolean }) {
+export function LeadsAdmin() {
   const [data, setData] = useState<Payload | null>(null);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
@@ -98,8 +98,10 @@ export function LeadsAdmin({ projects = false }: { projects?: boolean }) {
     lead.next_follow_up && lead.next_follow_up <= today && lead.stage !== "lost";
   const items = (data?.items ?? []).filter(
     (lead) =>
-      (!projects || lead.project_status !== "not_started" || lead.stage === "won") &&
-      (filter === "all" || (filter === "due" && due(lead)) || lead.stage === filter),
+      filter === "all" ||
+      (filter === "due" && due(lead)) ||
+      (filter === "projects" && (lead.project_status !== "not_started" || lead.stage === "won")) ||
+      lead.stage === filter,
   );
   const stageCount = (stage: string) =>
     new Set(
@@ -175,6 +177,7 @@ export function LeadsAdmin({ projects = false }: { projects?: boolean }) {
           >
             <option value="all">All records</option>
             <option value="due">Follow-ups due</option>
+            <option value="projects">Active projects</option>
             {SALES_STAGES.map((stage) => (
               <option key={stage} value={stage}>
                 {label(stage)}

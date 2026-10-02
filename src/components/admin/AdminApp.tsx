@@ -161,9 +161,9 @@ const NAV = [
   },
   {
     id: "projects",
-    label: "Projects",
+    label: "Leads & Projects",
     icon: BriefcaseBusiness,
-    description: "Track agreed work, client review and delivery.",
+    description: "Every enquiry from the website, through to agreed work and delivery.",
   },
   {
     id: "overview",
@@ -307,7 +307,7 @@ export function AdminApp({ initialTab = "overview" }: { initialTab?: Tab }) {
           ) : tab === "overview" ? (
             <AdminDashboard onNavigate={navigate} />
           ) : tab === "projects" ? (
-            <LeadsAdmin projects />
+            <LeadsAdmin />
           ) : tab === "payments" ? (
             <PaymentsAdmin />
           ) : tab === "experts" ? (

@@ -1,3 +1,5 @@
+import { ArcScout } from "./ArcScout";
+import { ARC_SOURCES, isArcSource } from "@/lib/scout/arc-sources";
 import { AudienceScout } from "./AudienceScout";
 import { SCOUT_AUDIENCES } from "@/lib/scout/audiences";
 import { useEffect, useRef, useState } from "react";
@@ -210,7 +212,11 @@ function BookCard({
       item.platform === (book.source_slug === "reedsy_discovery" ? "reedsy" : "readers_favorite"),
   );
   const score = rating?.rating ?? (rating?.platform === "reedsy" ? rating.review_count : null);
-  const sourceLabel = book.source_slug === "reedsy_discovery" ? "Reedsy" : "Readers’ Favorite";
+  const sourceLabel = isArcSource(book.source_slug)
+    ? ARC_SOURCES[book.source_slug].name
+    : book.source_slug === "reedsy_discovery"
+      ? "Reedsy"
+      : "Readers’ Favorite";
   return (
     <article className="rounded-2xl border border-border bg-card p-5">
       <div className="flex items-start justify-between gap-3">
@@ -367,6 +373,7 @@ function AuthorScout({ onBusyChange }: { onBusyChange: (busy: boolean) => void }
   useEffect(() => () => emailController.current?.abort(), []);
 
   const [source, setSource] = useState("reedsy_discovery");
+  const [arcBusy, setArcBusy] = useState(false);
   const [genres, setGenres] = useState<ReedsyGenre[]>([]);
   const [genreId, setGenreId] = useState("");
   const [rfGenres, setRfGenres] = useState([
@@ -383,9 +390,9 @@ function AuthorScout({ onBusyChange }: { onBusyChange: (busy: boolean) => void }
   const [detailLoading, setDetailLoading] = useState(false);
   const [busy, setBusy] = useState("");
   useEffect(() => {
-    onBusyChange(Boolean(busy));
+    onBusyChange(Boolean(busy) || arcBusy);
     return () => onBusyChange(false);
-  }, [busy, onBusyChange]);
+  }, [busy, arcBusy, onBusyChange]);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [batchSource, setBatchSource] = useState("all");
@@ -740,6 +747,45 @@ function AuthorScout({ onBusyChange }: { onBusyChange: (busy: boolean) => void }
     link.click();
     window.setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
+  if (isArcSource(source))
+    return (
+      <main className="mx-auto max-w-6xl space-y-6 px-4 py-8 sm:px-6">
+        <h1 className="font-display text-3xl">Author scouting</h1>
+        <label className="block text-sm font-medium">
+          Review source
+          <select
+            aria-label="Review source"
+            className={field}
+            value={source}
+            disabled={arcBusy}
+            onChange={(e) => setSource(e.target.value)}
+          >
+            <option value="reedsy_discovery">Reedsy Discovery</option>
+            <option value="readers_favorite">Readers’ Favorite</option>
+            {Object.entries(ARC_SOURCES).map(([slug, spec]) => (
+              <option key={slug} value={slug}>
+                {spec.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <ArcScout
+          key={source}
+          source={source}
+          onBusyChange={setArcBusy}
+          onOpenBatch={(batch) => {
+            setBatches((current) => [
+              { ...batch, genre: null },
+              ...current.filter((b) => b.id !== batch.id),
+            ]);
+            setSelected({ ...batch, genre: null });
+            setBatchSource("all");
+            setSource("reedsy_discovery");
+            setLoadAttempt((n) => n + 1);
+          }}
+        />
+      </main>
+    );
   return (
     <main className="mx-auto max-w-6xl space-y-7 px-4 py-8 sm:px-6">
       <header className="rounded-3xl border border-border bg-secondary/40 p-6 sm:p-8">
@@ -772,6 +818,11 @@ function AuthorScout({ onBusyChange }: { onBusyChange: (busy: boolean) => void }
             >
               <option value="reedsy_discovery">Reedsy Discovery</option>
               <option value="readers_favorite">Readers’ Favorite</option>
+              {Object.entries(ARC_SOURCES).map(([slug, spec]) => (
+                <option key={slug} value={slug}>
+                  {spec.name}
+                </option>
+              ))}
             </select>
           </label>
           <label className="text-sm font-medium">
@@ -935,6 +986,11 @@ function AuthorScout({ onBusyChange }: { onBusyChange: (busy: boolean) => void }
               <option value="all">All review sources</option>
               <option value="reedsy_discovery">Reedsy Discovery</option>
               <option value="readers_favorite">Readers’ Favorite</option>
+              {Object.entries(ARC_SOURCES).map(([slug, spec]) => (
+                <option key={slug} value={slug}>
+                  {spec.name}
+                </option>
+              ))}
             </select>
           </label>
         </div>

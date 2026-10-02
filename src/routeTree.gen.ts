@@ -76,6 +76,7 @@ import { Route as ApiAdminInvoicesRouteImport } from './routes/api/admin/invoice
 import { Route as ApiAdminLeadsRouteImport } from './routes/api/admin/leads'
 import { Route as ApiAdminPortfolioRouteImport } from './routes/api/admin/portfolio'
 import { Route as ApiAdminScoutAmazonSearchRouteImport } from './routes/api/admin/scout-amazon-search'
+import { Route as ApiAdminScoutArcDiscoveryRouteImport } from './routes/api/admin/scout-arc-discovery'
 import { Route as ApiAdminScoutAudienceBatchesRouteImport } from './routes/api/admin/scout-audience-batches'
 import { Route as ApiAdminScoutBatchesRouteImport } from './routes/api/admin/scout-batches'
 import { Route as ApiAdminScoutBooksRouteImport } from './routes/api/admin/scout-books'
@@ -496,6 +497,12 @@ const ApiAdminScoutAmazonSearchRoute =
   ApiAdminScoutAmazonSearchRouteImport.update({
     id: '/api/admin/scout-amazon-search',
     path: '/api/admin/scout-amazon-search',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiAdminScoutArcDiscoveryRoute =
+  ApiAdminScoutArcDiscoveryRouteImport.update({
+    id: '/api/admin/scout-arc-discovery',
+    path: '/api/admin/scout-arc-discovery',
     getParentRoute: () => rootRouteImport,
   } as any)
 const ApiAdminScoutAudienceBatchesRoute =
@@ -1018,6 +1025,7 @@ export interface FileRoutesByFullPath {
   '/api/admin/leads': typeof ApiAdminLeadsRoute
   '/api/admin/portfolio': typeof ApiAdminPortfolioRouteWithChildren
   '/api/admin/scout-amazon-search': typeof ApiAdminScoutAmazonSearchRoute
+  '/api/admin/scout-arc-discovery': typeof ApiAdminScoutArcDiscoveryRoute
   '/api/admin/scout-audience-batches': typeof ApiAdminScoutAudienceBatchesRouteWithChildren
   '/api/admin/scout-batches': typeof ApiAdminScoutBatchesRouteWithChildren
   '/api/admin/scout-books': typeof ApiAdminScoutBooksRoute
@@ -1169,6 +1177,7 @@ export interface FileRoutesByTo {
   '/api/admin/leads': typeof ApiAdminLeadsRoute
   '/api/admin/portfolio': typeof ApiAdminPortfolioRouteWithChildren
   '/api/admin/scout-amazon-search': typeof ApiAdminScoutAmazonSearchRoute
+  '/api/admin/scout-arc-discovery': typeof ApiAdminScoutArcDiscoveryRoute
   '/api/admin/scout-audience-batches': typeof ApiAdminScoutAudienceBatchesRouteWithChildren
   '/api/admin/scout-batches': typeof ApiAdminScoutBatchesRouteWithChildren
   '/api/admin/scout-books': typeof ApiAdminScoutBooksRoute
@@ -1321,6 +1330,7 @@ export interface FileRoutesById {
   '/api/admin/leads': typeof ApiAdminLeadsRoute
   '/api/admin/portfolio': typeof ApiAdminPortfolioRouteWithChildren
   '/api/admin/scout-amazon-search': typeof ApiAdminScoutAmazonSearchRoute
+  '/api/admin/scout-arc-discovery': typeof ApiAdminScoutArcDiscoveryRoute
   '/api/admin/scout-audience-batches': typeof ApiAdminScoutAudienceBatchesRouteWithChildren
   '/api/admin/scout-batches': typeof ApiAdminScoutBatchesRouteWithChildren
   '/api/admin/scout-books': typeof ApiAdminScoutBooksRoute
@@ -1474,6 +1484,7 @@ export interface FileRouteTypes {
     | '/api/admin/leads'
     | '/api/admin/portfolio'
     | '/api/admin/scout-amazon-search'
+    | '/api/admin/scout-arc-discovery'
     | '/api/admin/scout-audience-batches'
     | '/api/admin/scout-batches'
     | '/api/admin/scout-books'
@@ -1625,6 +1636,7 @@ export interface FileRouteTypes {
     | '/api/admin/leads'
     | '/api/admin/portfolio'
     | '/api/admin/scout-amazon-search'
+    | '/api/admin/scout-arc-discovery'
     | '/api/admin/scout-audience-batches'
     | '/api/admin/scout-batches'
     | '/api/admin/scout-books'
@@ -1776,6 +1788,7 @@ export interface FileRouteTypes {
     | '/api/admin/leads'
     | '/api/admin/portfolio'
     | '/api/admin/scout-amazon-search'
+    | '/api/admin/scout-arc-discovery'
     | '/api/admin/scout-audience-batches'
     | '/api/admin/scout-batches'
     | '/api/admin/scout-books'
@@ -1928,6 +1941,7 @@ export interface RootRouteChildren {
   ApiAdminLeadsRoute: typeof ApiAdminLeadsRoute
   ApiAdminPortfolioRoute: typeof ApiAdminPortfolioRouteWithChildren
   ApiAdminScoutAmazonSearchRoute: typeof ApiAdminScoutAmazonSearchRoute
+  ApiAdminScoutArcDiscoveryRoute: typeof ApiAdminScoutArcDiscoveryRoute
   ApiAdminScoutAudienceBatchesRoute: typeof ApiAdminScoutAudienceBatchesRouteWithChildren
   ApiAdminScoutBatchesRoute: typeof ApiAdminScoutBatchesRouteWithChildren
   ApiAdminScoutBooksRoute: typeof ApiAdminScoutBooksRoute
@@ -2443,6 +2457,13 @@ declare module '@tanstack/react-router' {
       path: '/api/admin/scout-amazon-search'
       fullPath: '/api/admin/scout-amazon-search'
       preLoaderRoute: typeof ApiAdminScoutAmazonSearchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/scout-arc-discovery': {
+      id: '/api/admin/scout-arc-discovery'
+      path: '/api/admin/scout-arc-discovery'
+      fullPath: '/api/admin/scout-arc-discovery'
+      preLoaderRoute: typeof ApiAdminScoutArcDiscoveryRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/admin/scout-audience-batches': {
@@ -3375,6 +3396,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAdminLeadsRoute: ApiAdminLeadsRoute,
   ApiAdminPortfolioRoute: ApiAdminPortfolioRouteWithChildren,
   ApiAdminScoutAmazonSearchRoute: ApiAdminScoutAmazonSearchRoute,
+  ApiAdminScoutArcDiscoveryRoute: ApiAdminScoutArcDiscoveryRoute,
   ApiAdminScoutAudienceBatchesRoute:
     ApiAdminScoutAudienceBatchesRouteWithChildren,
   ApiAdminScoutBatchesRoute: ApiAdminScoutBatchesRouteWithChildren,

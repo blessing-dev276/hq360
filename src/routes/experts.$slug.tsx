@@ -1,6 +1,6 @@
 import { resolveExpertSlug } from "@/lib/expert-slug.functions";
 import { createFileRoute, redirect } from "@tanstack/react-router";
-import { useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowUpRight, Globe, Linkedin, MapPin } from "lucide-react";
 import { buildSeo } from "@/lib/seo";
@@ -65,6 +65,44 @@ function paragraphs(person: PublicExpert) {
   return person.kind === "team"
     ? [`${person.name} is part of the HQ360 core team as ${person.headline}.`]
     : [`${person.name} is an approved HQ360 expert.`];
+}
+
+/** Bio clamped to exactly five lines, with "View more" when it runs longer. */
+function AboutText({ paragraphs }: { paragraphs: string[] }) {
+  const ref = useRef<HTMLParagraphElement>(null);
+  const [open, setOpen] = useState(false);
+  const [overflows, setOverflows] = useState(false);
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (el && !open) setOverflows(el.scrollHeight > el.clientHeight + 1);
+  }, [paragraphs, open]);
+  return (
+    <div>
+      {open ? (
+        <div className="hqd-about">
+          {paragraphs.map((text) => (
+            <p key={text} className="hqd-body">
+              {text}
+            </p>
+          ))}
+        </div>
+      ) : (
+        // Collapsed: one block so line-clamp counts real text lines only.
+        <p ref={ref} className="hqd-body hqd-about-clamp">
+          {paragraphs.join(" ")}
+        </p>
+      )}
+      {overflows && (
+        <button
+          type="button"
+          className="hqd-work-more hqd-about-toggle"
+          onClick={() => setOpen((v) => !v)}
+        >
+          {open ? "View less" : "View more"}
+        </button>
+      )}
+    </div>
+  );
 }
 
 const DESCRIPTION_PREVIEW = 160;
@@ -226,11 +264,7 @@ function ExpertProfilePage() {
             </div>
             <div className="hqd-split-aside">
               <p className="hqd-lede">{person.headline}</p>
-              {[intro, ...rest].map((text) => (
-                <p key={text} className="hqd-body">
-                  {text}
-                </p>
-              ))}
+              <AboutText paragraphs={[intro!, ...rest]} />
               {(person.location || person.website || person.linkedin) && (
                 <div className="hqd-links">
                   {person.location && (

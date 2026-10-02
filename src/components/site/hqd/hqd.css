@@ -1963,3 +1963,18 @@ body:has(.hqd-site) {
   color: var(--hqd-text);
   cursor: pointer;
 }
+
+/* Expert "About": five lines, then View more. */
+.hqd-about {
+  display: grid;
+  gap: 1rem;
+}
+.hqd-about-clamp {
+  display: -webkit-box;
+  -webkit-line-clamp: 5;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.hqd-about-toggle {
+  margin-top: 0.6rem;
+}

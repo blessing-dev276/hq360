@@ -1,4 +1,5 @@
-.admin-workspace {
+.admin-workspace,
+.admin-dialog {
   --brand: var(--hqd-orange, #ff5a00);
   --brand-strong: var(--hqd-orange-2, #ff8500);
   --primary: var(--hqd-orange, #ff5a00);
@@ -1086,4 +1087,23 @@
   background: transparent;
   border: 0;
   box-shadow: none;
+}
+
+/* Dialogs are portaled outside .admin-workspace; keep them on the dark palette. */
+.admin-dialog {
+  display: grid;
+  min-height: 0;
+  background: #161617;
+  color: var(--foreground);
+  color-scheme: dark;
+}
+.admin-dialog h2,
+.admin-dialog [data-slot="dialog-title"] {
+  color: var(--foreground);
+}
+.admin-dialog [data-slot="dialog-description"] {
+  color: var(--muted-foreground);
+}
+.admin-dialog .admin-button:not(.admin-button-primary) {
+  color: var(--foreground);
 }

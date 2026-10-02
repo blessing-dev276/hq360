@@ -75,7 +75,7 @@ export async function isExpertRequest(request: Request): Promise<string | null> 
 }
 export type StaffAccess = { role: "admin" } | { role: "expert"; expertId: string };
 /** Combined gate for routes shared between full admins and approved experts
- *  (Author Reports + Scout). Everywhere else keeps using isAdminRequest alone. */
+ *  (Audit + Scout). Everywhere else keeps using isAdminRequest alone. */
 export async function resolveStaffAccess(request: Request): Promise<StaffAccess | null> {
   if (await isAdminRequest(request)) return { role: "admin" };
   const expertId = await isExpertRequest(request);

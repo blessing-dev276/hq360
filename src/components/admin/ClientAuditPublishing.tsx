@@ -76,7 +76,7 @@ function AccessPanel({
           className={cn(
             "inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold",
             live
-              ? "bg-emerald-500/15 text-emerald-700"
+              ? "bg-emerald-500/15 text-emerald-300"
               : access.revoked_at
                 ? "bg-destructive/10 text-destructive"
                 : "bg-muted text-muted-foreground",
@@ -341,7 +341,7 @@ export function ClientAuditPublishing({ auditId }: { auditId: string }) {
       {data && (
         <>
           {draft && !ready && (
-            <p className="rounded-xl bg-amber-50 p-3 text-sm text-amber-900">
+            <p className="rounded-xl bg-amber-500/10 p-3 text-sm text-amber-200">
               REVIEW REQUIRED: this version needs 3–5 sourced and dated comparables, approved visual
               evidence, at least one verified strength, and exactly 3 traceable priority moves
               before publishing.
@@ -482,7 +482,7 @@ export function ClientAuditPublishing({ auditId }: { auditId: string }) {
           ref={previewRef}
           onCancel={() => setPreview(null)}
           className="fixed inset-0 m-0 h-full max-h-full w-full max-w-full overflow-auto bg-background"
-          aria-label="Author report preview"
+          aria-label="Audit preview"
         >
           <button
             autoFocus

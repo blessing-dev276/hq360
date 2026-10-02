@@ -93,8 +93,8 @@ const FINDING_STATUS_COLOR: Record<AuditFindingStatus, string> = {
   strong: "bg-brand text-primary-foreground",
   healthy: "bg-brand-soft text-[oklch(0.42_0.16_42)]",
   opportunity_identified: "bg-brand-soft text-[oklch(0.42_0.16_42)]",
-  needs_attention: "bg-amber-100 text-amber-800",
-  critical_issue: "bg-red-100 text-red-800",
+  needs_attention: "bg-amber-500/15 text-amber-300",
+  critical_issue: "bg-red-500/15 text-red-300",
   unable_to_verify: "bg-secondary text-muted-foreground",
 };
 
@@ -884,7 +884,7 @@ function AuditWorkspace({ id, onBack }: { id: string; onBack: () => void }) {
                 </p>
               ))}
               {quality.warnings.map((w, idx) => (
-                <p key={idx} className="text-xs text-amber-700">
+                <p key={idx} className="text-xs text-amber-300">
                   [{w.area}] {w.message}
                 </p>
               ))}
@@ -1281,7 +1281,7 @@ function ReaderJourneyCard({
       </div>
       <p className="mt-2 text-sm">{step.observation}</p>
       {step.friction ? (
-        <p className="mt-1 text-xs text-amber-700">Friction: {step.friction}</p>
+        <p className="mt-1 text-xs text-amber-300">Friction: {step.friction}</p>
       ) : null}
       {step.recommendation ? (
         <p className="mt-1 text-xs text-muted-foreground">Recommendation: {step.recommendation}</p>

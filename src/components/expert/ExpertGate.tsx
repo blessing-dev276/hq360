@@ -80,7 +80,7 @@ export function ExpertGate({ children }: { children: ReactNode }) {
   return (
     <AuthShell
       audience="experts"
-      description="Access Scouting with your approved HQ360 expert account. Author Reports are coming soon."
+      description="Access Scouting with your approved HQ360 expert account. Audit is coming soon."
     >
       {state === "checking" ? (
         <GlassLoading label="Opening your workspace…" />

@@ -118,12 +118,12 @@ export function LeadsAdmin({ projects = false }: { projects?: boolean }) {
     ).length ?? 0;
   return (
     <div className="space-y-6">
-      <p className="text-sm text-muted-foreground">
+      <p className="admin-lede">
         Review needs → introduce → discuss → propose → invoice → deliver → ongoing support. New
         inquiries, visibility requests and saved Scout prospects appear here automatically.
       </p>
       {data && (
-        <div className="grid gap-3 sm:grid-cols-4">
+        <div className="admin-stats admin-stats-4">
           {[
             [
               "Completed visibility checks",
@@ -135,14 +135,14 @@ export function LeadsAdmin({ projects = false }: { projects?: boolean }) {
             ["Proposals reached", stageCount("proposal")],
             ["Paid projects", paid],
           ].map(([title, count]) => (
-            <div key={title} className="rounded-xl border border-border bg-card p-4">
-              <p className="text-xs text-muted-foreground">{title}</p>
-              <strong className="text-2xl">{count}</strong>
+            <div key={title} className="admin-stat">
+              <div>{title}</div>
+              <strong>{count}</strong>
             </div>
           ))}
         </div>
       )}
-      <p className="text-xs text-muted-foreground">
+      <p className="admin-form-note">
         Counts cover stored records. Qualified leads and proposals count recorded stage transitions;
         paid projects require a linked, paid live invoice. Mark the check completion date only after
         the reviewed assessment is delivered.
@@ -156,9 +156,9 @@ export function LeadsAdmin({ projects = false }: { projects?: boolean }) {
         </p>
       )}
       {notice && <p role="status">{notice}</p>}
-      <div className="flex flex-wrap items-center gap-4">
+      <div className="admin-toolbar">
         <button
-          className="rounded-full bg-primary px-5 py-2 text-primary-foreground"
+          className="admin-button admin-button-primary"
           onClick={() => {
             setEditing({ ...empty });
             setNotice("");
@@ -166,8 +166,8 @@ export function LeadsAdmin({ projects = false }: { projects?: boolean }) {
         >
           Add lead
         </button>
-        <label>
-          Show{" "}
+        <label className="admin-toolbar-field">
+          Show
           <select
             className={input}
             value={filter}
@@ -182,13 +182,13 @@ export function LeadsAdmin({ projects = false }: { projects?: boolean }) {
             ))}
           </select>
         </label>
-        <a href="/scout" className="underline">
+        <a href="/scout" className="admin-button">
           Open Scout
         </a>
-        <a href="/admin#audits" className="underline">
-          Author Reports
+        <a href="/admin#audits" className="admin-button">
+          Audit
         </a>
-        <a href="/admin#payments" className="underline">
+        <a href="/admin#payments" className="admin-button">
           Invoices
         </a>
       </div>
@@ -298,7 +298,12 @@ export function LeadsAdmin({ projects = false }: { projects?: boolean }) {
         </form>
       )}
       {!data && !error && <p role="status">Loading sales records…</p>}
-      {data && items.length === 0 && <p>No records match this view.</p>}
+      {data && items.length === 0 && (
+        <div className="admin-panel admin-empty">
+          <h3>No records match this view</h3>
+          <p>Try another filter, or add a lead to start the pipeline.</p>
+        </div>
+      )}
       <ul className="space-y-3">
         {items.map((lead) => {
           const invoice = data?.invoices.find((invoice) => invoice.id === lead.invoice_id);
@@ -335,22 +340,24 @@ export function LeadsAdmin({ projects = false }: { projects?: boolean }) {
                     </p>
                   )}
                 </div>
-                <button
-                  className="rounded-full border border-border px-4 py-2 text-sm"
-                  onClick={() => setEditing({ ...lead })}
-                >
+                <button className="admin-button" onClick={() => setEditing({ ...lead })}>
                   Review / edit
                 </button>
               </div>
               <div className="mt-3 flex flex-wrap gap-4 text-sm">
                 {lead.report_url && (
-                  <a className="underline" href={lead.report_url} target="_blank" rel="noreferrer">
+                  <a
+                    className="admin-text-button"
+                    href={lead.report_url}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
                     Report
                   </a>
                 )}
                 {lead.proposal_url && (
                   <a
-                    className="underline"
+                    className="admin-text-button"
                     href={lead.proposal_url}
                     target="_blank"
                     rel="noreferrer"
@@ -360,7 +367,7 @@ export function LeadsAdmin({ projects = false }: { projects?: boolean }) {
                 )}
                 {invoice && (
                   <a
-                    className="underline"
+                    className="admin-text-button"
                     href={`/pay/${invoice.payment_token}`}
                     target="_blank"
                     rel="noreferrer"

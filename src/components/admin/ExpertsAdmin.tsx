@@ -347,7 +347,7 @@ export function ExpertsAdmin() {
           <h2>
             Pending requests <span className="admin-count">{pending.length}</span>
           </h2>
-          <p>Approve to grant access to Author Reports and Scout.</p>
+          <p>Approve to grant access to Audit and Scout.</p>
         </div>
         <button
           className="admin-icon-button"

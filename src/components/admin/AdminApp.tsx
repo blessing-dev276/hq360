@@ -17,7 +17,6 @@ import {
   CreditCard,
   ArrowUpRight,
   LogOut,
-  ChevronRight,
   UserCheck,
 } from "lucide-react";
 import { Logo } from "@/components/Logo";
@@ -191,7 +190,7 @@ const NAV = [
   },
   {
     id: "audits",
-    label: "Author Reports",
+    label: "Audit",
     icon: ScanSearch,
     description: "Turn research into a clear growth direction.",
   },
@@ -230,13 +229,6 @@ export function AdminApp({ initialTab = "overview" }: { initialTab?: Tab }) {
         <a href="/admin" className="admin-wordmark">
           <Logo variant="mono" size={26} />
         </a>
-        <div className="admin-workspace-label">
-          <span className="admin-workspace-avatar">HQ</span>
-          <div>
-            HQ360 workspace<small>Administration</small>
-          </div>
-          <ChevronRight size={14} />
-        </div>
         <p className="admin-nav-label">WORKSPACE</p>
         <nav aria-label="Admin navigation">
           {["overview", "scout", "audits", "experts", "projects", "payments", "work"].map((key) =>
@@ -258,14 +250,6 @@ export function AdminApp({ initialTab = "overview" }: { initialTab?: Tab }) {
         </nav>
 
         <div className="admin-sidebar-bottom">
-          <div className="admin-sidebar-note">
-            <span className="admin-live-dot" /> Your next chapter starts here.
-            <p>
-              Create exceptional work.
-              <br />
-              Build lasting relationships.
-            </p>
-          </div>
           <a href="/" target="_blank" rel="noreferrer" className="admin-nav-item">
             <ArrowUpRight size={18} />
             View website
@@ -290,11 +274,19 @@ export function AdminApp({ initialTab = "overview" }: { initialTab?: Tab }) {
       </aside>
       <div className="admin-main">
         <header className="admin-topbar">
-          <div className="admin-breadcrumb">
-            Workspace <ChevronRight size={14} />
-            <strong>{current.label}</strong>
+          <div className="admin-topbar-title">
+            <p className="admin-eyebrow">HQ360 · Workspace</p>
+            <h1>{current.label}</h1>
+            <p>{current.description}</p>
           </div>
           <div className="admin-account">
+            <span className="admin-date">
+              {new Date().toLocaleDateString("en-GB", {
+                day: "numeric",
+                month: "short",
+                year: "numeric",
+              })}
+            </span>
             <span className="admin-account-label">
               HQ360 Administrator<small>Workspace owner</small>
             </span>
@@ -302,22 +294,6 @@ export function AdminApp({ initialTab = "overview" }: { initialTab?: Tab }) {
           </div>
         </header>
         <div className="admin-page">
-          {tab !== "scout" && (
-            <div className="admin-page-heading">
-              <div>
-                <p className="admin-eyebrow">YOUR BUSINESS, IN FOCUS</p>
-                <h1>{current.label}</h1>
-                <p>{current.description}</p>
-              </div>
-              <span className="admin-date">
-                {new Date().toLocaleDateString("en-GB", {
-                  day: "numeric",
-                  month: "long",
-                  year: "numeric",
-                })}
-              </span>
-            </div>
-          )}
           {tab === "scout" ? (
             <ScoutApp />
           ) : tab === "overview" ? (

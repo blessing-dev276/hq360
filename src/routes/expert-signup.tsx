@@ -18,7 +18,7 @@ export const Route = createFileRoute("/expert-signup")({
     buildSeo({
       title: "Become an Expert | HQ360",
       description:
-        "Apply to join the HQ360 expert network. Approved experts get access to Author Reports and Scout, and a public profile page.",
+        "Apply to join the HQ360 expert network. Approved experts get access to Audit and Scout, and a public profile page.",
       path: "/expert-signup",
     }),
   component: BecomeAnExpert,
@@ -32,7 +32,7 @@ const PERKS = [
   },
   {
     icon: FileText,
-    title: "Author Reports",
+    title: "Audit",
     body: "Research and build author visibility reports with HQ360’s tooling.",
   },
   {

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ChevronRight, CreditCard, FileText, LogOut, ScanSearch, UserRound } from "lucide-react";
+import { CreditCard, FileText, LogOut, ScanSearch, UserRound } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { Logo } from "@/components/Logo";
@@ -11,10 +11,17 @@ import "@/components/admin/admin-workspace.css";
 type Tab = "profile" | "reports" | "scout" | "invoices";
 const NAV = [
   { id: "profile", label: "My profile", icon: UserRound },
-  { id: "reports", label: "Author Reports", icon: FileText },
+  { id: "reports", label: "Audit", icon: FileText },
   { id: "scout", label: "Scouting", icon: ScanSearch },
   { id: "invoices", label: "Invoices", icon: CreditCard },
 ] as const;
+
+const DESCRIPTIONS: Record<Tab, string> = {
+  profile: "Tell clients who you help and bring your work together in one profile.",
+  reports: "Turn research into a clear growth direction for every author.",
+  scout: "Discover authors, review batches and find contact information.",
+  invoices: "Request invoices and follow each payment to the end.",
+};
 
 export function ExpertApp() {
   const [tab, setTab] = useState<Tab>("profile");
@@ -49,13 +56,6 @@ export function ExpertApp() {
         <a href="/expert" className="admin-wordmark">
           <Logo variant="mono" size={26} />
         </a>
-        <div className="admin-workspace-label">
-          <span className="admin-workspace-avatar">EX</span>
-          <div>
-            HQ360 workspace<small>Expert access</small>
-          </div>
-          <ChevronRight size={14} />
-        </div>
         <p className="admin-nav-label">WORKSPACE</p>
         <nav aria-label="Expert navigation">
           {NAV.map(({ id, label, icon: Icon }) => (
@@ -84,9 +84,16 @@ export function ExpertApp() {
       </aside>
       <div className="admin-main">
         <header className="admin-topbar">
-          <div className="admin-breadcrumb">
-            Workspace <ChevronRight size={14} />
-            <strong>{NAV.find((item) => item.id === tab)!.label}</strong>
+          <div className="admin-topbar-title">
+            <p className="admin-eyebrow">HQ360 · Expert workspace</p>
+            <h1>{NAV.find((item) => item.id === tab)!.label}</h1>
+            <p>{DESCRIPTIONS[tab]}</p>
+          </div>
+          <div className="admin-account">
+            <span className="admin-account-label">
+              HQ360 Expert<small>Approved access</small>
+            </span>
+            <span className="admin-user-avatar">EX</span>
           </div>
         </header>
         <div className="admin-page">
@@ -95,13 +102,13 @@ export function ExpertApp() {
           ) : tab === "reports" ? (
             <section className="rounded-2xl border border-border bg-card p-8 sm:p-12">
               <FileText className="mb-5 size-10 text-muted-foreground" />
-              <span className="rounded-full bg-secondary px-3 py-1 text-xs font-semibold">
+              <span className="rounded-full bg-secondary px-3 py-1 text-xs font-semibold text-brand">
                 Coming soon
               </span>
-              <h1 className="mt-5 font-display text-3xl">Author Reports</h1>
+              <h2 className="mt-5 font-display text-3xl">Audit</h2>
               <p className="mt-3 max-w-lg text-muted-foreground">
-                Author Reports are coming to your expert workspace. You can explore authors and
-                their book reviews in Scouting today.
+                Audit is coming to your expert workspace. You can explore authors and their book
+                reviews in Scouting today.
               </p>
               <button
                 onClick={() => navigate("scout")}

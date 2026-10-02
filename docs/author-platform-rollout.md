@@ -20,7 +20,7 @@ The Free Author Visibility Check is a request for an initial human-reviewed asse
 
 Apply `supabase/migrations/20260930100000_sales_workflow.sql` and `supabase/migrations/20260930110000_nowpayments_only.sql` through the normal Supabase deployment process before deploying the new admin UI. It creates private `sales_leads` and `sales_events` tables, grants access to the service role, backfills existing inquiries/visibility requests/non-excluded Scout prospects and captures future submissions with database triggers. Existing source records and payment behavior are preserved. Do not run seed scripts as part of this rollout.
 
-Admin now groups daily work under Leads & Follow-ups, Scout, Author Reports, Projects, Invoices and Website Content. The first and Projects views share the same record. Projects shows records with an active project status or a won sales stage. Use:
+Admin now groups daily work under Leads & Follow-ups, Scout, Audit, Projects, Invoices and Website Content. The first and Projects views share the same record. Projects shows records with an active project status or a won sales stage. Use:
 
 1. Review the source material and assign a team member.
 2. Mark qualified, then record introductions and discussions with contact/follow-up dates.

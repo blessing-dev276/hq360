@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { NotificationBell } from "@/components/admin/NotificationBell";
 import {
   CreditCard,
   FileText,
@@ -169,6 +170,12 @@ export function ExpertApp() {
             <p>{current.description}</p>
           </div>
           <div className="admin-account">
+            <NotificationBell
+              endpoint="/api/expert/notifications"
+              onNavigate={(value) => {
+                if (nav.some((item) => item.id === value)) navigate(value as Tab);
+              }}
+            />
             <span className="admin-account-label">
               HQ360 Expert<small>{roleLabel(role)}</small>
             </span>

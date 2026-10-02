@@ -76,6 +76,7 @@ import { Route as ApiAdminFounderRouteImport } from './routes/api/admin/founder'
 import { Route as ApiAdminInvoiceRequestsRouteImport } from './routes/api/admin/invoice-requests'
 import { Route as ApiAdminInvoicesRouteImport } from './routes/api/admin/invoices'
 import { Route as ApiAdminLeadsRouteImport } from './routes/api/admin/leads'
+import { Route as ApiAdminNotificationsRouteImport } from './routes/api/admin/notifications'
 import { Route as ApiAdminPortfolioRouteImport } from './routes/api/admin/portfolio'
 import { Route as ApiAdminScoutAmazonSearchRouteImport } from './routes/api/admin/scout-amazon-search'
 import { Route as ApiAdminScoutArcDiscoveryRouteImport } from './routes/api/admin/scout-arc-discovery'
@@ -96,6 +97,7 @@ import { Route as ApiAdminTestimonialsRouteImport } from './routes/api/admin/tes
 import { Route as ApiAdminUploadRouteImport } from './routes/api/admin/upload'
 import { Route as ApiAdminUploadUrlRouteImport } from './routes/api/admin/upload-url'
 import { Route as ApiExpertInvoiceRequestsRouteImport } from './routes/api/expert/invoice-requests'
+import { Route as ApiExpertNotificationsRouteImport } from './routes/api/expert/notifications'
 import { Route as ApiExpertPhotoUrlRouteImport } from './routes/api/expert/photo-url'
 import { Route as ApiExpertPortfolioRouteImport } from './routes/api/expert/portfolio'
 import { Route as ApiExpertProfileRouteImport } from './routes/api/expert/profile'
@@ -500,6 +502,11 @@ const ApiAdminLeadsRoute = ApiAdminLeadsRouteImport.update({
   path: '/api/admin/leads',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAdminNotificationsRoute = ApiAdminNotificationsRouteImport.update({
+  id: '/api/admin/notifications',
+  path: '/api/admin/notifications',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAdminPortfolioRoute = ApiAdminPortfolioRouteImport.update({
   id: '/api/admin/portfolio',
   path: '/api/admin/portfolio',
@@ -609,6 +616,11 @@ const ApiExpertInvoiceRequestsRoute =
     path: '/api/expert/invoice-requests',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiExpertNotificationsRoute = ApiExpertNotificationsRouteImport.update({
+  id: '/api/expert/notifications',
+  path: '/api/expert/notifications',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiExpertPhotoUrlRoute = ApiExpertPhotoUrlRouteImport.update({
   id: '/api/expert/photo-url',
   path: '/api/expert/photo-url',
@@ -1037,6 +1049,7 @@ export interface FileRoutesByFullPath {
   '/api/admin/invoice-requests': typeof ApiAdminInvoiceRequestsRouteWithChildren
   '/api/admin/invoices': typeof ApiAdminInvoicesRouteWithChildren
   '/api/admin/leads': typeof ApiAdminLeadsRoute
+  '/api/admin/notifications': typeof ApiAdminNotificationsRoute
   '/api/admin/portfolio': typeof ApiAdminPortfolioRouteWithChildren
   '/api/admin/scout-amazon-search': typeof ApiAdminScoutAmazonSearchRoute
   '/api/admin/scout-arc-discovery': typeof ApiAdminScoutArcDiscoveryRoute
@@ -1057,6 +1070,7 @@ export interface FileRoutesByFullPath {
   '/api/admin/upload': typeof ApiAdminUploadRoute
   '/api/admin/upload-url': typeof ApiAdminUploadUrlRoute
   '/api/expert/invoice-requests': typeof ApiExpertInvoiceRequestsRoute
+  '/api/expert/notifications': typeof ApiExpertNotificationsRoute
   '/api/expert/photo-url': typeof ApiExpertPhotoUrlRoute
   '/api/expert/portfolio': typeof ApiExpertPortfolioRouteWithChildren
   '/api/expert/profile': typeof ApiExpertProfileRoute
@@ -1191,6 +1205,7 @@ export interface FileRoutesByTo {
   '/api/admin/invoice-requests': typeof ApiAdminInvoiceRequestsRouteWithChildren
   '/api/admin/invoices': typeof ApiAdminInvoicesRouteWithChildren
   '/api/admin/leads': typeof ApiAdminLeadsRoute
+  '/api/admin/notifications': typeof ApiAdminNotificationsRoute
   '/api/admin/portfolio': typeof ApiAdminPortfolioRouteWithChildren
   '/api/admin/scout-amazon-search': typeof ApiAdminScoutAmazonSearchRoute
   '/api/admin/scout-arc-discovery': typeof ApiAdminScoutArcDiscoveryRoute
@@ -1211,6 +1226,7 @@ export interface FileRoutesByTo {
   '/api/admin/upload': typeof ApiAdminUploadRoute
   '/api/admin/upload-url': typeof ApiAdminUploadUrlRoute
   '/api/expert/invoice-requests': typeof ApiExpertInvoiceRequestsRoute
+  '/api/expert/notifications': typeof ApiExpertNotificationsRoute
   '/api/expert/photo-url': typeof ApiExpertPhotoUrlRoute
   '/api/expert/portfolio': typeof ApiExpertPortfolioRouteWithChildren
   '/api/expert/profile': typeof ApiExpertProfileRoute
@@ -1346,6 +1362,7 @@ export interface FileRoutesById {
   '/api/admin/invoice-requests': typeof ApiAdminInvoiceRequestsRouteWithChildren
   '/api/admin/invoices': typeof ApiAdminInvoicesRouteWithChildren
   '/api/admin/leads': typeof ApiAdminLeadsRoute
+  '/api/admin/notifications': typeof ApiAdminNotificationsRoute
   '/api/admin/portfolio': typeof ApiAdminPortfolioRouteWithChildren
   '/api/admin/scout-amazon-search': typeof ApiAdminScoutAmazonSearchRoute
   '/api/admin/scout-arc-discovery': typeof ApiAdminScoutArcDiscoveryRoute
@@ -1366,6 +1383,7 @@ export interface FileRoutesById {
   '/api/admin/upload': typeof ApiAdminUploadRoute
   '/api/admin/upload-url': typeof ApiAdminUploadUrlRoute
   '/api/expert/invoice-requests': typeof ApiExpertInvoiceRequestsRoute
+  '/api/expert/notifications': typeof ApiExpertNotificationsRoute
   '/api/expert/photo-url': typeof ApiExpertPhotoUrlRoute
   '/api/expert/portfolio': typeof ApiExpertPortfolioRouteWithChildren
   '/api/expert/profile': typeof ApiExpertProfileRoute
@@ -1502,6 +1520,7 @@ export interface FileRouteTypes {
     | '/api/admin/invoice-requests'
     | '/api/admin/invoices'
     | '/api/admin/leads'
+    | '/api/admin/notifications'
     | '/api/admin/portfolio'
     | '/api/admin/scout-amazon-search'
     | '/api/admin/scout-arc-discovery'
@@ -1522,6 +1541,7 @@ export interface FileRouteTypes {
     | '/api/admin/upload'
     | '/api/admin/upload-url'
     | '/api/expert/invoice-requests'
+    | '/api/expert/notifications'
     | '/api/expert/photo-url'
     | '/api/expert/portfolio'
     | '/api/expert/profile'
@@ -1656,6 +1676,7 @@ export interface FileRouteTypes {
     | '/api/admin/invoice-requests'
     | '/api/admin/invoices'
     | '/api/admin/leads'
+    | '/api/admin/notifications'
     | '/api/admin/portfolio'
     | '/api/admin/scout-amazon-search'
     | '/api/admin/scout-arc-discovery'
@@ -1676,6 +1697,7 @@ export interface FileRouteTypes {
     | '/api/admin/upload'
     | '/api/admin/upload-url'
     | '/api/expert/invoice-requests'
+    | '/api/expert/notifications'
     | '/api/expert/photo-url'
     | '/api/expert/portfolio'
     | '/api/expert/profile'
@@ -1810,6 +1832,7 @@ export interface FileRouteTypes {
     | '/api/admin/invoice-requests'
     | '/api/admin/invoices'
     | '/api/admin/leads'
+    | '/api/admin/notifications'
     | '/api/admin/portfolio'
     | '/api/admin/scout-amazon-search'
     | '/api/admin/scout-arc-discovery'
@@ -1830,6 +1853,7 @@ export interface FileRouteTypes {
     | '/api/admin/upload'
     | '/api/admin/upload-url'
     | '/api/expert/invoice-requests'
+    | '/api/expert/notifications'
     | '/api/expert/photo-url'
     | '/api/expert/portfolio'
     | '/api/expert/profile'
@@ -1965,6 +1989,7 @@ export interface RootRouteChildren {
   ApiAdminInvoiceRequestsRoute: typeof ApiAdminInvoiceRequestsRouteWithChildren
   ApiAdminInvoicesRoute: typeof ApiAdminInvoicesRouteWithChildren
   ApiAdminLeadsRoute: typeof ApiAdminLeadsRoute
+  ApiAdminNotificationsRoute: typeof ApiAdminNotificationsRoute
   ApiAdminPortfolioRoute: typeof ApiAdminPortfolioRouteWithChildren
   ApiAdminScoutAmazonSearchRoute: typeof ApiAdminScoutAmazonSearchRoute
   ApiAdminScoutArcDiscoveryRoute: typeof ApiAdminScoutArcDiscoveryRoute
@@ -1985,6 +2010,7 @@ export interface RootRouteChildren {
   ApiAdminUploadRoute: typeof ApiAdminUploadRoute
   ApiAdminUploadUrlRoute: typeof ApiAdminUploadUrlRoute
   ApiExpertInvoiceRequestsRoute: typeof ApiExpertInvoiceRequestsRoute
+  ApiExpertNotificationsRoute: typeof ApiExpertNotificationsRoute
   ApiExpertPhotoUrlRoute: typeof ApiExpertPhotoUrlRoute
   ApiExpertPortfolioRoute: typeof ApiExpertPortfolioRouteWithChildren
   ApiExpertProfileRoute: typeof ApiExpertProfileRoute
@@ -2485,6 +2511,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAdminLeadsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/admin/notifications': {
+      id: '/api/admin/notifications'
+      path: '/api/admin/notifications'
+      fullPath: '/api/admin/notifications'
+      preLoaderRoute: typeof ApiAdminNotificationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/admin/portfolio': {
       id: '/api/admin/portfolio'
       path: '/api/admin/portfolio'
@@ -2623,6 +2656,13 @@ declare module '@tanstack/react-router' {
       path: '/api/expert/invoice-requests'
       fullPath: '/api/expert/invoice-requests'
       preLoaderRoute: typeof ApiExpertInvoiceRequestsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/expert/notifications': {
+      id: '/api/expert/notifications'
+      path: '/api/expert/notifications'
+      fullPath: '/api/expert/notifications'
+      preLoaderRoute: typeof ApiExpertNotificationsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/expert/photo-url': {
@@ -3436,6 +3476,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAdminInvoiceRequestsRoute: ApiAdminInvoiceRequestsRouteWithChildren,
   ApiAdminInvoicesRoute: ApiAdminInvoicesRouteWithChildren,
   ApiAdminLeadsRoute: ApiAdminLeadsRoute,
+  ApiAdminNotificationsRoute: ApiAdminNotificationsRoute,
   ApiAdminPortfolioRoute: ApiAdminPortfolioRouteWithChildren,
   ApiAdminScoutAmazonSearchRoute: ApiAdminScoutAmazonSearchRoute,
   ApiAdminScoutArcDiscoveryRoute: ApiAdminScoutArcDiscoveryRoute,
@@ -3457,6 +3498,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAdminUploadRoute: ApiAdminUploadRoute,
   ApiAdminUploadUrlRoute: ApiAdminUploadUrlRoute,
   ApiExpertInvoiceRequestsRoute: ApiExpertInvoiceRequestsRoute,
+  ApiExpertNotificationsRoute: ApiExpertNotificationsRoute,
   ApiExpertPhotoUrlRoute: ApiExpertPhotoUrlRoute,
   ApiExpertPortfolioRoute: ApiExpertPortfolioRouteWithChildren,
   ApiExpertProfileRoute: ApiExpertProfileRoute,

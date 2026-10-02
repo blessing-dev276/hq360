@@ -22,6 +22,7 @@ import {
 import { Logo } from "@/components/Logo";
 import { PaymentsAdmin } from "./PaymentsAdmin";
 import { AdminDashboard } from "./AdminDashboard";
+import { NotificationBell } from "./NotificationBell";
 import { LeadsAdmin } from "./LeadsAdmin";
 import "./admin-workspace.css";
 
@@ -281,6 +282,12 @@ export function AdminApp({ initialTab = "overview" }: { initialTab?: Tab }) {
             <p>{current.description}</p>
           </div>
           <div className="admin-account">
+            <NotificationBell
+              endpoint="/api/admin/notifications"
+              onNavigate={(value) => {
+                if (NAV.some((item) => item.id === value)) navigate(value as Tab);
+              }}
+            />
             <span className="admin-date">
               {new Date().toLocaleDateString("en-GB", {
                 day: "numeric",

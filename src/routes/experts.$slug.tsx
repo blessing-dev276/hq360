@@ -55,6 +55,12 @@ function paragraphs(person: PublicExpert) {
     : [`${person.name} is an approved HQ360 expert.`];
 }
 
+/** Hero line: the expert's own short intro, never a repeat of the bio below. */
+function shortIntro(person: PublicExpert) {
+  if (person.summary) return person.summary;
+  return person.kind === "team" ? "Part of the HQ360 core team." : "An approved HQ360 expert.";
+}
+
 function ExpertProfilePage() {
   const { slug } = Route.useParams();
   const { all, loading } = useExpertDirectory();
@@ -130,7 +136,16 @@ function ExpertProfilePage() {
             </div>
             <div className="hqd-hero-aside">
               <p className="hqd-lede">The person behind the work.</p>
-              <p>{intro}</p>
+              <p
+                style={{
+                  display: "-webkit-box",
+                  WebkitLineClamp: 2,
+                  WebkitBoxOrient: "vertical",
+                  overflow: "hidden",
+                }}
+              >
+                {shortIntro(person)}
+              </p>
             </div>
           </div>
         </div>

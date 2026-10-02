@@ -10,6 +10,7 @@ type Profile = {
   slug: string;
   full_name: string | null;
   headline: string | null;
+  summary: string | null;
   bio: string | null;
   photo_url: string | null;
   specialties: string[] | null;
@@ -49,6 +50,46 @@ function ReviewStatus({ profile }: { profile: Profile }) {
       <AlertCircle size={18} />
       Not submitted yet. Fill in your profile, then submit it for admin review to go live.
     </div>
+  );
+}
+
+function CountedField({
+  label,
+  hint,
+  name,
+  max,
+  rows,
+  placeholder,
+  defaultValue,
+}: {
+  label: string;
+  hint: string;
+  name: string;
+  max: number;
+  rows?: number;
+  placeholder: string;
+  defaultValue: string;
+}) {
+  const [length, setLength] = useState(defaultValue.length);
+  const props = {
+    name,
+    maxLength: max,
+    placeholder,
+    defaultValue,
+    onInput: (event: { currentTarget: { value: string } }) =>
+      setLength(event.currentTarget.value.length),
+  };
+  return (
+    <label>
+      <span style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
+        {label}
+        <small style={{ fontWeight: 400, opacity: 0.7 }}>
+          {length}/{max}
+        </small>
+      </span>
+      {rows ? <textarea rows={rows} {...props} /> : <input {...props} />}
+      <small style={{ fontWeight: 400, opacity: 0.7 }}>{hint}</small>
+    </label>
   );
 }
 
@@ -121,6 +162,7 @@ export function ExpertProfileEditor() {
         body: JSON.stringify({
           full_name: form.get("full_name"),
           headline: form.get("headline"),
+          summary: form.get("summary"),
           bio: form.get("bio"),
           location: form.get("location"),
           specialties: String(form.get("specialties") || "")
@@ -366,6 +408,14 @@ export function ExpertProfileEditor() {
                     defaultValue={profile.headline ?? ""}
                   />
                 </label>
+                <CountedField
+                  label="Short intro"
+                  hint="One line at the top of your public profile."
+                  name="summary"
+                  max={140}
+                  placeholder="e.g. I help debut authors turn a finished manuscript into a launch plan."
+                  defaultValue={profile.summary ?? ""}
+                />
                 <label>
                   Location
                   <input
@@ -406,16 +456,15 @@ export function ExpertProfileEditor() {
                 <p className="text-xs uppercase tracking-widest text-brand">02 · Your story</p>
                 <h2 className="mt-2 text-xl font-semibold">What makes your work different?</h2>
               </div>
-              <label>
-                About you
-                <textarea
-                  name="bio"
-                  rows={6}
-                  maxLength={4000}
-                  placeholder="What you do, who you help and how you work. Separate paragraphs with a blank line."
-                  defaultValue={profile.bio ?? ""}
-                />
-              </label>
+              <CountedField
+                label="About you"
+                hint="Shown further down your profile. Separate paragraphs with a blank line."
+                name="bio"
+                max={1200}
+                rows={6}
+                placeholder="What you do, who you help and how you work."
+                defaultValue={profile.bio ?? ""}
+              />
             </fieldset>
             {busy && (
               <GlassLoading

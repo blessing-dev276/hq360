@@ -21,6 +21,7 @@ type Expert = {
   email: string;
   full_name: string | null;
   headline: string | null;
+  summary: string | null;
   bio: string | null;
   photo_url: string | null;
   specialties: string[] | null;
@@ -80,6 +81,7 @@ function ProfilePreview({ expert }: { expert: Expert }) {
           <p style={{ color: "var(--muted-foreground)" }}>{expert.headline || "No headline yet"}</p>
         </div>
       </div>
+      {expert.summary && <p style={{ fontWeight: 600 }}>{expert.summary}</p>}
       {expert.bio && <p style={{ color: "var(--muted-foreground)" }}>{expert.bio}</p>}
       {expert.specialties && expert.specialties.length > 0 && (
         <p>

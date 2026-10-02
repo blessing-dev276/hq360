@@ -16,6 +16,7 @@ type Profile = {
   email: string;
   full_name: string | null;
   headline: string | null;
+  summary: string | null;
   bio: string | null;
   photo_url: string | null;
   specialties: string[] | null;
@@ -39,6 +40,7 @@ function completeness(p: Profile) {
     ["Photo", !!p.photo_url],
     ["Name", !!p.full_name],
     ["Headline", !!p.headline],
+    ["Short intro", !!p.summary],
     ["About you", (p.bio?.length ?? 0) >= 80],
     ["Specialties", (p.specialties?.length ?? 0) > 0],
     ["Location", !!p.location],

@@ -15,7 +15,8 @@ const httpsUrl = z
 const schema = z.object({
   full_name: z.string().trim().min(2).max(150),
   headline: z.string().trim().max(160),
-  bio: z.string().trim().max(4000),
+  summary: z.string().trim().max(140),
+  bio: z.string().trim().max(1200),
   location: z.string().trim().max(120),
   specialties: z.array(z.string().trim().min(1).max(40)).max(12),
   website_url: httpsUrl.or(z.literal("")),
@@ -32,7 +33,7 @@ const schema = z.object({
 });
 
 const FIELDS =
-  "id, email, slug, full_name, headline, bio, photo_url, specialties, location, website_url, linkedin_url, is_public, status, profile_status, profile_submitted_at, profile_reviewed_at, profile_review_note, claimed_team_member_id";
+  "id, email, slug, full_name, headline, summary, bio, photo_url, specialties, location, website_url, linkedin_url, is_public, status, profile_status, profile_submitted_at, profile_reviewed_at, profile_review_note, claimed_team_member_id";
 
 export const Route = createFileRoute("/api/expert/profile")({
   server: {
@@ -77,6 +78,7 @@ export const Route = createFileRoute("/api/expert/profile")({
           .update({
             full_name: input.full_name,
             headline: input.headline || null,
+            summary: input.summary || null,
             bio: input.bio || null,
             location: input.location || null,
             specialties: [...new Set(input.specialties)],

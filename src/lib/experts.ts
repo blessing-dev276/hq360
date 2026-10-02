@@ -7,6 +7,7 @@ export type PublicExpert = {
   slug: string;
   name: string;
   headline: string;
+  summary: string;
   bio: string;
   photo: string | null;
   specialties: string[];
@@ -21,6 +22,7 @@ export type ExpertRow = {
   slug: string;
   full_name: string | null;
   headline: string | null;
+  summary?: string | null;
   bio: string | null;
   photo_url: string | null;
   specialties: string[] | null;
@@ -83,6 +85,7 @@ function fromTeam(member: { name: string; role: string; blurb: string; photo: st
     slug: slugify(member.name),
     name: member.name,
     headline: displayTitle(member.role),
+    summary: "",
     bio: member.blurb,
     photo: member.photo,
     specialties: [],
@@ -102,6 +105,7 @@ export function fromExpertRow(row: ExpertRow): PublicExpert {
     slug: row.slug,
     name: row.full_name?.trim() || "HQ360 Expert",
     headline: row.headline?.trim() || "HQ360 Expert",
+    summary: row.summary?.trim() || "",
     bio: row.bio?.trim() || "",
     photo: row.photo_url,
     specialties: row.specialties ?? [],

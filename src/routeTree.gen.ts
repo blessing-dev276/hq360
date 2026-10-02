@@ -104,6 +104,7 @@ import { Route as ApiExpertProfileRouteImport } from './routes/api/expert/profil
 import { Route as ApiExpertProfileSubmitRouteImport } from './routes/api/expert/profile-submit'
 import { Route as ApiExpertSessionRouteImport } from './routes/api/expert/session'
 import { Route as ApiExpertSignupRouteImport } from './routes/api/expert/signup'
+import { Route as ApiNotificationsDispatchRouteImport } from './routes/api/notifications/dispatch'
 import { Route as ApiPayTokenRouteImport } from './routes/api/pay/$token'
 import { Route as ApiPublicAuthorAuditRouteImport } from './routes/api/public/author-audit'
 import { Route as ApiPublicCaseStudiesRouteImport } from './routes/api/public/case-studies'
@@ -651,6 +652,12 @@ const ApiExpertSignupRoute = ApiExpertSignupRouteImport.update({
   path: '/api/expert/signup',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiNotificationsDispatchRoute =
+  ApiNotificationsDispatchRouteImport.update({
+    id: '/api/notifications/dispatch',
+    path: '/api/notifications/dispatch',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPayTokenRoute = ApiPayTokenRouteImport.update({
   id: '/api/pay/$token',
   path: '/api/pay/$token',
@@ -1077,6 +1084,7 @@ export interface FileRoutesByFullPath {
   '/api/expert/profile-submit': typeof ApiExpertProfileSubmitRoute
   '/api/expert/session': typeof ApiExpertSessionRoute
   '/api/expert/signup': typeof ApiExpertSignupRoute
+  '/api/notifications/dispatch': typeof ApiNotificationsDispatchRoute
   '/api/pay/$token': typeof ApiPayTokenRoute
   '/api/public/author-audit': typeof ApiPublicAuthorAuditRoute
   '/api/public/case-studies': typeof ApiPublicCaseStudiesRoute
@@ -1233,6 +1241,7 @@ export interface FileRoutesByTo {
   '/api/expert/profile-submit': typeof ApiExpertProfileSubmitRoute
   '/api/expert/session': typeof ApiExpertSessionRoute
   '/api/expert/signup': typeof ApiExpertSignupRoute
+  '/api/notifications/dispatch': typeof ApiNotificationsDispatchRoute
   '/api/pay/$token': typeof ApiPayTokenRoute
   '/api/public/author-audit': typeof ApiPublicAuthorAuditRoute
   '/api/public/case-studies': typeof ApiPublicCaseStudiesRoute
@@ -1390,6 +1399,7 @@ export interface FileRoutesById {
   '/api/expert/profile-submit': typeof ApiExpertProfileSubmitRoute
   '/api/expert/session': typeof ApiExpertSessionRoute
   '/api/expert/signup': typeof ApiExpertSignupRoute
+  '/api/notifications/dispatch': typeof ApiNotificationsDispatchRoute
   '/api/pay/$token': typeof ApiPayTokenRoute
   '/api/public/author-audit': typeof ApiPublicAuthorAuditRoute
   '/api/public/case-studies': typeof ApiPublicCaseStudiesRoute
@@ -1548,6 +1558,7 @@ export interface FileRouteTypes {
     | '/api/expert/profile-submit'
     | '/api/expert/session'
     | '/api/expert/signup'
+    | '/api/notifications/dispatch'
     | '/api/pay/$token'
     | '/api/public/author-audit'
     | '/api/public/case-studies'
@@ -1704,6 +1715,7 @@ export interface FileRouteTypes {
     | '/api/expert/profile-submit'
     | '/api/expert/session'
     | '/api/expert/signup'
+    | '/api/notifications/dispatch'
     | '/api/pay/$token'
     | '/api/public/author-audit'
     | '/api/public/case-studies'
@@ -1860,6 +1872,7 @@ export interface FileRouteTypes {
     | '/api/expert/profile-submit'
     | '/api/expert/session'
     | '/api/expert/signup'
+    | '/api/notifications/dispatch'
     | '/api/pay/$token'
     | '/api/public/author-audit'
     | '/api/public/case-studies'
@@ -2017,6 +2030,7 @@ export interface RootRouteChildren {
   ApiExpertProfileSubmitRoute: typeof ApiExpertProfileSubmitRoute
   ApiExpertSessionRoute: typeof ApiExpertSessionRoute
   ApiExpertSignupRoute: typeof ApiExpertSignupRoute
+  ApiNotificationsDispatchRoute: typeof ApiNotificationsDispatchRoute
   ApiPayTokenRoute: typeof ApiPayTokenRoute
   ApiPublicAuthorAuditRoute: typeof ApiPublicAuthorAuditRoute
   ApiPublicCaseStudiesRoute: typeof ApiPublicCaseStudiesRoute
@@ -2705,6 +2719,13 @@ declare module '@tanstack/react-router' {
       path: '/api/expert/signup'
       fullPath: '/api/expert/signup'
       preLoaderRoute: typeof ApiExpertSignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/notifications/dispatch': {
+      id: '/api/notifications/dispatch'
+      path: '/api/notifications/dispatch'
+      fullPath: '/api/notifications/dispatch'
+      preLoaderRoute: typeof ApiNotificationsDispatchRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/pay/$token': {
@@ -3505,6 +3526,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiExpertProfileSubmitRoute: ApiExpertProfileSubmitRoute,
   ApiExpertSessionRoute: ApiExpertSessionRoute,
   ApiExpertSignupRoute: ApiExpertSignupRoute,
+  ApiNotificationsDispatchRoute: ApiNotificationsDispatchRoute,
   ApiPayTokenRoute: ApiPayTokenRoute,
   ApiPublicAuthorAuditRoute: ApiPublicAuthorAuditRoute,
   ApiPublicCaseStudiesRoute: ApiPublicCaseStudiesRoute,

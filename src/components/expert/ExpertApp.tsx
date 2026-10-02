@@ -7,46 +7,95 @@ import {
   LogOut,
   ScanSearch,
   UserRound,
+  type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { Logo } from "@/components/Logo";
+import { ScoutApp } from "@/components/admin/ScoutApp";
+import { AuthorAuditAdmin } from "@/components/admin/AuthorAuditAdmin";
+import { roleLabel, type ExpertFeature } from "@/lib/expert-roles";
 import { ExpertDashboard } from "./ExpertDashboard";
 import { ExpertProfileEditor } from "./ExpertProfileEditor";
 import { ExpertPortfolio } from "./ExpertPortfolio";
+import { ExpertInvoiceRequests } from "./ExpertInvoiceRequests";
 import "@/components/admin/admin-workspace.css";
 
-type Tab = "dashboard" | "profile" | "portfolio";
-const NAV = [
-  { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { id: "profile", label: "My profile", icon: UserRound },
-  { id: "portfolio", label: "Portfolio", icon: Images },
-] as const;
-const COMING_SOON = [
-  { label: "Audit", icon: FileText },
-  { label: "Scouting", icon: ScanSearch },
-  { label: "Invoices", icon: CreditCard },
-] as const;
+type Tab = "dashboard" | "profile" | "portfolio" | ExpertFeature;
+type NavItem = { id: Tab; label: string; icon: LucideIcon; description: string };
 
-const DESCRIPTIONS: Record<Tab, string> = {
-  dashboard: "Your profile, your work and what's next — at a glance.",
-  profile: "Tell clients who you help and how you work.",
-  portfolio: "Show the work you've delivered. Each item is reviewed before it goes live.",
-};
+const CORE: NavItem[] = [
+  {
+    id: "dashboard",
+    label: "Dashboard",
+    icon: LayoutDashboard,
+    description: "Your profile, your work and what's next — at a glance.",
+  },
+  {
+    id: "profile",
+    label: "My profile",
+    icon: UserRound,
+    description: "Tell clients who you help and how you work.",
+  },
+  {
+    id: "portfolio",
+    label: "Portfolio",
+    icon: Images,
+    description: "Show the work you've delivered. Each item is reviewed before it goes live.",
+  },
+];
+/** Tools an admin can grant by role; locked ones show as "Coming soon". */
+const TOOLS: (NavItem & { id: ExpertFeature })[] = [
+  {
+    id: "audit",
+    label: "Audit",
+    icon: FileText,
+    description: "Turn research into a clear growth direction for every author.",
+  },
+  {
+    id: "scout",
+    label: "Scouting",
+    icon: ScanSearch,
+    description: "Discover authors, review batches and find contact information.",
+  },
+  {
+    id: "invoices",
+    label: "Invoices",
+    icon: CreditCard,
+    description: "Request invoices for your clients and follow each payment.",
+  },
+];
 
 export function ExpertApp() {
   const [tab, setTab] = useState<Tab>("dashboard");
+  const [permissions, setPermissions] = useState<string[]>([]);
+  const [role, setRole] = useState("contributor");
   const [logoutError, setLogoutError] = useState("");
 
+  const unlocked = TOOLS.filter((t) => permissions.includes(t.id));
+  const locked = TOOLS.filter((t) => !permissions.includes(t.id));
+  const nav = [...CORE, ...unlocked];
+
+  useEffect(() => {
+    fetch("/api/expert/profile")
+      .then((r) => r.json())
+      .then((data) => {
+        setPermissions(data.profile?.permissions ?? []);
+        setRole(data.profile?.role ?? "contributor");
+      })
+      .catch(() => {});
+  }, []);
   useEffect(() => {
     const sync = () => {
       const value = window.location.hash.slice(1);
-      if (NAV.some((item) => item.id === value)) setTab(value as Tab);
+      if (nav.some((item) => item.id === value)) setTab(value as Tab);
     };
     sync();
     window.addEventListener("hashchange", sync);
     return () => window.removeEventListener("hashchange", sync);
-  }, []);
+    // Re-sync once permissions load so a deep link to a granted tool opens it.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [permissions]);
   function navigate(value: Tab) {
     setTab(value);
     window.location.hash = value;
@@ -60,6 +109,7 @@ export function ExpertApp() {
       setLogoutError("Could not sign out. Please try again.");
     }
   }
+  const current = nav.find((item) => item.id === tab) ?? CORE[0]!;
 
   return (
     <div className="admin-workspace">
@@ -69,7 +119,7 @@ export function ExpertApp() {
         </a>
         <p className="admin-nav-label">WORKSPACE</p>
         <nav aria-label="Expert navigation">
-          {NAV.map(({ id, label, icon: Icon }) => (
+          {nav.map(({ id, label, icon: Icon }) => (
             <button
               key={id}
               onClick={() => navigate(id)}
@@ -80,12 +130,14 @@ export function ExpertApp() {
               <span>{label}</span>
             </button>
           ))}
-          <p className="admin-nav-label" style={{ marginTop: 18 }}>
-            COMING SOON
-          </p>
-          {COMING_SOON.map(({ label, icon: Icon }) => (
+          {locked.length > 0 && (
+            <p className="admin-nav-label" style={{ marginTop: 18 }}>
+              COMING SOON
+            </p>
+          )}
+          {locked.map(({ id, label, icon: Icon }) => (
             <button
-              key={label}
+              key={id}
               className="admin-nav-item"
               disabled
               title={`${label} is coming soon`}
@@ -113,23 +165,29 @@ export function ExpertApp() {
         <header className="admin-topbar">
           <div className="admin-topbar-title">
             <p className="admin-eyebrow">HQ360 · Expert workspace</p>
-            <h1>{NAV.find((item) => item.id === tab)!.label}</h1>
-            <p>{DESCRIPTIONS[tab]}</p>
+            <h1>{current.label}</h1>
+            <p>{current.description}</p>
           </div>
           <div className="admin-account">
             <span className="admin-account-label">
-              HQ360 Expert<small>Approved access</small>
+              HQ360 Expert<small>{roleLabel(role)}</small>
             </span>
             <span className="admin-user-avatar">EX</span>
           </div>
         </header>
         <div className="admin-page">
-          {tab === "dashboard" ? (
+          {current.id === "dashboard" ? (
             <ExpertDashboard onNavigate={navigate} />
-          ) : tab === "profile" ? (
+          ) : current.id === "profile" ? (
             <ExpertProfileEditor />
-          ) : (
+          ) : current.id === "portfolio" ? (
             <ExpertPortfolio />
+          ) : current.id === "scout" ? (
+            <ScoutApp />
+          ) : current.id === "audit" ? (
+            <AuthorAuditAdmin />
+          ) : (
+            <ExpertInvoiceRequests />
           )}
           <footer className="admin-footer">
             <span>HQ360 · Expert workspace</span>

@@ -36,6 +36,9 @@ export const Route = createFileRoute("/api/expert/invoice-requests")({
         const { isExpertRequest, expertInvoiceRequests } = await import("@/lib/expert-auth.server");
         const expertId = await isExpertRequest(request);
         if (!expertId) return json({ error: "Unauthorized" }, 401);
+        const { expertHasFeature } = await import("@/lib/expert-auth.server");
+        if (!(await expertHasFeature(expertId, "invoices")))
+          return json({ error: "Invoices aren't enabled for your account yet." }, 403);
         const { data, error } = await expertInvoiceRequests()
           .select(FIELDS)
           .eq("expert_id", expertId)
@@ -77,6 +80,9 @@ export const Route = createFileRoute("/api/expert/invoice-requests")({
         const { isExpertRequest, expertInvoiceRequests } = await import("@/lib/expert-auth.server");
         const expertId = await isExpertRequest(request);
         if (!expertId) return json({ error: "Unauthorized" }, 401);
+        const { expertHasFeature } = await import("@/lib/expert-auth.server");
+        if (!(await expertHasFeature(expertId, "invoices")))
+          return json({ error: "Invoices aren't enabled for your account yet." }, 403);
         if (request.headers.get("origin") !== new URL(request.url).origin)
           return json({ error: "Invalid origin" }, 403);
         const parsed = schema.safeParse(await request.json().catch(() => null));

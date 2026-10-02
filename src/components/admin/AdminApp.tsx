@@ -199,7 +199,7 @@ const NAV = [
     id: "experts",
     label: "Experts",
     icon: UserCheck,
-    description: "Approve or reject expert account requests.",
+    description: "Manage experts — accounts, profiles, portfolios and what they can access.",
   },
 ] as const;
 const input =

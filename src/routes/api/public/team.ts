@@ -21,16 +21,27 @@ export const Route = createFileRoute("/api/public/team")({
     handlers: {
       GET: async () => {
         try {
-          const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-          const { data, error } = await supabaseAdmin
-            .from("team_members")
-            .select("id, name, title, image_url, blurb")
+          const { teamMembersUntyped } = await import("@/lib/expert-auth.server");
+          const { data, error } = await teamMembersUntyped()
+            .select(
+              "id, name, title, image_url, blurb, claimed:expert_profiles!claimed_by_expert_id(slug, is_public, status)",
+            )
             .eq("published", true)
             .order("sort_order", { ascending: true })
             .order("created_at", { ascending: true })
             .limit(60);
           if (error) return json({ ok: false }, 503);
-          return json({ ok: true, members: data ?? [] });
+          type Claimed = { slug: string; is_public: boolean; status: string } | null;
+          // A team member claimed by a public expert profile (e.g. the founder)
+          // is shown with that profile's content; expose only its slug.
+          const members = (data ?? []).map(({ claimed, ...m }) => {
+            const c = (Array.isArray(claimed) ? claimed[0] : claimed) as Claimed;
+            return {
+              ...m,
+              expert_slug: c && c.is_public && c.status === "approved" ? c.slug : null,
+            };
+          });
+          return json({ ok: true, members });
         } catch {
           return json({ ok: false }, 503);
         }

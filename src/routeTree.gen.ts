@@ -72,6 +72,7 @@ import { Route as ApiAdminAuthorAuditsRouteImport } from './routes/api/admin/aut
 import { Route as ApiAdminCaseStudiesRouteImport } from './routes/api/admin/case-studies'
 import { Route as ApiAdminExpertPortfolioRouteImport } from './routes/api/admin/expert-portfolio'
 import { Route as ApiAdminExpertsRouteImport } from './routes/api/admin/experts'
+import { Route as ApiAdminFounderRouteImport } from './routes/api/admin/founder'
 import { Route as ApiAdminInvoiceRequestsRouteImport } from './routes/api/admin/invoice-requests'
 import { Route as ApiAdminInvoicesRouteImport } from './routes/api/admin/invoices'
 import { Route as ApiAdminLeadsRouteImport } from './routes/api/admin/leads'
@@ -477,6 +478,11 @@ const ApiAdminExpertPortfolioRoute = ApiAdminExpertPortfolioRouteImport.update({
 const ApiAdminExpertsRoute = ApiAdminExpertsRouteImport.update({
   id: '/api/admin/experts',
   path: '/api/admin/experts',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminFounderRoute = ApiAdminFounderRouteImport.update({
+  id: '/api/admin/founder',
+  path: '/api/admin/founder',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiAdminInvoiceRequestsRoute = ApiAdminInvoiceRequestsRouteImport.update({
@@ -1027,6 +1033,7 @@ export interface FileRoutesByFullPath {
   '/api/admin/case-studies': typeof ApiAdminCaseStudiesRouteWithChildren
   '/api/admin/expert-portfolio': typeof ApiAdminExpertPortfolioRouteWithChildren
   '/api/admin/experts': typeof ApiAdminExpertsRouteWithChildren
+  '/api/admin/founder': typeof ApiAdminFounderRoute
   '/api/admin/invoice-requests': typeof ApiAdminInvoiceRequestsRouteWithChildren
   '/api/admin/invoices': typeof ApiAdminInvoicesRouteWithChildren
   '/api/admin/leads': typeof ApiAdminLeadsRoute
@@ -1180,6 +1187,7 @@ export interface FileRoutesByTo {
   '/api/admin/case-studies': typeof ApiAdminCaseStudiesRouteWithChildren
   '/api/admin/expert-portfolio': typeof ApiAdminExpertPortfolioRouteWithChildren
   '/api/admin/experts': typeof ApiAdminExpertsRouteWithChildren
+  '/api/admin/founder': typeof ApiAdminFounderRoute
   '/api/admin/invoice-requests': typeof ApiAdminInvoiceRequestsRouteWithChildren
   '/api/admin/invoices': typeof ApiAdminInvoicesRouteWithChildren
   '/api/admin/leads': typeof ApiAdminLeadsRoute
@@ -1334,6 +1342,7 @@ export interface FileRoutesById {
   '/api/admin/case-studies': typeof ApiAdminCaseStudiesRouteWithChildren
   '/api/admin/expert-portfolio': typeof ApiAdminExpertPortfolioRouteWithChildren
   '/api/admin/experts': typeof ApiAdminExpertsRouteWithChildren
+  '/api/admin/founder': typeof ApiAdminFounderRoute
   '/api/admin/invoice-requests': typeof ApiAdminInvoiceRequestsRouteWithChildren
   '/api/admin/invoices': typeof ApiAdminInvoicesRouteWithChildren
   '/api/admin/leads': typeof ApiAdminLeadsRoute
@@ -1489,6 +1498,7 @@ export interface FileRouteTypes {
     | '/api/admin/case-studies'
     | '/api/admin/expert-portfolio'
     | '/api/admin/experts'
+    | '/api/admin/founder'
     | '/api/admin/invoice-requests'
     | '/api/admin/invoices'
     | '/api/admin/leads'
@@ -1642,6 +1652,7 @@ export interface FileRouteTypes {
     | '/api/admin/case-studies'
     | '/api/admin/expert-portfolio'
     | '/api/admin/experts'
+    | '/api/admin/founder'
     | '/api/admin/invoice-requests'
     | '/api/admin/invoices'
     | '/api/admin/leads'
@@ -1795,6 +1806,7 @@ export interface FileRouteTypes {
     | '/api/admin/case-studies'
     | '/api/admin/expert-portfolio'
     | '/api/admin/experts'
+    | '/api/admin/founder'
     | '/api/admin/invoice-requests'
     | '/api/admin/invoices'
     | '/api/admin/leads'
@@ -1949,6 +1961,7 @@ export interface RootRouteChildren {
   ApiAdminCaseStudiesRoute: typeof ApiAdminCaseStudiesRouteWithChildren
   ApiAdminExpertPortfolioRoute: typeof ApiAdminExpertPortfolioRouteWithChildren
   ApiAdminExpertsRoute: typeof ApiAdminExpertsRouteWithChildren
+  ApiAdminFounderRoute: typeof ApiAdminFounderRoute
   ApiAdminInvoiceRequestsRoute: typeof ApiAdminInvoiceRequestsRouteWithChildren
   ApiAdminInvoicesRoute: typeof ApiAdminInvoicesRouteWithChildren
   ApiAdminLeadsRoute: typeof ApiAdminLeadsRoute
@@ -2442,6 +2455,13 @@ declare module '@tanstack/react-router' {
       path: '/api/admin/experts'
       fullPath: '/api/admin/experts'
       preLoaderRoute: typeof ApiAdminExpertsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/founder': {
+      id: '/api/admin/founder'
+      path: '/api/admin/founder'
+      fullPath: '/api/admin/founder'
+      preLoaderRoute: typeof ApiAdminFounderRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/admin/invoice-requests': {
@@ -3412,6 +3432,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAdminCaseStudiesRoute: ApiAdminCaseStudiesRouteWithChildren,
   ApiAdminExpertPortfolioRoute: ApiAdminExpertPortfolioRouteWithChildren,
   ApiAdminExpertsRoute: ApiAdminExpertsRouteWithChildren,
+  ApiAdminFounderRoute: ApiAdminFounderRoute,
   ApiAdminInvoiceRequestsRoute: ApiAdminInvoiceRequestsRouteWithChildren,
   ApiAdminInvoicesRoute: ApiAdminInvoicesRouteWithChildren,
   ApiAdminLeadsRoute: ApiAdminLeadsRoute,

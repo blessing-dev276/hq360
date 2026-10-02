@@ -1107,3 +1107,130 @@
 .admin-dialog .admin-button:not(.admin-button-primary) {
   color: var(--foreground);
 }
+
+/* Experts: queue rows, detail drawer, role cards */
+.admin-queue {
+  padding: 0 25px 12px;
+}
+.admin-invoice-form select {
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 10px 12px;
+  font-size: 12px;
+  width: 100%;
+  background: var(--card-2);
+  color: var(--foreground);
+}
+.admin-queue-row {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+.admin-queue-row:last-child {
+  border-bottom: 0;
+}
+.admin-queue-main {
+  flex: 1;
+  min-width: 180px;
+  display: grid;
+  gap: 3px;
+  text-align: left;
+  background: none;
+  border: 0;
+  padding: 0;
+  color: var(--foreground);
+}
+.admin-queue-main strong {
+  font-size: 13px;
+}
+.admin-queue-main small {
+  color: var(--muted-foreground);
+  font-size: 11px;
+}
+.admin-drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  justify-content: flex-end;
+  background: rgb(0 0 0 / 0.55);
+  backdrop-filter: blur(4px);
+}
+.admin-drawer {
+  width: min(100%, 640px);
+  height: 100%;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 26px;
+  background: #0e0e0f;
+  border-left: 1px solid var(--border);
+  box-shadow: -30px 0 80px rgb(0 0 0 / 0.5);
+  color: var(--foreground);
+}
+.admin-drawer-head {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+.admin-drawer-head h2 {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 600;
+}
+.admin-drawer-head small {
+  color: var(--muted-foreground);
+}
+.admin-drawer-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--card-2);
+  font-size: 12px;
+}
+.admin-drawer-card p,
+.admin-drawer-card small {
+  color: var(--muted-foreground);
+  margin-top: 3px;
+  line-height: 1.6;
+}
+.admin-drawer-card strong {
+  font-size: 13px;
+}
+.admin-role-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 8px;
+  margin-top: 8px;
+}
+.admin-role-card {
+  display: grid;
+  gap: 4px;
+  padding: 14px;
+  text-align: left;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--card-2);
+  color: var(--foreground);
+}
+.admin-role-card small {
+  color: var(--muted-foreground);
+  font-size: 11px;
+  line-height: 1.5;
+}
+.admin-role-card.active {
+  border-color: var(--brand);
+  background: var(--brand-wash);
+}
+@media (max-width: 640px) {
+  .admin-drawer {
+    padding: 18px;
+  }
+}

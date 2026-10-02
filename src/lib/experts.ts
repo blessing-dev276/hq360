@@ -15,6 +15,8 @@ export type PublicExpert = {
   website: string | null;
   linkedin: string | null;
   kind: "team" | "expert";
+  /** Expert-profile slug backing this person's portfolio, when different. */
+  portfolioSlug?: string;
 };
 
 /** Row shape served by /api/public/experts (never includes email or status). */
@@ -37,6 +39,7 @@ type TeamRow = {
   title: string;
   image_url: string | null;
   blurb: string | null;
+  expert_slug?: string | null;
 };
 
 export function slugify(value: string) {
@@ -139,17 +142,33 @@ export function useExpertDirectory() {
     queryFn: ({ signal }) =>
       fetchPublicContent<{ experts: ExpertRow[] }>("/api/public/experts", signal),
   });
-  const teamPeople = team.data?.members.length
-    ? team.data.members.map((m) =>
-        fromTeam({
+  const expertRows = experts.data?.experts ?? [];
+  const claimedSlugs = new Set<string>();
+  const teamPeople: PublicExpert[] = team.data?.members.length
+    ? team.data.members.map((m) => {
+        const base = fromTeam({
           name: m.name,
           role: m.title,
           blurb: m.blurb || "",
           photo: m.image_url || bundledPhoto(m.name),
-        }),
-      )
+        });
+        // Claimed team members (e.g. the founder) show their editable expert
+        // profile, but keep their team slot, team URL and "core team" label.
+        const row = m.expert_slug ? expertRows.find((r) => r.slug === m.expert_slug) : undefined;
+        if (!row) return base;
+        claimedSlugs.add(row.slug);
+        const expert = fromExpertRow(row);
+        return {
+          ...expert,
+          slug: base.slug,
+          headline: expert.headline === "HQ360 Expert" ? base.headline : expert.headline,
+          photo: expert.photo || base.photo,
+          kind: "team" as const,
+          portfolioSlug: row.slug,
+        };
+      })
     : FALLBACK_TEAM;
-  const independent = (experts.data?.experts ?? []).map(fromExpertRow);
+  const independent = expertRows.filter((r) => !claimedSlugs.has(r.slug)).map(fromExpertRow);
   return {
     team: teamPeople,
     experts: independent,

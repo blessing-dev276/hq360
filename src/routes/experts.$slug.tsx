@@ -1,4 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { resolveExpertSlug } from "@/lib/expert-slug.functions";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowUpRight, Globe, Linkedin, MapPin } from "lucide-react";
@@ -32,6 +33,16 @@ function usePortfolio(slug: string) {
 }
 
 export const Route = createFileRoute("/experts/$slug")({
+  beforeLoad: async ({ params }) => {
+    const canonical = await resolveExpertSlug({ data: { slug: params.slug } });
+    if (canonical)
+      throw redirect({
+        to: "/experts/$slug",
+        params: { slug: canonical },
+        replace: true,
+        statusCode: 301,
+      });
+  },
   head: ({ params }) => {
     const known = FALLBACK_TEAM.find((person) => person.slug === params.slug);
     return buildSeo({
@@ -111,8 +122,12 @@ function shortIntro(person: PublicExpert) {
 function ExpertProfilePage() {
   const { slug } = Route.useParams();
   const { all, loading } = useExpertDirectory();
-  const person = all.find((item) => item.slug === slug);
-  const portfolio = usePortfolio(slug);
+  // Prefer the editable expert profile when a bundled team name shares its URL.
+  const person =
+    all.find(
+      (item) => item.portfolioSlug === slug || (item.kind === "expert" && item.slug === slug),
+    ) ?? all.find((item) => item.slug === slug);
+  const portfolio = usePortfolio(person?.portfolioSlug ?? slug);
 
   if (!person) {
     return (

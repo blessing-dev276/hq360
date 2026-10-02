@@ -26,13 +26,29 @@ type Profile = {
   is_public: boolean;
   profile_status: "draft" | "submitted" | "approved" | "changes_requested";
   profile_review_note: string | null;
+  permissions?: string[];
 };
 type PortfolioItem = { id: string; status: "pending" | "approved" | "rejected" };
 
 const COMING_SOON = [
-  { label: "Audit", icon: FileText, body: "Research-backed growth reports for authors." },
-  { label: "Scouting", icon: ScanSearch, body: "Discover authors and find contact details." },
-  { label: "Invoices", icon: CreditCard, body: "Request invoices for your own clients." },
+  {
+    key: "audit",
+    label: "Audit",
+    icon: FileText,
+    body: "Research-backed growth reports for authors.",
+  },
+  {
+    key: "scout",
+    label: "Scouting",
+    icon: ScanSearch,
+    body: "Discover authors and find contact details.",
+  },
+  {
+    key: "invoices",
+    label: "Invoices",
+    icon: CreditCard,
+    body: "Request invoices for your own clients.",
+  },
 ];
 
 function completeness(p: Profile) {
@@ -108,6 +124,7 @@ export function ExpertDashboard({
   const pct = Math.round((done / checks.length) * 100);
   const live = portfolio.filter((i) => i.status === "approved").length;
   const pending = portfolio.filter((i) => i.status === "pending").length;
+  const lockedTools = COMING_SOON.filter((t) => !(profile.permissions ?? []).includes(t.key));
 
   return (
     <div style={{ display: "grid", gap: 22 }}>
@@ -240,28 +257,30 @@ export function ExpertDashboard({
             </div>
           </section>
 
-          <section className="admin-panel">
-            <div className="admin-panel-heading">
-              <div>
-                <h2>Coming soon</h2>
-                <p>More tools are on the way to your workspace.</p>
+          {lockedTools.length > 0 && (
+            <section className="admin-panel">
+              <div className="admin-panel-heading">
+                <div>
+                  <h2>Coming soon</h2>
+                  <p>More tools are on the way to your workspace.</p>
+                </div>
               </div>
-            </div>
-            <div className="admin-quick-actions">
-              {COMING_SOON.map(({ label, icon: Icon, body }) => (
-                <button key={label} disabled style={{ opacity: 0.65 }}>
-                  <span className="admin-action-icon">
-                    <Icon size={18} />
-                  </span>
-                  <span>
-                    <strong>{label}</strong>
-                    <small>{body}</small>
-                  </span>
-                  <span className="admin-new">SOON</span>
-                </button>
-              ))}
-            </div>
-          </section>
+              <div className="admin-quick-actions">
+                {lockedTools.map(({ label, icon: Icon, body }) => (
+                  <button key={label} disabled style={{ opacity: 0.65 }}>
+                    <span className="admin-action-icon">
+                      <Icon size={18} />
+                    </span>
+                    <span>
+                      <strong>{label}</strong>
+                      <small>{body}</small>
+                    </span>
+                    <span className="admin-new">SOON</span>
+                  </button>
+                ))}
+              </div>
+            </section>
+          )}
         </div>
       </div>
     </div>

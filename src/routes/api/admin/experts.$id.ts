@@ -16,7 +16,10 @@ export const Route = createFileRoute("/api/admin/experts/$id")({
           "unpublish",
           "request_changes",
           "claim",
+          "unlink_team",
           "assign_portfolio",
+          "set_access",
+          "update_profile",
         ];
         if (!actions.includes(action))
           return Response.json({ error: "Invalid action" }, { status: 400 });
@@ -102,45 +105,69 @@ export const Route = createFileRoute("/api/admin/experts/$id")({
           return Response.json({ ok: true });
         }
 
-        // claim: link an admin-managed team_members row to this expert, then
-        // backfill any profile fields the expert hasn't filled in themselves.
+        if (action === "set_access") {
+          const { EXPERT_FEATURES, EXPERT_ROLES } = await import("@/lib/expert-roles");
+          const role = String(body?.role ?? "");
+          const allowed = new Set<string>(EXPERT_FEATURES.map((f) => f.key));
+          const permissions: string[] = Array.isArray(body?.permissions)
+            ? [...new Set<string>(body.permissions.map(String))].filter((p) => allowed.has(p))
+            : [];
+          if (role !== "custom" && !EXPERT_ROLES.some((r) => r.key === role))
+            return Response.json({ error: "Unknown role." }, { status: 400 });
+          const { error } = await expertProfiles()
+            .update({ role, permissions })
+            .eq("id", params.id);
+          if (error) return Response.json({ error: "Could not save access." }, { status: 503 });
+          return Response.json({ ok: true });
+        }
+
+        if (action === "update_profile") {
+          const { adminProfileSchema } = await import("@/lib/expert-admin.server");
+          const parsed = adminProfileSchema.safeParse(body?.profile);
+          if (!parsed.success)
+            return Response.json(
+              { error: parsed.error.issues[0]?.message || "Check the profile details." },
+              { status: 400 },
+            );
+          const p = parsed.data;
+          const { error } = await expertProfiles()
+            .update({
+              full_name: p.full_name,
+              headline: p.headline || null,
+              summary: p.summary || null,
+              bio: p.bio || null,
+              location: p.location || null,
+              specialties: [...new Set(p.specialties)],
+              website_url: p.website_url || null,
+              linkedin_url: p.linkedin_url || null,
+              photo_url: p.photo_url || null,
+              updated_at: new Date().toISOString(),
+            })
+            .eq("id", params.id);
+          if (error)
+            return Response.json({ error: "Could not save the profile." }, { status: 503 });
+          return Response.json({ ok: true });
+        }
+
+        const { teamMembersUntyped } = await import("@/lib/expert-auth.server");
+        if (action === "unlink_team") {
+          await teamMembersUntyped()
+            .update({ claimed_by_expert_id: null })
+            .eq("claimed_by_expert_id", params.id);
+          const { error } = await expertProfiles()
+            .update({ claimed_team_member_id: null })
+            .eq("id", params.id);
+          if (error) return Response.json({ error: "Could not unlink." }, { status: 503 });
+          return Response.json({ ok: true });
+        }
+
+        // claim: link an admin-managed team_members row to this expert.
         const teamMemberId = typeof body?.team_member_id === "string" ? body.team_member_id : "";
         if (!teamMemberId)
           return Response.json({ error: "Missing team_member_id" }, { status: 400 });
-        const { teamMembersUntyped } = await import("@/lib/expert-auth.server");
-        const { data: teamMember, error: teamError } = await teamMembersUntyped()
-          .select("id, name, title, image_url, blurb, claimed_by_expert_id")
-          .eq("id", teamMemberId)
-          .maybeSingle();
-        if (teamError || !teamMember)
-          return Response.json({ error: "Team profile not found." }, { status: 404 });
-        if (teamMember.claimed_by_expert_id && teamMember.claimed_by_expert_id !== params.id)
-          return Response.json({ error: "That team profile is already claimed." }, { status: 409 });
-        const { data: expert, error: expertError } = await expertProfiles()
-          .select("full_name, headline, bio, photo_url")
-          .eq("id", params.id)
-          .maybeSingle();
-        if (expertError || !expert)
-          return Response.json({ error: "Expert not found." }, { status: 404 });
-        const { error: linkError } = await teamMembersUntyped()
-          .update({ claimed_by_expert_id: params.id })
-          .eq("id", teamMemberId);
-        if (linkError)
-          return Response.json({ error: "Could not link this team profile." }, { status: 503 });
-        const { error: fillError } = await expertProfiles()
-          .update({
-            claimed_team_member_id: teamMemberId,
-            full_name: expert.full_name || teamMember.name,
-            headline: expert.headline || teamMember.title || null,
-            bio: expert.bio || teamMember.blurb || null,
-            photo_url: expert.photo_url || teamMember.image_url || null,
-          })
-          .eq("id", params.id);
-        if (fillError)
-          return Response.json(
-            { error: "Linked, but could not prefill profile." },
-            { status: 503 },
-          );
+        const { claimTeamMember } = await import("@/lib/expert-admin.server");
+        const claimError = await claimTeamMember(params.id, teamMemberId);
+        if (claimError) return Response.json({ error: claimError }, { status: 409 });
         return Response.json({ ok: true });
       },
     },

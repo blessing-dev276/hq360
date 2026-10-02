@@ -79,7 +79,16 @@ export type StaffAccess = { role: "admin" } | { role: "expert"; expertId: string
 export async function resolveStaffAccess(request: Request): Promise<StaffAccess | null> {
   if (await isAdminRequest(request)) return { role: "admin" };
   const expertId = await isExpertRequest(request);
-  return expertId ? { role: "expert", expertId } : null;
+  if (!expertId) return null;
+  // Experts only reach a shared feature (Scouting, Audit) their role grants.
+  const { featureForPath } = await import("@/lib/expert-roles");
+  const feature = featureForPath(new URL(request.url).pathname);
+  if (feature && !(await expertHasFeature(expertId, feature))) return null;
+  return { role: "expert", expertId };
+}
+export async function expertHasFeature(expertId: string, feature: string): Promise<boolean> {
+  const { data } = await expertProfiles().select("permissions").eq("id", expertId).maybeSingle();
+  return ((data as { permissions?: string[] } | null)?.permissions ?? []).includes(feature);
 }
 /** Back-compat shape for route files that only need a boolean gate. */
 export async function isAdminOrExpertRequest(request: Request): Promise<boolean> {

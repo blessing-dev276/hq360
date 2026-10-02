@@ -38,9 +38,44 @@ export const Route = createFileRoute("/api/private-audit")({
         try {
           const access = await clientSession(request);
           const url = new URL(request.url);
+          if (access && url.searchParams.has("asset")) {
+            const snapshot = (await snapshotFor(access)) as unknown as {
+              workflowVersion?: number;
+              assets?: { id: string; storage_path?: string }[];
+            };
+            const asset =
+              snapshot.workflowVersion === 1
+                ? snapshot.assets?.find((a) => a.id === url.searchParams.get("asset"))
+                : null;
+            if (!asset?.storage_path) return privateJson({ error: "Image unavailable" }, 404);
+            const file = await clientDb()
+              .storage.from("audit-research-evidence")
+              .download(asset.storage_path);
+            if (file.error || !file.data) return privateJson({ error: "Image unavailable" }, 404);
+            return new Response(file.data, {
+              headers: {
+                "Content-Type": file.data.type,
+                "Cache-Control": "private, no-store",
+                "X-Content-Type-Options": "nosniff",
+              },
+            });
+          }
           if (!access || url.searchParams.get("slug") !== access.public_slug)
             return privateJson({ error: "Please enter your access code." }, 401);
           const snapshot = await snapshotFor(access);
+          if ("workflowVersion" in snapshot) {
+            if (url.searchParams.has("format"))
+              return privateJson(
+                { error: "Use your browser’s Print / Save as PDF for this report." },
+                400,
+              );
+            const clean = JSON.parse(
+              JSON.stringify(snapshot, (key, value) =>
+                ["reviewIssues", "revision", "storage_path"].includes(key) ? undefined : value,
+              ),
+            );
+            return privateJson({ report: clean, versionId: access.version_id, interests: [] });
+          }
           const format = url.searchParams.get("format");
           if (format) {
             if (!["pdf", "image"].includes(format))

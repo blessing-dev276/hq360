@@ -1,3 +1,5 @@
+import { WORKFLOW_STATUSES } from "@/lib/author-audit/workflow";
+import { ResearchAuditWorkspace } from "./ResearchAuditWorkspace";
 import { useCallback, useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import "./audit-workspace.css";
@@ -56,7 +58,16 @@ type AuditListItem = AuthorAudit & {
   books: { title: string } | null;
 };
 
-const STATUS_LABEL: Record<AuditStatus, string> = {
+const STATUS_LABEL: Record<string, string> = {
+  research_pending: "Research pending",
+  research_ready: "Research ready",
+  research_imported: "Research imported",
+  under_review: "Under review",
+  needs_manual_work: "Needs manual work",
+  approved: "Approved",
+  site_generated: "Site generated",
+  qa_review: "QA review",
+  published: "Published",
   draft: "Draft",
   researching: "Researching",
   needs_verification: "Needs verification",
@@ -117,7 +128,14 @@ const EMPTY_ASSESSMENT: ExecutiveAssessment = {
 
 export function AuthorAuditAdmin() {
   const [openId, setOpenId] = useState<string | null>(null);
-  if (openId) return <AuditWorkspace id={openId} onBack={() => setOpenId(null)} />;
+  if (openId)
+    return (
+      <ResearchAuditWorkspace
+        id={openId}
+        onBack={() => setOpenId(null)}
+        legacy={<AuditWorkspace id={openId} onBack={() => setOpenId(null)} />}
+      />
+    );
   return <AuditList onOpen={setOpenId} />;
 }
 
@@ -128,7 +146,15 @@ function AuditList({ onOpen }: { onOpen: (id: string) => void }) {
   const [leads, setLeads] = useState<AuthorAuditLead[] | null>(null);
   const [error, setError] = useState("");
   const [creating, setCreating] = useState(false);
-  const [manual, setManual] = useState({ authorName: "", bookTitle: "" });
+  const [manual, setManual] = useState({
+    authorName: "",
+    bookTitle: "",
+    bookUrl: "",
+    websiteUrl: "",
+    amazonUrlOrAsin: "",
+    goodreadsUrl: "",
+    notes: "",
+  });
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("all");
   const [showCreate, setShowCreate] = useState(false);
@@ -187,7 +213,7 @@ function AuditList({ onOpen }: { onOpen: (id: string) => void }) {
       "/api/admin/author-audits",
       {
         method: "POST",
-        body: JSON.stringify({ authorName: manual.authorName, bookTitle: manual.bookTitle }),
+        body: JSON.stringify(manual),
       },
     );
     setCreating(false);
@@ -249,7 +275,10 @@ function AuditList({ onOpen }: { onOpen: (id: string) => void }) {
                   <p className="truncate text-sm font-medium">
                     {l.author_name} — {l.book_title}
                   </p>
-                  <p className="text-xs text-muted-foreground">{l.email}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {l.email}
+                    {l.expert && ` · via ${l.expert.full_name || l.expert.email}`}
+                  </p>
                 </div>
                 <button
                   type="button"
@@ -289,6 +318,28 @@ function AuditList({ onOpen }: { onOpen: (id: string) => void }) {
             />
           </label>
         </div>
+        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          {(
+            [
+              ["bookUrl", "Book URL"],
+              ["websiteUrl", "Author website"],
+              ["amazonUrlOrAsin", "Amazon URL"],
+              ["goodreadsUrl", "Goodreads URL"],
+              ["notes", "Notes"],
+            ] as const
+          ).map(([key, title]) => (
+            <label key={key} className="text-sm">
+              {title} (optional)
+              <input
+                className={input}
+                value={manual[key]}
+                onChange={(event) =>
+                  setManual((current) => ({ ...current, [key]: event.target.value }))
+                }
+              />
+            </label>
+          ))}
+        </div>
         <button
           type="submit"
           disabled={creating}
@@ -315,7 +366,7 @@ function AuditList({ onOpen }: { onOpen: (id: string) => void }) {
           onChange={(e) => setFilter(e.target.value)}
         >
           <option value="all">All statuses</option>
-          {STATUS_ORDER.map((s) => (
+          {[...new Set([...WORKFLOW_STATUSES, ...STATUS_ORDER])].map((s) => (
             <option key={s} value={s}>
               {STATUS_LABEL[s]}
             </option>
@@ -700,7 +751,7 @@ function AuditWorkspace({ id, onBack }: { id: string; onBack: () => void }) {
           value={audit.status}
           onChange={(e) => void setStatus(e.target.value as AuditStatus)}
         >
-          {STATUS_ORDER.map((s) => (
+          {[...new Set([...WORKFLOW_STATUSES, ...STATUS_ORDER])].map((s) => (
             <option key={s} value={s}>
               {STATUS_LABEL[s]}
             </option>

@@ -1,3 +1,5 @@
+import { ResearchAuditReport } from "./ResearchAuditReport";
+import type { WorkflowSnapshot } from "@/lib/author-audit/workflow.server";
 import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { Logo } from "@/components/Logo";
 import type { ReportData } from "@/lib/author-audit/report-data";
@@ -75,7 +77,7 @@ export function PrivateAuditAccess() {
 type Interest = { finding_id: string; author_interest: string; question?: string };
 export function PrivateAuditLoader({ slug }: { slug: string }) {
   const [data, setData] = useState<{
-    report: ReportData;
+    report: ReportData | WorkflowSnapshot;
     versionId: string;
     interests: Interest[];
   } | null>(null);
@@ -150,12 +152,16 @@ export function PrivateAuditLoader({ slug }: { slug: string }) {
           <button onClick={() => window.location.reload()}>View update</button>
         </div>
       )}
-      <PrivateAuditReport
-        report={data.report}
-        versionId={data.versionId}
-        slug={slug}
-        initialInterests={data.interests}
-      />
+      {"workflowVersion" in data.report ? (
+        <ResearchAuditReport report={data.report} />
+      ) : (
+        <PrivateAuditReport
+          report={data.report}
+          versionId={data.versionId}
+          slug={slug}
+          initialInterests={data.interests}
+        />
+      )}
     </>
   );
 }

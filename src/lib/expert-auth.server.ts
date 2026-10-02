@@ -77,7 +77,31 @@ export type StaffAccess = { role: "admin" } | { role: "expert"; expertId: string
 /** Combined gate for routes shared between full admins and approved experts
  *  (Audit + Scout). Everywhere else keeps using isAdminRequest alone. */
 export async function resolveStaffAccess(request: Request): Promise<StaffAccess | null> {
-  if (await isAdminRequest(request)) return { role: "admin" };
+  const admin = await isAdminRequest(request);
+  const auditMatch = new URL(request.url).pathname.match(
+    /^\/api\/admin\/author-audits\/([a-f0-9-]{36})(?:\/(.*))?$/,
+  );
+  if (auditMatch) {
+    const auditDb = supabaseAdmin as SupabaseClient;
+    const { data: audit } = await auditDb
+      .from("author_audits")
+      .select("workflow_version")
+      .eq("id", auditMatch[1]!)
+      .maybeSingle();
+    if (
+      audit?.workflow_version === 1 &&
+      request.method !== "GET" &&
+      auditMatch[2] !== "workflow" &&
+      !(admin && request.method === "DELETE" && !auditMatch[2])
+    )
+      return null;
+    if (!admin) {
+      const { auditActor } = await import("@/lib/author-audit/workflow-access.server");
+      if (!(await auditActor(request, auditMatch[1]!))) return null;
+    }
+    if (auditMatch[2] === "publishing" && request.method !== "GET" && !admin) return null;
+  }
+  if (admin) return { role: "admin" };
   const expertId = await isExpertRequest(request);
   if (!expertId) return null;
   // Experts only reach a shared feature (Scouting, Audit) their role grants.

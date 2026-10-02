@@ -4,8 +4,7 @@
 .author-audit-hero {
   padding: clamp(3rem, 7vw, 6rem) 0;
   background:
-    radial-gradient(ellipse at 90% 10%, var(--brand-soft) 0, transparent 55%),
-    var(--secondary);
+    radial-gradient(ellipse at 90% 10%, var(--brand-soft) 0, transparent 55%), var(--secondary);
   color: var(--foreground);
 }
 .author-audit-hero-grid {
@@ -191,4 +190,13 @@
   .author-audit-stepper > span {
     font-size: 0.65rem;
   }
+}
+
+.author-audit-referrer {
+  display: block;
+  margin-top: 0.75rem;
+}
+.author-audit-referrer strong {
+  color: var(--hqd-orange-2, #ff8500);
+  font-weight: 600;
 }

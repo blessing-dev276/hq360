@@ -1,5 +1,5 @@
 import { trackConversion } from "@/lib/google-analytics";
-import { useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import {
   ArrowRight,
   BookOpen,
@@ -80,7 +80,27 @@ const IMPLEMENTATION_STEPS = [
   ["03", "Build", "HQ360 implements the plan and reports progress against the agreed targets."],
 ] as const;
 
+/** Expert from a personal referral link (?expert=<slug>); the name shows only
+ *  when the expert has a public profile. */
+function useReferrer() {
+  const [referrer, setReferrer] = useState<{ slug: string; name: string | null } | null>(null);
+  useEffect(() => {
+    const slug = new URLSearchParams(window.location.search).get("expert")?.trim().toLowerCase();
+    if (!slug || !/^[a-z0-9-]{1,120}$/.test(slug)) return;
+    setReferrer({ slug, name: null });
+    fetch("/api/public/experts")
+      .then((response) => (response.ok ? response.json() : null))
+      .then((data: { experts?: { slug: string; full_name: string | null }[] } | null) => {
+        const match = data?.experts?.find((expert) => expert.slug === slug);
+        if (match?.full_name) setReferrer({ slug, name: match.full_name });
+      })
+      .catch(() => {});
+  }, []);
+  return referrer;
+}
+
 export function AuthorVisibilityAudit() {
+  const referrer = useReferrer();
   const [state, setState] = useState<FormState>("idle");
   const [message, setMessage] = useState("");
   const [step, setStep] = useState(0);
@@ -132,6 +152,7 @@ export function AuthorVisibilityAudit() {
       goodreadsUrl,
       consent: true,
       company_url: honeypot,
+      expert: referrer?.slug,
     });
 
     async function attempt() {
@@ -194,6 +215,11 @@ export function AuthorVisibilityAudit() {
             <span className="author-audit-note">
               Free to request · Human reviewed · No account needed
             </span>
+            {referrer?.name && (
+              <span className="author-audit-note author-audit-referrer">
+                Your check will be prepared by <strong>{referrer.name}</strong>, an HQ360 expert.
+              </span>
+            )}
           </div>
           <aside className="author-audit-preview">
             <span className="author-audit-eyebrow">Inside your assessment</span>

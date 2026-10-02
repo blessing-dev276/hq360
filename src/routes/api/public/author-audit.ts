@@ -10,6 +10,8 @@ const schema = z.object({
   websiteUrl: z.string().trim().max(2_000).optional().or(z.literal("")),
   goodreadsUrl: z.string().trim().max(2_000).optional().or(z.literal("")),
   consent: z.literal(true),
+  // Slug from an expert's personal link (?expert=<slug>); unknown slugs fall back to HQ360.
+  expert: z.string().trim().max(120).optional(),
   // Honeypot — see the comment in growth-audit.ts's schema for why this
   // isn't length-capped.
   company_url: z.string().optional(),
@@ -54,6 +56,19 @@ export const Route = createFileRoute("/api/public/author-audit")({
             .maybeSingle();
           if (recent) return json({ ok: true, id: (recent as { id: string }).id }, 200);
 
+          // Route the request to the referring expert when they can run audits.
+          let expert: { id: string; full_name: string | null } | null = null;
+          if (body.expert) {
+            const { expertProfiles } = await import("@/lib/expert-auth.server");
+            const { data: match } = await expertProfiles()
+              .select("id, full_name, permissions")
+              .eq("slug", body.expert.toLowerCase())
+              .eq("status", "approved")
+              .maybeSingle();
+            const row = match as { id: string; full_name: string | null; permissions?: string[] };
+            if (row?.permissions?.includes("audit")) expert = row;
+          }
+
           const { data, error } = await db
             .from("author_audit_leads")
             .insert({
@@ -65,6 +80,7 @@ export const Route = createFileRoute("/api/public/author-audit")({
               goodreads_url: body.goodreadsUrl || null,
               consented_at: new Date().toISOString(),
               source_path: "/tools/author-visibility-audit",
+              expert_id: expert?.id ?? null,
             })
             .select("id")
             .single();
@@ -98,6 +114,11 @@ export const Route = createFileRoute("/api/public/author-audit")({
               replyTo: body.email,
               text: [
                 "New Author Visibility Audit request. Open it from /admin > Audits.",
+                ...(expert
+                  ? [
+                      `Referred by expert: ${expert.full_name || expert.id} (routed to their workspace)`,
+                    ]
+                  : []),
                 "",
                 `Author: ${body.authorName}`,
                 `Book: ${body.bookTitle}`,

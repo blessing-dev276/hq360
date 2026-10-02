@@ -53,6 +53,9 @@ export type AuthorAuditLead = {
   consented_at: string;
   source_path: string | null;
   status: "new" | "reviewing" | "contacted" | "archived";
+  /** Expert whose referral link brought this request in (null = HQ360). */
+  expert_id?: string | null;
+  expert?: { full_name: string | null; email: string } | null;
 };
 
 export type AuditStatus =

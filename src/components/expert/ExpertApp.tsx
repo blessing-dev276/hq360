@@ -20,6 +20,7 @@ import { ExpertDashboard } from "./ExpertDashboard";
 import { ExpertProfileEditor } from "./ExpertProfileEditor";
 import { ExpertPortfolio } from "./ExpertPortfolio";
 import { ExpertTestimonials } from "./ExpertTestimonials";
+import { ExpertAuditLink } from "./ExpertAuditLink";
 import { ExpertInvoiceRequests } from "./ExpertInvoiceRequests";
 import "@/components/admin/admin-workspace.css";
 
@@ -196,7 +197,10 @@ export function ExpertApp() {
           ) : current.id === "scout" ? (
             <ScoutApp />
           ) : current.id === "audit" ? (
-            <AuthorAuditAdmin />
+            <>
+              <ExpertAuditLink />
+              <AuthorAuditAdmin />
+            </>
           ) : (
             <ExpertInvoiceRequests />
           )}

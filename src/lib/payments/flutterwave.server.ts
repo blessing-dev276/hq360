@@ -37,24 +37,26 @@ export function siteOrigin() {
   return site.origin;
 }
 // Live checkouts are always on checkout.flutterwave.com; test-mode keys get
-// links on Flutterwave's sandbox hosts instead.
-const LIVE_CHECKOUT_HOSTS = ["checkout.flutterwave.com"];
-const TEST_CHECKOUT_HOSTS = [
-  ...LIVE_CHECKOUT_HOSTS,
-  "checkout-testing.flutterwave.com",
-  "ravemodal-dev.herokuapp.com",
-];
+// links on Flutterwave's sandbox hosts (which vary), so test invoices accept
+// any HTTPS subdomain of Flutterwave's own domains.
+const TEST_CHECKOUT_DOMAINS = ["flutterwave.com", "dev-flutterwave.com"];
+function allowedHost(hostname: string, environment?: Invoice["environment"]) {
+  if (hostname === "checkout.flutterwave.com") return true;
+  if (environment === "live") return false;
+  if (hostname === "ravemodal-dev.herokuapp.com") return true;
+  return TEST_CHECKOUT_DOMAINS.some((domain) => hostname.endsWith(`.${domain}`));
+}
 export function checkoutUrl(value: unknown, environment?: Invoice["environment"]) {
   if (typeof value !== "string") throw new Error("Flutterwave returned an invalid checkout link.");
   const url = new URL(value);
   if (
     url.protocol !== "https:" ||
-    !(environment === "live" ? LIVE_CHECKOUT_HOSTS : TEST_CHECKOUT_HOSTS).includes(url.hostname) ||
+    !allowedHost(url.hostname, environment) ||
     url.username ||
     url.password ||
     url.port
   )
-    throw new Error("Flutterwave returned an unexpected checkout host.");
+    throw new Error(`Flutterwave returned an unexpected checkout host (${url.host}).`);
   return url.href;
 }
 async function request(

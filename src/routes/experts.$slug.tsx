@@ -20,6 +20,27 @@ type PortfolioItem = {
   audience_slugs: string[];
 };
 
+type VideoTestimonial = {
+  id: string;
+  client_name: string;
+  client_role: string | null;
+  quote: string | null;
+  video_url: string;
+  service_slug: string | null;
+};
+
+function useTestimonials(slug: string) {
+  const query = useQuery({
+    queryKey: ["public", "expert-testimonials", slug],
+    queryFn: ({ signal }) =>
+      fetchPublicContent<{ items: VideoTestimonial[] }>(
+        `/api/public/expert-testimonials?slug=${encodeURIComponent(slug)}`,
+        signal,
+      ),
+  });
+  return query.data?.items ?? [];
+}
+
 function usePortfolio(slug: string) {
   const query = useQuery({
     queryKey: ["public", "expert-portfolio", slug],
@@ -151,6 +172,62 @@ function PortfolioCard({ item }: { item: PortfolioItem }) {
   );
 }
 
+function TestimonialCard({ item }: { item: VideoTestimonial }) {
+  const service = item.service_slug ? getCoreService(item.service_slug)?.name : null;
+  return (
+    <figure className="hqd-card hqd-video-card">
+      <video src={item.video_url} controls playsInline preload="metadata" />
+      <figcaption className="hqd-card-body">
+        {item.quote && <blockquote>“{item.quote}”</blockquote>}
+        <strong>{item.client_name}</strong>
+        {(item.client_role || service) && (
+          <small>{[item.client_role, service].filter(Boolean).join(" · ")}</small>
+        )}
+      </figcaption>
+    </figure>
+  );
+}
+
+/** Service chips that narrow the portfolio to one Related service. */
+function PortfolioSection({ items }: { items: PortfolioItem[] }) {
+  const [service, setService] = useState("all");
+  const services = [...new Set(items.flatMap((item) => item.service_slugs))]
+    .map((slug) => ({ slug, name: getCoreService(slug)?.name }))
+    .filter((s): s is { slug: string; name: string } => Boolean(s.name));
+  const visible =
+    service === "all" ? items : items.filter((item) => item.service_slugs.includes(service));
+  return (
+    <section className="hqd-section" style={{ paddingTop: 0 }}>
+      <div className="hqd-wrap">
+        <Reveal className="hqd-arc-head">
+          <Eyebrow>Portfolio</Eyebrow>
+          <h2 className="hqd-h2">Recent work</h2>
+        </Reveal>
+        {services.length > 1 && (
+          <div className="hqd-filter" role="group" aria-label="Filter work by service">
+            {[{ slug: "all", name: "All work" }, ...services].map((option) => (
+              <button
+                key={option.slug}
+                type="button"
+                aria-pressed={service === option.slug}
+                className="hqd-filter-chip"
+                onClick={() => setService(option.slug)}
+              >
+                {option.name}
+              </button>
+            ))}
+          </div>
+        )}
+        <div className="hqd-cards hqd-work-cards" style={{ marginTop: "1.5rem" }}>
+          {visible.map((item) => (
+            <PortfolioCard key={item.id} item={item} />
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 /** Hero line: the expert's own short intro, never a repeat of the bio below. */
 function shortIntro(person: PublicExpert) {
   if (person.summary) return person.summary;
@@ -166,6 +243,7 @@ function ExpertProfilePage() {
       (item) => item.portfolioSlug === slug || (item.kind === "expert" && item.slug === slug),
     ) ?? all.find((item) => item.slug === slug);
   const portfolio = usePortfolio(person?.portfolioSlug ?? slug);
+  const testimonials = useTestimonials(person?.portfolioSlug ?? slug);
 
   if (!person) {
     return (
@@ -336,16 +414,18 @@ function ExpertProfilePage() {
         </div>
       </section>
 
-      {portfolio.length > 0 && (
+      {portfolio.length > 0 && <PortfolioSection items={portfolio} />}
+
+      {testimonials.length > 0 && (
         <section className="hqd-section" style={{ paddingTop: 0 }}>
           <div className="hqd-wrap">
             <Reveal className="hqd-arc-head">
-              <Eyebrow>Portfolio</Eyebrow>
-              <h2 className="hqd-h2">Recent work</h2>
+              <Eyebrow>Testimonials</Eyebrow>
+              <h2 className="hqd-h2">In their clients' words</h2>
             </Reveal>
-            <div className="hqd-cards hqd-work-cards" style={{ marginTop: "1.5rem" }}>
-              {portfolio.map((item) => (
-                <PortfolioCard key={item.id} item={item} />
+            <div className="hqd-cards hqd-video-cards" style={{ marginTop: "1.5rem" }}>
+              {testimonials.map((item) => (
+                <TestimonialCard key={item.id} item={item} />
               ))}
             </div>
           </div>

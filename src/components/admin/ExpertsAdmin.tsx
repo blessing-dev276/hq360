@@ -65,6 +65,13 @@ type PortfolioItem = {
   status: "pending" | "approved" | "rejected";
   source_portfolio_item_id: string | null;
 };
+type TestimonialVideo = {
+  id: string;
+  expert_id: string;
+  client_name: string;
+  video_url: string;
+  status: "pending" | "approved" | "rejected";
+};
 type Filter = "all" | "attention" | "published" | "unpublished" | "pending" | "rejected";
 type DrawerTab = "overview" | "profile" | "portfolio" | "access";
 type ExpertAction =
@@ -128,6 +135,7 @@ export function ExpertsAdmin() {
   const [experts, setExperts] = useState<Expert[]>([]);
   const [team, setTeam] = useState<TeamMember[]>([]);
   const [portfolio, setPortfolio] = useState<PortfolioItem[]>([]);
+  const [videos, setVideos] = useState<TestimonialVideo[]>([]);
   const [sitePortfolio, setSitePortfolio] = useState<SitePortfolioItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -142,11 +150,12 @@ export function ExpertsAdmin() {
     setLoading(true);
     setError("");
     try {
-      const [e, t, p, s] = await Promise.all([
+      const [e, t, p, s, v] = await Promise.all([
         fetch("/api/admin/experts"),
         fetch("/api/admin/team"),
         fetch("/api/admin/expert-portfolio"),
         fetch("/api/admin/portfolio"),
+        fetch("/api/admin/expert-testimonials"),
       ]);
       const ed = await e.json().catch(() => ({}));
       if (!e.ok) throw new Error(ed.error || "Could not load experts.");
@@ -157,6 +166,8 @@ export function ExpertsAdmin() {
       if (p.ok) setPortfolio(pd.items ?? []);
       const sd = await s.json().catch(() => ({}));
       if (s.ok) setSitePortfolio(sd.items ?? []);
+      const vd = await v.json().catch(() => ({}));
+      if (v.ok) setVideos(vd.items ?? []);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not load experts.");
     } finally {
@@ -203,6 +214,13 @@ export function ExpertsAdmin() {
       post(`/api/admin/expert-portfolio/${item.id}`, { action, ...extra }),
     );
 
+  const videoAct = (video: TestimonialVideo, action: "approve" | "reject") =>
+    run(
+      video.id + action,
+      () => post(`/api/admin/expert-testimonials/${video.id}`, { action }),
+      action === "approve" ? "Video approved." : "Video rejected.",
+    );
+
   function remove(expert: Expert) {
     if (
       window.confirm(
@@ -235,7 +253,9 @@ export function ExpertsAdmin() {
     (e) => e.status === "approved" && e.profile_status === "submitted" && !e.is_public,
   );
   const pendingItems = portfolio.filter((i) => i.status === "pending");
-  const attentionCount = pendingAccounts.length + submittedProfiles.length + pendingItems.length;
+  const pendingVideos = videos.filter((v) => v.status === "pending");
+  const attentionCount =
+    pendingAccounts.length + submittedProfiles.length + pendingItems.length + pendingVideos.length;
 
   const visible = experts.filter((e) => {
     const matches = `${e.full_name ?? ""} ${e.email} ${e.headline ?? ""}`
@@ -347,7 +367,10 @@ export function ExpertsAdmin() {
         ) : attentionCount === 0 ? (
           <div className="admin-empty">
             <h3>You're all caught up</h3>
-            <p>New sign-ups, profiles sent for review and portfolio items will appear here.</p>
+            <p>
+              New sign-ups, profiles sent for review, portfolio items and testimonial videos will
+              appear here.
+            </p>
           </div>
         ) : (
           <div className="admin-queue">
@@ -395,6 +418,41 @@ export function ExpertsAdmin() {
                 </button>
               </QueueRow>
             ))}
+            {pendingVideos.map((video) => {
+              const owner = experts.find((x) => x.id === video.expert_id);
+              return (
+                <QueueRow
+                  key={`v-${video.id}`}
+                  expert={owner}
+                  title={`Video from ${video.client_name}`}
+                  detail={`Testimonial video from ${expertName(video.expert_id)}`}
+                  onOpen={() => window.open(video.video_url, "_blank", "noopener")}
+                >
+                  <a
+                    className="admin-button"
+                    href={video.video_url}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Watch
+                  </a>
+                  <button
+                    className="admin-button admin-button-primary"
+                    disabled={!!busy}
+                    onClick={() => void videoAct(video, "approve")}
+                  >
+                    Approve
+                  </button>
+                  <button
+                    className="admin-button text-destructive"
+                    disabled={!!busy}
+                    onClick={() => void videoAct(video, "reject")}
+                  >
+                    Reject
+                  </button>
+                </QueueRow>
+              );
+            })}
             {pendingItems.map((item) => {
               const owner = experts.find((x) => x.id === item.expert_id);
               return (

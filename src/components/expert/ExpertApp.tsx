@@ -19,6 +19,7 @@ import { roleLabel, type ExpertFeature } from "@/lib/expert-roles";
 import { ExpertDashboard } from "./ExpertDashboard";
 import { ExpertProfileEditor } from "./ExpertProfileEditor";
 import { ExpertPortfolio } from "./ExpertPortfolio";
+import { ExpertTestimonials } from "./ExpertTestimonials";
 import { ExpertInvoiceRequests } from "./ExpertInvoiceRequests";
 import "@/components/admin/admin-workspace.css";
 
@@ -188,7 +189,10 @@ export function ExpertApp() {
           ) : current.id === "profile" ? (
             <ExpertProfileEditor />
           ) : current.id === "portfolio" ? (
-            <ExpertPortfolio />
+            <>
+              <ExpertPortfolio />
+              <ExpertTestimonials />
+            </>
           ) : current.id === "scout" ? (
             <ScoutApp />
           ) : current.id === "audit" ? (

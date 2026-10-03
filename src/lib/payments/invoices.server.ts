@@ -1,7 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { sendEmail } from "@/lib/email.server";
+import { leadInboxAddress, sendEmail } from "@/lib/email.server";
 import * as nowpayments from "./nowpayments.server";
 import * as flutterwave from "./flutterwave.server";
 import {
@@ -244,10 +244,16 @@ export async function emailInvoice(invoice: Invoice) {
   if (invoice.status === "cancelled") throw new Error("This invoice was cancelled.");
   if (["paid", "refunded"].includes(invoice.status))
     throw new Error("This invoice has already been paid.");
+  const { buildInvoiceEmail } = await import("./invoice-email");
+  const link = invoiceLink(invoice);
+  const email = buildInvoiceEmail(invoice, link, new URL(link).origin);
   const result = await sendEmail({
     to: invoice.buyer_email,
-    subject: `${invoice.environment === "demo" ? "[TEST] " : ""}Your HQ360 invoice ${invoice.number}`,
-    text: `${invoice.environment === "demo" ? "TEST INVOICE — no real payment will be collected.\n\n" : ""}Hello ${invoice.buyer_name},\n\nYour invoice ${invoice.number} is ready.\n\n${invoice.description}\nAmount: ${money(invoice.amount_minor, invoice.currency)}\nDue: ${invoice.due_date}\n${providerLabel(invoice.provider)} invoice: ${invoice.provider_invoice_id}\n\nView your invoice and pay securely:\n${invoiceLink(invoice)}\n\nThank you,\nHQ360`,
+    subject: email.subject,
+    text: email.text,
+    html: email.html,
+    // Replies reach a real, monitored inbox -- a signal of a genuine sender.
+    replyTo: leadInboxAddress(),
   });
   if (!result.sent)
     throw new Error(

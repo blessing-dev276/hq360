@@ -15,6 +15,10 @@ export type EmailMessage = {
   text: string;
   html?: string;
   replyTo?: string;
+  /** Overrides EMAIL_FROM (e.g. the separate outreach sender). */
+  from?: string;
+  /** Extra headers, e.g. List-Unsubscribe for outreach. */
+  headers?: Record<string, string>;
   /** File bytes encoded as base64 for Resend. */
   attachments?: { filename: string; content: string; content_type: string }[];
 };
@@ -43,12 +47,13 @@ async function sendViaResend(msg: EmailMessage): Promise<EmailResult> {
         "content-type": "application/json",
       },
       body: JSON.stringify({
-        from: fromAddress(),
+        from: msg.from || fromAddress(),
         to: [msg.to],
         subject: msg.subject,
         text: msg.text,
         html: msg.html ?? `<p>${escapeHtml(msg.text).replace(/\n/g, "<br>")}</p>`,
         ...(msg.replyTo ? { reply_to: msg.replyTo } : {}),
+        ...(msg.headers ? { headers: msg.headers } : {}),
         ...(msg.attachments?.length ? { attachments: msg.attachments } : {}),
       }),
     });

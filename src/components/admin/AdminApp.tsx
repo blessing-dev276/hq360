@@ -18,10 +18,12 @@ import {
   ArrowUpRight,
   LogOut,
   UserCheck,
+  Mail,
 } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { PaymentsAdmin } from "./PaymentsAdmin";
 import { AdminDashboard } from "./AdminDashboard";
+import { OutreachAdmin } from "./OutreachAdmin";
 import { NotificationBell } from "./NotificationBell";
 import { LeadsAdmin } from "./LeadsAdmin";
 import "./admin-workspace.css";
@@ -150,7 +152,8 @@ type Tab =
   | "team"
   | "testimonials"
   | "audits"
-  | "experts";
+  | "experts"
+  | "outreach";
 type WorkView = "cases" | "gallery";
 const NAV = [
   {
@@ -197,6 +200,12 @@ const NAV = [
     description: "Turn research into a clear growth direction.",
   },
   {
+    id: "outreach",
+    label: "Outreach",
+    icon: Mail,
+    description: "Write personally to authors from HQ360's outreach address.",
+  },
+  {
     id: "experts",
     label: "Experts",
     icon: UserCheck,
@@ -233,7 +242,16 @@ export function AdminApp({ initialTab = "overview" }: { initialTab?: Tab }) {
         </a>
         <p className="admin-nav-label">WORKSPACE</p>
         <nav aria-label="Admin navigation">
-          {["overview", "scout", "audits", "experts", "projects", "payments", "work"].map((key) =>
+          {[
+            "overview",
+            "scout",
+            "outreach",
+            "audits",
+            "experts",
+            "projects",
+            "payments",
+            "work",
+          ].map((key) =>
             (() => {
               const { id, label, icon: Icon } = NAV.find((item) => item.id === key)!;
               return (
@@ -304,6 +322,8 @@ export function AdminApp({ initialTab = "overview" }: { initialTab?: Tab }) {
         <div className="admin-page">
           {tab === "scout" ? (
             <ScoutApp />
+          ) : tab === "outreach" ? (
+            <OutreachAdmin />
           ) : tab === "overview" ? (
             <AdminDashboard onNavigate={navigate} />
           ) : tab === "projects" ? (

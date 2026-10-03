@@ -1,7 +1,10 @@
 // Explicitly opt in: creates an isolated test audit in the configured database,
 // exercises the real local app and private client endpoints, then removes only
 // its own audit, author/book and evidence files. Never sends client messages.
-import { chromium, expect } from "@playwright/test";
+// Run with Node 24: Bun’s HTTP compatibility layer mishandles Playwright Set-Cookie response URLs.
+import { createHmac } from "node:crypto";
+import { chromium, expect as baseExpect } from "@playwright/test";
+const expect = baseExpect.configure({ timeout: 30_000 });
 import { sessionCookie } from "../src/lib/admin-auth.server.ts";
 import { supabaseAdmin } from "../src/integrations/supabase/client.server.ts";
 import { SECTION_KEYS } from "../src/lib/author-audit/workflow.ts";
@@ -17,7 +20,7 @@ await context.addCookies([
 const page = await context.newPage();
 const errors = [];
 page.on("pageerror", (e) => errors.push(e.message));
-let id, authorId, bookId;
+let id, authorId, bookId, testExpertId, latestCode, publishedVersion;
 const testName = `HQ360 Workflow Test ${crypto.randomUUID().slice(0, 8)}`;
 let wf;
 async function state() {
@@ -283,7 +286,13 @@ try {
   await page.getByRole("button", { name: "Publish version", exact: true }).click();
   const published = await (await publishedResponse).json();
   expect(published.code).toBeTruthy();
-  const client = await browser.newContext({ extraHTTPHeaders: { Origin: base } });
+  latestCode = published.code;
+  const client = await browser.newContext({
+    extraHTTPHeaders: {
+      Origin: base,
+      "x-vercel-forwarded-for": `audit-test-${crypto.randomUUID()}`,
+    },
+  });
   try {
     let r = await client.request.post(`${base}/api/private-audit`, {
       data: { action: "login", code: "WRONG-CODE" },
@@ -306,6 +315,7 @@ try {
     r = await client.request.get(`${base}/api/private-audit?slug=${slug}`);
     expect(r.status()).toBe(200);
     const delivered = await r.json();
+    publishedVersion = delivered.versionId;
     const serialized = JSON.stringify(delivered);
     expect(serialized).not.toContain("INTERNAL NOTE");
     expect(serialized).not.toContain("reviewer_notes");
@@ -339,6 +349,7 @@ try {
     r = await client.request.get(`${base}/api/private-audit?slug=${slug}`);
     expect(JSON.stringify(await r.json())).not.toContain("EDITED DRAFT ONLY");
     const rotated = await act({ action: "regenerate" });
+    latestCode = rotated.code;
     r = await client.request.get(`${base}/api/private-audit?slug=${slug}`);
     expect(r.status()).toBe(401);
     r = await client.request.post(`${base}/api/private-audit`, {
@@ -357,12 +368,127 @@ try {
   } finally {
     await client.close();
   }
+  // Assigned Expert/Reviewer sessions must never gain Admin publication rights.
+  const createdExpert = await supabaseAdmin.auth.admin.createUser({
+    email: `audit-test-${crypto.randomUUID()}@example.com`,
+    email_confirm: true,
+    user_metadata: { account_type: "expert", full_name: "HQ360 Audit Test Reviewer" },
+  });
+  if (createdExpert.error)
+    throw new Error(`Could not create permission fixture: ${createdExpert.error.message}`);
+  testExpertId = createdExpert.data.user.id;
+  const approved = await supabaseAdmin
+    .from("expert_profiles")
+    .update({ status: "approved", permissions: ["audit"] })
+    .eq("id", testExpertId);
+  if (approved.error) throw approved.error;
+  const expires = String(Math.floor(Date.now() / 1000) + 3600);
+  const signed = createHmac("sha256", process.env.SUPABASE_SERVICE_ROLE_KEY.trim())
+    .update(`${testExpertId}.${expires}`)
+    .digest("base64url");
+  const expert = await browser.newContext({ extraHTTPHeaders: { Origin: base } });
+  try {
+    await expert.addCookies([
+      {
+        name: "hq360_expert",
+        value: `${testExpertId}.${expires}.${signed}`,
+        url: base,
+        httpOnly: true,
+      },
+    ]);
+    expect((await expert.request.get(`${base}${wf}`)).status()).toBe(403);
+    expect((await expert.request.get(`${base}/api/admin/author-audits/${id}`)).status()).toBe(401);
+    await act({ action: "assign", expertId: testExpertId, role: "expert" });
+    expect((await expert.request.get(`${base}${wf}`)).status()).toBe(200);
+    for (const payload of [
+      { action: "generate", notes: "Unauthorized" },
+      { action: "publish", versionId: early.versionId },
+      { action: "template", template: "Unauthorized" },
+    ])
+      expect((await expert.request.post(`${base}${wf}`, { data: payload })).status()).toBe(403);
+    expect(
+      (
+        await expert.request.post(`${base}/api/admin/author-audits/${id}/bulk-import`, { data: {} })
+      ).status(),
+    ).toBe(401);
+    const now = await state(),
+      f = now.findings.find((row) => row.id === finding.id);
+    expect(
+      (
+        await expert.request.post(`${base}${wf}`, {
+          data: {
+            action: "save",
+            entity: "finding",
+            id: f.id,
+            approve: true,
+            values: { ...f, review_status: "approved", manual_status: "verified" },
+          },
+        })
+      ).status(),
+    ).toBe(403);
+    await act({ action: "assign", expertId: testExpertId, role: "reviewer" });
+    expect(
+      (
+        await expert.request.post(`${base}${wf}`, {
+          data: {
+            action: "save",
+            entity: "finding",
+            id: f.id,
+            approve: true,
+            values: { ...f, review_status: "approved", manual_status: "verified" },
+          },
+        })
+      ).status(),
+    ).toBe(200);
+    expect(
+      (
+        await expert.request.post(`${base}${wf}`, {
+          data: { action: "publish", versionId: early.versionId },
+        })
+      ).status(),
+    ).toBe(403);
+  } finally {
+    await expert.close();
+  }
+  const revision = await act({ action: "generate", notes: "Approved draft revision" });
+  await act({ action: "qa", versionId: revision.versionId });
+  const republished = await act({ action: "publish", versionId: revision.versionId });
+  expect(republished.code).toBeNull();
+  const oldVersion = await context.request.get(`${base}${wf}?version=${publishedVersion}`);
+  expect(JSON.stringify(await oldVersion.json())).not.toContain("EDITED DRAFT ONLY");
+  const revisedClient = await browser.newContext({
+    extraHTTPHeaders: {
+      Origin: base,
+      "x-vercel-forwarded-for": `audit-test-${crypto.randomUUID()}`,
+    },
+  });
+  try {
+    const login = await revisedClient.request.post(`${base}/api/private-audit`, {
+      data: { action: "login", code: latestCode },
+    });
+    expect(login.status()).toBe(200);
+    const header = login.headers()["set-cookie"];
+    await revisedClient.addCookies([
+      { name: "hq360_audit", value: header.split(";")[0].split("=")[1], url: base, httpOnly: true },
+    ]);
+    const response = await revisedClient.request.get(
+      `${base}/api/private-audit?slug=${republished.path.replace("/author-audit/", "")}`,
+    );
+    expect(response.status()).toBe(200);
+    const report = await response.json();
+    expect(report.versionId).toBe(revision.versionId);
+    expect(JSON.stringify(report)).toContain("EDITED DRAFT ONLY");
+  } finally {
+    await revisedClient.close();
+  }
   expect(errors).toEqual([]);
   console.log(
-    "PASS: real audit creation, prompt, validation/import, finding edits/rejection/manual finding, screenshots, Listopia, section order, approvals, private preview/publish, code access/rotation, immutable published revision, mobile layout.",
+    "PASS: real audit creation, prompt, validation/import, finding edits/rejection/manual finding, screenshots, Listopia, section order, approvals, private preview/publish, code access/rotation, immutable published revision and republishing, Expert/Reviewer restrictions, mobile layout.",
   );
 } catch (e) {
-  console.error((await page.locator("body").innerText()).slice(-5000));
+  console.error(
+    `Workflow failed for test audit ${id ?? "not created"}: ${e.message.split("\n")[0]}`,
+  );
   throw e;
 } finally {
   if (id) {
@@ -376,5 +502,6 @@ try {
   }
   if (bookId) await supabaseAdmin.from("books").delete().eq("id", bookId);
   if (authorId) await supabaseAdmin.from("authors").delete().eq("id", authorId);
+  if (testExpertId) await supabaseAdmin.auth.admin.deleteUser(testExpertId);
   await browser.close();
 }

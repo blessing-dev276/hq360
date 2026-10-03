@@ -115,15 +115,22 @@ export async function workflowState(id: string) {
     ),
   );
   if (results.some((r) => r.error)) throw new Error("Audit workflow storage unavailable");
-  const [access, template] = await Promise.all([
+  const [access, template, sources] = await Promise.all([
     db
       .from("audit_client_access")
       .select("public_slug,access_enabled,view_count,last_viewed_at,expires_at")
       .eq("audit_id", id)
       .maybeSingle(),
     db.from("audit_prompt_templates").select("template").eq("id", "default").maybeSingle(),
+    db
+      .from("audit_sources")
+      .select("id,url,provider,retrieved_at,raw_data")
+      .eq("audit_id", id)
+      .eq("source_type", "ai_web_research")
+      .order("retrieved_at", { ascending: false })
+      .limit(100),
   ]);
-  if (access.error || template.error) throw new Error("Audit storage unavailable");
+  if (access.error || template.error || sources.error) throw new Error("Audit storage unavailable");
   return {
     audit: audit.data,
     findings: (results[0]!.data ?? []).map((f) => ({
@@ -138,6 +145,7 @@ export async function workflowState(id: string) {
     assets: results[4]!.data ?? [],
     actions: results[5]!.data ?? [],
     imports: results[6]!.data ?? [],
+    sources: sources.data ?? [],
     history: results[7]!.data ?? [],
     versions: results[8]!.data ?? [],
     assignments: results[9]!.data ?? [],
@@ -446,6 +454,59 @@ export async function workflowPost(request: Request, id: string) {
     }
     const body = await request.json();
     const action = z.string().parse(body.action);
+    if (action === "ai_search") {
+      const focus = z
+        .string()
+        .trim()
+        .max(200)
+        .parse(body.focus ?? "");
+      const { generateWebResearch } = await import("./workflow-ai-search.server");
+      const result = await generateWebResearch(state, focus);
+      if (!result.validated.valid)
+        return privateJson(
+          {
+            ok: false,
+            raw: result.raw,
+            sources: result.sources,
+            failures: result.failures,
+            errors: result.validated.errors,
+          },
+          422,
+        );
+      const imported = await db.rpc("audit_import_research", {
+        p_audit: id,
+        p_actor: actor.id,
+        p_source: "Claude",
+        p_raw: result.raw,
+        p_data: result.validated.data,
+      });
+      if (imported.error)
+        throw new Error("AI research could not be saved. Refresh this audit and retry.");
+      const archived = await db.from("audit_sources").insert(
+        result.sources.map((source) => ({
+          audit_id: id,
+          provider: source.provider,
+          source_type: "ai_web_research",
+          url: source.url,
+          retrieved_at: source.retrievedAt,
+          status: "retrieved",
+          raw_data: { query: source.query, title: source.title, excerpt: source.excerpt },
+        })),
+      );
+      if (archived.error) {
+        console.error("Could not archive AI research search sources", archived.error.message);
+      }
+      await activity(id, actor.id, "ai_web_research_imported");
+      return privateJson({
+        ok: true,
+        imported: true,
+        sources: result.sources,
+        failures: result.failures,
+        findings: result.validated.data.findings.length,
+        droppedFindings: result.droppedFindings,
+        skippedDuplicates: result.skippedDuplicates,
+      });
+    }
     if (action === "prompt" || action === "template") {
       if (action === "template") {
         if (!actor.admin) return privateJson({ error: "Admin only" }, 403);
@@ -646,6 +707,124 @@ export async function workflowPost(request: Request, id: string) {
         );
       await activity(id, actor.id, "assignment_updated", expertId);
       return privateJson({ ok: true });
+    }
+    if (action === "approve_all") {
+      // Fast path for research that was verified before import: approve and
+      // verify everything not rejected or hidden in one step. Screenshot
+      // requests without an uploaded image stay open -- never fabricated.
+      if (!actor.review) return privateJson({ error: "Reviewer required" }, 403);
+      const counts = {
+        findings: 0,
+        sections: 0,
+        listopia: 0,
+        actions: 0,
+        screenshots: 0,
+        checks: 0,
+      };
+      const findings = state.findings.filter((f) => f.review_status !== "rejected" && !f.hidden);
+      for (const f of findings) {
+        assertOk(
+          await db
+            .from("audit_findings")
+            .update({
+              review_status: "approved",
+              manual_status: f.manual_status === "not_applicable" ? "not_applicable" : "verified",
+              client_visible: true,
+            })
+            .eq("audit_id", id)
+            .eq("id", f.id),
+        );
+        counts.findings++;
+      }
+      const sections = state.sections.filter((s) => s.enabled && s.review_status !== "approved");
+      if (sections.length) {
+        assertOk(
+          await db
+            .from("audit_sections")
+            .update({ review_status: "approved" })
+            .eq("audit_id", id)
+            .in(
+              "id",
+              sections.map((s) => s.id),
+            ),
+        );
+        counts.sections = sections.length;
+      }
+      for (const l of state.listopia.filter((l) => l.review_status !== "rejected")) {
+        assertOk(
+          await db
+            .from("audit_listopia")
+            .update({
+              review_status: "approved",
+              manual_status: l.manual_status === "not_applicable" ? "not_applicable" : "verified",
+            })
+            .eq("audit_id", id)
+            .eq("id", l.id),
+        );
+        counts.listopia++;
+      }
+      const actions = state.actions.filter(
+        (a) => a.review_status !== "rejected" && a.review_status !== "approved",
+      );
+      if (actions.length) {
+        assertOk(
+          await db
+            .from("audit_action_plan")
+            .update({ review_status: "approved" })
+            .eq("audit_id", id)
+            .in(
+              "id",
+              actions.map((a) => a.id),
+            ),
+        );
+        counts.actions = actions.length;
+      }
+      const assets = state.assets.filter((a) => a.review_status === "pending");
+      if (assets.length) {
+        assertOk(
+          await db
+            .from("audit_evidence_assets")
+            .update({ review_status: "approved", client_visible: true })
+            .eq("audit_id", id)
+            .in(
+              "id",
+              assets.map((a) => a.id),
+            ),
+        );
+        counts.screenshots = assets.length;
+      }
+      // A screenshot request is done only when it has an uploaded image; other
+      // checks (manual verification etc.) are confirmed by this approval.
+      const withImage = new Set(state.assets.filter((a) => a.task_id).map((a) => a.task_id));
+      const tasks = state.tasks.filter(
+        (t) =>
+          !["approved", "not_applicable"].includes(t.status) &&
+          (t.kind !== "screenshot" || withImage.has(t.id)),
+      );
+      if (tasks.length) {
+        assertOk(
+          await db
+            .from("audit_review_tasks")
+            .update({ status: "approved" })
+            .eq("audit_id", id)
+            .in(
+              "id",
+              tasks.map((t) => t.id),
+            ),
+        );
+        counts.checks = tasks.length;
+      }
+      await activity(id, actor.id, "bulk_approved");
+      const after = await workflowState(id);
+      const remaining = reviewIssues(after);
+      if (!remaining.length)
+        assertOk(
+          await db
+            .from("author_audits")
+            .update({ status: "approved", review_status: "complete" })
+            .eq("id", id),
+        );
+      return privateJson({ ok: true, counts, remaining });
     }
     if (action === "approve") {
       if (!actor.review) return privateJson({ error: "Reviewer required" }, 403);

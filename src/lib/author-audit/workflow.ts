@@ -227,6 +227,13 @@ export type WorkflowState = {
   assets: Asset[];
   actions: Action[];
   imports: { id: string; created_at: string; source: string }[];
+  sources: {
+    id: string;
+    url: string;
+    provider: string;
+    retrieved_at: string;
+    raw_data: { query?: string; title?: string; excerpt?: string };
+  }[];
   history: { id: string; actor: string; action: string; created_at: string }[];
   versions: {
     id: string;

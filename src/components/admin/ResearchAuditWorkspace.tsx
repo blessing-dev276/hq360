@@ -297,6 +297,10 @@ export function ResearchAuditWorkspace({
     [notice, setNotice] = useState(""),
     [raw, setRaw] = useState(""),
     [source, setSource] = useState("Claude"),
+    [searchFocus, setSearchFocus] = useState(""),
+    [searchedSources, setSearchedSources] = useState<
+      { title: string; url: string; excerpt: string; provider: string; retrievedAt: string }[]
+    >([]),
     [validation, setValidation] = useState<{
       valid: boolean;
       errors: string[];
@@ -508,6 +512,15 @@ export function ResearchAuditWorkspace({
       </div>
     );
   if (data.audit.workflow_version !== 1) return <>{legacy}</>;
+  const sourceList = searchedSources.length
+    ? searchedSources
+    : data.sources.map((item) => ({
+        url: item.url,
+        provider: item.provider,
+        title: item.raw_data.title ?? item.url,
+        excerpt: item.raw_data.excerpt ?? "",
+        retrievedAt: item.retrieved_at,
+      }));
   const issues = reviewIssues(data),
     findings = data.findings.filter((f) =>
       tab === "Amazon"
@@ -603,6 +616,7 @@ export function ResearchAuditWorkspace({
       )}
       {tab === "Overview" && (
         <>
+          {data.permissions.review && <FastApprove act={act} busy={!!busy} />}
           <section className={card}>
             <h2 className="text-xl font-semibold">Review progress</h2>
             <div className="mt-5 grid gap-4 sm:grid-cols-3">
@@ -764,6 +778,92 @@ export function ResearchAuditWorkspace({
       )}
       {tab === "Research" && (
         <>
+          <section className={`${card} space-y-4`}>
+            <div>
+              <h2 className="text-xl font-semibold">AI web research</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Search public web listings and book catalogues for this author and book. AI turns
+                the collected results into a cited draft and imports it for review. Search snippets
+                do not confirm live page details; verify important claims before approval.
+              </p>
+            </div>
+            <label className="block text-sm">
+              Search focus (optional)
+              <input
+                aria-label="AI search focus"
+                className={field}
+                maxLength={200}
+                placeholder="e.g. reviews, website, reader community"
+                value={searchFocus}
+                onChange={(e) => setSearchFocus(e.target.value)}
+              />
+            </label>
+            <button
+              className={primary}
+              disabled={!!busy}
+              onClick={async () => {
+                setBusy("Searching public sources and preparing an AI research draft…");
+                setError("");
+                setNotice("");
+                setSearchedSources([]);
+                try {
+                  const response = await fetch(base, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ action: "ai_search", focus: searchFocus }),
+                  });
+                  const result = await response.json();
+                  if (Array.isArray(result.sources)) setSearchedSources(result.sources);
+                  if (result.raw) {
+                    setRaw(result.raw);
+                    setValidation(null);
+                  }
+                  if (!response.ok) {
+                    throw new Error(
+                      [result.error, ...(result.errors ?? [])].filter(Boolean).join("\n") ||
+                        "AI research could not be completed. Please retry.",
+                    );
+                  }
+                  await load();
+                  setNotice(
+                    `Imported ${result.findings} draft findings from ${result.sources.length} public sources.${result.droppedFindings ? ` ${result.droppedFindings} unsupported findings were excluded.` : ""}${result.skippedDuplicates ? ` ${result.skippedDuplicates} existing findings were skipped.` : ""}${result.failures?.length ? ` ${result.failures.length} searches were unavailable.` : ""} Review them before approval.`,
+                  );
+                } catch (e) {
+                  setError((e as Error).message);
+                } finally {
+                  setBusy("");
+                }
+              }}
+            >
+              Search web with AI
+            </button>
+            {sourceList.length > 0 && (
+              <details className="rounded-xl border border-border p-4">
+                <summary className="cursor-pointer text-sm font-medium">
+                  View {sourceList.length} collected sources
+                </summary>
+                <ul className="mt-3 space-y-3 text-sm">
+                  {sourceList.map((item, index) => (
+                    <li key={`${item.url}-${index}`}>
+                      <a
+                        href={item.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-medium text-brand underline"
+                      >
+                        {item.title || item.url}
+                      </a>
+                      <p className="text-xs text-muted-foreground">
+                        {label(item.provider)} · Collected{" "}
+                        {new Date(item.retrievedAt).toLocaleDateString()}
+                      </p>
+                      <p className="text-muted-foreground">{item.excerpt}</p>
+                    </li>
+                  ))}
+                </ul>
+              </details>
+            )}
+          </section>
           <section className={`${card} space-y-4`}>
             <h2 className="text-xl font-semibold">Research prompt</h2>
             <label className="block text-sm">
@@ -1545,5 +1645,83 @@ export function ResearchAuditWorkspace({
         </section>
       )}
     </div>
+  );
+}
+
+type FastResult = {
+  counts: Record<string, number>;
+  remaining: string[];
+};
+/** One-click review for research that was verified before it was imported. */
+function FastApprove({
+  act,
+  busy,
+}: {
+  act: (body: Values, refresh?: boolean) => Promise<{ [key: string]: unknown } | null>;
+  busy: boolean;
+}) {
+  const [result, setResult] = useState<FastResult | null>(null);
+  async function run(generate: boolean) {
+    if (
+      !window.confirm(
+        "Approve and verify every finding, section, Listopia list, action and uploaded screenshot that isn't rejected or hidden? Use this only if you verified the research before importing it.",
+      )
+    )
+      return;
+    const r = (await act({ action: "approve_all" })) as FastResult | null;
+    if (!r) return;
+    setResult(r);
+    if (generate && !r.remaining.length)
+      await act({ action: "generate", notes: "Approved in one step" });
+  }
+  const total = result ? Object.values(result.counts).reduce((a, b) => a + b, 0) : 0;
+  return (
+    <section className={`${card} border-brand/40`}>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="max-w-xl">
+          <p className="text-xs font-semibold tracking-widest text-brand uppercase">Fast approve</p>
+          <h2 className="mt-1 text-xl font-semibold">Already verified this research?</h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Approve everything in one step instead of item by item. Rejected and hidden items are
+            left alone, and screenshot requests still need a real uploaded image.
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <button className={btn} disabled={busy} onClick={() => void run(false)}>
+            Approve everything
+          </button>
+          <button className={primary} disabled={busy} onClick={() => void run(true)}>
+            Approve all &amp; generate site
+          </button>
+        </div>
+      </div>
+      {result && (
+        <div className="mt-4 rounded-xl bg-secondary/50 p-4 text-sm">
+          <p className="font-semibold">
+            Approved {total} item{total === 1 ? "" : "s"} ·{" "}
+            {Object.entries(result.counts)
+              .filter(([, n]) => n)
+              .map(([k, n]) => `${n} ${k}`)
+              .join(", ") || "nothing new"}
+          </p>
+          {result.remaining.length ? (
+            <>
+              <p className="mt-2 text-muted-foreground">
+                {result.remaining.length} still need you before publishing:
+              </p>
+              <ul className="mt-2 list-disc space-y-1 pl-5">
+                {result.remaining.slice(0, 12).map((issue) => (
+                  <li key={issue}>{issue}</li>
+                ))}
+              </ul>
+            </>
+          ) : (
+            <p className="mt-2 text-muted-foreground">
+              Review complete — open Client Site to preview, run final QA and publish.
+            </p>
+          )}
+        </div>
+      )}
+    </section>
   );
 }

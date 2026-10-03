@@ -53,6 +53,9 @@ export type SalesLead = z.infer<typeof leadSchema> & {
     source_path: string | null;
   } | null;
   updated_at: string;
+  owner?: string;
+  owner_name?: string;
+  context?: { book_title?: string | null; batch_label?: string | null } | null;
 };
 export const label = (value: string) =>
   value.replaceAll("_", " ").replace(/^./, (letter) => letter.toUpperCase());

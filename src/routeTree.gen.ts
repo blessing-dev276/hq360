@@ -98,6 +98,7 @@ import { Route as ApiAdminTestimonialsRouteImport } from './routes/api/admin/tes
 import { Route as ApiAdminUploadRouteImport } from './routes/api/admin/upload'
 import { Route as ApiAdminUploadUrlRouteImport } from './routes/api/admin/upload-url'
 import { Route as ApiExpertInvoiceRequestsRouteImport } from './routes/api/expert/invoice-requests'
+import { Route as ApiExpertLeadsRouteImport } from './routes/api/expert/leads'
 import { Route as ApiExpertNotificationsRouteImport } from './routes/api/expert/notifications'
 import { Route as ApiExpertPhotoUrlRouteImport } from './routes/api/expert/photo-url'
 import { Route as ApiExpertPortfolioRouteImport } from './routes/api/expert/portfolio'
@@ -630,6 +631,11 @@ const ApiExpertInvoiceRequestsRoute =
     path: '/api/expert/invoice-requests',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiExpertLeadsRoute = ApiExpertLeadsRouteImport.update({
+  id: '/api/expert/leads',
+  path: '/api/expert/leads',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiExpertNotificationsRoute = ApiExpertNotificationsRouteImport.update({
   id: '/api/expert/notifications',
   path: '/api/expert/notifications',
@@ -1124,6 +1130,7 @@ export interface FileRoutesByFullPath {
   '/api/admin/upload': typeof ApiAdminUploadRoute
   '/api/admin/upload-url': typeof ApiAdminUploadUrlRoute
   '/api/expert/invoice-requests': typeof ApiExpertInvoiceRequestsRoute
+  '/api/expert/leads': typeof ApiExpertLeadsRoute
   '/api/expert/notifications': typeof ApiExpertNotificationsRoute
   '/api/expert/photo-url': typeof ApiExpertPhotoUrlRoute
   '/api/expert/portfolio': typeof ApiExpertPortfolioRouteWithChildren
@@ -1288,6 +1295,7 @@ export interface FileRoutesByTo {
   '/api/admin/upload': typeof ApiAdminUploadRoute
   '/api/admin/upload-url': typeof ApiAdminUploadUrlRoute
   '/api/expert/invoice-requests': typeof ApiExpertInvoiceRequestsRoute
+  '/api/expert/leads': typeof ApiExpertLeadsRoute
   '/api/expert/notifications': typeof ApiExpertNotificationsRoute
   '/api/expert/photo-url': typeof ApiExpertPhotoUrlRoute
   '/api/expert/portfolio': typeof ApiExpertPortfolioRouteWithChildren
@@ -1453,6 +1461,7 @@ export interface FileRoutesById {
   '/api/admin/upload': typeof ApiAdminUploadRoute
   '/api/admin/upload-url': typeof ApiAdminUploadUrlRoute
   '/api/expert/invoice-requests': typeof ApiExpertInvoiceRequestsRoute
+  '/api/expert/leads': typeof ApiExpertLeadsRoute
   '/api/expert/notifications': typeof ApiExpertNotificationsRoute
   '/api/expert/photo-url': typeof ApiExpertPhotoUrlRoute
   '/api/expert/portfolio': typeof ApiExpertPortfolioRouteWithChildren
@@ -1619,6 +1628,7 @@ export interface FileRouteTypes {
     | '/api/admin/upload'
     | '/api/admin/upload-url'
     | '/api/expert/invoice-requests'
+    | '/api/expert/leads'
     | '/api/expert/notifications'
     | '/api/expert/photo-url'
     | '/api/expert/portfolio'
@@ -1783,6 +1793,7 @@ export interface FileRouteTypes {
     | '/api/admin/upload'
     | '/api/admin/upload-url'
     | '/api/expert/invoice-requests'
+    | '/api/expert/leads'
     | '/api/expert/notifications'
     | '/api/expert/photo-url'
     | '/api/expert/portfolio'
@@ -1947,6 +1958,7 @@ export interface FileRouteTypes {
     | '/api/admin/upload'
     | '/api/admin/upload-url'
     | '/api/expert/invoice-requests'
+    | '/api/expert/leads'
     | '/api/expert/notifications'
     | '/api/expert/photo-url'
     | '/api/expert/portfolio'
@@ -2112,6 +2124,7 @@ export interface RootRouteChildren {
   ApiAdminUploadRoute: typeof ApiAdminUploadRoute
   ApiAdminUploadUrlRoute: typeof ApiAdminUploadUrlRoute
   ApiExpertInvoiceRequestsRoute: typeof ApiExpertInvoiceRequestsRoute
+  ApiExpertLeadsRoute: typeof ApiExpertLeadsRoute
   ApiExpertNotificationsRoute: typeof ApiExpertNotificationsRoute
   ApiExpertPhotoUrlRoute: typeof ApiExpertPhotoUrlRoute
   ApiExpertPortfolioRoute: typeof ApiExpertPortfolioRouteWithChildren
@@ -2769,6 +2782,13 @@ declare module '@tanstack/react-router' {
       path: '/api/expert/invoice-requests'
       fullPath: '/api/expert/invoice-requests'
       preLoaderRoute: typeof ApiExpertInvoiceRequestsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/expert/leads': {
+      id: '/api/expert/leads'
+      path: '/api/expert/leads'
+      fullPath: '/api/expert/leads'
+      preLoaderRoute: typeof ApiExpertLeadsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/expert/notifications': {
@@ -3690,6 +3710,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAdminUploadRoute: ApiAdminUploadRoute,
   ApiAdminUploadUrlRoute: ApiAdminUploadUrlRoute,
   ApiExpertInvoiceRequestsRoute: ApiExpertInvoiceRequestsRoute,
+  ApiExpertLeadsRoute: ApiExpertLeadsRoute,
   ApiExpertNotificationsRoute: ApiExpertNotificationsRoute,
   ApiExpertPhotoUrlRoute: ApiExpertPhotoUrlRoute,
   ApiExpertPortfolioRoute: ApiExpertPortfolioRouteWithChildren,

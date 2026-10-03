@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { NotificationBell } from "@/components/admin/NotificationBell";
 import {
+  BriefcaseBusiness,
   CreditCard,
   FileText,
   Images,
@@ -22,9 +23,10 @@ import { ExpertPortfolio } from "./ExpertPortfolio";
 import { ExpertTestimonials } from "./ExpertTestimonials";
 import { ExpertAuditLink } from "./ExpertAuditLink";
 import { ExpertInvoiceRequests } from "./ExpertInvoiceRequests";
+import { LeadsWorkspace } from "@/components/admin/LeadsAdmin";
 import "@/components/admin/admin-workspace.css";
 
-type Tab = "dashboard" | "profile" | "portfolio" | ExpertFeature;
+type Tab = "dashboard" | "profile" | "portfolio" | "leads" | ExpertFeature;
 type NavItem = { id: Tab; label: string; icon: LucideIcon; description: string };
 
 const CORE: NavItem[] = [
@@ -45,6 +47,12 @@ const CORE: NavItem[] = [
     label: "Portfolio",
     icon: Images,
     description: "Show the work you've delivered. Each item is reviewed before it goes live.",
+  },
+  {
+    id: "leads",
+    label: "Leads & Projects",
+    icon: BriefcaseBusiness,
+    description: "Your own clients — from Scouting saves and your referral link to delivery.",
   },
 ];
 /** Tools an admin can grant by role; locked ones show as "Coming soon". */
@@ -189,6 +197,8 @@ export function ExpertApp() {
             <ExpertDashboard onNavigate={navigate} />
           ) : current.id === "profile" ? (
             <ExpertProfileEditor />
+          ) : current.id === "leads" ? (
+            <LeadsWorkspace scope="expert" />
           ) : current.id === "portfolio" ? (
             <>
               <ExpertPortfolio />

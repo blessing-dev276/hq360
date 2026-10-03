@@ -46,7 +46,6 @@ import { Route as TeamRouteImport } from './routes/team'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as TestimonialsRouteImport } from './routes/testimonials'
 import { Route as UgcCreatorsRouteImport } from './routes/ugc-creators'
-import { Route as UnsubscribeRouteImport } from './routes/unsubscribe'
 import { Route as ApiCheckoutRouteImport } from './routes/api/checkout'
 import { Route as ApiPrivateAuditRouteImport } from './routes/api/private-audit'
 import { Route as AuthorAuditIndexRouteImport } from './routes/author-audit.index'
@@ -80,7 +79,6 @@ import { Route as ApiAdminInvoiceRequestsRouteImport } from './routes/api/admin/
 import { Route as ApiAdminInvoicesRouteImport } from './routes/api/admin/invoices'
 import { Route as ApiAdminLeadsRouteImport } from './routes/api/admin/leads'
 import { Route as ApiAdminNotificationsRouteImport } from './routes/api/admin/notifications'
-import { Route as ApiAdminOutreachRouteImport } from './routes/api/admin/outreach'
 import { Route as ApiAdminPortfolioRouteImport } from './routes/api/admin/portfolio'
 import { Route as ApiAdminScoutAmazonSearchRouteImport } from './routes/api/admin/scout-amazon-search'
 import { Route as ApiAdminScoutArcDiscoveryRouteImport } from './routes/api/admin/scout-arc-discovery'
@@ -113,7 +111,6 @@ import { Route as ApiExpertSignupRouteImport } from './routes/api/expert/signup'
 import { Route as ApiExpertTestimonialsRouteImport } from './routes/api/expert/testimonials'
 import { Route as ApiExpertVideoUrlRouteImport } from './routes/api/expert/video-url'
 import { Route as ApiNotificationsDispatchRouteImport } from './routes/api/notifications/dispatch'
-import { Route as ApiOutreachUnsubscribeRouteImport } from './routes/api/outreach/unsubscribe'
 import { Route as ApiPayTokenRouteImport } from './routes/api/pay/$token'
 import { Route as ApiPublicAuthorAuditRouteImport } from './routes/api/public/author-audit'
 import { Route as ApiPublicCaseStudiesRouteImport } from './routes/api/public/case-studies'
@@ -368,11 +365,6 @@ const UgcCreatorsRoute = UgcCreatorsRouteImport.update({
   path: '/ugc-creators',
   getParentRoute: () => rootRouteImport,
 } as any)
-const UnsubscribeRoute = UnsubscribeRouteImport.update({
-  id: '/unsubscribe',
-  path: '/unsubscribe',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ApiCheckoutRoute = ApiCheckoutRouteImport.update({
   id: '/api/checkout',
   path: '/api/checkout',
@@ -539,11 +531,6 @@ const ApiAdminLeadsRoute = ApiAdminLeadsRouteImport.update({
 const ApiAdminNotificationsRoute = ApiAdminNotificationsRouteImport.update({
   id: '/api/admin/notifications',
   path: '/api/admin/notifications',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiAdminOutreachRoute = ApiAdminOutreachRouteImport.update({
-  id: '/api/admin/outreach',
-  path: '/api/admin/outreach',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiAdminPortfolioRoute = ApiAdminPortfolioRouteImport.update({
@@ -716,11 +703,6 @@ const ApiNotificationsDispatchRoute =
     path: '/api/notifications/dispatch',
     getParentRoute: () => rootRouteImport,
   } as any)
-const ApiOutreachUnsubscribeRoute = ApiOutreachUnsubscribeRouteImport.update({
-  id: '/api/outreach/unsubscribe',
-  path: '/api/outreach/unsubscribe',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ApiPayTokenRoute = ApiPayTokenRouteImport.update({
   id: '/api/pay/$token',
   path: '/api/pay/$token',
@@ -1133,7 +1115,6 @@ export interface FileRoutesByFullPath {
   '/terms': typeof TermsRoute
   '/testimonials': typeof TestimonialsRoute
   '/ugc-creators': typeof UgcCreatorsRoute
-  '/unsubscribe': typeof UnsubscribeRoute
   '/api/checkout': typeof ApiCheckoutRoute
   '/api/private-audit': typeof ApiPrivateAuditRoute
   '/blog/$slug': typeof BlogSlugRoute
@@ -1167,7 +1148,6 @@ export interface FileRoutesByFullPath {
   '/api/admin/invoices': typeof ApiAdminInvoicesRouteWithChildren
   '/api/admin/leads': typeof ApiAdminLeadsRoute
   '/api/admin/notifications': typeof ApiAdminNotificationsRoute
-  '/api/admin/outreach': typeof ApiAdminOutreachRoute
   '/api/admin/portfolio': typeof ApiAdminPortfolioRouteWithChildren
   '/api/admin/scout-amazon-search': typeof ApiAdminScoutAmazonSearchRoute
   '/api/admin/scout-arc-discovery': typeof ApiAdminScoutArcDiscoveryRoute
@@ -1200,7 +1180,6 @@ export interface FileRoutesByFullPath {
   '/api/expert/testimonials': typeof ApiExpertTestimonialsRouteWithChildren
   '/api/expert/video-url': typeof ApiExpertVideoUrlRoute
   '/api/notifications/dispatch': typeof ApiNotificationsDispatchRoute
-  '/api/outreach/unsubscribe': typeof ApiOutreachUnsubscribeRoute
   '/api/pay/$token': typeof ApiPayTokenRoute
   '/api/public/author-audit': typeof ApiPublicAuthorAuditRoute
   '/api/public/case-studies': typeof ApiPublicCaseStudiesRoute
@@ -1307,7 +1286,6 @@ export interface FileRoutesByTo {
   '/terms': typeof TermsRoute
   '/testimonials': typeof TestimonialsRoute
   '/ugc-creators': typeof UgcCreatorsRoute
-  '/unsubscribe': typeof UnsubscribeRoute
   '/api/checkout': typeof ApiCheckoutRoute
   '/api/private-audit': typeof ApiPrivateAuditRoute
   '/blog/$slug': typeof BlogSlugRoute
@@ -1341,7 +1319,6 @@ export interface FileRoutesByTo {
   '/api/admin/invoices': typeof ApiAdminInvoicesRouteWithChildren
   '/api/admin/leads': typeof ApiAdminLeadsRoute
   '/api/admin/notifications': typeof ApiAdminNotificationsRoute
-  '/api/admin/outreach': typeof ApiAdminOutreachRoute
   '/api/admin/portfolio': typeof ApiAdminPortfolioRouteWithChildren
   '/api/admin/scout-amazon-search': typeof ApiAdminScoutAmazonSearchRoute
   '/api/admin/scout-arc-discovery': typeof ApiAdminScoutArcDiscoveryRoute
@@ -1374,7 +1351,6 @@ export interface FileRoutesByTo {
   '/api/expert/testimonials': typeof ApiExpertTestimonialsRouteWithChildren
   '/api/expert/video-url': typeof ApiExpertVideoUrlRoute
   '/api/notifications/dispatch': typeof ApiNotificationsDispatchRoute
-  '/api/outreach/unsubscribe': typeof ApiOutreachUnsubscribeRoute
   '/api/pay/$token': typeof ApiPayTokenRoute
   '/api/public/author-audit': typeof ApiPublicAuthorAuditRoute
   '/api/public/case-studies': typeof ApiPublicCaseStudiesRoute
@@ -1482,7 +1458,6 @@ export interface FileRoutesById {
   '/terms': typeof TermsRoute
   '/testimonials': typeof TestimonialsRoute
   '/ugc-creators': typeof UgcCreatorsRoute
-  '/unsubscribe': typeof UnsubscribeRoute
   '/api/checkout': typeof ApiCheckoutRoute
   '/api/private-audit': typeof ApiPrivateAuditRoute
   '/blog/$slug': typeof BlogSlugRoute
@@ -1516,7 +1491,6 @@ export interface FileRoutesById {
   '/api/admin/invoices': typeof ApiAdminInvoicesRouteWithChildren
   '/api/admin/leads': typeof ApiAdminLeadsRoute
   '/api/admin/notifications': typeof ApiAdminNotificationsRoute
-  '/api/admin/outreach': typeof ApiAdminOutreachRoute
   '/api/admin/portfolio': typeof ApiAdminPortfolioRouteWithChildren
   '/api/admin/scout-amazon-search': typeof ApiAdminScoutAmazonSearchRoute
   '/api/admin/scout-arc-discovery': typeof ApiAdminScoutArcDiscoveryRoute
@@ -1549,7 +1523,6 @@ export interface FileRoutesById {
   '/api/expert/testimonials': typeof ApiExpertTestimonialsRouteWithChildren
   '/api/expert/video-url': typeof ApiExpertVideoUrlRoute
   '/api/notifications/dispatch': typeof ApiNotificationsDispatchRoute
-  '/api/outreach/unsubscribe': typeof ApiOutreachUnsubscribeRoute
   '/api/pay/$token': typeof ApiPayTokenRoute
   '/api/public/author-audit': typeof ApiPublicAuthorAuditRoute
   '/api/public/case-studies': typeof ApiPublicCaseStudiesRoute
@@ -1658,7 +1631,6 @@ export interface FileRouteTypes {
     | '/terms'
     | '/testimonials'
     | '/ugc-creators'
-    | '/unsubscribe'
     | '/api/checkout'
     | '/api/private-audit'
     | '/blog/$slug'
@@ -1692,7 +1664,6 @@ export interface FileRouteTypes {
     | '/api/admin/invoices'
     | '/api/admin/leads'
     | '/api/admin/notifications'
-    | '/api/admin/outreach'
     | '/api/admin/portfolio'
     | '/api/admin/scout-amazon-search'
     | '/api/admin/scout-arc-discovery'
@@ -1725,7 +1696,6 @@ export interface FileRouteTypes {
     | '/api/expert/testimonials'
     | '/api/expert/video-url'
     | '/api/notifications/dispatch'
-    | '/api/outreach/unsubscribe'
     | '/api/pay/$token'
     | '/api/public/author-audit'
     | '/api/public/case-studies'
@@ -1832,7 +1802,6 @@ export interface FileRouteTypes {
     | '/terms'
     | '/testimonials'
     | '/ugc-creators'
-    | '/unsubscribe'
     | '/api/checkout'
     | '/api/private-audit'
     | '/blog/$slug'
@@ -1866,7 +1835,6 @@ export interface FileRouteTypes {
     | '/api/admin/invoices'
     | '/api/admin/leads'
     | '/api/admin/notifications'
-    | '/api/admin/outreach'
     | '/api/admin/portfolio'
     | '/api/admin/scout-amazon-search'
     | '/api/admin/scout-arc-discovery'
@@ -1899,7 +1867,6 @@ export interface FileRouteTypes {
     | '/api/expert/testimonials'
     | '/api/expert/video-url'
     | '/api/notifications/dispatch'
-    | '/api/outreach/unsubscribe'
     | '/api/pay/$token'
     | '/api/public/author-audit'
     | '/api/public/case-studies'
@@ -2006,7 +1973,6 @@ export interface FileRouteTypes {
     | '/terms'
     | '/testimonials'
     | '/ugc-creators'
-    | '/unsubscribe'
     | '/api/checkout'
     | '/api/private-audit'
     | '/blog/$slug'
@@ -2040,7 +2006,6 @@ export interface FileRouteTypes {
     | '/api/admin/invoices'
     | '/api/admin/leads'
     | '/api/admin/notifications'
-    | '/api/admin/outreach'
     | '/api/admin/portfolio'
     | '/api/admin/scout-amazon-search'
     | '/api/admin/scout-arc-discovery'
@@ -2073,7 +2038,6 @@ export interface FileRouteTypes {
     | '/api/expert/testimonials'
     | '/api/expert/video-url'
     | '/api/notifications/dispatch'
-    | '/api/outreach/unsubscribe'
     | '/api/pay/$token'
     | '/api/public/author-audit'
     | '/api/public/case-studies'
@@ -2181,7 +2145,6 @@ export interface RootRouteChildren {
   TermsRoute: typeof TermsRoute
   TestimonialsRoute: typeof TestimonialsRoute
   UgcCreatorsRoute: typeof UgcCreatorsRoute
-  UnsubscribeRoute: typeof UnsubscribeRoute
   ApiCheckoutRoute: typeof ApiCheckoutRoute
   ApiPrivateAuditRoute: typeof ApiPrivateAuditRoute
   BlogSlugRoute: typeof BlogSlugRoute
@@ -2215,7 +2178,6 @@ export interface RootRouteChildren {
   ApiAdminInvoicesRoute: typeof ApiAdminInvoicesRouteWithChildren
   ApiAdminLeadsRoute: typeof ApiAdminLeadsRoute
   ApiAdminNotificationsRoute: typeof ApiAdminNotificationsRoute
-  ApiAdminOutreachRoute: typeof ApiAdminOutreachRoute
   ApiAdminPortfolioRoute: typeof ApiAdminPortfolioRouteWithChildren
   ApiAdminScoutAmazonSearchRoute: typeof ApiAdminScoutAmazonSearchRoute
   ApiAdminScoutArcDiscoveryRoute: typeof ApiAdminScoutArcDiscoveryRoute
@@ -2248,7 +2210,6 @@ export interface RootRouteChildren {
   ApiExpertTestimonialsRoute: typeof ApiExpertTestimonialsRouteWithChildren
   ApiExpertVideoUrlRoute: typeof ApiExpertVideoUrlRoute
   ApiNotificationsDispatchRoute: typeof ApiNotificationsDispatchRoute
-  ApiOutreachUnsubscribeRoute: typeof ApiOutreachUnsubscribeRoute
   ApiPayTokenRoute: typeof ApiPayTokenRoute
   ApiPublicAuthorAuditRoute: typeof ApiPublicAuthorAuditRoute
   ApiPublicCaseStudiesRoute: typeof ApiPublicCaseStudiesRoute
@@ -2535,13 +2496,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof UgcCreatorsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/unsubscribe': {
-      id: '/unsubscribe'
-      path: '/unsubscribe'
-      fullPath: '/unsubscribe'
-      preLoaderRoute: typeof UnsubscribeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/api/checkout': {
       id: '/api/checkout'
       path: '/api/checkout'
@@ -2773,13 +2727,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAdminNotificationsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/admin/outreach': {
-      id: '/api/admin/outreach'
-      path: '/api/admin/outreach'
-      fullPath: '/api/admin/outreach'
-      preLoaderRoute: typeof ApiAdminOutreachRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/api/admin/portfolio': {
       id: '/api/admin/portfolio'
       path: '/api/admin/portfolio'
@@ -3002,13 +2949,6 @@ declare module '@tanstack/react-router' {
       path: '/api/notifications/dispatch'
       fullPath: '/api/notifications/dispatch'
       preLoaderRoute: typeof ApiNotificationsDispatchRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/outreach/unsubscribe': {
-      id: '/api/outreach/unsubscribe'
-      path: '/api/outreach/unsubscribe'
-      fullPath: '/api/outreach/unsubscribe'
-      preLoaderRoute: typeof ApiOutreachUnsubscribeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/pay/$token': {
@@ -3861,7 +3801,6 @@ const rootRouteChildren: RootRouteChildren = {
   TermsRoute: TermsRoute,
   TestimonialsRoute: TestimonialsRoute,
   UgcCreatorsRoute: UgcCreatorsRoute,
-  UnsubscribeRoute: UnsubscribeRoute,
   ApiCheckoutRoute: ApiCheckoutRoute,
   ApiPrivateAuditRoute: ApiPrivateAuditRoute,
   BlogSlugRoute: BlogSlugRoute,
@@ -3895,7 +3834,6 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAdminInvoicesRoute: ApiAdminInvoicesRouteWithChildren,
   ApiAdminLeadsRoute: ApiAdminLeadsRoute,
   ApiAdminNotificationsRoute: ApiAdminNotificationsRoute,
-  ApiAdminOutreachRoute: ApiAdminOutreachRoute,
   ApiAdminPortfolioRoute: ApiAdminPortfolioRouteWithChildren,
   ApiAdminScoutAmazonSearchRoute: ApiAdminScoutAmazonSearchRoute,
   ApiAdminScoutArcDiscoveryRoute: ApiAdminScoutArcDiscoveryRoute,
@@ -3929,7 +3867,6 @@ const rootRouteChildren: RootRouteChildren = {
   ApiExpertTestimonialsRoute: ApiExpertTestimonialsRouteWithChildren,
   ApiExpertVideoUrlRoute: ApiExpertVideoUrlRoute,
   ApiNotificationsDispatchRoute: ApiNotificationsDispatchRoute,
-  ApiOutreachUnsubscribeRoute: ApiOutreachUnsubscribeRoute,
   ApiPayTokenRoute: ApiPayTokenRoute,
   ApiPublicAuthorAuditRoute: ApiPublicAuthorAuditRoute,
   ApiPublicCaseStudiesRoute: ApiPublicCaseStudiesRoute,

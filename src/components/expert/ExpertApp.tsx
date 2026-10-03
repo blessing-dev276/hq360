@@ -21,6 +21,7 @@ import { ExpertDashboard } from "./ExpertDashboard";
 import { ExpertProfileEditor } from "./ExpertProfileEditor";
 import { ExpertPortfolio } from "./ExpertPortfolio";
 import { ExpertTestimonials } from "./ExpertTestimonials";
+import { ExpertReviews } from "./ExpertReviews";
 import { ExpertAuditLink } from "./ExpertAuditLink";
 import { ExpertInvoiceRequests } from "./ExpertInvoiceRequests";
 import { LeadsWorkspace } from "@/components/admin/LeadsAdmin";
@@ -203,6 +204,7 @@ export function ExpertApp() {
             <>
               <ExpertPortfolio />
               <ExpertTestimonials />
+              <ExpertReviews />
             </>
           ) : current.id === "scout" ? (
             <ScoutApp />

@@ -1562,3 +1562,30 @@
   line-height: 1.4;
   white-space: normal;
 }
+
+/* ---------- Star rating picker ---------- */
+.admin-form-label {
+  display: block;
+  margin-bottom: 7px;
+  font-size: 11px;
+  font-weight: 550;
+  color: var(--muted-foreground);
+}
+.admin-stars {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.admin-stars button[role="radio"] {
+  padding: 4px;
+  color: var(--dim);
+}
+.admin-stars button[role="radio"].on {
+  color: #f5b301;
+}
+.admin-stars button[role="radio"].on svg {
+  fill: currentColor;
+}
+.admin-stars .admin-text-button {
+  margin-left: 8px;
+}

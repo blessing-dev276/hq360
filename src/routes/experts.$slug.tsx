@@ -8,6 +8,7 @@ import { FALLBACK_TEAM, initials, useExpertDirectory, type PublicExpert } from "
 import { fetchPublicContent } from "@/lib/public-content";
 import { getCoreService, getAudience } from "@/data/agency";
 import { Reveal } from "@/components/site/Reveal";
+import { ReviewCards, type PublicReview } from "@/components/site/hqd/ReviewCards";
 import { Eyebrow, Grain, PersonCard, Pill } from "@/components/site/hqd/Hqd";
 
 type PortfolioItem = {
@@ -28,6 +29,18 @@ type VideoTestimonial = {
   video_url: string;
   service_slug: string | null;
 };
+
+function useReviews(slug: string) {
+  const query = useQuery({
+    queryKey: ["public", "expert-reviews", slug],
+    queryFn: ({ signal }) =>
+      fetchPublicContent<{ items: PublicReview[] }>(
+        `/api/public/expert-reviews?slug=${encodeURIComponent(slug)}`,
+        signal,
+      ),
+  });
+  return query.data?.items ?? [];
+}
 
 function useTestimonials(slug: string) {
   const query = useQuery({
@@ -244,6 +257,7 @@ function ExpertProfilePage() {
     ) ?? all.find((item) => item.slug === slug);
   const portfolio = usePortfolio(person?.portfolioSlug ?? slug);
   const testimonials = useTestimonials(person?.portfolioSlug ?? slug);
+  const reviews = useReviews(person?.portfolioSlug ?? slug);
 
   if (!person) {
     return (
@@ -343,7 +357,11 @@ function ExpertProfilePage() {
             <div className="hqd-split-aside">
               <p className="hqd-lede">{person.headline}</p>
               <AboutText paragraphs={[intro!, ...rest]} />
-              {(person.location || person.website || person.linkedin) && (
+              {(person.location ||
+                person.website ||
+                person.linkedin ||
+                person.fiverr ||
+                person.upwork) && (
                 <div className="hqd-links">
                   {person.location && (
                     <span
@@ -375,6 +393,28 @@ function ExpertProfilePage() {
                     >
                       <Linkedin size={14} aria-hidden="true" /> LinkedIn{" "}
                       <ArrowUpRight size={13} aria-hidden="true" />
+                    </a>
+                  )}
+                  {person.fiverr && (
+                    <a
+                      className="hqd-tag"
+                      href={person.fiverr}
+                      target="_blank"
+                      rel="noopener noreferrer nofollow"
+                      style={{ display: "inline-flex", gap: "0.4rem", alignItems: "center" }}
+                    >
+                      Fiverr <ArrowUpRight size={13} aria-hidden="true" />
+                    </a>
+                  )}
+                  {person.upwork && (
+                    <a
+                      className="hqd-tag"
+                      href={person.upwork}
+                      target="_blank"
+                      rel="noopener noreferrer nofollow"
+                      style={{ display: "inline-flex", gap: "0.4rem", alignItems: "center" }}
+                    >
+                      Upwork <ArrowUpRight size={13} aria-hidden="true" />
                     </a>
                   )}
                 </div>
@@ -415,6 +455,18 @@ function ExpertProfilePage() {
       </section>
 
       {portfolio.length > 0 && <PortfolioSection items={portfolio} />}
+
+      {reviews.length > 0 && (
+        <section className="hqd-section" style={{ paddingTop: 0 }}>
+          <div className="hqd-wrap">
+            <Reveal className="hqd-arc-head">
+              <Eyebrow>Client reviews</Eyebrow>
+              <h2 className="hqd-h2">What clients say</h2>
+            </Reveal>
+            <ReviewCards reviews={reviews} />
+          </div>
+        </section>
+      )}
 
       {testimonials.length > 0 && (
         <section className="hqd-section" style={{ paddingTop: 0 }}>

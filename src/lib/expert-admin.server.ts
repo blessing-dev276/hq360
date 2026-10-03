@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { fiverrUrl, upworkUrl } from "@/lib/expert-links";
 import { expertProfiles, teamMembersUntyped } from "@/lib/expert-auth.server";
 
 const httpsUrl = z
@@ -18,6 +19,8 @@ export const adminProfileSchema = z.object({
   specialties: z.array(z.string().trim().min(1).max(40)).max(12),
   website_url: httpsUrl.or(z.literal("")),
   linkedin_url: httpsUrl.or(z.literal("")),
+  fiverr_url: fiverrUrl.optional(),
+  upwork_url: upworkUrl.optional(),
   photo_url: httpsUrl.or(z.literal("")),
 });
 

@@ -20,7 +20,7 @@ export const Route = createFileRoute("/api/public/experts")({
           const { expertProfiles } = await import("@/lib/expert-auth.server");
           const { data, error } = await expertProfiles()
             .select(
-              "slug, full_name, headline, summary, bio, photo_url, specialties, location, website_url, linkedin_url",
+              "slug, full_name, headline, summary, bio, photo_url, specialties, location, website_url, linkedin_url, fiverr_url, upwork_url",
             )
             .eq("status", "approved")
             .eq("is_public", true)

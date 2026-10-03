@@ -14,6 +14,8 @@ export type PublicExpert = {
   location: string | null;
   website: string | null;
   linkedin: string | null;
+  fiverr: string | null;
+  upwork: string | null;
   kind: "team" | "expert";
   /** Expert-profile slug backing this person's portfolio, when different. */
   portfolioSlug?: string;
@@ -31,6 +33,8 @@ export type ExpertRow = {
   location: string | null;
   website_url: string | null;
   linkedin_url: string | null;
+  fiverr_url?: string | null;
+  upwork_url?: string | null;
 };
 
 type TeamRow = {
@@ -95,6 +99,8 @@ function fromTeam(member: { name: string; role: string; blurb: string; photo: st
     location: null,
     website: null,
     linkedin: null,
+    fiverr: null,
+    upwork: null,
     kind: "team",
   } satisfies PublicExpert;
 }
@@ -115,6 +121,8 @@ export function fromExpertRow(row: ExpertRow): PublicExpert {
     location: row.location,
     website: row.website_url,
     linkedin: row.linkedin_url,
+    fiverr: row.fiverr_url ?? null,
+    upwork: row.upwork_url ?? null,
     kind: "expert",
   };
 }

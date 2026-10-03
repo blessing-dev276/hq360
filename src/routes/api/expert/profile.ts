@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
+import { fiverrUrl, upworkUrl } from "@/lib/expert-links";
 
 function json(body: unknown, status = 200) {
   return Response.json(body, { status, headers: { "Cache-Control": "no-store" } });
@@ -29,11 +30,13 @@ const schema = z.object({
       }
     }, "Use a LinkedIn link")
     .or(z.literal("")),
+  fiverr_url: fiverrUrl.optional(),
+  upwork_url: upworkUrl.optional(),
   photo_url: z.string().trim().max(500),
 });
 
 const FIELDS =
-  "id, email, slug, full_name, headline, summary, bio, photo_url, specialties, location, website_url, linkedin_url, is_public, status, profile_status, profile_submitted_at, profile_reviewed_at, profile_review_note, claimed_team_member_id, role, permissions, is_founder";
+  "id, email, slug, full_name, headline, summary, bio, photo_url, specialties, location, website_url, linkedin_url, fiverr_url, upwork_url, is_public, status, profile_status, profile_submitted_at, profile_reviewed_at, profile_review_note, claimed_team_member_id, role, permissions, is_founder";
 
 export const Route = createFileRoute("/api/expert/profile")({
   server: {
@@ -84,6 +87,8 @@ export const Route = createFileRoute("/api/expert/profile")({
             specialties: [...new Set(input.specialties)],
             website_url: input.website_url || null,
             linkedin_url: input.linkedin_url || null,
+            fiverr_url: input.fiverr_url || null,
+            upwork_url: input.upwork_url || null,
             photo_url: input.photo_url || null,
             updated_at: new Date().toISOString(),
           })

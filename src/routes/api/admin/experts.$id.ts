@@ -184,6 +184,8 @@ export const Route = createFileRoute("/api/admin/experts/$id")({
               specialties: [...new Set(p.specialties)],
               website_url: p.website_url || null,
               linkedin_url: p.linkedin_url || null,
+              fiverr_url: p.fiverr_url || null,
+              upwork_url: p.upwork_url || null,
               photo_url: p.photo_url || null,
               updated_at: new Date().toISOString(),
             })

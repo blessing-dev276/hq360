@@ -17,6 +17,8 @@ type Profile = {
   location: string | null;
   website_url: string | null;
   linkedin_url: string | null;
+  fiverr_url: string | null;
+  upwork_url: string | null;
   is_public: boolean;
   profile_status: ProfileStatus;
   profile_review_note: string | null;
@@ -171,6 +173,8 @@ export function ExpertProfileEditor() {
             .filter(Boolean),
           website_url: form.get("website_url"),
           linkedin_url: form.get("linkedin_url"),
+          fiverr_url: form.get("fiverr_url"),
+          upwork_url: form.get("upwork_url"),
           photo_url: photo,
         }),
       });
@@ -449,6 +453,24 @@ export function ExpertProfileEditor() {
                     type="url"
                     placeholder="https://www.linkedin.com/in/…"
                     defaultValue={profile.linkedin_url ?? ""}
+                  />
+                </label>
+                <label>
+                  Fiverr
+                  <input
+                    name="fiverr_url"
+                    type="url"
+                    placeholder="https://www.fiverr.com/…"
+                    defaultValue={profile.fiverr_url ?? ""}
+                  />
+                </label>
+                <label>
+                  Upwork
+                  <input
+                    name="upwork_url"
+                    type="url"
+                    placeholder="https://www.upwork.com/freelancers/…"
+                    defaultValue={profile.upwork_url ?? ""}
                   />
                 </label>
               </div>

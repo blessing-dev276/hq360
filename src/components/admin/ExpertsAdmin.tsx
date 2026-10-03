@@ -40,6 +40,8 @@ type Expert = {
   location: string | null;
   website_url: string | null;
   linkedin_url: string | null;
+  fiverr_url?: string | null;
+  upwork_url?: string | null;
   status: "pending" | "approved" | "rejected";
   created_at: string;
   slug: string | null;
@@ -64,6 +66,13 @@ type PortfolioItem = {
   audience_slugs: string[];
   status: "pending" | "approved" | "rejected";
   source_portfolio_item_id: string | null;
+};
+type ClientReview = {
+  id: string;
+  expert_id: string;
+  client_name: string;
+  screenshot_url: string;
+  status: "pending" | "approved" | "rejected";
 };
 type TestimonialVideo = {
   id: string;
@@ -136,6 +145,7 @@ export function ExpertsAdmin() {
   const [team, setTeam] = useState<TeamMember[]>([]);
   const [portfolio, setPortfolio] = useState<PortfolioItem[]>([]);
   const [videos, setVideos] = useState<TestimonialVideo[]>([]);
+  const [reviews, setReviews] = useState<ClientReview[]>([]);
   const [sitePortfolio, setSitePortfolio] = useState<SitePortfolioItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -150,12 +160,13 @@ export function ExpertsAdmin() {
     setLoading(true);
     setError("");
     try {
-      const [e, t, p, s, v] = await Promise.all([
+      const [e, t, p, s, v, r] = await Promise.all([
         fetch("/api/admin/experts"),
         fetch("/api/admin/team"),
         fetch("/api/admin/expert-portfolio"),
         fetch("/api/admin/portfolio"),
         fetch("/api/admin/expert-testimonials"),
+        fetch("/api/admin/expert-reviews"),
       ]);
       const ed = await e.json().catch(() => ({}));
       if (!e.ok) throw new Error(ed.error || "Could not load experts.");
@@ -168,6 +179,8 @@ export function ExpertsAdmin() {
       if (s.ok) setSitePortfolio(sd.items ?? []);
       const vd = await v.json().catch(() => ({}));
       if (v.ok) setVideos(vd.items ?? []);
+      const rd = await r.json().catch(() => ({}));
+      if (r.ok) setReviews(rd.items ?? []);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not load experts.");
     } finally {
@@ -221,6 +234,13 @@ export function ExpertsAdmin() {
       action === "approve" ? "Video approved." : "Video rejected.",
     );
 
+  const reviewAct = (review: ClientReview, action: "approve" | "reject") =>
+    run(
+      review.id + action,
+      () => post(`/api/admin/expert-reviews/${review.id}`, { action }),
+      action === "approve" ? "Review verified." : "Review rejected.",
+    );
+
   function remove(expert: Expert) {
     if (
       window.confirm(
@@ -254,8 +274,13 @@ export function ExpertsAdmin() {
   );
   const pendingItems = portfolio.filter((i) => i.status === "pending");
   const pendingVideos = videos.filter((v) => v.status === "pending");
+  const pendingReviews = reviews.filter((r) => r.status === "pending");
   const attentionCount =
-    pendingAccounts.length + submittedProfiles.length + pendingItems.length + pendingVideos.length;
+    pendingAccounts.length +
+    submittedProfiles.length +
+    pendingItems.length +
+    pendingVideos.length +
+    pendingReviews.length;
 
   const visible = experts.filter((e) => {
     const matches = `${e.full_name ?? ""} ${e.email} ${e.headline ?? ""}`
@@ -418,6 +443,41 @@ export function ExpertsAdmin() {
                 </button>
               </QueueRow>
             ))}
+            {pendingReviews.map((review) => {
+              const owner = experts.find((x) => x.id === review.expert_id);
+              return (
+                <QueueRow
+                  key={`r-${review.id}`}
+                  expert={owner}
+                  title={`Review from ${review.client_name}`}
+                  detail={`Client review from ${expertName(review.expert_id)} · check it matches the screenshot`}
+                  onOpen={() => window.open(review.screenshot_url, "_blank", "noopener")}
+                >
+                  <a
+                    className="admin-button"
+                    href={review.screenshot_url}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Screenshot
+                  </a>
+                  <button
+                    className="admin-button admin-button-primary"
+                    disabled={!!busy}
+                    onClick={() => void reviewAct(review, "approve")}
+                  >
+                    Verify
+                  </button>
+                  <button
+                    className="admin-button text-destructive"
+                    disabled={!!busy}
+                    onClick={() => void reviewAct(review, "reject")}
+                  >
+                    Reject
+                  </button>
+                </QueueRow>
+              );
+            })}
             {pendingVideos.map((video) => {
               const owner = experts.find((x) => x.id === video.expert_id);
               return (
@@ -1136,6 +1196,8 @@ function ProfileTab({
         .filter(Boolean),
       website_url: f.get("website_url"),
       linkedin_url: f.get("linkedin_url"),
+      fiverr_url: f.get("fiverr_url"),
+      upwork_url: f.get("upwork_url"),
       photo_url: photo,
     });
   }
@@ -1237,6 +1299,24 @@ function ProfileTab({
             type="url"
             placeholder="https://www.linkedin.com/in/…"
             defaultValue={expert.linkedin_url ?? ""}
+          />
+        </label>
+        <label>
+          Fiverr
+          <input
+            name="fiverr_url"
+            type="url"
+            placeholder="https://www.fiverr.com/…"
+            defaultValue={expert.fiverr_url ?? ""}
+          />
+        </label>
+        <label>
+          Upwork
+          <input
+            name="upwork_url"
+            type="url"
+            placeholder="https://www.upwork.com/freelancers/…"
+            defaultValue={expert.upwork_url ?? ""}
           />
         </label>
       </div>

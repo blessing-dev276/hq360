@@ -2,7 +2,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { ArrowUpRight, CheckCircle2, LockKeyhole, RefreshCw, Printer } from "lucide-react";
 import { money, paymentKind, providerLabel, type Invoice } from "@/lib/payments/types";
-import "@/components/admin/admin-workspace.css";
 import "@/components/admin/buyer-invoice.css";
 
 export const Route = createFileRoute("/pay/$token")({
@@ -27,6 +26,9 @@ type PaymentData = {
     provider_invoice_id: string;
     provider_status: string | null;
     environment: string;
+    buyer_name?: string;
+    created_at?: string;
+    paid_at?: string | null;
   };
   checkout: { url: string };
 };
@@ -78,149 +80,175 @@ function BuyerInvoice() {
     await load(true);
     setBusy(false);
   }
+  const inv = data?.invoice;
+  const first = inv?.buyer_name?.trim().split(/\s+/)[0];
+  const status =
+    inv?.status === "paid"
+      ? "Paid"
+      : inv?.status === "refunded"
+        ? "Refunded"
+        : inv?.status === "cancelled"
+          ? "Cancelled"
+          : "Awaiting payment";
   return (
     <div className="buyer-invoice-page">
-      <header>
-        <a href="/" className="buyer-wordmark">
-          HQ360<span>.</span>
-        </a>
-        <span>
-          <LockKeyhole size={13} />
-          Secure invoice
-        </span>
-      </header>
-      <section className="buyer-invoice-card">
-        {loading ? (
-          <p role="status">Loading your invoice…</p>
-        ) : !data ? (
-          <>
-            <h1>Invoice unavailable</h1>
-            <p role="alert">{error}</p>
-            <button className="admin-button" onClick={() => void load()}>
-              Try again
-            </button>
-          </>
-        ) : (
-          <>
-            {data.invoice.environment === "demo" && (
-              <div className="buyer-test">TEST INVOICE · No real payment will be collected</div>
-            )}
-            <div className="buyer-invoice-heading">
-              <div>
-                <p className="admin-eyebrow">INVOICE {data.invoice.number}</p>
-                <h1>
-                  {data.invoice.status === "paid"
-                    ? "Thank you for your payment."
-                    : "Let’s make great things happen."}
-                </h1>
-              </div>
-              <span className={`admin-status ${data.invoice.status}`}>
-                {data.invoice.status === "paid"
-                  ? "Paid"
-                  : data.invoice.status === "refunded"
-                    ? "Refunded"
-                    : data.invoice.status === "cancelled"
-                      ? "Cancelled"
-                      : "Awaiting payment"}
-              </span>
+      <div className="buyer-invoice-shell">
+        {inv?.environment === "demo" && (
+          <div className="buyer-test">Test invoice: no real payment will be collected.</div>
+        )}
+        <section className="buyer-invoice-card">
+          <div className="buyer-stripe" aria-hidden="true" />
+          {loading ? (
+            <div className="buyer-empty" role="status">
+              <p>Loading your invoice…</p>
             </div>
-            <div className="buyer-total">
-              <span>{data.invoice.status === "paid" ? "Amount paid" : "Amount due"}</span>
-              <strong>{money(data.invoice.amount_minor, data.invoice.currency)}</strong>
-              <small>
-                {data.invoice.currency === "USD" ? "USD · US dollars" : "NGN · Nigerian naira"}
-              </small>
-            </div>
-            <dl className="buyer-details">
-              <div>
-                <dt>From</dt>
-                <dd>HQ360</dd>
-              </div>
-              <div>
-                <dt>Due date</dt>
-                <dd>
-                  {new Date(data.invoice.due_date + "T12:00:00").toLocaleDateString("en-GB", {
-                    day: "numeric",
-                    month: "long",
-                    year: "numeric",
-                  })}
-                </dd>
-              </div>
-              <div>
-                <dt>{providerLabel(data.invoice.provider)} reference</dt>
-                <dd>{data.invoice.provider_invoice_id}</dd>
-              </div>
-            </dl>
-            <div className="buyer-description">
-              <h2>Description</h2>
-              <p>{data.invoice.description}</p>
-            </div>
-            {error && (
-              <p className="admin-alert" role="alert">
-                {error}
-              </p>
-            )}
-            {notice && (
-              <p className="admin-notice" role="status">
-                {notice}
-              </p>
-            )}
-            {data.invoice.status === "paid" ? (
-              <div className="buyer-paid">
-                <CheckCircle2 size={22} /> Payment confirmed by{" "}
-                {providerLabel(data.invoice.provider)}
-              </div>
-            ) : data.invoice.status === "cancelled" ? (
-              <p className="admin-form-note">
-                This invoice was cancelled and can no longer be paid. Please contact HQ360 if you
-                have questions.
-              </p>
-            ) : (
-              <div className="buyer-actions">
-                {data.invoice.status !== "refunded" && (
-                  <a
-                    className="admin-button admin-button-primary"
-                    href={data.checkout.url}
-                    rel="noreferrer"
-                  >
-                    {paymentKind(data.invoice.provider) === "crypto"
-                      ? `Pay with crypto via ${providerLabel(data.invoice.provider)}`
-                      : `Pay by card via ${providerLabel(data.invoice.provider)}`}
-                    <ArrowUpRight size={17} />
-                  </a>
-                )}
-                <p className="admin-form-note">
-                  {paymentKind(data.invoice.provider) === "crypto"
-                    ? "Choose your cryptocurrency and network at checkout. Payment is confirmed after processing completes."
-                    : "You'll be taken to a secure checkout page to pay by card or bank transfer."}
-                </p>
-                {data.invoice.provider_status && (
-                  <p className="admin-form-note">
-                    Payment status: {data.invoice.provider_status.replaceAll("_", " ")}
-                  </p>
-                )}
-                <button className="admin-text-button" disabled={busy} onClick={() => void verify()}>
-                  <RefreshCw size={14} />
-                  I’ve paid — check status
-                </button>
-              </div>
-            )}
-            <div className="buyer-invoice-foot">
-              <span>
-                <LockKeyhole size={12} /> Payments processed securely by{" "}
-                {providerLabel(data.invoice.provider)}
-              </span>
-              <button className="admin-text-button" onClick={() => window.print()}>
-                <Printer size={14} />
-                Print invoice
+          ) : !inv || !data ? (
+            <div className="buyer-empty">
+              <h1>Invoice unavailable</h1>
+              <p role="alert">{error}</p>
+              <button className="buyer-link" onClick={() => void load()}>
+                <RefreshCw size={14} /> Try again
               </button>
             </div>
-          </>
-        )}
-      </section>
-      <footer>
-        Questions about your invoice? <a href="mailto:ceo@hq360.space">Contact HQ360</a>
-      </footer>
+          ) : (
+            <div className="buyer-card-inner">
+              <div className="buyer-head">
+                <a href="/" aria-label="HQ360 home">
+                  <img src="/logo-text.png" width={120} height={60} alt="HQ360" />
+                </a>
+                <div className="buyer-number">
+                  Invoice
+                  <strong>{inv.number}</strong>
+                </div>
+              </div>
+
+              <div className="buyer-greeting">
+                <h1>{first ? `Hi ${first},` : "Hello,"}</h1>
+                <p>
+                  {inv.status === "paid"
+                    ? "Thank you, your payment has been received. Keep this page for your records."
+                    : inv.status === "cancelled"
+                      ? "This invoice was cancelled and can no longer be paid."
+                      : "Thank you for working with HQ360. Here's your invoice. You can review it and pay securely below."}
+                </p>
+              </div>
+
+              <div className={`buyer-total${inv.status === "paid" ? " paid" : ""}`}>
+                <div>
+                  <p className="buyer-total-label">
+                    {inv.status === "paid" ? "Amount paid" : "Amount due"}
+                  </p>
+                  <p className="buyer-total-amount">{money(inv.amount_minor, inv.currency)}</p>
+                  <p className="buyer-total-sub">
+                    {inv.status === "paid" && inv.paid_at
+                      ? `Paid ${longDate(inv.paid_at)}`
+                      : `Due ${longDate(inv.due_date)}`}
+                  </p>
+                </div>
+                <span className={`buyer-status ${inv.status === "draft" ? "pending" : inv.status}`}>
+                  {status}
+                </span>
+              </div>
+
+              <dl className="buyer-details">
+                <div className="buyer-for-row">
+                  <dt className="buyer-for-label">For</dt>
+                  <dd className="buyer-for">{inv.description}</dd>
+                </div>
+                {inv.buyer_name && (
+                  <div>
+                    <dt>Billed to</dt>
+                    <dd>{inv.buyer_name}</dd>
+                  </div>
+                )}
+                {inv.created_at && (
+                  <div>
+                    <dt>Invoice date</dt>
+                    <dd>{longDate(inv.created_at)}</dd>
+                  </div>
+                )}
+                <div>
+                  <dt>Due date</dt>
+                  <dd>{longDate(inv.due_date)}</dd>
+                </div>
+                <div>
+                  <dt>Payment method</dt>
+                  <dd>{providerLabel(inv.provider)}</dd>
+                </div>
+                <div>
+                  <dt>Reference</dt>
+                  <dd>{inv.provider_invoice_id}</dd>
+                </div>
+              </dl>
+
+              {error && (
+                <p className="buyer-message error" role="alert">
+                  {error}
+                </p>
+              )}
+              {notice && (
+                <p className="buyer-message info" role="status">
+                  {notice}
+                </p>
+              )}
+
+              {inv.status === "paid" ? (
+                <div className="buyer-paid">
+                  <CheckCircle2 size={20} /> Payment confirmed by {providerLabel(inv.provider)}
+                </div>
+              ) : inv.status === "cancelled" || inv.status === "refunded" ? null : (
+                <div className="buyer-actions">
+                  <a className="buyer-pay" href={data.checkout.url} rel="noreferrer">
+                    {paymentKind(inv.provider) === "crypto" ? "Pay with crypto" : "Pay invoice"}
+                    <ArrowUpRight size={17} />
+                  </a>
+                  <p className="buyer-note">
+                    {paymentKind(inv.provider) === "crypto"
+                      ? `You'll choose your cryptocurrency and network on ${providerLabel(inv.provider)}'s secure checkout.`
+                      : `You'll pay by card or bank transfer on ${providerLabel(inv.provider)}'s secure checkout.`}
+                    {inv.provider_status
+                      ? ` Payment status: ${inv.provider_status.replaceAll("_", " ")}.`
+                      : ""}
+                  </p>
+                  <button className="buyer-link" disabled={busy} onClick={() => void verify()}>
+                    <RefreshCw size={14} />
+                    I’ve paid, check status
+                  </button>
+                </div>
+              )}
+
+              <div className="buyer-closing">
+                <span>
+                  <LockKeyhole size={13} /> Secured by {providerLabel(inv.provider)}. Questions?{" "}
+                  <a href="mailto:ceo@hq360.space">Contact HQ360</a>
+                </span>
+                <button
+                  className="buyer-link"
+                  style={{ marginTop: 0 }}
+                  onClick={() => window.print()}
+                >
+                  <Printer size={14} /> Print
+                </button>
+              </div>
+            </div>
+          )}
+        </section>
+        <footer className="buyer-foot">
+          HQ360 · <a href="https://www.hq360.space">hq360.space</a>
+        </footer>
+      </div>
     </div>
   );
+}
+
+function longDate(value: string) {
+  const date = new Date(`${value.slice(0, 10)}T00:00:00Z`);
+  return Number.isNaN(date.getTime())
+    ? value
+    : date.toLocaleDateString("en-GB", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+        timeZone: "UTC",
+      });
 }

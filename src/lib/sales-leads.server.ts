@@ -37,7 +37,7 @@ async function listLeads(scope: LeadScope) {
   const inquiryIds = bySource("inquiry");
   const [prospects, audits, inquiries, events, invoices] = await Promise.all([
     scoutIds.length
-      ? d.from("scout_prospects").select("id, book_id").in("id", scoutIds)
+      ? d.from("scout_prospects").select("id, book_id, scout_author_id").in("id", scoutIds)
       : { data: [] },
     visibilityIds.length
       ? d.from("author_audit_leads").select("id, book_title").in("id", visibilityIds)
@@ -69,7 +69,17 @@ async function listLeads(scope: LeadScope) {
         : { data: [] },
   ]);
 
-  const prospectRows = (prospects.data ?? []) as { id: string; book_id: string | null }[];
+  const prospectRows = (prospects.data ?? []) as {
+    id: string;
+    book_id: string | null;
+    scout_author_id: string;
+  }[];
+  const { authorPresence, presenceFor } = await import("@/lib/scout/owner.server");
+  const { asScoutDb } = await import("@/lib/scout/db");
+  const presence = await authorPresence(
+    asScoutDb(d),
+    prospectRows.map((p) => p.scout_author_id),
+  );
   const { data: books } = ids(prospectRows.map((p) => p.book_id)).length
     ? await d
         .from("scout_discovered_books")
@@ -98,7 +108,12 @@ async function listLeads(scope: LeadScope) {
       const prospect = prospectRows.find((p) => p.id === lead.source_id);
       const book = bookRows.find((b) => b.id === prospect?.book_id);
       const batch = batchRows.find((b) => b.id === book?.batch_id);
-      context = { book_title: book?.title ?? null, batch_label: batch?.label ?? null };
+      context = {
+        book_title: book?.title ?? null,
+        batch_label: batch?.label ?? null,
+        // Other workspaces that also scouted / generated this author.
+        presence: presenceFor(presence, prospect?.scout_author_id, String(lead.owner ?? "hq360")),
+      };
     } else if (lead.source_kind === "visibility_check") {
       const audit = ((audits.data ?? []) as { id: string; book_title: string }[]).find(
         (a) => a.id === lead.source_id,

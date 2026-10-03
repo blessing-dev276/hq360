@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { AUTHOR_OFFERS } from "@/data/author-offers";
 import { SALES_STAGES, PROJECT_STATUSES, label, type SalesLead } from "@/lib/sales";
+import { PresenceNote } from "./PresenceNote";
 
 type Invoice = {
   id: string;
@@ -418,6 +419,7 @@ export function LeadsWorkspace({ scope }: { scope: Scope }) {
                           !lead.context.batch_label?.includes(lead.context.book_title) && (
                             <small>“{lead.context.book_title}”</small>
                           )}
+                        <PresenceNote presence={lead.context?.presence} />
                         {lead.inquiry_context?.help_with?.length ? (
                           <small>{lead.inquiry_context.help_with.join(", ")}</small>
                         ) : null}
@@ -614,6 +616,7 @@ function LeadDrawer({
                 ? ` · Owner: ${lead.owner_name}`
                 : ""}
             </p>
+            <PresenceNote presence={lead.context?.presence} />
             <div className="admin-button-row" style={{ flexWrap: "wrap" }}>
               <button
                 className="admin-button admin-button-primary"

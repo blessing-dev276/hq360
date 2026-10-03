@@ -165,6 +165,7 @@ import { Route as ApiAdminScoutAuthorsIdConfirmContactRouteImport } from './rout
 import { Route as ApiAdminScoutAuthorsIdFindContactRouteImport } from './routes/api/admin/scout-authors.$id.find-contact'
 import { Route as ApiAdminScoutAuthorsIdResearchWebsiteRouteImport } from './routes/api/admin/scout-authors.$id.research-website'
 import { Route as ApiAdminScoutBatchesIdExportRouteImport } from './routes/api/admin/scout-batches.$id.export'
+import { Route as ApiAdminScoutBatchesIdScoutRouteImport } from './routes/api/admin/scout-batches.$id.scout'
 import { Route as ApiAdminAuthorAuditsIdComparablesComparableIdRouteImport } from './routes/api/admin/author-audits.$id.comparables.$comparableId'
 import { Route as ApiAdminAuthorAuditsIdEvidenceAssetsAssetIdRouteImport } from './routes/api/admin/author-audits.$id.evidence-assets.$assetId'
 import { Route as ApiAdminAuthorAuditsIdFindingsFindingIdRouteImport } from './routes/api/admin/author-audits.$id.findings.$findingId'
@@ -997,6 +998,12 @@ const ApiAdminScoutBatchesIdExportRoute =
     path: '/export',
     getParentRoute: () => ApiAdminScoutBatchesIdRoute,
   } as any)
+const ApiAdminScoutBatchesIdScoutRoute =
+  ApiAdminScoutBatchesIdScoutRouteImport.update({
+    id: '/scout',
+    path: '/scout',
+    getParentRoute: () => ApiAdminScoutBatchesIdRoute,
+  } as any)
 const ApiAdminAuthorAuditsIdComparablesComparableIdRoute =
   ApiAdminAuthorAuditsIdComparablesComparableIdRouteImport.update({
     id: '/$comparableId',
@@ -1197,6 +1204,7 @@ export interface FileRoutesByFullPath {
   '/api/admin/scout-authors/$id/find-contact': typeof ApiAdminScoutAuthorsIdFindContactRoute
   '/api/admin/scout-authors/$id/research-website': typeof ApiAdminScoutAuthorsIdResearchWebsiteRoute
   '/api/admin/scout-batches/$id/export': typeof ApiAdminScoutBatchesIdExportRoute
+  '/api/admin/scout-batches/$id/scout': typeof ApiAdminScoutBatchesIdScoutRoute
   '/api/admin/author-audits/$id/comparables/$comparableId': typeof ApiAdminAuthorAuditsIdComparablesComparableIdRoute
   '/api/admin/author-audits/$id/evidence-assets/$assetId': typeof ApiAdminAuthorAuditsIdEvidenceAssetsAssetIdRoute
   '/api/admin/author-audits/$id/findings/$findingId': typeof ApiAdminAuthorAuditsIdFindingsFindingIdRoute
@@ -1362,6 +1370,7 @@ export interface FileRoutesByTo {
   '/api/admin/scout-authors/$id/find-contact': typeof ApiAdminScoutAuthorsIdFindContactRoute
   '/api/admin/scout-authors/$id/research-website': typeof ApiAdminScoutAuthorsIdResearchWebsiteRoute
   '/api/admin/scout-batches/$id/export': typeof ApiAdminScoutBatchesIdExportRoute
+  '/api/admin/scout-batches/$id/scout': typeof ApiAdminScoutBatchesIdScoutRoute
   '/api/admin/author-audits/$id/comparables/$comparableId': typeof ApiAdminAuthorAuditsIdComparablesComparableIdRoute
   '/api/admin/author-audits/$id/evidence-assets/$assetId': typeof ApiAdminAuthorAuditsIdEvidenceAssetsAssetIdRoute
   '/api/admin/author-audits/$id/findings/$findingId': typeof ApiAdminAuthorAuditsIdFindingsFindingIdRoute
@@ -1528,6 +1537,7 @@ export interface FileRoutesById {
   '/api/admin/scout-authors/$id/find-contact': typeof ApiAdminScoutAuthorsIdFindContactRoute
   '/api/admin/scout-authors/$id/research-website': typeof ApiAdminScoutAuthorsIdResearchWebsiteRoute
   '/api/admin/scout-batches/$id/export': typeof ApiAdminScoutBatchesIdExportRoute
+  '/api/admin/scout-batches/$id/scout': typeof ApiAdminScoutBatchesIdScoutRoute
   '/api/admin/author-audits/$id/comparables/$comparableId': typeof ApiAdminAuthorAuditsIdComparablesComparableIdRoute
   '/api/admin/author-audits/$id/evidence-assets/$assetId': typeof ApiAdminAuthorAuditsIdEvidenceAssetsAssetIdRoute
   '/api/admin/author-audits/$id/findings/$findingId': typeof ApiAdminAuthorAuditsIdFindingsFindingIdRoute
@@ -1695,6 +1705,7 @@ export interface FileRouteTypes {
     | '/api/admin/scout-authors/$id/find-contact'
     | '/api/admin/scout-authors/$id/research-website'
     | '/api/admin/scout-batches/$id/export'
+    | '/api/admin/scout-batches/$id/scout'
     | '/api/admin/author-audits/$id/comparables/$comparableId'
     | '/api/admin/author-audits/$id/evidence-assets/$assetId'
     | '/api/admin/author-audits/$id/findings/$findingId'
@@ -1860,6 +1871,7 @@ export interface FileRouteTypes {
     | '/api/admin/scout-authors/$id/find-contact'
     | '/api/admin/scout-authors/$id/research-website'
     | '/api/admin/scout-batches/$id/export'
+    | '/api/admin/scout-batches/$id/scout'
     | '/api/admin/author-audits/$id/comparables/$comparableId'
     | '/api/admin/author-audits/$id/evidence-assets/$assetId'
     | '/api/admin/author-audits/$id/findings/$findingId'
@@ -2025,6 +2037,7 @@ export interface FileRouteTypes {
     | '/api/admin/scout-authors/$id/find-contact'
     | '/api/admin/scout-authors/$id/research-website'
     | '/api/admin/scout-batches/$id/export'
+    | '/api/admin/scout-batches/$id/scout'
     | '/api/admin/author-audits/$id/comparables/$comparableId'
     | '/api/admin/author-audits/$id/evidence-assets/$assetId'
     | '/api/admin/author-audits/$id/findings/$findingId'
@@ -3253,6 +3266,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAdminScoutBatchesIdExportRouteImport
       parentRoute: typeof ApiAdminScoutBatchesIdRoute
     }
+    '/api/admin/scout-batches/$id/scout': {
+      id: '/api/admin/scout-batches/$id/scout'
+      path: '/scout'
+      fullPath: '/api/admin/scout-batches/$id/scout'
+      preLoaderRoute: typeof ApiAdminScoutBatchesIdScoutRouteImport
+      parentRoute: typeof ApiAdminScoutBatchesIdRoute
+    }
     '/api/admin/author-audits/$id/comparables/$comparableId': {
       id: '/api/admin/author-audits/$id/comparables/$comparableId'
       path: '/$comparableId'
@@ -3510,11 +3530,13 @@ const ApiAdminScoutAudienceBatchesRouteWithChildren =
 
 interface ApiAdminScoutBatchesIdRouteChildren {
   ApiAdminScoutBatchesIdExportRoute: typeof ApiAdminScoutBatchesIdExportRoute
+  ApiAdminScoutBatchesIdScoutRoute: typeof ApiAdminScoutBatchesIdScoutRoute
 }
 
 const ApiAdminScoutBatchesIdRouteChildren: ApiAdminScoutBatchesIdRouteChildren =
   {
     ApiAdminScoutBatchesIdExportRoute: ApiAdminScoutBatchesIdExportRoute,
+    ApiAdminScoutBatchesIdScoutRoute: ApiAdminScoutBatchesIdScoutRoute,
   }
 
 const ApiAdminScoutBatchesIdRouteWithChildren =

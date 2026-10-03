@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { resolveScoutAccess } from "@/lib/scout/owner.server";
+import { authorPresence, presenceFor, resolveScoutAccess } from "@/lib/scout/owner.server";
 import { asScoutDb } from "@/lib/scout/db";
 
 function json(body: unknown, status = 200) {
@@ -41,7 +41,17 @@ export const Route = createFileRoute("/api/admin/scout-batches/$id")({
             .order("discovered_at", { ascending: false });
           if (error) return json({ ok: false, error: "storage" }, 500);
 
-          return json({ ok: true, batch, items: books ?? [] });
+          // Who else (other experts / HQ360) generated or scouted these authors.
+          const rows = (books ?? []) as { scout_author_id: string }[];
+          const presence = await authorPresence(
+            db,
+            rows.map((b) => b.scout_author_id),
+          );
+          const items = rows.map((b) => ({
+            ...b,
+            presence: presenceFor(presence, b.scout_author_id, access.owner),
+          }));
+          return json({ ok: true, batch, items });
         } catch (err) {
           console.error("[admin/scout-batches.$id] GET", err instanceof Error ? err.message : err);
           return json({ ok: false, error: "unavailable" }, 503);

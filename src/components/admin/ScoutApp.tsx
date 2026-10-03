@@ -1,4 +1,5 @@
 import { ArcScout } from "./ArcScout";
+import { PresenceNote, type Presence } from "./PresenceNote";
 import { ARC_SOURCES, isArcSource } from "@/lib/scout/arc-sources";
 import { AudienceScout } from "./AudienceScout";
 import { SCOUT_AUDIENCES } from "@/lib/scout/audiences";
@@ -18,6 +19,7 @@ import { canonicalUrl } from "@/lib/scout/normalize";
 
 type Book = {
   id: string;
+  presence?: Presence;
   title: string;
   asin: string | null;
   isbn?: string | null;
@@ -138,6 +140,7 @@ function BookCard({
         <div>
           <h3 className="text-lg font-semibold">{book.scout_authors?.name}</h3>
           <p className="mt-1 text-sm font-medium">{book.title}</p>
+          <PresenceNote presence={book.presence} />
         </div>
         <button
           disabled={saved || Boolean(busy)}
@@ -145,7 +148,7 @@ function BookCard({
           className="inline-flex shrink-0 items-center gap-1 rounded-full border px-3 py-1.5 text-xs disabled:opacity-60"
         >
           {saved ? <Check className="h-3.5 w-3.5" /> : <Bookmark className="h-3.5 w-3.5" />}
-          {saved ? "Saved" : busy === book.id ? "Saving…" : "Save"}
+          {saved ? "Scouted" : busy === book.id ? "Marking…" : "Mark scouted"}
         </button>
       </div>
       <p className="mt-3 text-sm text-muted-foreground">
@@ -471,6 +474,35 @@ function AuthorScout({ onBusyChange }: { onBusyChange: (busy: boolean) => void }
             : item,
         ),
       );
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy("");
+    }
+  }
+  async function scoutWholeBatch() {
+    if (!selected) return;
+    const remaining = books.filter((b) => !b.scout_prospects.length).length;
+    if (!remaining) return;
+    if (
+      !window.confirm(
+        `Mark all ${remaining} remaining books in "${selected.label}" as scouted? Each becomes a lead in your Leads & Projects.`,
+      )
+    )
+      return;
+    setBusy("batch-scout");
+    setError("");
+    try {
+      const result = await api<{ added: number; skipped: number }>(
+        `/api/admin/scout-batches/${selected.id}/scout`,
+        {},
+        undefined,
+        "Could not mark this batch scouted.",
+      );
+      setNotice(
+        `Marked ${result.added} book${result.added === 1 ? "" : "s"} scouted${result.skipped ? ` · ${result.skipped} already scouted or excluded` : ""}.`,
+      );
+      setSelected((current) => (current ? { ...current } : null));
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -815,6 +847,20 @@ function AuthorScout({ onBusyChange }: { onBusyChange: (busy: boolean) => void }
               </p>
             </div>
             <div className="flex flex-wrap items-end gap-3">
+              <button
+                type="button"
+                disabled={
+                  Boolean(busy) || detailLoading || !books.some((b) => !b.scout_prospects.length)
+                }
+                onClick={() => void scoutWholeBatch()}
+                className="rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground disabled:opacity-50"
+              >
+                {busy === "batch-scout"
+                  ? "Marking…"
+                  : books.length && books.every((b) => b.scout_prospects.length)
+                    ? "Whole batch scouted"
+                    : "Mark whole batch scouted"}
+              </button>
               <label className="text-sm">
                 Book reviews
                 <select

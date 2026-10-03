@@ -52,16 +52,6 @@ type Book = {
 
 type ReedsyGenre = { id: number; name: string; emoji: string; depth: number; bookCount: number };
 
-type ContactResult = {
-  found: boolean;
-  candidateUrl: string | null;
-  candidateTitle: string | null;
-  contactEmail: string | null;
-  contactFormUrl: string | null;
-  message?: string;
-  verified?: boolean;
-};
-
 function formatDiscoveredAt(value: string | null | undefined) {
   if (!value) return null;
   const date = new Date(value);
@@ -116,71 +106,6 @@ function PublicLink({ url, children }: { url: string | null; children: React.Rea
   ) : null;
 }
 
-function ContactFinder({
-  authorId,
-  busy,
-  verifyBusy,
-  result,
-  onFind,
-  onVerify,
-}: {
-  authorId: string;
-  busy: boolean;
-  verifyBusy: boolean;
-  result: ContactResult | undefined;
-  onFind: (authorId: string) => void;
-  onVerify: (authorId: string, result: ContactResult) => void;
-}) {
-  return (
-    <div className="mt-3">
-      <button
-        type="button"
-        disabled={busy}
-        onClick={() => onFind(authorId)}
-        className="inline-flex items-center gap-1 rounded-full border px-3 py-1.5 text-xs disabled:opacity-60"
-      >
-        {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
-        {busy ? "Searching…" : "Find contact info"}
-      </button>
-      {result && (
-        <div className="mt-2 text-xs text-muted-foreground">
-          {result.found ? (
-            <p>
-              Candidate site:{" "}
-              <PublicLink url={result.candidateUrl}>
-                {result.candidateTitle ?? result.candidateUrl}
-              </PublicLink>
-              {result.contactEmail
-                ? ` · email found: ${result.contactEmail}`
-                : result.contactFormUrl
-                  ? " · contact form found (no email)"
-                  : " · no contact method found"}
-              {result.verified ? " — verified." : " — unverified, confirm before outreach."}
-            </p>
-          ) : (
-            <p>{result.message ?? "No likely official website found."}</p>
-          )}
-          {result.found && !result.verified && (result.contactEmail || result.contactFormUrl) && (
-            <button
-              type="button"
-              disabled={verifyBusy}
-              onClick={() => onVerify(authorId, result)}
-              className="mt-1.5 inline-flex items-center gap-1 rounded-full border border-primary/40 px-3 py-1 text-xs text-primary disabled:opacity-60"
-            >
-              {verifyBusy ? (
-                <Loader2 className="h-3 w-3 animate-spin" />
-              ) : (
-                <ShieldCheck className="h-3 w-3" />
-              )}
-              {verifyBusy ? "Confirming…" : "I've checked this — verify"}
-            </button>
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
-
 function csvCell(value: string | number | null | undefined) {
   let text = String(value ?? "");
   if (/^[=+\-@\t\r]/.test(text)) text = `'${text}`;
@@ -190,21 +115,11 @@ function csvCell(value: string | number | null | undefined) {
 function BookCard({
   book,
   busy,
-  contactBusy,
-  verifyBusy,
-  contactResult,
   onSave,
-  onFindContact,
-  onVerifyContact,
 }: {
   book: Book;
   busy: string;
-  contactBusy: string;
-  verifyBusy: string;
-  contactResult: ContactResult | undefined;
   onSave: (book: Book) => void;
-  onFindContact: (authorId: string) => void;
-  onVerifyContact: (authorId: string, result: ContactResult) => void;
 }) {
   const saved = book.scout_prospects.length > 0;
   const rating = book.scout_review_counts.find(
@@ -274,29 +189,6 @@ function BookCard({
           </div>
         </div>
       )}
-      {book.scout_authors && (
-        <ContactFinder
-          authorId={book.scout_authors.id}
-          busy={busy === "emails" || contactBusy === book.scout_authors.id}
-          verifyBusy={verifyBusy === book.scout_authors.id}
-          result={
-            contactResult ??
-            (book.scout_authors.website_url &&
-            (book.scout_authors.contact_email || book.scout_authors.contact_form_url)
-              ? {
-                  found: true,
-                  candidateUrl: book.scout_authors.website_url,
-                  candidateTitle: book.scout_authors.name,
-                  contactEmail: book.scout_authors.contact_email ?? null,
-                  contactFormUrl: book.scout_authors.contact_form_url ?? null,
-                  verified: book.scout_authors.contact_verification_status === "verified",
-                }
-              : undefined)
-          }
-          onFind={onFindContact}
-          onVerify={onVerifyContact}
-        />
-      )}
       <div className="mt-4">
         <PublicLink url={book.source_url}>View {sourceLabel} listing</PublicLink>
       </div>
@@ -341,8 +233,9 @@ export function ScoutApp() {
             onChange={(event) => setAudienceId(event.target.value)}
           >
             {SCOUT_AUDIENCES.map((item) => (
-              <option key={item.id} value={item.id}>
-                {item.label}
+              // Only authors are live; other audiences are coming soon.
+              <option key={item.id} value={item.id} disabled={item.id !== "authors"}>
+                {item.id === "authors" ? item.label : `${item.label} — coming soon`}
               </option>
             ))}
           </select>
@@ -363,14 +256,6 @@ function AuthorScout({ onBusyChange }: { onBusyChange: (busy: boolean) => void }
   const [detailError, setDetailError] = useState("");
   const [progress, setProgress] = useState({ done: 0, total: 0 });
   const [stage, setStage] = useState("");
-  const [emailRun, setEmailRun] = useState<{
-    done: number;
-    total: number;
-    found: number;
-    failed: number;
-  } | null>(null);
-  const emailController = useRef<AbortController | null>(null);
-  useEffect(() => () => emailController.current?.abort(), []);
 
   const [source, setSource] = useState("reedsy_discovery");
   const [arcBusy, setArcBusy] = useState(false);
@@ -397,9 +282,6 @@ function AuthorScout({ onBusyChange }: { onBusyChange: (busy: boolean) => void }
   const [notice, setNotice] = useState("");
   const [batchSource, setBatchSource] = useState("all");
   const [reviewFilter, setReviewFilter] = useState("all");
-  const [contactBusy, setContactBusy] = useState("");
-  const [verifyBusy, setVerifyBusy] = useState("");
-  const [contactResults, setContactResults] = useState<Record<string, ContactResult>>({});
   const [retry, setRetry] = useState<{ batch: Batch; items: Candidate[] } | null>(null);
 
   useEffect(() => {
@@ -574,100 +456,6 @@ function AuthorScout({ onBusyChange }: { onBusyChange: (busy: boolean) => void }
     }
   }
 
-  async function findBatchEmails() {
-    if (emailController.current || !books.length) return;
-    const controller = new AbortController();
-    emailController.current = controller;
-    const authors = [
-      ...new Map(
-        books.flatMap((book) =>
-          book.scout_authors ? [[book.scout_authors.id, book.scout_authors] as const] : [],
-        ),
-      ).values(),
-    ];
-    const pending = authors.filter(
-      (author) => !author.contact_email && !contactResults[author.id]?.contactEmail,
-    );
-    const summary = {
-      done: authors.length - pending.length,
-      total: authors.length,
-      found: authors.length - pending.length,
-      failed: 0,
-    };
-    setEmailRun({ ...summary });
-    setBusy("emails");
-    setError("");
-    let next = 0;
-    async function worker() {
-      while (!controller.signal.aborted && next < pending.length) {
-        const author = pending[next++]!;
-        try {
-          const result = await api<ContactResult>(
-            `/api/admin/scout-authors/${author.id}/find-contact`,
-            {},
-            controller.signal,
-          );
-          if (controller.signal.aborted) return;
-          setContactResults((current) => ({ ...current, [author.id]: result }));
-          if (result.contactEmail) summary.found++;
-        } catch (e) {
-          if (controller.signal.aborted) return;
-          summary.failed++;
-          setContactResults((current) => ({
-            ...current,
-            [author.id]: {
-              found: false,
-              candidateUrl: null,
-              candidateTitle: null,
-              contactEmail: null,
-              contactFormUrl: null,
-              message: `Search failed: ${(e as Error).message}`,
-            },
-          }));
-        }
-        summary.done++;
-        setEmailRun({ ...summary });
-      }
-    }
-    await Promise.all([worker(), worker()]);
-    setNotice(
-      `${controller.signal.aborted ? "Stopped. " : ""}${summary.done} of ${summary.total} authors checked · ${summary.found} emails available · ${summary.failed} failed. Found addresses remain unverified until you confirm them.`,
-    );
-    emailController.current = null;
-    setBusy("");
-  }
-
-  async function findContact(authorId: string) {
-    setContactBusy(authorId);
-    setError("");
-    try {
-      const result = await api<ContactResult>(
-        `/api/admin/scout-authors/${authorId}/find-contact`,
-        {},
-      );
-      setContactResults((current) => ({ ...current, [authorId]: result }));
-    } catch (e) {
-      setError((e as Error).message);
-    } finally {
-      setContactBusy("");
-    }
-  }
-  async function verifyContact(authorId: string, result: ContactResult) {
-    setVerifyBusy(authorId);
-    setError("");
-    try {
-      await api(`/api/admin/scout-authors/${authorId}/confirm-contact`, {
-        candidateUrl: result.candidateUrl,
-        contactEmail: result.contactEmail ?? undefined,
-        contactFormUrl: result.contactFormUrl ?? undefined,
-      });
-      setContactResults((current) => ({ ...current, [authorId]: { ...result, verified: true } }));
-    } catch (e) {
-      setError((e as Error).message);
-    } finally {
-      setVerifyBusy("");
-    }
-  }
   async function save(book: Book) {
     setBusy(book.id);
     setError("");
@@ -727,11 +515,8 @@ function AuthorScout({ onBusyChange }: { onBusyChange: (busy: boolean) => void }
         book.description,
         book.scout_authors?.country,
         book.scout_authors?.website_url,
-        book.scout_authors?.contact_email ??
-          contactResults[book.scout_authors?.id ?? ""]?.contactEmail,
-        contactResults[book.scout_authors?.id ?? ""]?.verified
-          ? "Verified"
-          : (book.scout_authors?.contact_verification_status ?? "Unverified"),
+        book.scout_authors?.contact_email,
+        book.scout_authors?.contact_verification_status ?? "Unverified",
         book.scout_authors?.contact_form_url,
         book.source_url,
       ]),
@@ -980,7 +765,6 @@ function AuthorScout({ onBusyChange }: { onBusyChange: (busy: boolean) => void }
                 setBatchSource(event.target.value);
                 setSelected(null);
                 setBooks([]);
-                setEmailRun(null);
               }}
             >
               <option value="all">All review sources</option>
@@ -1006,7 +790,6 @@ function AuthorScout({ onBusyChange }: { onBusyChange: (busy: boolean) => void }
               disabled={Boolean(busy) || !visibleBatches.length}
               onChange={(event) => {
                 setSelected(batches.find((batch) => batch.id === event.target.value) ?? null);
-                setEmailRun(null);
               }}
             >
               <option value="">
@@ -1032,14 +815,6 @@ function AuthorScout({ onBusyChange }: { onBusyChange: (busy: boolean) => void }
               </p>
             </div>
             <div className="flex flex-wrap items-end gap-3">
-              <button
-                type="button"
-                disabled={Boolean(busy) || detailLoading || !books.length}
-                onClick={() => void findBatchEmails()}
-                className="rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground disabled:opacity-50"
-              >
-                Find emails for entire batch
-              </button>
               <label className="text-sm">
                 Book reviews
                 <select
@@ -1067,20 +842,6 @@ function AuthorScout({ onBusyChange }: { onBusyChange: (busy: boolean) => void }
               </button>
             </div>
           </div>
-          {busy === "emails" && emailRun && (
-            <div className="space-y-3">
-              <GlassLoading
-                label={`Finding emails · ${emailRun.done} of ${emailRun.total} authors · ${emailRun.found} found`}
-                progress={emailRun}
-              />
-              <button
-                className="rounded-xl border px-4 py-2 text-sm"
-                onClick={() => emailController.current?.abort()}
-              >
-                Stop email search
-              </button>
-            </div>
-          )}
           {detailError && (
             <p role="alert" className="text-sm text-destructive">
               {detailError}{" "}
@@ -1105,17 +866,7 @@ function AuthorScout({ onBusyChange }: { onBusyChange: (busy: boolean) => void }
           ) : (
             <div className="grid gap-4 md:grid-cols-2">
               {visible.map((book) => (
-                <BookCard
-                  key={book.id}
-                  book={book}
-                  busy={busy}
-                  contactBusy={contactBusy}
-                  verifyBusy={verifyBusy}
-                  contactResult={contactResults[book.scout_authors?.id ?? ""]}
-                  onSave={save}
-                  onFindContact={findContact}
-                  onVerifyContact={verifyContact}
-                />
+                <BookCard key={book.id} book={book} busy={busy} onSave={save} />
               ))}
             </div>
           )}

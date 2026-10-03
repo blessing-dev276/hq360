@@ -8,6 +8,7 @@ import {
   labeledPublicationDate,
   matchesPublicationWindow,
   parseArcIndex,
+  parseBooknotificationUpcoming,
   parseBooksirensPage,
 } from "../src/lib/scout/arc-discovery.server";
 import { isArcSource } from "../src/lib/scout/arc-sources";
@@ -26,6 +27,24 @@ test("only real source keys and source listing URLs are accepted", () => {
   ])
     expect(arcListingUrl("netgalley", url)).toBeNull();
   expect(arcListingUrl("booksirens", "https://booksirens.com/book-reviewer-directory")).toBeNull();
+  expect(arcListingUrl("booklife", "https://booklife.com/project/a-new-book-101221?ref=home")).toBe(
+    "https://booklife.com/project/a-new-book-101221",
+  );
+  expect(arcListingUrl("booklife", "http://booklife.com/project/a-new-book-101221")).toBe(
+    "https://booklife.com/project/a-new-book-101221",
+  );
+  expect(
+    arcListingUrl("onlinebookclub", "https://onlinebookclub.org/shelves/book.php?id=65137&ref=x"),
+  ).toBe("https://onlinebookclub.org/shelves/book.php?id=65137");
+  expect(
+    arcListingUrl("booknotification", "https://www.booknotification.com/authors/jane-smith/"),
+  ).toBe("https://www.booknotification.com/authors/jane-smith");
+  for (const [source, url] of [
+    ["booklife", "https://booklife.com/project-browse"],
+    ["onlinebookclub", "https://onlinebookclub.org/shelves/book.php?u=123"],
+    ["booknotification", "https://www.booknotification.com/wp-admin/"],
+  ] as const)
+    expect(arcListingUrl(source, url)).toBeNull();
 });
 test("dates are explicit and calendar-valid, never review deadlines or Google timestamps", () => {
   expect(isoPublicationDate("2026-02-30")).toBeNull();
@@ -88,6 +107,44 @@ test("guest BookSirens pages provide labeled metadata; sign-in pages are skipped
     parseBooksirensPage("<title>Become a reviewer</title>", "https://booksirens.com/book/ABC123"),
   ).toBeNull();
 });
+test("new indexed book sources retain author names without inventing review counts", () => {
+  for (const [source, link, suffix] of [
+    ["booklife", "https://booklife.com/project/a-new-book-101221", "BookLife"],
+    [
+      "onlinebookclub",
+      "https://onlinebookclub.org/shelves/book.php?id=65137",
+      "OnlineBookClub.org",
+    ],
+  ] as const) {
+    const items = parseArcIndex(source, {
+      organic_results: [
+        { title: `A New Book by Jane Smith - ${suffix}`, link, snippet: "A book listing" },
+      ],
+    });
+    expect(items).toHaveLength(1);
+    expect(items[0]).toMatchObject({
+      title: "A New Book",
+      author_name: "Jane Smith",
+      publication_date: null,
+      discovery_method: "search_index",
+    });
+  }
+});
+test("BookNotification upcoming list yields book and author pairs only", () => {
+  const items = parseBooknotificationUpcoming(
+    `<div class="card"><div class="card-header"><h5>Upcoming Books</h5></div><div class="card-body"><div class="d-flex btn-reveal-trigger"><h6><a href="https://amazon.com/dp/example">A New Book</a></h6><p>Written by <a href="/authors/jane-smith/">Jane Smith</a></p></div></div></div>`,
+  );
+  expect(items).toMatchObject([
+    {
+      title: "A New Book",
+      author_name: "Jane Smith",
+      source_url: "https://www.booknotification.com/authors/jane-smith",
+      publication_date: null,
+      discovery_method: "public_catalog",
+    },
+  ]);
+  expect(parseBooknotificationUpcoming("<h5>Popular Authors</h5>")).toEqual([]);
+});
 const db = new PGlite();
 beforeAll(async () => {
   await db.exec(
@@ -96,6 +153,12 @@ beforeAll(async () => {
   await db.exec(
     await readFile(
       new URL("../supabase/migrations/20261002120000_scout_arc.sql", import.meta.url),
+      "utf8",
+    ),
+  );
+  await db.exec(
+    await readFile(
+      new URL("../supabase/migrations/20261003130000_scout_review_sources.sql", import.meta.url),
       "utf8",
     ),
   );
@@ -126,4 +189,27 @@ test("discovery and batch persist atomically and idempotently, including missing
   await expect(db.query("SELECT * FROM scout_arc_listings")).rejects.toThrow();
   await expect(save(crypto.randomUUID(), indexed)).rejects.toThrow();
   await db.exec("RESET ROLE");
+});
+test("the new sources save through the shared batch function", async () => {
+  for (const source of ["booklife", "onlinebookclub", "booknotification"]) {
+    const batch = crypto.randomUUID();
+    const item = {
+      source_url: `https://example.com/${source}`,
+      title: "A New Book",
+      author_name: "Jane Smith",
+      publication_date: null,
+      genre: null,
+      evidence: "Public listing",
+      discovery_method: "search_index",
+    };
+    await db.query("SELECT scout_save_arc_batch($1,$2,'Test','',$3::jsonb)", [
+      batch,
+      source,
+      JSON.stringify([item]),
+    ]);
+    const result = await db.query("SELECT source FROM scout_arc_listings WHERE batch_id=$1", [
+      batch,
+    ]);
+    expect(result.rows[0]).toEqual({ source });
+  }
 });

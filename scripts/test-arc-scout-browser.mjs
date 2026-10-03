@@ -98,7 +98,15 @@ await page.route("**/api/admin/scout-authors/*/find-contact", (route) =>
 try {
   await page.goto(`${process.env.SCOUT_TEST_URL || "http://127.0.0.1:8081"}/scout`);
   await page.getByLabel("Review source", { exact: true }).selectOption("netgalley");
-  for (const value of ["netgalley", "booksirens", "booksprout", "storyorigin"])
+  for (const value of [
+    "netgalley",
+    "booksirens",
+    "booksprout",
+    "storyorigin",
+    "booklife",
+    "onlinebookclub",
+    "booknotification",
+  ])
     await expect(
       page.getByLabel("Review source", { exact: true }).locator(`option[value="${value}"]`),
     ).toHaveCount(1);
@@ -119,18 +127,14 @@ try {
   });
   await expect(page.getByRole("button", { name: "Save author details" })).toHaveCount(0);
   await expect(page.getByText(/1 authors saved automatically/)).toBeVisible();
-  await expect(
-    page.getByRole("button", { name: "Open author details & batch email discovery" }),
-  ).toBeVisible();
-  await page.getByRole("button", { name: "Open author details & batch email discovery" }).click();
+  await expect(page.getByRole("button", { name: "Open author details" })).toBeVisible();
+  await page.getByRole("button", { name: "Open author details" }).click();
   await expect(page.getByRole("heading", { name: "Fixture Author" })).toBeVisible();
   await expect(page.getByRole("link", { name: "View NetGalley listing" })).toBeVisible();
-  await page.getByRole("button", { name: /Find emails for entire batch/ }).click();
-  await expect(page.getByText(/email found: author@example.com/).first()).toBeVisible();
   await page.getByLabel("Review source", { exact: true }).selectOption("netgalley");
   await expect(page.getByText(/Author saved to/)).toBeVisible();
   await page.getByLabel("Review source", { exact: true }).selectOption("booksprout");
-  await page.getByText("Add a specific review-copy link", { exact: true }).click();
+  await page.getByText("Add a specific book link", { exact: true }).click();
   await page
     .getByLabel("Booksprout book URL")
     .fill("https://booksprout.co/reviewer/review-copy/view/123/test-book");
@@ -147,9 +151,22 @@ try {
   await page.getByRole("button", { name: "Save all ready authors" }).click();
   await expect(page.getByText(/Author saved to/)).toBeVisible();
   expect(incomplete.book_id).toBeTruthy();
+  await page.getByLabel("Review source", { exact: true }).selectOption("booknotification");
+  await expect(page.getByLabel("Genre", { exact: true })).toHaveCount(0);
+  await expect(page.getByText(/latest public upcoming-release sample/)).toBeVisible();
+  await page.getByRole("button", { name: "Search and create batch" }).click();
+  await expect(page.getByText(/1 authors saved automatically/)).toBeVisible();
+  expect(requests.at(-1)).toMatchObject({
+    source: "booknotification",
+    genre: "",
+    from: "",
+    to: "",
+    includeUnknown: true,
+    page: 1,
+  });
   expect(errors).toEqual([]);
   console.log(
-    "ARC browser checks passed: sources, filters, glass loading, saved batches, automatic saving, batch recovery, email handoff and manual links.",
+    "ARC browser checks passed: sources, filters, glass loading, saved batches, automatic saving, batch recovery, author details and manual links.",
   );
 } catch (error) {
   console.error((await page.locator("body").innerText()).slice(0, 6000));

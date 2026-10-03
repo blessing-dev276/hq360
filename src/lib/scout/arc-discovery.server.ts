@@ -33,7 +33,15 @@ const dateField = z
 export const arcSearchSchema = z
   .object({
     requestId: z.string().uuid(),
-    source: z.enum(["netgalley", "booksirens", "booksprout", "storyorigin"]),
+    source: z.enum([
+      "netgalley",
+      "booksirens",
+      "booksprout",
+      "storyorigin",
+      "booklife",
+      "onlinebookclub",
+      "booknotification",
+    ]),
     genre: z.string().trim().max(80).default(""),
     from: dateField,
     to: dateField,
@@ -51,6 +59,7 @@ export function arcListingUrl(source: ArcSource, value: unknown) {
   try {
     const u = new URL(value, ARC_SOURCES[source].origin),
       host = new URL(ARC_SOURCES[source].origin).hostname;
+    if (source === "booklife" && u.protocol === "http:") u.protocol = "https:";
     if (
       u.protocol !== "https:" ||
       u.username ||
@@ -64,8 +73,16 @@ export function arcListingUrl(source: ArcSource, value: unknown) {
       booksirens: /^\/book\/[A-Z0-9]+(?:\/[A-Z0-9]+)?\/?$/i,
       booksprout: /^\/reviewer\/review-copy\/view\/\d+\/[a-z0-9-]+\/?$/i,
       storyorigin: /^\/reviewcopies\/[a-f0-9-]{36}\/?$/i,
+      booklife: /^\/project\/[a-z0-9-]+-\d+\/?$/i,
+      onlinebookclub: /^\/shelves\/book\.php$/i,
+      booknotification: /^\/authors\/[a-z0-9-]+\/?$/i,
     };
     if (!patterns[source].test(u.pathname)) return null;
+    if (source === "onlinebookclub") {
+      const id = u.searchParams.get("id");
+      if (!id || !/^\d+$/.test(id)) return null;
+      return `${ARC_SOURCES[source].origin}/shelves/book.php?id=${id}`;
+    }
     return `${ARC_SOURCES[source].origin}${u.pathname.replace(/\/$/, "")}`;
   } catch {
     return null;
@@ -87,7 +104,10 @@ export function parseArcIndex(source: ArcSource, body: Record<string, unknown>):
       if (!url || seen.has(url) || typeof item.title !== "string") return [];
       seen.add(url);
       let title = item.title
-        .replace(/\s*[|–-]\s*(NetGalley|BookSirens|Booksprout|StoryOrigin).*$/i, "")
+        .replace(
+          /\s*[|–-]\s*(NetGalley|BookSirens|Booksprout|StoryOrigin|BookLife|OnlineBookClub(?:\.org)?).*$/i,
+          "",
+        )
         .replace(/^Viewing\s+/i, "")
         .replace(/\s+Review Copy$/i, "")
         .trim();
@@ -128,15 +148,16 @@ export function matchesPublicationWindow(
   return (!from || item.publication_date >= from) && (!to || item.publication_date <= to);
 }
 const AGENT = "HQ360-Scout/1.0 (+https://www.hq360.space)";
-async function publicBooksirens(url: string, signal: AbortSignal) {
+async function publicPage(url: string, origin: string, signal: AbortSignal) {
   const u = new URL(url);
-  if (u.origin !== ARC_SOURCES.booksirens.origin) throw new Error("Invalid catalogue URL.");
+  if (u.origin !== origin) throw new Error("Invalid catalogue URL.");
   const response = await fetch(url, {
     signal: AbortSignal.any([signal, AbortSignal.timeout(8000)]),
     redirect: "manual",
     headers: { "User-Agent": AGENT, Accept: "text/html,text/plain" },
   });
-  if (!response.ok) throw new Error("This BookSirens page is unavailable or requires sign-in.");
+  if (!response.ok)
+    throw new Error("This public catalogue page is unavailable or requires sign-in.");
   const reader = response.body?.getReader();
   if (!reader) throw new Error("Empty catalogue response.");
   const chunks: Uint8Array[] = [];
@@ -159,6 +180,41 @@ async function publicBooksirens(url: string, signal: AbortSignal) {
     offset += chunk.length;
   }
   return new TextDecoder().decode(bytes);
+}
+const publicBooksirens = (url: string, signal: AbortSignal) =>
+  publicPage(url, ARC_SOURCES.booksirens.origin, signal);
+export function parseBooknotificationUpcoming(html: string): ArcCandidate[] {
+  const $ = load(html);
+  const heading = $(".card-header h5")
+    .toArray()
+    .find((element) => $(element).text().trim().toLowerCase() === "upcoming books");
+  if (!heading) return [];
+  const seen = new Set<string>();
+  return $(heading)
+    .closest(".card")
+    .find(".card-body .d-flex.btn-reveal-trigger")
+    .toArray()
+    .flatMap((element) => {
+      const row = $(element),
+        title = row.find("h6 a").first().text().trim(),
+        authorLink = row.find("p a[href^='/authors/']").first(),
+        author = authorLink.text().trim(),
+        sourceUrl = arcListingUrl("booknotification", authorLink.attr("href"));
+      if (!title || !author || !sourceUrl || seen.has(sourceUrl)) return [];
+      seen.add(sourceUrl);
+      return [
+        {
+          source_url: sourceUrl,
+          title: title.slice(0, 300),
+          author_name: author.slice(0, 160),
+          publication_date: null,
+          genre: null,
+          evidence:
+            "Shown in BookNotification's public upcoming books list; review count is not supplied.",
+          discovery_method: "public_catalog" as const,
+        },
+      ];
+    });
 }
 export function parseBooksirensPage(html: string, url: string): ArcCandidate | null {
   const $ = load(html),
@@ -210,7 +266,28 @@ export async function discoverArc(input: z.infer<typeof arcSearchSchema>, signal
   }
   let items: ArcCandidate[] = [];
   let skipped = 0;
-  if (input.source === "booksirens") {
+  if (input.source === "booknotification") {
+    if (input.genre || input.page !== 1)
+      throw new Error(
+        "BookNotification currently offers a recent release sample. Choose All genres and page 1.",
+      );
+    const robotsUrl = `${ARC_SOURCES.booknotification.origin}/robots.txt`;
+    const robots = robotsParser(
+      robotsUrl,
+      await publicPage(robotsUrl, ARC_SOURCES.booknotification.origin, signal),
+    );
+    if (robots.isAllowed(ARC_SOURCES.booknotification.browse, AGENT) === false)
+      throw new Error("BookNotification currently disallows catalogue access.");
+    items = parseBooknotificationUpcoming(
+      await publicPage(
+        ARC_SOURCES.booknotification.browse,
+        ARC_SOURCES.booknotification.origin,
+        signal,
+      ),
+    ).slice(0, input.limit);
+    if (!items.length)
+      throw new Error("The public BookNotification release list changed or is unavailable.");
+  } else if (input.source === "booksirens") {
     const robotsUrl = "https://booksirens.com/robots.txt",
       robots = robotsParser(robotsUrl, await publicBooksirens(robotsUrl, signal));
     let catalog: string = ARC_SOURCES.booksirens.browse;

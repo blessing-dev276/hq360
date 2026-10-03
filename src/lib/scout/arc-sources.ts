@@ -31,6 +31,30 @@ export const ARC_SOURCES = {
     method: "Search-index discovery",
     note: "Public review-copy links only. No member-directory or contact harvesting.",
   },
+  booklife: {
+    name: "BookLife",
+    origin: "https://booklife.com",
+    path: "/project",
+    browse: "https://booklife.com/project-browse",
+    method: "Search-index discovery",
+    note: "Indexed public project links only. BookLife blocks direct catalogue crawling; review counts need separate verification.",
+  },
+  onlinebookclub: {
+    name: "OnlineBookClub",
+    origin: "https://onlinebookclub.org",
+    path: "/shelves/book.php",
+    browse: "https://onlinebookclub.org/shelves/",
+    method: "Search-index discovery",
+    note: "Indexed public book pages. A listing or site review does not establish the book's wider review count.",
+  },
+  booknotification: {
+    name: "BookNotification",
+    origin: "https://www.booknotification.com",
+    path: "/authors/",
+    browse: "https://www.booknotification.com/",
+    method: "Public upcoming releases",
+    note: "Reads a small public upcoming-release sample. New releases are candidates; review counts remain unknown.",
+  },
 } as const;
 export type ArcSource = keyof typeof ARC_SOURCES;
 export const isArcSource = (value: string): value is ArcSource =>

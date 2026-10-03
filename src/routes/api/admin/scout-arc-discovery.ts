@@ -86,7 +86,7 @@ export const Route = createFileRoute("/api/admin/scout-arc-discovery")({
               502,
             );
           }
-          const label = `${ARC_SOURCES[input.source].name} · ${input.genre || "All genres"} · ${input.listingUrl ? "Added link" : input.source === "booksirens" ? "Catalogue sample" : `Page ${input.page}`}`;
+          const label = `${ARC_SOURCES[input.source].name} · ${input.genre || "All genres"} · ${input.listingUrl ? "Added link" : input.source === "booksirens" ? "Catalogue sample" : input.source === "booknotification" ? "Upcoming releases" : `Page ${input.page}`}`;
           const saved = await db.rpc("scout_save_arc_batch", {
             p_id: input.requestId,
             p_source: input.source,

@@ -72,7 +72,7 @@ function Listing({
       {item.evidence && <p className="mt-3 text-sm text-muted-foreground">{item.evidence}</p>}
       {item.book_id ? (
         <p className="mt-4 text-sm font-medium text-brand">
-          Author saved to {batch.label}. Open author details below for email discovery.
+          Author saved to {batch.label}. Open author details below.
         </p>
       ) : item.title.trim() && item.author_name?.trim() ? (
         <p className="mt-4 text-sm text-muted-foreground">Ready to save with the batch.</p>
@@ -210,11 +210,11 @@ export function ArcScout({
   async function search(manual = false) {
     const values = {
       source,
-      genre,
-      from,
-      to,
-      includeUnknown: unknown,
-      page: source === "booksirens" ? 1 : page,
+      genre: source === "booknotification" ? "" : genre,
+      from: source === "booknotification" ? "" : from,
+      to: source === "booknotification" ? "" : to,
+      includeUnknown: source === "booknotification" ? true : unknown,
+      page: source === "booksirens" || source === "booknotification" ? 1 : page,
       limit: 10,
       ...(manual ? { listingUrl: url } : {}),
     };
@@ -348,76 +348,86 @@ export function ArcScout({
           void search();
         }}
       >
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <label className="text-sm">
-            Genre
-            <select
-              aria-label="Genre"
-              className={field}
-              value={genre}
-              disabled={!!busy}
-              onChange={(e) => setGenre(e.target.value)}
-            >
-              <option value="">All genres</option>
-              {ARC_GENRES.map((g) => (
-                <option key={g}>{g}</option>
-              ))}
-            </select>
-          </label>
-          <label className="text-sm">
-            Publication from
-            <input
-              type="date"
-              className={field}
-              value={from}
-              disabled={!!busy}
-              onChange={(e) => setFrom(e.target.value)}
-            />
-          </label>
-          <label className="text-sm">
-            Publication until
-            <input
-              type="date"
-              min={from || undefined}
-              className={field}
-              value={to}
-              disabled={!!busy}
-              onChange={(e) => setTo(e.target.value)}
-            />
-          </label>
-          {source !== "booksirens" && (
-            <label className="text-sm">
-              Search page
-              <select
-                className={field}
-                value={page}
+        {source === "booknotification" ? (
+          <p className="text-sm text-muted-foreground">
+            Discover the latest public upcoming-release sample. BookNotification does not provide
+            review totals here; check those before treating an author as low-review.
+          </p>
+        ) : (
+          <>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <label className="text-sm">
+                Genre
+                <select
+                  aria-label="Genre"
+                  className={field}
+                  value={genre}
+                  disabled={!!busy}
+                  onChange={(e) => setGenre(e.target.value)}
+                >
+                  <option value="">All genres</option>
+                  {ARC_GENRES.map((g) => (
+                    <option key={g}>{g}</option>
+                  ))}
+                </select>
+              </label>
+              <label className="text-sm">
+                Publication from
+                <input
+                  type="date"
+                  className={field}
+                  value={from}
+                  disabled={!!busy}
+                  onChange={(e) => setFrom(e.target.value)}
+                />
+              </label>
+              <label className="text-sm">
+                Publication until
+                <input
+                  type="date"
+                  min={from || undefined}
+                  className={field}
+                  value={to}
+                  disabled={!!busy}
+                  onChange={(e) => setTo(e.target.value)}
+                />
+              </label>
+              {source !== "booksirens" && (
+                <label className="text-sm">
+                  Search page
+                  <select
+                    className={field}
+                    value={page}
+                    disabled={!!busy}
+                    onChange={(e) => setPage(Number(e.target.value))}
+                  >
+                    {Array.from({ length: 10 }, (_, i) => (
+                      <option key={i} value={i + 1}>
+                        {i + 1}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              )}
+            </div>
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={unknown}
                 disabled={!!busy}
-                onChange={(e) => setPage(Number(e.target.value))}
-              >
-                {Array.from({ length: 10 }, (_, i) => (
-                  <option key={i} value={i + 1}>
-                    {i + 1}
-                  </option>
-                ))}
-              </select>
+                onChange={(e) => setUnknown(e.target.checked)}
+              />
+              Include listings with unknown publication dates
             </label>
-          )}
-        </div>
-        <label className="flex items-center gap-2 text-sm">
-          <input
-            type="checkbox"
-            checked={unknown}
-            disabled={!!busy}
-            onChange={(e) => setUnknown(e.target.checked)}
-          />
-          Include listings with unknown publication dates
-        </label>
+          </>
+        )}
         <p className="text-xs text-muted-foreground">
-          Up to 10 listings per search. Date filters apply to dates explicitly provided by the
-          source; missing dates are never estimated.
+          Up to 10 listings per search. Missing publication dates are never estimated.
           {source === "booksirens"
             ? " This is a sample of the public catalogue, not its full inventory."
-            : " Search-index coverage may be incomplete or out of date."}
+            : source === "booknotification"
+              ? " This is a small current-release sample, not a review-count filter."
+              : " Search-index coverage may be incomplete or out of date."}
         </p>
         <button className={button} disabled={!!busy}>
           Search and create batch
@@ -425,7 +435,7 @@ export function ArcScout({
       </form>
       <details className="rounded-2xl border border-border p-5">
         <summary className="cursor-pointer text-sm font-medium">
-          Add a specific review-copy link
+          Add a specific {source === "booknotification" ? "author" : "book"} link
         </summary>
         <form
           className="mt-3 flex flex-wrap items-end gap-3"
@@ -435,7 +445,7 @@ export function ArcScout({
           }}
         >
           <label className="min-w-64 flex-1 text-sm">
-            {spec.name} book URL
+            {spec.name} {source === "booknotification" ? "author" : "book"} URL
             <input
               required
               type="url"
@@ -518,7 +528,7 @@ export function ArcScout({
             disabled={!!busy || loading}
             onClick={() => onOpenBatch(batch)}
           >
-            Open author details & batch email discovery
+            Open author details
           </button>
         )}
       </section>

@@ -82,7 +82,7 @@ describe("AI web research", () => {
         }),
       },
     );
-    expect(queries).toHaveLength(5);
+    expect(queries).toHaveLength(13);
     expect(queries.some((query) => query.includes("reviews"))).toBe(true);
     expect(result.sources).toHaveLength(1);
     expect(result.sources[0]?.url).toBe(source.url);
@@ -107,7 +107,7 @@ describe("AI web research", () => {
       expect(valid.droppedFindings).toBe(0);
       expect(prompt).toContain(source.url);
       expect(prompt).toContain("reviews");
-      expect(researchQueries("Test Author", "Test Book")).toHaveLength(5);
+      expect(researchQueries("Test Author", "Test Book")).toHaveLength(12);
       const normalizedCitation = await generateWebResearch(state, "", {
         collect,
         generate: async () => validDraft(`${source.url}/`),

@@ -164,6 +164,93 @@ async function activity(id: string, actor: string, action: string, target?: stri
 function assertOk(r: { error: unknown }) {
   if (r.error) throw new Error("Could not save audit changes");
 }
+async function setStatus(table: string, auditId: string, ids: string[], values: object) {
+  if (ids.length)
+    assertOk(await clientDb().from(table).update(values).eq("audit_id", auditId).in("id", ids));
+}
+/** Validate imported research automatically -- no manual verification step.
+ *  A finding is accepted when it carries a recommendation and cited evidence
+ *  (AI web research has already checked every citation against the sources it
+ *  collected); anything else is rejected. Screenshot and manual-check
+ *  requests are closed rather than left for a person. */
+export async function autoValidate(id: string, actor: string) {
+  const state = await workflowState(id);
+  const pick = <T extends { id: string }>(rows: T[], test: (row: T) => boolean) => [
+    rows.filter(test).map((r) => r.id),
+    rows.filter((r) => !test(r)).map((r) => r.id),
+  ];
+  const open = state.findings.filter((f) => !f.hidden && f.review_status !== "rejected");
+  const [goodFindings, badFindings] = pick(
+    open,
+    (f) => !!f.recommendation?.trim() && (f.source_urls.length > 0 || !!f.evidence_text?.trim()),
+  );
+  await setStatus("audit_findings", id, goodFindings!, {
+    review_status: "approved",
+    manual_status: "verified",
+    client_visible: true,
+  });
+  await setStatus("audit_findings", id, badFindings!, {
+    review_status: "rejected",
+    client_visible: false,
+  });
+  await setStatus(
+    "audit_sections",
+    id,
+    state.sections.filter((s) => s.enabled && s.review_status !== "approved").map((s) => s.id),
+    { review_status: "approved" },
+  );
+  const [goodLists, badLists] = pick(
+    state.listopia.filter((l) => l.review_status !== "rejected"),
+    (l) => !!l.list_name?.trim() && !!l.list_url,
+  );
+  await setStatus("audit_listopia", id, goodLists!, {
+    review_status: "approved",
+    manual_status: "verified",
+  });
+  await setStatus("audit_listopia", id, badLists!, { review_status: "rejected" });
+  const approved = new Set([
+    ...goodFindings!,
+    ...state.findings.filter((f) => f.review_status === "approved" && !f.hidden).map((f) => f.id),
+  ]);
+  const [goodActions, badActions] = pick(
+    state.actions.filter((a) => a.review_status !== "rejected"),
+    (a) => a.finding_ids.every((f) => approved.has(f)),
+  );
+  await setStatus("audit_action_plan", id, goodActions!, { review_status: "approved" });
+  await setStatus("audit_action_plan", id, badActions!, { review_status: "rejected" });
+  const [goodAssets, badAssets] = pick(
+    state.assets.filter((a) => a.review_status === "pending"),
+    (a) => !!(a.caption && a.proves && a.source && a.asset_date),
+  );
+  await setStatus("audit_evidence_assets", id, goodAssets!, {
+    review_status: "approved",
+    client_visible: true,
+  });
+  await setStatus("audit_evidence_assets", id, badAssets!, { review_status: "rejected" });
+  const withImage = new Set(state.assets.filter((a) => a.task_id).map((a) => a.task_id));
+  const [doneTasks, closedTasks] = pick(
+    state.tasks.filter((t) => !["approved", "not_applicable"].includes(t.status)),
+    (t) => t.kind === "screenshot" && withImage.has(t.id),
+  );
+  await setStatus("audit_review_tasks", id, doneTasks!, { status: "approved" });
+  await setStatus("audit_review_tasks", id, closedTasks!, { status: "not_applicable" });
+  await activity(id, actor, "auto_validated");
+  const remaining = reviewIssues(await workflowState(id));
+  if (!remaining.length)
+    assertOk(
+      await clientDb()
+        .from("author_audits")
+        .update({ status: "approved", review_status: "complete" })
+        .eq("id", id),
+    );
+  return {
+    accepted: goodFindings!.length,
+    rejected: badFindings!.length,
+    listopia: goodLists!.length,
+    actions: goodActions!.length,
+    remaining,
+  };
+}
 export function clientSnapshot(state: Awaited<ReturnType<typeof workflowState>>) {
   const sections = state.sections
     .filter(
@@ -497,9 +584,11 @@ export async function workflowPost(request: Request, id: string) {
         console.error("Could not archive AI research search sources", archived.error.message);
       }
       await activity(id, actor.id, "ai_web_research_imported");
+      const validation = await autoValidate(id, actor.id);
       return privateJson({
         ok: true,
         imported: true,
+        validation,
         sources: result.sources,
         failures: result.failures,
         findings: result.validated.data.findings.length,
@@ -558,7 +647,7 @@ export async function workflowPost(request: Request, id: string) {
         p_data: result.data,
       });
       if (r.error) throw new Error("Import could not be saved. It may already have been imported.");
-      return privateJson({ ok: true });
+      return privateJson({ ok: true, validation: await autoValidate(id, actor.id) });
     }
     if (action === "save" || action === "delete" || action === "duplicate") {
       const entity = z
@@ -709,122 +798,8 @@ export async function workflowPost(request: Request, id: string) {
       return privateJson({ ok: true });
     }
     if (action === "approve_all") {
-      // Fast path for research that was verified before import: approve and
-      // verify everything not rejected or hidden in one step. Screenshot
-      // requests without an uploaded image stay open -- never fabricated.
       if (!actor.review) return privateJson({ error: "Reviewer required" }, 403);
-      const counts = {
-        findings: 0,
-        sections: 0,
-        listopia: 0,
-        actions: 0,
-        screenshots: 0,
-        checks: 0,
-      };
-      const findings = state.findings.filter((f) => f.review_status !== "rejected" && !f.hidden);
-      for (const f of findings) {
-        assertOk(
-          await db
-            .from("audit_findings")
-            .update({
-              review_status: "approved",
-              manual_status: f.manual_status === "not_applicable" ? "not_applicable" : "verified",
-              client_visible: true,
-            })
-            .eq("audit_id", id)
-            .eq("id", f.id),
-        );
-        counts.findings++;
-      }
-      const sections = state.sections.filter((s) => s.enabled && s.review_status !== "approved");
-      if (sections.length) {
-        assertOk(
-          await db
-            .from("audit_sections")
-            .update({ review_status: "approved" })
-            .eq("audit_id", id)
-            .in(
-              "id",
-              sections.map((s) => s.id),
-            ),
-        );
-        counts.sections = sections.length;
-      }
-      for (const l of state.listopia.filter((l) => l.review_status !== "rejected")) {
-        assertOk(
-          await db
-            .from("audit_listopia")
-            .update({
-              review_status: "approved",
-              manual_status: l.manual_status === "not_applicable" ? "not_applicable" : "verified",
-            })
-            .eq("audit_id", id)
-            .eq("id", l.id),
-        );
-        counts.listopia++;
-      }
-      const actions = state.actions.filter(
-        (a) => a.review_status !== "rejected" && a.review_status !== "approved",
-      );
-      if (actions.length) {
-        assertOk(
-          await db
-            .from("audit_action_plan")
-            .update({ review_status: "approved" })
-            .eq("audit_id", id)
-            .in(
-              "id",
-              actions.map((a) => a.id),
-            ),
-        );
-        counts.actions = actions.length;
-      }
-      const assets = state.assets.filter((a) => a.review_status === "pending");
-      if (assets.length) {
-        assertOk(
-          await db
-            .from("audit_evidence_assets")
-            .update({ review_status: "approved", client_visible: true })
-            .eq("audit_id", id)
-            .in(
-              "id",
-              assets.map((a) => a.id),
-            ),
-        );
-        counts.screenshots = assets.length;
-      }
-      // A screenshot request is done only when it has an uploaded image; other
-      // checks (manual verification etc.) are confirmed by this approval.
-      const withImage = new Set(state.assets.filter((a) => a.task_id).map((a) => a.task_id));
-      const tasks = state.tasks.filter(
-        (t) =>
-          !["approved", "not_applicable"].includes(t.status) &&
-          (t.kind !== "screenshot" || withImage.has(t.id)),
-      );
-      if (tasks.length) {
-        assertOk(
-          await db
-            .from("audit_review_tasks")
-            .update({ status: "approved" })
-            .eq("audit_id", id)
-            .in(
-              "id",
-              tasks.map((t) => t.id),
-            ),
-        );
-        counts.checks = tasks.length;
-      }
-      await activity(id, actor.id, "bulk_approved");
-      const after = await workflowState(id);
-      const remaining = reviewIssues(after);
-      if (!remaining.length)
-        assertOk(
-          await db
-            .from("author_audits")
-            .update({ status: "approved", review_status: "complete" })
-            .eq("id", id),
-        );
-      return privateJson({ ok: true, counts, remaining });
+      return privateJson({ ok: true, ...(await autoValidate(id, actor.id)) });
     }
     if (action === "approve") {
       if (!actor.review) return privateJson({ error: "Reviewer required" }, 403);

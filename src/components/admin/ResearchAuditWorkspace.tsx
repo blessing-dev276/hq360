@@ -285,10 +285,13 @@ export function ResearchAuditWorkspace({
   id,
   onBack,
   legacy,
+  autoResearch = false,
 }: {
   id: string;
   onBack: () => void;
   legacy: ReactNode;
+  /** Start AI web research as soon as a brand-new audit opens. */
+  autoResearch?: boolean;
 }) {
   const [data, setData] = useState<WorkflowState | null>(null),
     [tab, setTab] = useState("Overview"),
@@ -317,6 +320,47 @@ export function ResearchAuditWorkspace({
     [assignment, setAssignment] = useState(""),
     [assignmentRole, setAssignmentRole] = useState("expert");
   const base = `/api/admin/author-audits/${id}/workflow`;
+  async function runAiSearch() {
+    setBusy("Searching public sources and preparing an AI research draft…");
+    setError("");
+    setNotice("");
+    setSearchedSources([]);
+    try {
+      const response = await fetch(base, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "ai_search", focus: searchFocus }),
+      });
+      const result = await response.json();
+      if (Array.isArray(result.sources)) setSearchedSources(result.sources);
+      if (result.raw) {
+        setRaw(result.raw);
+        setValidation(null);
+      }
+      if (!response.ok) {
+        throw new Error(
+          [result.error, ...(result.errors ?? [])].filter(Boolean).join("\n") ||
+            "AI research could not be completed. Please retry.",
+        );
+      }
+      await load();
+      setNotice(
+        `Researched ${result.sources.length} public sources: ${result.validation?.accepted ?? result.findings} findings validated${result.validation?.rejected ? `, ${result.validation.rejected} rejected` : ""}.${result.droppedFindings ? ` ${result.droppedFindings} uncited findings were excluded.` : ""}${result.skippedDuplicates ? ` ${result.skippedDuplicates} existing findings were skipped.` : ""}${result.failures?.length ? ` ${result.failures.length} searches were unavailable.` : ""}${result.validation && !result.validation.remaining.length ? " The audit is approved and ready to generate." : ""}`,
+      );
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy("");
+    }
+  }
+  const [autoStarted, setAutoStarted] = useState(false);
+  useEffect(() => {
+    if (!autoResearch || autoStarted || !data || data.findings.length) return;
+    setAutoStarted(true);
+    setTab("Research");
+    void runAiSearch();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoResearch, autoStarted, data]);
   async function load() {
     const r = await fetch(base);
     const body = await r.json();
@@ -782,9 +826,9 @@ export function ResearchAuditWorkspace({
             <div>
               <h2 className="text-xl font-semibold">AI web research</h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                Search public web listings and book catalogues for this author and book. AI turns
-                the collected results into a cited draft and imports it for review. Search snippets
-                do not confirm live page details; verify important claims before approval.
+                Searches the web for this author and book (Amazon, Goodreads, Listopia, website,
+                socials, press) and turns the results into cited findings. Every finding is
+                validated automatically: cited, with a recommendation, or it's dropped.
               </p>
             </div>
             <label className="block text-sm">
@@ -798,43 +842,7 @@ export function ResearchAuditWorkspace({
                 onChange={(e) => setSearchFocus(e.target.value)}
               />
             </label>
-            <button
-              className={primary}
-              disabled={!!busy}
-              onClick={async () => {
-                setBusy("Searching public sources and preparing an AI research draft…");
-                setError("");
-                setNotice("");
-                setSearchedSources([]);
-                try {
-                  const response = await fetch(base, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ action: "ai_search", focus: searchFocus }),
-                  });
-                  const result = await response.json();
-                  if (Array.isArray(result.sources)) setSearchedSources(result.sources);
-                  if (result.raw) {
-                    setRaw(result.raw);
-                    setValidation(null);
-                  }
-                  if (!response.ok) {
-                    throw new Error(
-                      [result.error, ...(result.errors ?? [])].filter(Boolean).join("\n") ||
-                        "AI research could not be completed. Please retry.",
-                    );
-                  }
-                  await load();
-                  setNotice(
-                    `Imported ${result.findings} draft findings from ${result.sources.length} public sources.${result.droppedFindings ? ` ${result.droppedFindings} unsupported findings were excluded.` : ""}${result.skippedDuplicates ? ` ${result.skippedDuplicates} existing findings were skipped.` : ""}${result.failures?.length ? ` ${result.failures.length} searches were unavailable.` : ""} Review them before approval.`,
-                  );
-                } catch (e) {
-                  setError((e as Error).message);
-                } finally {
-                  setBusy("");
-                }
-              }}
-            >
+            <button className={primary} disabled={!!busy} onClick={() => void runAiSearch()}>
               Search web with AI
             </button>
             {sourceList.length > 0 && (
@@ -1030,7 +1038,13 @@ export function ResearchAuditWorkspace({
                   className={primary}
                   disabled={!!busy}
                   onClick={async () => {
-                    if (await act({ action: "import", raw, source })) {
+                    const result = await act({ action: "import", raw, source });
+                    if (result) {
+                      const v = result.validation;
+                      if (v)
+                        setNotice(
+                          `Imported and validated: ${v.accepted} findings accepted${v.rejected ? `, ${v.rejected} rejected (no citation or recommendation)` : ""}.${v.remaining.length ? "" : " The audit is approved and ready to generate."}`,
+                        );
                       setRaw("");
                       setValidation(null);
                       setTab("Findings");

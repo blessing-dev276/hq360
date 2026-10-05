@@ -1,3 +1,4 @@
+import { GlassLoading } from "@/components/ui/glass-loading";
 import { WORKFLOW_STATUSES } from "@/lib/author-audit/workflow";
 import { ResearchAuditWorkspace } from "./ResearchAuditWorkspace";
 import { useCallback, useEffect, useState } from "react";
@@ -128,20 +129,29 @@ const EMPTY_ASSESSMENT: ExecutiveAssessment = {
 
 export function AuthorAuditAdmin() {
   const [openId, setOpenId] = useState<string | null>(null);
+  const [fresh, setFresh] = useState<string | null>(null);
   if (openId)
     return (
       <ResearchAuditWorkspace
         id={openId}
         onBack={() => setOpenId(null)}
+        autoResearch={fresh === openId}
         legacy={<AuditWorkspace id={openId} onBack={() => setOpenId(null)} />}
       />
     );
-  return <AuditList onOpen={setOpenId} />;
+  return (
+    <AuditList
+      onOpen={(id, created) => {
+        setFresh(created ? id : null);
+        setOpenId(id);
+      }}
+    />
+  );
 }
 
 /* -------------------------------------------------------------------- list */
 
-function AuditList({ onOpen }: { onOpen: (id: string) => void }) {
+function AuditList({ onOpen }: { onOpen: (id: string, created?: boolean) => void }) {
   const [audits, setAudits] = useState<AuditListItem[] | null>(null);
   const [leads, setLeads] = useState<AuthorAuditLead[] | null>(null);
   const [error, setError] = useState("");
@@ -149,11 +159,6 @@ function AuditList({ onOpen }: { onOpen: (id: string) => void }) {
   const [manual, setManual] = useState({
     authorName: "",
     bookTitle: "",
-    bookUrl: "",
-    websiteUrl: "",
-    amazonUrlOrAsin: "",
-    goodreadsUrl: "",
-    notes: "",
   });
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("all");
@@ -201,7 +206,7 @@ function AuditList({ onOpen }: { onOpen: (id: string) => void }) {
       { method: "POST", body: JSON.stringify({ leadId }) },
     );
     setCreating(false);
-    if (status === 201 && body.ok && body.item) onOpen(body.item.id);
+    if (status === 201 && body.ok && body.item) onOpen(body.item.id, true);
     else setError("Could not create audit from that lead.");
   }
 
@@ -217,7 +222,7 @@ function AuditList({ onOpen }: { onOpen: (id: string) => void }) {
       },
     );
     setCreating(false);
-    if (status === 201 && body.ok && body.item) onOpen(body.item.id);
+    if (status === 201 && body.ok && body.item) onOpen(body.item.id, true);
     else setError("Could not create the audit.");
   }
 
@@ -305,6 +310,8 @@ function AuditList({ onOpen }: { onOpen: (id: string) => void }) {
             <span className="text-sm font-medium">Author name</span>
             <input
               className={cn(input, "mt-1.5")}
+              required
+              maxLength={160}
               value={manual.authorName}
               onChange={(e) => setManual((m) => ({ ...m, authorName: e.target.value }))}
             />
@@ -313,33 +320,17 @@ function AuditList({ onOpen }: { onOpen: (id: string) => void }) {
             <span className="text-sm font-medium">Book title</span>
             <input
               className={cn(input, "mt-1.5")}
+              required
+              maxLength={300}
               value={manual.bookTitle}
               onChange={(e) => setManual((m) => ({ ...m, bookTitle: e.target.value }))}
             />
           </label>
         </div>
-        <div className="mt-4 grid gap-4 sm:grid-cols-2">
-          {(
-            [
-              ["bookUrl", "Book URL"],
-              ["websiteUrl", "Author website"],
-              ["amazonUrlOrAsin", "Amazon URL"],
-              ["goodreadsUrl", "Goodreads URL"],
-              ["notes", "Notes"],
-            ] as const
-          ).map(([key, title]) => (
-            <label key={key} className="text-sm">
-              {title} (optional)
-              <input
-                className={input}
-                value={manual[key]}
-                onChange={(event) =>
-                  setManual((current) => ({ ...current, [key]: event.target.value }))
-                }
-              />
-            </label>
-          ))}
-        </div>
+        <p className="mt-3 text-sm text-muted-foreground">
+          That's all we need. AI research finds the book's listings, website, socials and lists, and
+          validates the findings automatically.
+        </p>
         <button
           type="submit"
           disabled={creating}
@@ -374,7 +365,7 @@ function AuditList({ onOpen }: { onOpen: (id: string) => void }) {
         </select>
       </div>
       {audits === null ? (
-        <p className="text-sm text-muted-foreground">Loading audits…</p>
+        <GlassLoading label="Loading audits…" variant="list" rows={5} />
       ) : visibleAudits.length === 0 ? (
         <div className="audit-empty">
           <h3>{audits.length ? "No matching audits" : "Your next audit starts here"}</h3>
@@ -701,7 +692,7 @@ function AuditWorkspace({ id, onBack }: { id: string; onBack: () => void }) {
       </div>
     );
   }
-  if (!data) return <p className="text-sm text-muted-foreground">Loading…</p>;
+  if (!data) return <GlassLoading label="Opening audit…" variant="cards" rows={4} />;
 
   const {
     audit,

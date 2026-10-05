@@ -538,7 +538,7 @@ export function reviewIssues(
     .forEach((a) => errors.push(`Action references unapproved or hidden findings: ${a.title}`));
   return errors;
 }
-export const DEFAULT_PROMPT = `You are researching an evidence-led HQ360 book visibility consultancy audit. Return valid JSON only: no Markdown fences, HTML, scripts or invented evidence. Research public sources deeply. Distinguish verified_fact, direct_observation, supported_inference, possible_opportunity and unknown. Never treat lack of search results as proof of absence. Do not assume Listopia ranking algorithms or an author's interest in services. Cite exact source URLs and retrieval dates in evidence. Never invent screenshots; request specific captures in screenshot_queue. Unknown metrics must be null. Include strengths and services_not_to_pitch. Recommend only relevant services supported by evidence. All output is a research draft requiring human review.\n\nAudit: {{audit_id}}\nAuthor: {{author_name}}\nBook: {{book_title}}\nDate: {{date}}\nURLs and notes: {{context}}\n\nUse this exact JSON shape (all keys are required; narrative sections may be null or plain-text objects, queues may be empty). Each finding requires a title, category, what_we_found; use the demonstrated remaining fields. No review/approval/publication flags. Use exactly these values -- priority: immediate, high_impact, medium_priority, long_term or optional; classification: verified_fact, direct_observation, supported_inference, possible_opportunity or unknown; horizon: do_first, next_30_days, next_90_days or long_term; competition: low, medium, high or unknown. Use the field names shown and no others; use "" for an unknown list_url.\n{{schema}}`;
+export const DEFAULT_PROMPT = `You are researching an evidence-led HQ360 book visibility consultancy audit. Return valid JSON only: no Markdown fences, HTML, scripts or invented evidence. Research public sources deeply. Distinguish verified_fact, direct_observation, supported_inference, possible_opportunity and unknown. Never treat lack of search results as proof of absence. Do not assume Listopia ranking algorithms or an author's interest in services. Cite exact source URLs and retrieval dates in evidence. Never invent screenshots. Findings are validated automatically with no human verification step, so leave screenshot_queue and manual_review_queue empty and include only findings your sources support, each with a recommendation. Unknown metrics must be null. Include strengths and services_not_to_pitch. Recommend only relevant services supported by evidence. Research every area: Amazon, Goodreads and Listopia, the author's website, newsletter, social media, press, interviews, retailers and other titles.\n\nAudit: {{audit_id}}\nAuthor: {{author_name}}\nBook: {{book_title}}\nDate: {{date}}\nURLs and notes: {{context}}\n\nUse this exact JSON shape (all keys are required; narrative sections may be null or plain-text objects, queues may be empty). Each finding requires a title, category, what_we_found; use the demonstrated remaining fields. No review/approval/publication flags. Use exactly these values -- priority: immediate, high_impact, medium_priority, long_term or optional; classification: verified_fact, direct_observation, supported_inference, possible_opportunity or unknown; horizon: do_first, next_30_days, next_90_days or long_term; competition: low, medium, high or unknown. Use the field names shown and no others; use "" for an unknown list_url.\n{{schema}}`;
 export function promptFor(template: string, state: WorkflowState["audit"]) {
   const sample: Record<string, unknown> = {
     audit_meta: {
@@ -595,25 +595,10 @@ export function promptFor(template: string, state: WorkflowState["audit"]) {
       },
     ],
     screenshot_queue: [],
-    manual_review_queue: [
-      {
-        title: "What a human needs to check",
-        category: "amazon_audit",
-        instructions: "Why it needs manual verification and how to check it",
-        required: true,
-      },
-    ],
+    manual_review_queue: [],
     custom_sections: [],
     client_site: {},
   };
-  sample.screenshot_queue = [
-    {
-      title: "Listopia book position",
-      category: "goodreads_listopia_audit",
-      instructions: "Capture list name, page number, book position and two books above and below.",
-      required: true,
-    },
-  ];
   const values: Record<string, string> = {
     audit_id: state.id,
     author_name: state.authors.name,

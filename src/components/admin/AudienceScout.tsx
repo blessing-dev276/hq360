@@ -113,10 +113,15 @@ export function AudienceScout({
       });
     return () => controller.abort();
   }, [audience.id, refresh]);
+  // Retrying the same batch keeps its rows visible; a different batch clears.
+  const shownBatchRef = useRef<string | null>(null);
   useEffect(() => {
-    setLeads([]);
     setDetailError("");
-    setFilter("all");
+    if (shownBatchRef.current !== selected) {
+      setLeads([]);
+      setFilter("all");
+    }
+    shownBatchRef.current = selected || null;
     if (!selected) return;
     const controller = new AbortController();
     setDetailLoading(true);
@@ -468,7 +473,7 @@ export function AudienceScout({
             </select>
           </label>
         </div>
-        {loading ? (
+        {loading && batches.length === 0 ? (
           <GlassLoading label="Loading audience batches…" variant="list" rows={4} />
         ) : (
           <label className="block text-sm font-medium">
@@ -559,7 +564,12 @@ export function AudienceScout({
               </button>
             </p>
           )}
-          {detailLoading ? (
+          {detailLoading && leads.length > 0 && (
+            <p className="text-xs text-muted-foreground" role="status">
+              Refreshing leads…
+            </p>
+          )}
+          {detailLoading && leads.length === 0 ? (
             <GlassLoading label="Loading batch leads…" variant="table" rows={6} />
           ) : detailError ? null : !visible.length ? (
             <p className="rounded-xl bg-secondary/40 p-6 text-sm">

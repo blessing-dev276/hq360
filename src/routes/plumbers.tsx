@@ -2,14 +2,14 @@ import { createFileRoute } from "@tanstack/react-router";
 import { getIndustry } from "@/data/industries";
 import { IndustryPage } from "@/components/site/IndustryPage";
 import { industryHead } from "@/lib/page-heads";
-
-const industry = getIndustry("plumbers")!;
+import { INDUSTRY_HEADS } from "@/data/industry-heads";
 
 export const Route = createFileRoute("/plumbers")({
-  head: () => industryHead(industry),
+  head: () => industryHead(INDUSTRY_HEADS["plumbers"]!),
   component: RouteComponent,
 });
 
 function RouteComponent() {
+  const industry = getIndustry("plumbers")!;
   return <IndustryPage industry={industry} />;
 }

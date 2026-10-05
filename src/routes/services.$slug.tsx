@@ -7,7 +7,7 @@ import { getAuthorOffer } from "@/data/author-offers";
 import { AuthorOfferPage } from "@/components/site/AuthorOffers";
 import { capabilityHead } from "@/lib/page-heads";
 import { buildSeo } from "@/lib/seo";
-import { CapabilityDetailView } from "./capabilities.$slug";
+import { CapabilityDetailView } from "@/components/site/CapabilityDetailView";
 
 export const Route = createFileRoute("/services/$slug")({
   validateSearch: readInquiryContext,

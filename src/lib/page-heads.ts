@@ -1,8 +1,8 @@
-import type { Industry } from "@/data/industries";
+import type { IndustryHead } from "@/data/industry-heads";
 import type { Capability } from "@/data/capabilities";
 import { breadcrumbSchema, buildSeo, faqSchema, serviceSchema } from "@/lib/seo";
 
-export function industryHead(industry: Industry) {
+export function industryHead(industry: IndustryHead) {
   return buildSeo(
     {
       title: industry.seo.title,

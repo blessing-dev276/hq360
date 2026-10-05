@@ -409,13 +409,19 @@ function AuthorScout({ onBusyChange }: { onBusyChange: (busy: boolean) => void }
     return () => controller.abort();
   }, [source, catalog, loadAttempt, queryClient]);
 
+  // Re-opening the same batch (retry/refresh) keeps its rows on screen;
+  // switching to a different batch clears them so results never mislabel.
+  const shownBatchRef = useRef<string | null>(null);
   useEffect(() => {
     if (!selected) return;
     const controller = new AbortController();
     setDetailLoading(true);
     setDetailError("");
-    setBooks([]);
-    setReviewFilter("all");
+    if (shownBatchRef.current !== selected.id) {
+      setBooks([]);
+      setReviewFilter("all");
+    }
+    shownBatchRef.current = selected.id;
     api<{ items: Book[] }>(`/api/admin/scout-batches/${selected.id}`, undefined, controller.signal)
       .then((data) => setBooks(data.items))
       .catch((e) => {
@@ -996,7 +1002,7 @@ function AuthorScout({ onBusyChange }: { onBusyChange: (busy: boolean) => void }
               </select>
             </label>
           </div>
-          {loading ? (
+          {loading && batches.length === 0 ? (
             <GlassLoading label="Loading your batches…" variant="list" rows={4} />
           ) : (
             <label className="block text-sm font-medium">
@@ -1086,7 +1092,12 @@ function AuthorScout({ onBusyChange }: { onBusyChange: (busy: boolean) => void }
                 </button>
               </p>
             )}
-            {detailLoading ? (
+            {detailLoading && books.length > 0 && (
+              <p className="text-xs text-muted-foreground" role="status">
+                Refreshing batch…
+              </p>
+            )}
+            {detailLoading && books.length === 0 ? (
               <GlassLoading label="Loading author details…" variant="table" rows={6} />
             ) : detailError ? null : !visible.length ? (
               <p className="rounded-xl bg-secondary/40 p-6 text-sm">

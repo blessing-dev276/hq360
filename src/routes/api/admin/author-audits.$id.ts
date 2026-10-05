@@ -63,7 +63,13 @@ export const Route = createFileRoute("/api/admin/author-audits/$id")({
             .eq("id", params.id)
             .select("id")
             .maybeSingle();
-          if (error) return json({ ok: false, error: "delete_failed" }, 500);
+          if (error) {
+            console.error("[admin/author-audits] DELETE", error.code, error.message);
+            return json(
+              { ok: false, error: "delete_failed", detail: `${error.code ?? ""} ${error.message}` },
+              500,
+            );
+          }
           if (!data) return json({ ok: false, error: "not_found" }, 404);
           return json({ ok: true });
         } catch {

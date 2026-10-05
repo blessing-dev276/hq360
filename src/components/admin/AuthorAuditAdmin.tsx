@@ -174,13 +174,21 @@ function AuditList({ onOpen }: { onOpen: (id: string, created?: boolean) => void
       return;
     setDeleting(audit.id);
     setError("");
-    const result = await api<{ ok: boolean }>(`/api/admin/author-audits/${audit.id}`, {
-      method: "DELETE",
-    });
+    const result = await api<{ ok: boolean; error?: string; detail?: string }>(
+      `/api/admin/author-audits/${audit.id}`,
+      {
+        method: "DELETE",
+      },
+    );
     setDeleting(null);
     if (result.status === 200 && result.body.ok)
       setAudits((current) => current?.filter((item) => item.id !== audit.id) ?? null);
-    else setError("Could not delete this audit. Please try again.");
+    else
+      setError(
+        result.status === 401
+          ? "Only an admin can delete this audit."
+          : `Could not delete this audit.${result.body.detail ? ` (${result.body.detail})` : " Please try again."}`,
+      );
   }
 
   const load = useCallback(async () => {

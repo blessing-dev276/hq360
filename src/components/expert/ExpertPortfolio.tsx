@@ -302,7 +302,7 @@ export function ExpertPortfolio() {
       )}
 
       {loading ? (
-        <GlassLoading label="Loading your portfolio…" cards />
+        <GlassLoading label="Loading your portfolio…" variant="table" rows={3} cols={3} />
       ) : items.length === 0 ? (
         !showForm && (
           <div className="admin-empty">

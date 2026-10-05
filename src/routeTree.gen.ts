@@ -100,6 +100,7 @@ import { Route as ApiAdminTeamRouteImport } from './routes/api/admin/team'
 import { Route as ApiAdminTestimonialsRouteImport } from './routes/api/admin/testimonials'
 import { Route as ApiAdminUploadRouteImport } from './routes/api/admin/upload'
 import { Route as ApiAdminUploadUrlRouteImport } from './routes/api/admin/upload-url'
+import { Route as ApiAdminVisitorsRouteImport } from './routes/api/admin/visitors'
 import { Route as ApiExpertInviteRouteImport } from './routes/api/expert/invite'
 import { Route as ApiExpertInvoiceRequestsRouteImport } from './routes/api/expert/invoice-requests'
 import { Route as ApiExpertLeadsRouteImport } from './routes/api/expert/leads'
@@ -128,6 +129,7 @@ import { Route as ApiPublicPortfolioRouteImport } from './routes/api/public/port
 import { Route as ApiPublicResourceRequestRouteImport } from './routes/api/public/resource-request'
 import { Route as ApiPublicTeamRouteImport } from './routes/api/public/team'
 import { Route as ApiPublicTestimonialsRouteImport } from './routes/api/public/testimonials'
+import { Route as ApiPublicVisitRouteImport } from './routes/api/public/visit'
 import { Route as ApiPublicVoiceMessageRouteImport } from './routes/api/public/voice-message'
 import { Route as AuthorAuditAuthorBookRouteImport } from './routes/author-audit.$author.$book'
 import { Route as InsightsAnswersSlugRouteImport } from './routes/insights.answers.$slug'
@@ -649,6 +651,11 @@ const ApiAdminUploadUrlRoute = ApiAdminUploadUrlRouteImport.update({
   path: '/api/admin/upload-url',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAdminVisitorsRoute = ApiAdminVisitorsRouteImport.update({
+  id: '/api/admin/visitors',
+  path: '/api/admin/visitors',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiExpertInviteRoute = ApiExpertInviteRouteImport.update({
   id: '/api/expert/invite',
   path: '/api/expert/invite',
@@ -792,6 +799,11 @@ const ApiPublicTeamRoute = ApiPublicTeamRouteImport.update({
 const ApiPublicTestimonialsRoute = ApiPublicTestimonialsRouteImport.update({
   id: '/api/public/testimonials',
   path: '/api/public/testimonials',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicVisitRoute = ApiPublicVisitRouteImport.update({
+  id: '/api/public/visit',
+  path: '/api/public/visit',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicVoiceMessageRoute = ApiPublicVoiceMessageRouteImport.update({
@@ -1187,6 +1199,7 @@ export interface FileRoutesByFullPath {
   '/api/admin/testimonials': typeof ApiAdminTestimonialsRouteWithChildren
   '/api/admin/upload': typeof ApiAdminUploadRoute
   '/api/admin/upload-url': typeof ApiAdminUploadUrlRoute
+  '/api/admin/visitors': typeof ApiAdminVisitorsRoute
   '/api/expert/invite': typeof ApiExpertInviteRoute
   '/api/expert/invoice-requests': typeof ApiExpertInvoiceRequestsRoute
   '/api/expert/leads': typeof ApiExpertLeadsRoute
@@ -1215,6 +1228,7 @@ export interface FileRoutesByFullPath {
   '/api/public/resource-request': typeof ApiPublicResourceRequestRoute
   '/api/public/team': typeof ApiPublicTeamRoute
   '/api/public/testimonials': typeof ApiPublicTestimonialsRoute
+  '/api/public/visit': typeof ApiPublicVisitRoute
   '/api/public/voice-message': typeof ApiPublicVoiceMessageRoute
   '/author-audit/$author/$book': typeof AuthorAuditAuthorBookRoute
   '/insights/answers/$slug': typeof InsightsAnswersSlugRoute
@@ -1361,6 +1375,7 @@ export interface FileRoutesByTo {
   '/api/admin/testimonials': typeof ApiAdminTestimonialsRouteWithChildren
   '/api/admin/upload': typeof ApiAdminUploadRoute
   '/api/admin/upload-url': typeof ApiAdminUploadUrlRoute
+  '/api/admin/visitors': typeof ApiAdminVisitorsRoute
   '/api/expert/invite': typeof ApiExpertInviteRoute
   '/api/expert/invoice-requests': typeof ApiExpertInvoiceRequestsRoute
   '/api/expert/leads': typeof ApiExpertLeadsRoute
@@ -1389,6 +1404,7 @@ export interface FileRoutesByTo {
   '/api/public/resource-request': typeof ApiPublicResourceRequestRoute
   '/api/public/team': typeof ApiPublicTeamRoute
   '/api/public/testimonials': typeof ApiPublicTestimonialsRoute
+  '/api/public/visit': typeof ApiPublicVisitRoute
   '/api/public/voice-message': typeof ApiPublicVoiceMessageRoute
   '/author-audit/$author/$book': typeof AuthorAuditAuthorBookRoute
   '/insights/answers/$slug': typeof InsightsAnswersSlugRoute
@@ -1536,6 +1552,7 @@ export interface FileRoutesById {
   '/api/admin/testimonials': typeof ApiAdminTestimonialsRouteWithChildren
   '/api/admin/upload': typeof ApiAdminUploadRoute
   '/api/admin/upload-url': typeof ApiAdminUploadUrlRoute
+  '/api/admin/visitors': typeof ApiAdminVisitorsRoute
   '/api/expert/invite': typeof ApiExpertInviteRoute
   '/api/expert/invoice-requests': typeof ApiExpertInvoiceRequestsRoute
   '/api/expert/leads': typeof ApiExpertLeadsRoute
@@ -1564,6 +1581,7 @@ export interface FileRoutesById {
   '/api/public/resource-request': typeof ApiPublicResourceRequestRoute
   '/api/public/team': typeof ApiPublicTeamRoute
   '/api/public/testimonials': typeof ApiPublicTestimonialsRoute
+  '/api/public/visit': typeof ApiPublicVisitRoute
   '/api/public/voice-message': typeof ApiPublicVoiceMessageRoute
   '/author-audit/$author/$book': typeof AuthorAuditAuthorBookRoute
   '/insights/answers/$slug': typeof InsightsAnswersSlugRoute
@@ -1712,6 +1730,7 @@ export interface FileRouteTypes {
     | '/api/admin/testimonials'
     | '/api/admin/upload'
     | '/api/admin/upload-url'
+    | '/api/admin/visitors'
     | '/api/expert/invite'
     | '/api/expert/invoice-requests'
     | '/api/expert/leads'
@@ -1740,6 +1759,7 @@ export interface FileRouteTypes {
     | '/api/public/resource-request'
     | '/api/public/team'
     | '/api/public/testimonials'
+    | '/api/public/visit'
     | '/api/public/voice-message'
     | '/author-audit/$author/$book'
     | '/insights/answers/$slug'
@@ -1886,6 +1906,7 @@ export interface FileRouteTypes {
     | '/api/admin/testimonials'
     | '/api/admin/upload'
     | '/api/admin/upload-url'
+    | '/api/admin/visitors'
     | '/api/expert/invite'
     | '/api/expert/invoice-requests'
     | '/api/expert/leads'
@@ -1914,6 +1935,7 @@ export interface FileRouteTypes {
     | '/api/public/resource-request'
     | '/api/public/team'
     | '/api/public/testimonials'
+    | '/api/public/visit'
     | '/api/public/voice-message'
     | '/author-audit/$author/$book'
     | '/insights/answers/$slug'
@@ -2060,6 +2082,7 @@ export interface FileRouteTypes {
     | '/api/admin/testimonials'
     | '/api/admin/upload'
     | '/api/admin/upload-url'
+    | '/api/admin/visitors'
     | '/api/expert/invite'
     | '/api/expert/invoice-requests'
     | '/api/expert/leads'
@@ -2088,6 +2111,7 @@ export interface FileRouteTypes {
     | '/api/public/resource-request'
     | '/api/public/team'
     | '/api/public/testimonials'
+    | '/api/public/visit'
     | '/api/public/voice-message'
     | '/author-audit/$author/$book'
     | '/insights/answers/$slug'
@@ -2235,6 +2259,7 @@ export interface RootRouteChildren {
   ApiAdminTestimonialsRoute: typeof ApiAdminTestimonialsRouteWithChildren
   ApiAdminUploadRoute: typeof ApiAdminUploadRoute
   ApiAdminUploadUrlRoute: typeof ApiAdminUploadUrlRoute
+  ApiAdminVisitorsRoute: typeof ApiAdminVisitorsRoute
   ApiExpertInviteRoute: typeof ApiExpertInviteRoute
   ApiExpertInvoiceRequestsRoute: typeof ApiExpertInvoiceRequestsRoute
   ApiExpertLeadsRoute: typeof ApiExpertLeadsRoute
@@ -2263,6 +2288,7 @@ export interface RootRouteChildren {
   ApiPublicResourceRequestRoute: typeof ApiPublicResourceRequestRoute
   ApiPublicTeamRoute: typeof ApiPublicTeamRoute
   ApiPublicTestimonialsRoute: typeof ApiPublicTestimonialsRoute
+  ApiPublicVisitRoute: typeof ApiPublicVisitRoute
   ApiPublicVoiceMessageRoute: typeof ApiPublicVoiceMessageRoute
   AuthorAuditAuthorBookRoute: typeof AuthorAuditAuthorBookRoute
   InsightsAnswersSlugRoute: typeof InsightsAnswersSlugRoute
@@ -2913,6 +2939,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAdminUploadUrlRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/admin/visitors': {
+      id: '/api/admin/visitors'
+      path: '/api/admin/visitors'
+      fullPath: '/api/admin/visitors'
+      preLoaderRoute: typeof ApiAdminVisitorsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/expert/invite': {
       id: '/api/expert/invite'
       path: '/api/expert/invite'
@@ -3107,6 +3140,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/testimonials'
       fullPath: '/api/public/testimonials'
       preLoaderRoute: typeof ApiPublicTestimonialsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/visit': {
+      id: '/api/public/visit'
+      path: '/api/public/visit'
+      fullPath: '/api/public/visit'
+      preLoaderRoute: typeof ApiPublicVisitRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/voice-message': {
@@ -3916,6 +3956,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAdminTestimonialsRoute: ApiAdminTestimonialsRouteWithChildren,
   ApiAdminUploadRoute: ApiAdminUploadRoute,
   ApiAdminUploadUrlRoute: ApiAdminUploadUrlRoute,
+  ApiAdminVisitorsRoute: ApiAdminVisitorsRoute,
   ApiExpertInviteRoute: ApiExpertInviteRoute,
   ApiExpertInvoiceRequestsRoute: ApiExpertInvoiceRequestsRoute,
   ApiExpertLeadsRoute: ApiExpertLeadsRoute,
@@ -3944,6 +3985,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicResourceRequestRoute: ApiPublicResourceRequestRoute,
   ApiPublicTeamRoute: ApiPublicTeamRoute,
   ApiPublicTestimonialsRoute: ApiPublicTestimonialsRoute,
+  ApiPublicVisitRoute: ApiPublicVisitRoute,
   ApiPublicVoiceMessageRoute: ApiPublicVoiceMessageRoute,
   AuthorAuditAuthorBookRoute: AuthorAuditAuthorBookRoute,
   InsightsAnswersSlugRoute: InsightsAnswersSlugRoute,

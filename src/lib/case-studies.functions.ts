@@ -1,10 +1,10 @@
 import { createServerFn } from "@tanstack/react-start";
-import { z } from "zod";
+import { optionalSlug } from "@/lib/slug-input";
 import { CASE_STUDIES, type CaseStudy } from "@/data/work";
-import { toCaseStudyShape } from "@/lib/case-study-shape";
+import { toCaseStudyShape } from "@/lib/case-study-view";
 
 export const loadCaseStudies = createServerFn({ method: "GET" })
-  .inputValidator(z.object({ slug: z.string().max(160).optional() }))
+  .inputValidator(optionalSlug(160))
   .handler(async ({ data }) => {
     const { readPublishedCaseStudies } = await import("./case-studies.server");
     try {

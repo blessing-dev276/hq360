@@ -526,7 +526,7 @@ export function ArcScout({
             </button>
           )}
         {loading ? (
-          <GlassLoading label="Loading saved discoveries…" cards />
+          <GlassLoading label="Loading saved discoveries…" variant="list" rows={4} />
         ) : items.length && batch ? (
           items.map((item) => (
             <Listing key={item.id} item={item} batch={batch} disabled={!!busy} onSave={save} />

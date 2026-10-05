@@ -1,7 +1,8 @@
+import { LoadingRegion, SkeletonCard, SkeletonGrid } from "@/components/ui/skeleton";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchPublicContent } from "@/lib/public-content";
-import { toCaseStudyShape, type SerializedCaseStudy } from "@/lib/case-study-shape";
+import { toCaseStudyShape, type SerializedCaseStudy } from "@/lib/case-study-view";
 import { CASE_STUDIES, type CaseStudy } from "@/data/work";
 import { CORE_SERVICES, AUDIENCES } from "@/data/agency";
 import {
@@ -92,9 +93,11 @@ export function AgencyWork({
         </div>
       )}
       {(portfolio.isPending || cases.isPending) && (
-        <p role="status" className="my-6 text-sm text-muted-foreground">
-          Loading published work…
-        </p>
+        <LoadingRegion label="Loading published work" className="my-6">
+          <SkeletonGrid count={3} min="18rem">
+            <SkeletonCard media />
+          </SkeletonGrid>
+        </LoadingRegion>
       )}
       {(portfolio.isError || cases.isError) && (
         <p role="status" className="my-6 text-sm">

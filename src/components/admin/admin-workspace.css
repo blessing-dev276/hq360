@@ -50,7 +50,6 @@
   width: 236px;
   flex: 0 0 236px;
   background: linear-gradient(180deg, rgb(255 255 255 / 0.035), rgb(255 255 255 / 0.01));
-  backdrop-filter: blur(18px);
   color: #aab3b8;
   padding: 30px 16px 20px;
   display: flex;
@@ -227,7 +226,6 @@
   padding: 22px 24px;
   border: 1px solid var(--border);
   background: var(--glass);
-  backdrop-filter: blur(14px);
   border-radius: var(--radius-card);
   box-shadow: var(--glass-shadow);
 }
@@ -278,7 +276,6 @@
 .admin-content-panel {
   border: 1px solid var(--border);
   background: var(--glass);
-  backdrop-filter: blur(14px);
   border-radius: var(--radius-card);
   box-shadow: var(--glass-shadow);
   overflow: hidden;
@@ -1040,7 +1037,6 @@
 /* Tailwind-built cards inside sub-screens pick up the same frosted glass. */
 .admin-workspace .bg-card {
   background: var(--glass);
-  backdrop-filter: blur(14px);
   box-shadow: var(--glass-shadow);
 }
 .admin-workspace .bg-card.rounded-xl,
@@ -1435,7 +1431,9 @@
 }
 .leads-stat.active {
   border-color: var(--brand);
-  box-shadow: 0 0 0 1px var(--brand) inset, var(--glass-shadow);
+  box-shadow:
+    0 0 0 1px var(--brand) inset,
+    var(--glass-shadow);
 }
 .leads-stages {
   display: flex;

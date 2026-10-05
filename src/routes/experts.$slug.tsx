@@ -1,3 +1,4 @@
+import { LoadingRegion, Skeleton } from "@/components/ui/skeleton";
 import { resolveExpertSlug } from "@/lib/expert-slug.functions";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useLayoutEffect, useRef, useState } from "react";
@@ -267,12 +268,29 @@ function ExpertProfilePage() {
             <span className="hqd-hero-shade" aria-hidden="true" />
             <Grain />
             <div className="hqd-page-inner">
-              <div>
-                <p className="hqd-hero-kicker">{loading ? "Loading profile…" : "Expert profile"}</p>
-                <h1 className="hqd-page-title" style={{ fontSize: "clamp(2.8rem, 8vw, 6rem)" }}>
-                  {loading ? "One moment." : "Profile not found."}
-                </h1>
-              </div>
+              {loading ? (
+                <LoadingRegion label="Loading profile" className="hqd-profile-skeleton">
+                  <span className="hq-skel-row" style={{ gap: 24 }}>
+                    <Skeleton variant="circle" height={112} />
+                    <span className="hq-skel-stack" style={{ flex: 1, gap: 14 }}>
+                      <Skeleton width={140} height={11} />
+                      <Skeleton width="70%" height={56} />
+                      <Skeleton width="45%" height={18} />
+                    </span>
+                  </span>
+                  <span className="hq-skel-row" style={{ marginTop: 28 }}>
+                    <Skeleton variant="pill" width={150} height={46} />
+                    <Skeleton variant="pill" width={120} height={46} />
+                  </span>
+                </LoadingRegion>
+              ) : (
+                <div>
+                  <p className="hqd-hero-kicker">Expert profile</p>
+                  <h1 className="hqd-page-title" style={{ fontSize: "clamp(2.8rem, 8vw, 6rem)" }}>
+                    Profile not found.
+                  </h1>
+                </div>
+              )}
               {!loading && (
                 <div className="hqd-hero-aside">
                   <p>This profile may be private or no longer listed.</p>

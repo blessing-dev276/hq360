@@ -1,3 +1,4 @@
+import { LoadingRegion, Skeleton } from "@/components/ui/skeleton";
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { ArrowUpRight, CheckCircle2, LockKeyhole, RefreshCw, Printer } from "lucide-react";
@@ -99,9 +100,24 @@ function BuyerInvoice() {
         <section className="buyer-invoice-card">
           <div className="buyer-stripe" aria-hidden="true" />
           {loading ? (
-            <div className="buyer-empty" role="status">
-              <p>Loading your invoice…</p>
-            </div>
+            <LoadingRegion label="Loading your invoice" className="buyer-card-inner">
+              <span className="hq-skel-row" style={{ justifyContent: "space-between" }}>
+                <Skeleton width={120} height={36} />
+                <Skeleton width={90} height={30} />
+              </span>
+              <Skeleton width={110} height={14} style={{ marginTop: 28 }} />
+              <Skeleton width="80%" height={12} style={{ marginTop: 10 }} />
+              <Skeleton height={112} radius={16} style={{ marginTop: 24 }} />
+              <span className="hq-skel-stack" style={{ marginTop: 24, gap: 18 }}>
+                {[0, 1, 2, 3].map((i) => (
+                  <span key={i} className="hq-skel-row" style={{ justifyContent: "space-between" }}>
+                    <Skeleton width="28%" height={12} />
+                    <Skeleton width="34%" height={12} />
+                  </span>
+                ))}
+              </span>
+              <Skeleton variant="pill" width={200} height={50} style={{ margin: "30px auto 0" }} />
+            </LoadingRegion>
           ) : !inv || !data ? (
             <div className="buyer-empty">
               <h1>Invoice unavailable</h1>

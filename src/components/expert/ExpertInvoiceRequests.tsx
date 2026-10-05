@@ -1,3 +1,4 @@
+import { GlassLoading } from "@/components/ui/glass-loading";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { AlertCircle, Check, CircleCheck, Copy, Send } from "lucide-react";
 import { money } from "@/lib/payments/types";
@@ -213,9 +214,7 @@ export function ExpertInvoiceRequests() {
       )}
 
       {loading ? (
-        <div className="admin-empty" role="status">
-          Loading…
-        </div>
+        <GlassLoading label="Loading your invoice requests…" variant="table" rows={3} />
       ) : requests.length === 0 ? (
         !showForm && (
           <div className="admin-empty">

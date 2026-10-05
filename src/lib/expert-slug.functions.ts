@@ -1,10 +1,10 @@
 import { createServerFn } from "@tanstack/react-start";
-import { z } from "zod";
+import { requiredSlug } from "@/lib/slug-input";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 /** Resolve old URLs only for profiles that are currently public and approved. */
 export const resolveExpertSlug = createServerFn({ method: "GET" })
-  .inputValidator(z.object({ slug: z.string().min(1).max(200) }))
+  .inputValidator(requiredSlug(200))
   .handler(async ({ data }) => {
     try {
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");

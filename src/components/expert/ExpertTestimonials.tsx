@@ -257,7 +257,7 @@ export function ExpertTestimonials() {
       )}
 
       {loading ? (
-        <GlassLoading label="Loading your testimonials…" />
+        <GlassLoading label="Loading your testimonials…" variant="table" rows={3} cols={3} />
       ) : items.length === 0 ? (
         !showForm && (
           <div className="admin-empty">

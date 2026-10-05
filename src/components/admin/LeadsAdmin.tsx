@@ -1,3 +1,4 @@
+import { GlassLoading } from "@/components/ui/glass-loading";
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import {
   AlertCircle,
@@ -360,9 +361,7 @@ export function LeadsWorkspace({ scope }: { scope: Scope }) {
         </div>
 
         {!data && !error ? (
-          <div className="admin-empty" role="status">
-            Loading leads…
-          </div>
+          <GlassLoading label="Loading leads…" variant="list" rows={5} />
         ) : visible.length === 0 ? (
           <div className="admin-empty">
             <h3>{items.length ? "No leads match" : "No leads yet"}</h3>

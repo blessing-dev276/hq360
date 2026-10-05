@@ -1,10 +1,11 @@
+import { GlassLoading } from "@/components/ui/glass-loading";
 import { ScoutApp } from "./ScoutApp";
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { cn } from "@/lib/utils";
 import { CAPABILITIES } from "@/data/capabilities";
 import { INDUSTRIES } from "@/data/industries";
 import { uploadAdminMedia, type AdminBucket } from "@/lib/admin-upload";
-import type { SerializedCaseStudy } from "@/lib/case-study-shape";
+import type { SerializedCaseStudy } from "@/lib/case-study-view";
 import { AuthorAuditAdmin } from "@/components/admin/AuthorAuditAdmin";
 import { ExpertsAdmin } from "@/components/admin/ExpertsAdmin";
 import { VisitorsAdmin } from "@/components/admin/VisitorsAdmin";
@@ -242,7 +243,16 @@ export function AdminApp({ initialTab = "overview" }: { initialTab?: Tab }) {
         </a>
         <p className="admin-nav-label">WORKSPACE</p>
         <nav aria-label="Admin navigation">
-          {["overview", "scout", "audits", "experts", "visitors", "projects", "payments", "work"].map((key) =>
+          {[
+            "overview",
+            "scout",
+            "audits",
+            "experts",
+            "visitors",
+            "projects",
+            "payments",
+            "work",
+          ].map((key) =>
             (() => {
               const { id, label, icon: Icon } = NAV.find((item) => item.id === key)!;
               return (
@@ -590,7 +600,7 @@ function PortfolioDashboard() {
       ) : null}
 
       {items === null ? (
-        <p className="text-sm text-muted-foreground">Loading items…</p>
+        <GlassLoading label="Loading portfolio…" variant="cards" rows={4} />
       ) : items.length === 0 && !loadError ? (
         <p className="text-sm text-muted-foreground">No portfolio items yet. Add one above.</p>
       ) : view === "flat" ? (
@@ -1186,7 +1196,7 @@ function TeamDashboard() {
       ) : null}
 
       {members === null ? (
-        <p className="text-sm text-muted-foreground">Loading team…</p>
+        <GlassLoading label="Loading team…" variant="list" rows={4} />
       ) : members.length === 0 && !loadError ? (
         <p className="text-sm text-muted-foreground">No team members yet. Add one above.</p>
       ) : (
@@ -1670,7 +1680,7 @@ function CaseStudyDashboard() {
       ) : null}
 
       {items === null ? (
-        <p className="text-sm text-muted-foreground">Loading case studies…</p>
+        <GlassLoading label="Loading case studies…" variant="cards" rows={4} />
       ) : items.length === 0 && !loadError ? (
         <p className="text-sm text-muted-foreground">No case studies yet. Add one above.</p>
       ) : (
@@ -2318,7 +2328,7 @@ function TestimonialDashboard() {
       ) : null}
 
       {items === null ? (
-        <p className="text-sm text-muted-foreground">Loading testimonials…</p>
+        <GlassLoading label="Loading testimonials…" variant="cards" rows={4} />
       ) : items.length === 0 && !loadError ? (
         <p className="text-sm text-muted-foreground">No testimonials yet. Add one above.</p>
       ) : (

@@ -884,7 +884,7 @@ function AuthorScout({ onBusyChange }: { onBusyChange: (busy: boolean) => void }
         </div>
       </form>
       {(source === "reedsy_discovery" ? genreLoading : rfLoading) && (
-        <GlassLoading label="Loading review categories…" />
+        <GlassLoading label="Loading review categories…" rows={1} />
       )}
       {jobs.length > 0 && (
         <section aria-label="Generation batches" className="space-y-3">
@@ -997,7 +997,7 @@ function AuthorScout({ onBusyChange }: { onBusyChange: (busy: boolean) => void }
             </label>
           </div>
           {loading ? (
-            <GlassLoading label="Loading your batches…" />
+            <GlassLoading label="Loading your batches…" variant="list" rows={4} />
           ) : (
             <label className="block text-sm font-medium">
               Choose a batch
@@ -1087,7 +1087,7 @@ function AuthorScout({ onBusyChange }: { onBusyChange: (busy: boolean) => void }
               </p>
             )}
             {detailLoading ? (
-              <GlassLoading label="Loading author details…" cards />
+              <GlassLoading label="Loading author details…" variant="table" rows={6} />
             ) : detailError ? null : !visible.length ? (
               <p className="rounded-xl bg-secondary/40 p-6 text-sm">
                 {books.length

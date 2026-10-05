@@ -1,58 +1,69 @@
 import { Loader2 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import {
+  LoadingRegion,
+  SkeletonForm,
+  SkeletonGrid,
+  SkeletonList,
+  SkeletonProfile,
+  SkeletonStats,
+  SkeletonTable,
+  SkeletonText,
+} from "@/components/ui/skeleton";
 
-/** In-place loading feedback that preserves space and respects reduced motion. */
+export type LoadingVariant = "text" | "cards" | "table" | "list" | "profile" | "form" | "stats";
+
+/** In-place loading feedback for a panel: a short status line (with optional
+ *  progress) above a shimmer skeleton shaped like the content that's coming.
+ *  Built on the shared skeleton system; no backdrop blur (cheap to paint).
+ *  `cards` is kept for existing callers and means `variant="cards"`. */
 export function GlassLoading({
   label = "Loading…",
   cards = false,
+  variant,
+  rows,
+  cols,
   progress,
 }: {
   label?: string;
   cards?: boolean;
+  variant?: LoadingVariant;
+  rows?: number;
+  cols?: number;
   progress?: { done: number; total: number } | undefined;
 }) {
+  const kind: LoadingVariant = variant ?? (cards ? "cards" : "text");
   return (
-    <div
-      role="status"
-      aria-live="polite"
-      className="relative overflow-hidden rounded-2xl border border-border/60 bg-background/60 p-5 shadow-sm backdrop-blur-xl"
-    >
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute -top-12 right-0 size-40 rounded-full bg-primary/5 blur-3xl"
-      />
-      <div className="relative flex items-center gap-3 text-sm font-medium">
-        <Loader2 aria-hidden="true" className="size-4 motion-safe:animate-spin" />
-        {label}
+    <LoadingRegion label={label} delay={progress ? 0 : 140}>
+      <div className="flex items-center gap-2.5 pb-4 text-sm text-muted-foreground">
+        <Loader2 aria-hidden="true" className="size-4 text-brand motion-safe:animate-spin" />
+        <span aria-hidden="true">{label}</span>
       </div>
       {progress && (
         <progress
           aria-label={label}
           value={progress.done}
           max={Math.max(1, progress.total)}
-          className="mt-4 h-1.5 w-full accent-primary"
+          className="mb-4 h-1.5 w-full accent-primary"
         />
       )}
-      <div
-        aria-hidden="true"
-        className={cn("mt-5 grid gap-4 motion-safe:animate-pulse", cards && "sm:grid-cols-2")}
-      >
-        {Array.from({ length: cards ? 2 : 1 }, (_, index) => (
-          <div
-            key={index}
-            className="space-y-3 rounded-xl border border-border/40 bg-background/40 p-4"
-          >
-            <div className="h-4 w-2/5 rounded bg-primary/10" />
-            <div className="h-3 w-4/5 rounded bg-primary/5" />
-            {cards && (
-              <>
-                <div className="h-3 w-3/5 rounded bg-primary/5" />
-                <div className="h-14 rounded-lg bg-primary/5" />
-              </>
-            )}
-          </div>
-        ))}
-      </div>
-    </div>
+      {kind === "cards" ? (
+        <SkeletonGrid count={rows ?? 2} />
+      ) : kind === "table" ? (
+        <SkeletonTable rows={rows ?? 5} cols={cols ?? 4} />
+      ) : kind === "list" ? (
+        <SkeletonList rows={rows ?? 4} />
+      ) : kind === "profile" ? (
+        <SkeletonProfile />
+      ) : kind === "form" ? (
+        <SkeletonForm />
+      ) : kind === "stats" ? (
+        <SkeletonStats />
+      ) : (
+        <SkeletonText lines={rows ?? 3} />
+      )}
+    </LoadingRegion>
   );
 }
+
+/** Alias with a clearer name for new code. */
+export { GlassLoading as LoadingPanel };

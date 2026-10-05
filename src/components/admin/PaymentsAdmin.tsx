@@ -1,3 +1,4 @@
+import { GlassLoading } from "@/components/ui/glass-loading";
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import {
   Ban,
@@ -429,9 +430,9 @@ export function PaymentsAdmin() {
             />
           </label>
         </div>
-        {loading ? (
-          <div className="admin-empty" role="status">
-            Loading invoices…
+        {loading && invoices.length === 0 ? (
+          <div style={{ padding: "0 25px 20px" }}>
+            <GlassLoading label="Loading invoices…" variant="table" rows={6} cols={5} />
           </div>
         ) : visible.length ? (
           <div className="admin-table-scroll">

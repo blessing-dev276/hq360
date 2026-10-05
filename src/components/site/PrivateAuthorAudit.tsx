@@ -1,3 +1,4 @@
+import { AuditReportSkeleton } from "@/components/site/loading/AuditReportSkeleton";
 import { ResearchAuditReport } from "./ResearchAuditReport";
 import type { WorkflowSnapshot } from "@/lib/author-audit/workflow.server";
 import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from "react";
@@ -138,12 +139,7 @@ export function PrivateAuditLoader({ slug }: { slug: string }) {
         <a href="/author-audit">Return to private access</a>
       </div>
     );
-  if (!data)
-    return (
-      <div className="pa-loading" role="status">
-        Preparing your private audit…
-      </div>
-    );
+  if (!data) return <AuditReportSkeleton />;
   return (
     <>
       {updated && (

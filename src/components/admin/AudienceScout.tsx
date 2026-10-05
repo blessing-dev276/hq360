@@ -469,7 +469,7 @@ export function AudienceScout({
           </label>
         </div>
         {loading ? (
-          <GlassLoading label="Loading audience batches…" />
+          <GlassLoading label="Loading audience batches…" variant="list" rows={4} />
         ) : (
           <label className="block text-sm font-medium">
             Choose a batch
@@ -560,7 +560,7 @@ export function AudienceScout({
             </p>
           )}
           {detailLoading ? (
-            <GlassLoading label="Loading batch leads…" cards />
+            <GlassLoading label="Loading batch leads…" variant="table" rows={6} />
           ) : detailError ? null : !visible.length ? (
             <p className="rounded-xl bg-secondary/40 p-6 text-sm">
               {leads.length

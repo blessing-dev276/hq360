@@ -16,8 +16,7 @@ import { SiteHeader } from "@/components/site/SiteHeader";
 import { SiteFooter } from "@/components/site/SiteFooter";
 import { CookieBanner } from "@/components/site/CookieBanner";
 import { VisitTracker } from "@/components/site/VisitTracker";
-import { LeadPopup } from "@/components/site/LeadPopup";
-import { VoiceMessage } from "@/components/site/VoiceMessage";
+import { DeferredWidgets } from "@/components/site/DeferredWidgets";
 import { BRAND } from "@/config/brand";
 import { organizationSchema, serializeJsonLd } from "@/lib/seo";
 
@@ -132,8 +131,7 @@ function RootComponent() {
             <SiteFooter />
             <CookieBanner />
             <VisitTracker />
-            <LeadPopup />
-            <VoiceMessage />
+            <DeferredWidgets />
           </>
         )}
       </div>

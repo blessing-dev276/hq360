@@ -7,7 +7,7 @@ import { getCapability } from "@/data/capabilities";
 import { SampleBadge } from "@/components/site/Primitives";
 import { Reveal } from "@/components/site/Reveal";
 import { fetchPublicContent } from "@/lib/public-content";
-import { toCaseStudyShape, type SerializedCaseStudy } from "@/lib/case-study-shape";
+import { toCaseStudyShape, type SerializedCaseStudy } from "@/lib/case-study-view";
 
 /** Route-provided published studies cover SSR; browser queries keep the list fresh. */
 function useCaseStudies(initialStudies?: CaseStudy[]): CaseStudy[] {

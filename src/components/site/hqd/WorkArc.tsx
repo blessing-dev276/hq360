@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchPublicContent } from "@/lib/public-content";
-import { toCaseStudyShape, type SerializedCaseStudy } from "@/lib/case-study-shape";
+import { toCaseStudyShape, type SerializedCaseStudy } from "@/lib/case-study-view";
 import { CASE_STUDIES, type CaseStudy } from "@/data/work";
 import { buildAgencyProof, type PortfolioProof } from "@/lib/agency-work";
 

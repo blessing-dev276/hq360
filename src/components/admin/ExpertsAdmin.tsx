@@ -1,3 +1,5 @@
+import { Skeleton } from "@/components/ui/skeleton";
+import { GlassLoading } from "@/components/ui/glass-loading";
 import { useCallback, useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
 import {
   AlertCircle,
@@ -344,24 +346,28 @@ export function ExpertsAdmin() {
         style={{ gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))" }}
       >
         <Stat
+          loading={loading && experts.length === 0}
           label="Experts"
           icon={Users}
           value={experts.filter((e) => !e.is_guest).length}
           note={`${experts.filter((e) => e.status === "approved" && !e.is_guest).length} approved · ${experts.filter((e) => e.is_guest).length} guests`}
         />
         <Stat
+          loading={loading && experts.length === 0}
           label="Needs your action"
           icon={Inbox}
           value={attentionCount}
           note="Accounts, profiles and portfolio"
         />
         <Stat
+          loading={loading && experts.length === 0}
           label="Published profiles"
           icon={BadgeCheck}
           value={experts.filter((e) => e.is_public).length}
           note="Live on /experts"
         />
         <Stat
+          loading={loading && experts.length === 0}
           label="Portfolio live"
           icon={Images}
           value={portfolio.filter((i) => i.status === "approved").length}
@@ -400,9 +406,9 @@ export function ExpertsAdmin() {
             <RefreshCw size={17} className={loading ? "animate-spin" : ""} />
           </button>
         </div>
-        {loading ? (
-          <div className="admin-empty" role="status">
-            Loading…
+        {loading && experts.length === 0 ? (
+          <div style={{ padding: "0 25px 20px" }}>
+            <GlassLoading label="Loading what needs your action…" variant="list" rows={3} />
           </div>
         ) : attentionCount === 0 ? (
           <div className="admin-empty">
@@ -612,9 +618,9 @@ export function ExpertsAdmin() {
             />
           </label>
         </div>
-        {loading ? (
-          <div className="admin-empty" role="status">
-            Loading experts…
+        {loading && experts.length === 0 ? (
+          <div style={{ padding: "0 25px 20px" }}>
+            <GlassLoading label="Loading experts…" variant="table" rows={5} />
           </div>
         ) : visible.length === 0 ? (
           <div className="admin-empty">
@@ -885,19 +891,30 @@ function Stat({
   icon: Icon,
   value,
   note,
+  loading = false,
 }: {
   label: string;
   icon: typeof Users;
   value: number;
   note: string;
+  loading?: boolean;
 }) {
   return (
     <div className="admin-stat">
       <div>
         {label} <Icon size={18} />
       </div>
-      <strong>{value}</strong>
-      <small>{note}</small>
+      {loading ? (
+        <>
+          <Skeleton width="40%" height={30} style={{ margin: "18px 0 10px" }} />
+          <Skeleton width="65%" height={10} />
+        </>
+      ) : (
+        <>
+          <strong className="hq-fade-in">{value}</strong>
+          <small className="hq-fade-in">{note}</small>
+        </>
+      )}
     </div>
   );
 }

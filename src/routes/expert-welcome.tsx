@@ -3,7 +3,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { ArrowUpRight } from "lucide-react";
 import { AuthShell } from "@/components/auth/AuthShell";
 import { GlassLoading } from "@/components/ui/glass-loading";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/integrations/supabase/lazy";
 
 export const Route = createFileRoute("/expert-welcome")({
   head: () => ({
@@ -58,7 +58,7 @@ function ExpertWelcome() {
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(data.error || "Could not set your password.");
-      await supabase.auth.signInWithPassword({ email: invite.email, password });
+      await (await getSupabase()).auth.signInWithPassword({ email: invite.email, password });
       window.location.assign("/expert");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not set your password.");

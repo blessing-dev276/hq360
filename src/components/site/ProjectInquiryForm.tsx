@@ -1,6 +1,5 @@
 import { trackConversion } from "@/lib/google-analytics";
 import { useState, type FormEvent } from "react";
-import { z } from "zod";
 import { cn } from "@/lib/utils";
 import { AUDIENCES, CORE_SERVICES } from "@/data/agency";
 import { inquirySourcePath } from "@/lib/inquiry-context";
@@ -9,20 +8,32 @@ const HELP_OPTIONS = CORE_SERVICES.map((c) => c.name);
 const BUDGETS = ["Not sure yet", "Under $5k", "$5k – $15k", "$15k – $50k", "$50k+"];
 const TIMELINES = ["As soon as possible", "Within 1–3 months", "In 3–6 months", "Just exploring"];
 
-const schema = z.object({
-  name: z.string().min(2, "Enter your name").max(160),
-  email: z.string().email("Enter a valid email").max(320),
-  company: z.string().optional(),
-  website: z.string().optional(),
-  industry: z.string().optional(),
-  helpWith: z.array(z.string()).min(1, "Pick at least one area"),
-  primaryGoal: z.string().optional(),
-  budgetRange: z.string().optional(),
-  timeline: z.string().optional(),
-  message: z.string().optional(),
-});
+type Candidate = {
+  name: string;
+  email: string;
+  company: string;
+  website: string;
+  industry: string;
+  helpWith: string[];
+  primaryGoal: string;
+  budgetRange: string;
+  timeline: string;
+  message: string;
+};
 
-type Errors = Partial<Record<keyof z.infer<typeof schema>, string>> & { form?: string };
+// Hand-written checks (same messages as before) instead of zod: this form is
+// on most marketing pages, and zod would ship to every visitor. The API
+// validates the full payload again on the server.
+const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+function validate(c: Candidate): Partial<Record<keyof Candidate, string>> {
+  const errors: Partial<Record<keyof Candidate, string>> = {};
+  if (c.name.length < 2 || c.name.length > 160) errors.name = "Enter your name";
+  if (!EMAIL.test(c.email) || c.email.length > 320) errors.email = "Enter a valid email";
+  if (c.helpWith.length < 1) errors.helpWith = "Pick at least one area";
+  return errors;
+}
+
+type Errors = Partial<Record<keyof Candidate, string>> & { form?: string };
 
 export function ProjectInquiryForm({
   defaultIndustry,
@@ -57,7 +68,7 @@ export function ProjectInquiryForm({
     if (state === "sending") return;
 
     const fd = new FormData(e.currentTarget);
-    const candidate = {
+    const candidate: Candidate = {
       name: String(fd.get("name") ?? "").trim(),
       email: String(fd.get("email") ?? "").trim(),
       company: String(fd.get("company") ?? "").trim(),
@@ -70,14 +81,11 @@ export function ProjectInquiryForm({
       message: String(fd.get("message") ?? "").trim(),
     };
 
-    const parsed = schema.safeParse(candidate);
-    if (!parsed.success) {
-      const next: Errors = {};
-      for (const issue of parsed.error.issues) {
-        next[issue.path[0] as keyof Errors] = issue.message;
-      }
-      setErrors(next);
-      const field = e.currentTarget.elements.namedItem(String(parsed.error.issues[0]?.path[0]));
+    const found = validate(candidate);
+    const firstInvalid = Object.keys(found)[0];
+    if (firstInvalid) {
+      setErrors(found);
+      const field = e.currentTarget.elements.namedItem(firstInvalid);
       if (field instanceof HTMLElement) field.focus();
       return;
     }
@@ -89,7 +97,7 @@ export function ProjectInquiryForm({
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
-          ...parsed.data,
+          ...candidate,
           sourceIndustry: sourceIndustry ?? "",
           sourcePath: inquirySourcePath(
             sourcePath ?? (typeof window !== "undefined" ? window.location.pathname : ""),

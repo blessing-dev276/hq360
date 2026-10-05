@@ -1,3 +1,5 @@
+import { Skeleton } from "@/components/ui/skeleton";
+import { GlassLoading } from "@/components/ui/glass-loading";
 import { useEffect, useState } from "react";
 import {
   ArrowRight,
@@ -157,8 +159,17 @@ export function AdminDashboard({ onNavigate }: { onNavigate: (tab: Tab) => void 
               {label}
               <Icon size={18} />
             </div>
-            <strong>{value}</strong>
-            <small>{data ? detail : "Loading…"}</small>
+            {data ? (
+              <>
+                <strong className="hq-fade-in">{value}</strong>
+                <small className="hq-fade-in">{detail}</small>
+              </>
+            ) : (
+              <>
+                <Skeleton width="55%" height={30} style={{ margin: "18px 0 10px" }} />
+                <Skeleton width="70%" height={10} />
+              </>
+            )}
           </div>
         ))}
       </div>
@@ -179,7 +190,11 @@ export function AdminDashboard({ onNavigate }: { onNavigate: (tab: Tab) => void 
                 </span>
                 <span>
                   <strong>{title}</strong>
-                  <small>{data ? detail : "Loading…"}</small>
+                  {data ? (
+                    <small className="hq-fade-in">{detail}</small>
+                  ) : (
+                    <Skeleton width="60%" height={9} style={{ marginTop: 6 }} />
+                  )}
                 </span>
                 {data && count > 0 && <span className="admin-count">{count}</span>}
                 <ArrowRight size={17} />
@@ -234,7 +249,11 @@ export function AdminDashboard({ onNavigate }: { onNavigate: (tab: Tab) => void 
             View all <ArrowUpRight size={16} />
           </button>
         </div>
-        {invoices.length ? (
+        {!data ? (
+          <div style={{ padding: "0 25px 22px" }}>
+            <GlassLoading label="Loading recent invoices…" variant="table" rows={5} />
+          </div>
+        ) : invoices.length ? (
           <div className="admin-table-scroll">
             <table className="admin-table">
               <thead>
@@ -264,7 +283,7 @@ export function AdminDashboard({ onNavigate }: { onNavigate: (tab: Tab) => void 
             <span className="admin-empty-icon">
               <FileText size={25} />
             </span>
-            <h3>{data ? "No invoices yet" : "Loading your activity…"}</h3>
+            <h3>No invoices yet</h3>
             <p>Create an invoice and your latest billing activity will appear here.</p>
           </div>
         )}

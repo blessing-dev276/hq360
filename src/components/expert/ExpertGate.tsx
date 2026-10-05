@@ -2,12 +2,12 @@ import { GlassLoading } from "@/components/ui/glass-loading";
 import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { ArrowUpRight } from "lucide-react";
 import { AuthShell } from "@/components/auth/AuthShell";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/integrations/supabase/lazy";
 
 type AuthState = "checking" | "signed-out" | "signed-in" | "pending" | "rejected";
 
 async function syncServerSession(): Promise<AuthState> {
-  const { data } = await supabase.auth.getSession();
+  const { data } = await (await getSupabase()).auth.getSession();
   const accessToken = data.session?.access_token;
   if (!accessToken) return "signed-out";
   const response = await fetch("/api/expert/session", {
@@ -50,7 +50,9 @@ export function ExpertGate({ children }: { children: ReactNode }) {
     setError("");
     const form = new FormData(event.currentTarget);
     try {
-      const { error: authError } = await supabase.auth.signInWithPassword({
+      const { error: authError } = await (
+        await getSupabase()
+      ).auth.signInWithPassword({
         email: String(form.get("email") || ""),
         password: String(form.get("password") || ""),
       });
@@ -66,7 +68,7 @@ export function ExpertGate({ children }: { children: ReactNode }) {
       setState(next);
       if (next !== "signed-in") {
         if (next === "signed-out") setError("Could not open your workspace. Please try again.");
-        await supabase.auth.signOut();
+        await (await getSupabase()).auth.signOut();
       }
     } catch {
       setError("Could not connect. Please try again.");

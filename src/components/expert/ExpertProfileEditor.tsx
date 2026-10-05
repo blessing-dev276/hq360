@@ -219,7 +219,7 @@ export function ExpertProfileEditor() {
             </button>
           </div>
         ) : (
-          <GlassLoading label="Loading your expert profile…" cards />
+          <GlassLoading label="Loading your expert profile…" variant="profile" />
         )}
       </section>
     );

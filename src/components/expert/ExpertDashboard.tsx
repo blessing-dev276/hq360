@@ -1,3 +1,4 @@
+import { GlassLoading } from "@/components/ui/glass-loading";
 import { useEffect, useState } from "react";
 import {
   ArrowUpRight,
@@ -113,8 +114,9 @@ export function ExpertDashboard({
     );
   if (!profile)
     return (
-      <div className="admin-empty" role="status">
-        Loading your dashboard…
+      <div className="space-y-6">
+        <GlassLoading label="Loading your dashboard…" variant="stats" />
+        <GlassLoading label="Loading your checklist…" variant="list" rows={4} />
       </div>
     );
 

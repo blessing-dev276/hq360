@@ -12,7 +12,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/integrations/supabase/lazy";
 import { Logo } from "@/components/Logo";
 import { ScoutApp } from "@/components/admin/ScoutApp";
 import { AuthorAuditAdmin } from "@/components/admin/AuthorAuditAdmin";
@@ -126,7 +126,7 @@ export function ExpertApp() {
   async function signOut() {
     try {
       await fetch("/api/expert/session", { method: "DELETE" });
-      await supabase.auth.signOut();
+      await (await getSupabase()).auth.signOut();
       window.location.assign("/expert");
     } catch {
       setLogoutError("Could not sign out. Please try again.");

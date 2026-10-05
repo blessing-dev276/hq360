@@ -1,3 +1,4 @@
+import { compressPortrait } from "@/lib/admin-upload";
 import { GlassLoading } from "@/components/ui/glass-loading";
 import { useEffect, useState, type FormEvent } from "react";
 import { AlertCircle, ArrowUpRight, CircleCheck, ImageUp, Send } from "lucide-react";
@@ -124,10 +125,12 @@ export function ExpertProfileEditor() {
     return () => controller.abort();
   }, [loadAttempt]);
 
-  async function uploadPhoto(file: File) {
+  async function uploadPhoto(original: File) {
     setBusy("photo");
     setError("");
     try {
+      // Portraits show at card size; a 900px WebP keeps uploads ~50 KB, not MBs.
+      const file = await compressPortrait(original);
       const response = await fetch("/api/expert/photo-url", {
         method: "POST",
         headers: { "content-type": "application/json" },

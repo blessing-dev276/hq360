@@ -23,18 +23,27 @@ const WEBP_QUALITY = 0.94;
 // for a saving nobody would notice.
 const SKIP_COMPRESSION_UNDER_BYTES = 2_000_000;
 
-async function compressImage(file: File): Promise<{ blob: Blob; type: string } | null> {
+// Portraits (team + expert photos, "team" bucket) display at card size, so
+// they don't need screenshot-grade settings: a 900px cap at normal photo
+// quality turns a 2 MB PNG into ~40-80 KB with no visible difference.
+const PORTRAIT = { maxWidth: 900, maxHeight: 1400, quality: 0.82, skipUnder: 150_000 };
+
+async function compressImage(
+  file: File,
+  portrait = false,
+): Promise<{ blob: Blob; type: string } | null> {
   if (typeof document === "undefined" || !COMPRESSIBLE.test(file.type)) return null;
+  const maxWidth = portrait ? PORTRAIT.maxWidth : MAX_WIDTH;
+  const maxHeight = portrait ? PORTRAIT.maxHeight : MAX_HEIGHT;
+  const quality = portrait ? PORTRAIT.quality : WEBP_QUALITY;
+  const skipUnder = portrait ? PORTRAIT.skipUnder : SKIP_COMPRESSION_UNDER_BYTES;
   try {
     const bitmap = await createImageBitmap(file);
-    const scale = Math.min(1, MAX_WIDTH / bitmap.width, MAX_HEIGHT / bitmap.height);
+    const scale = Math.min(1, maxWidth / bitmap.width, maxHeight / bitmap.height);
     const noResizeNeeded = scale === 1;
     // Nothing to gain: already the right size and either already webp, or
     // small enough that re-encoding would only cost quality.
-    if (
-      noResizeNeeded &&
-      (file.type === "image/webp" || file.size < SKIP_COMPRESSION_UNDER_BYTES)
-    ) {
+    if (noResizeNeeded && (file.type === "image/webp" || file.size < skipUnder)) {
       bitmap.close?.();
       return null;
     }
@@ -50,7 +59,7 @@ async function compressImage(file: File): Promise<{ blob: Blob; type: string } |
     ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
     bitmap.close?.();
     const blob = await new Promise<Blob | null>((resolve) =>
-      canvas.toBlob(resolve, "image/webp", WEBP_QUALITY),
+      canvas.toBlob(resolve, "image/webp", quality),
     );
     return blob ? { blob, type: "image/webp" } : null;
   } catch {
@@ -82,7 +91,7 @@ export async function uploadAdminMedia(file: File, bucket: AdminBucket): Promise
 
   let payload: Blob = file;
   let contentType = file.type;
-  const compressed = await compressImage(file);
+  const compressed = await compressImage(file, bucket === "team");
   if (compressed && compressed.blob.size < file.size) {
     payload = compressed.blob;
     contentType = compressed.type;
@@ -116,4 +125,15 @@ export async function uploadAdminMedia(file: File, bucket: AdminBucket): Promise
     // Signed upload unavailable (e.g. storage misconfig) — use the buffered route.
     return fallbackUpload(payload, file.name || "upload", bucket);
   }
+}
+
+/** Shrink a portrait photo for upload (900px WebP); returns the original
+ *  file if it's already small or can't be re-encoded. Used by expert photo
+ *  uploads, which go straight to storage without the admin upload path. */
+export async function compressPortrait(file: File): Promise<File> {
+  const compressed = await compressImage(file, true);
+  if (!compressed || compressed.blob.size >= file.size) return file;
+  return new File([compressed.blob], file.name.replace(/\.[^.]+$/, "") + ".webp", {
+    type: compressed.type,
+  });
 }

@@ -64,15 +64,31 @@ export const Route = createFileRoute("/api/admin/scout-prospects")({
             (!body.bookId || (await canSeeBook(db, access.owner, body.bookId)));
           if (!visible) return json({ ok: false, error: "not_found" }, 404);
 
-          let dupeQuery = db
-            .from("scout_prospects")
-            .select("*")
-            .eq("owner", access.owner)
-            .eq("scout_author_id", body.scoutAuthorId);
-          dupeQuery = body.bookId
-            ? dupeQuery.eq("book_id", body.bookId)
-            : dupeQuery.is("book_id", null);
-          const { data: existingForAuthor } = await dupeQuery.maybeSingle();
+          const { data: author, error: authorError } = await db
+            .from("scout_authors")
+            .select("normalized_name")
+            .eq("id", body.scoutAuthorId)
+            .single();
+          if (authorError) throw authorError;
+          async function existingProspect() {
+            const { data: claim, error } = await db
+              .from("scout_workspace_authors")
+              .select("prospect_id")
+              .eq("owner", access!.owner)
+              .eq("author_key", author!.normalized_name)
+              .maybeSingle();
+            if (error) throw error;
+            if (!claim?.prospect_id) return null;
+            const result = await db
+              .from("scout_prospects")
+              .select("*")
+              .eq("id", claim.prospect_id)
+              .eq("owner", access!.owner)
+              .maybeSingle();
+            if (result.error) throw result.error;
+            return result.data;
+          }
+          const existingForAuthor = await existingProspect();
           if (existingForAuthor) {
             const existing = existingForAuthor as ScoutProspect;
             if (existing.do_not_contact || existing.status === "excluded") {
@@ -90,7 +106,13 @@ export const Route = createFileRoute("/api/admin/scout-prospects")({
               status: "new",
             })
             .select("*")
-            .single();
+            .maybeSingle();
+          if (!error && !created) {
+            const existing = await existingProspect();
+            if (existing?.do_not_contact || existing?.status === "excluded")
+              return json({ ok: false, error: "author_excluded", item: existing }, 409);
+            return json({ ok: true, duplicate: true, item: existing });
+          }
           if (error || !created) return json({ ok: false, error: "storage" }, 500);
           return json({ ok: true, item: created }, 201);
         } catch (err) {

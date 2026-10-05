@@ -1,7 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import robotsParser from "robots-parser";
-import { isAdminOrExpertRequest } from "@/lib/expert-auth.server";
+import { resolveScoutAccess } from "@/lib/scout/owner.server";
+import { generatedAuthorNames } from "@/lib/scout/history.server";
+import { normalizedName } from "@/lib/scout/db";
 import {
   RF_DEFAULT,
   RF_ORIGIN,
@@ -53,8 +55,8 @@ export const Route = createFileRoute("/api/admin/scout-readers-favorite")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        if (!(await isAdminOrExpertRequest(request)))
-          return Response.json({ error: "unauthorized" }, { status: 401 });
+        const access = await resolveScoutAccess(request);
+        if (!access) return Response.json({ error: "unauthorized" }, { status: 401 });
         const parsed = schema.safeParse(await request.json().catch(() => null));
         if (!parsed.success)
           return Response.json({ error: "Invalid search options." }, { status: 400 });
@@ -64,8 +66,27 @@ export const Route = createFileRoute("/api/admin/scout-readers-favorite")({
         } catch {
           return Response.json({ error: "Use a Readers’ Favorite genre URL." }, { status: 400 });
         }
+        async function freshResults(body: ReturnType<typeof parseReadersFavorite>) {
+          const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+          const seen = await generatedAuthorNames(supabaseAdmin, access!.owner);
+          return {
+            ...body,
+            items: body.items.filter((item) => {
+              const key = normalizedName(item.authorName ?? "");
+              if (!key || seen.has(key)) return false;
+              seen.add(key);
+              return true;
+            }),
+          };
+        }
         const cached = cache.get(url);
-        if (cached && cached.until > Date.now()) return Response.json(cached.body);
+        if (cached && cached.until > Date.now()) {
+          try {
+            return Response.json(await freshResults(cached.body));
+          } catch {
+            return Response.json({ error: "Could not check author history." }, { status: 503 });
+          }
+        }
         if (pending || Date.now() - lastRequest < 2000)
           return Response.json(
             { error: "Please wait a moment before another search." },
@@ -81,7 +102,7 @@ export const Route = createFileRoute("/api/admin/scout-readers-favorite")({
           const body = parseReadersFavorite(await publicPage(url), url);
           if (cache.size >= 100) cache.delete(cache.keys().next().value!);
           cache.set(url, { until: Date.now() + 300000, body });
-          return Response.json(body);
+          return Response.json(await freshResults(body));
         } catch (error) {
           return Response.json(
             { error: error instanceof Error ? error.message : "Source unavailable." },

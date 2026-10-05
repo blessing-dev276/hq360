@@ -61,18 +61,23 @@ export const Route = createFileRoute("/api/admin/scout-batches/$id/scout")({
           const toAdd = books.filter(
             (b) => !blocked.has(b.scout_author_id) && !have.has(`${b.scout_author_id}:${b.id}`),
           );
+          let added = 0;
           if (toAdd.length) {
-            const { error } = await db.from("scout_prospects").insert(
-              toAdd.map((b) => ({
-                owner: access.owner,
-                scout_author_id: b.scout_author_id,
-                book_id: b.id,
-                status: "new",
-              })),
-            );
+            const { data: inserted, error } = await db
+              .from("scout_prospects")
+              .insert(
+                toAdd.map((b) => ({
+                  owner: access.owner,
+                  scout_author_id: b.scout_author_id,
+                  book_id: b.id,
+                  status: "new",
+                })),
+              )
+              .select("id");
+            added = inserted?.length ?? 0;
             if (error) return json({ ok: false, error: "Could not mark the batch scouted." }, 500);
           }
-          return json({ ok: true, added: toAdd.length, skipped: books.length - toAdd.length });
+          return json({ ok: true, added, skipped: books.length - added });
         } catch (err) {
           console.error("[scout-batches.$id.scout]", err instanceof Error ? err.message : err);
           return json({ ok: false, error: "unavailable" }, 503);

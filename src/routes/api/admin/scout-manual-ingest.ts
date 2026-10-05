@@ -221,29 +221,23 @@ export const Route = createFileRoute("/api/admin/scout-manual-ingest")({
             : { data: null };
           if (existingBatch && (existingBatch as { owner?: string }).owner !== access.owner)
             return json({ ok: false, error: "batch_not_found" }, 404);
-          const existingItemCount =
-            (existingBatch as { item_count: number } | null)?.item_count ?? 0;
-          const { data: batch, error: batchErr } = await withDatabaseRetry(() =>
-            db
-              .from("scout_batches")
-              .upsert({
-                id: newBatchId,
-                owner: access.owner,
-                label:
-                  (existingBatch as { label: string } | null)?.label ??
-                  body.batchLabel ??
-                  `Manual: ${source.slug} — "${body.bookTitle}"`,
-                genre: body.genre ?? null,
-                query: null,
-                sources: [body.sourceSlug],
-                requested_max:
-                  (existingBatch as { requested_max: number | null } | null)?.requested_max ?? 1,
-                total_available: null,
-                item_count: existingItemCount + (book ? 0 : 1),
-              })
-              .select("*")
-              .single(),
-          );
+          const { data: batch, error: batchErr } = existingBatch
+            ? { data: existingBatch, error: null }
+            : await withDatabaseRetry(() =>
+                db
+                  .from("scout_batches")
+                  .insert({
+                    id: newBatchId,
+                    owner: access.owner,
+                    label: body.batchLabel ?? `Manual: ${source.slug} — "${body.bookTitle}"`,
+                    genre: body.genre ?? null,
+                    sources: [body.sourceSlug],
+                    requested_max: body.batchId ? 100 : 1,
+                    item_count: 0,
+                  })
+                  .select("*")
+                  .single(),
+              );
           if (batchErr || !batch) return json({ ok: false, error: "storage" }, 500);
           const batchId = (batch as { id: string }).id;
 
@@ -280,10 +274,23 @@ export const Route = createFileRoute("/api/admin/scout-manual-ingest")({
             book = created;
           }
 
-          const { error: membershipError } = await withDatabaseRetry(() =>
-            db.from("scout_batch_books").upsert({ batch_id: batchId, book_id: book.id }),
+          const { data: membership, error: membershipError } = await withDatabaseRetry(() =>
+            db
+              .from("scout_batch_books")
+              .upsert({ batch_id: batchId, book_id: book.id })
+              .select("book_id"),
           );
           if (membershipError) throw membershipError;
+          if (!membership?.length) {
+            const { data: linked, error } = await db
+              .from("scout_batch_books")
+              .select("book_id")
+              .eq("batch_id", batchId)
+              .eq("book_id", book.id)
+              .maybeSingle();
+            if (error) throw error;
+            if (!linked) return json({ ok: true, duplicate: true, batchId });
+          }
 
           if (body.sourceSlug === "amazon_books" && body.amazonReviewCount !== undefined) {
             const { error: reviewError } = await withDatabaseRetry(() =>

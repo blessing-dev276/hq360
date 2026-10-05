@@ -193,6 +193,7 @@ export type ScoutResearchNote = {
 };
 
 export type ScoutTable =
+  | "scout_workspace_authors"
   | "scout_arc_listings"
   | "scout_batch_books"
   | "scout_crawl_runs"

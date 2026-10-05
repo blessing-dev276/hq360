@@ -69,6 +69,7 @@ async function api<T>(
   body?: unknown,
   signal?: AbortSignal,
   fallbackMessage = "Scout could not complete that request.",
+  attempt = 0,
 ): Promise<T> {
   const response = await fetch(url, {
     ...(body === undefined
@@ -82,6 +83,10 @@ async function api<T>(
       ? AbortSignal.any([signal, AbortSignal.timeout(60000)])
       : AbortSignal.timeout(60000),
   });
+  if (response.status === 429 && attempt < 8) {
+    await new Promise((resolve) => setTimeout(resolve, 2000 + Math.random() * 1000));
+    return api<T>(url, body, signal, fallbackMessage, attempt + 1);
+  }
   const result = await response.json();
   if (!response.ok || result.ok === false) {
     const messages: Record<string, string> = {
@@ -215,6 +220,24 @@ type Candidate = {
   rating: number | null;
   overview?: string | null;
 };
+type SearchJob = {
+  id: string;
+  label: string;
+  batch?: Batch;
+  source: string;
+  genre: string;
+  genreId: number;
+  catalog: string;
+  target: number;
+  nextPage: number | null;
+  queue: Candidate[];
+  saved: number;
+  skipped: number;
+  status: "running" | "paused" | "completed" | "error";
+  message: string;
+  resume?: () => void;
+  stopped?: boolean;
+};
 const RF_DEFAULT = "/book-reviews/book-reviews-genre-fiction-thriller-general.htm";
 const field =
   "mt-2 w-full rounded-xl border border-border bg-background px-4 py-3 text-sm disabled:opacity-50";
@@ -257,8 +280,20 @@ function AuthorScout({ onBusyChange }: { onBusyChange: (busy: boolean) => void }
   const [genreLoading, setGenreLoading] = useState(true);
   const [loadAttempt, setLoadAttempt] = useState(0);
   const [detailError, setDetailError] = useState("");
-  const [progress, setProgress] = useState({ done: 0, total: 0 });
-  const [stage, setStage] = useState("");
+  const jobsRef = useRef<SearchJob[]>([]);
+  const [jobs, setJobs] = useState<SearchJob[]>([]);
+  const [batchCount, setBatchCount] = useState(1);
+  const publishJobs = () => setJobs(jobsRef.current.map((job) => ({ ...job })));
+  const activeCount = jobs.filter((job) => job.status !== "completed").length;
+  useEffect(
+    () => () => {
+      for (const job of jobsRef.current) {
+        job.stopped = true;
+        job.resume?.();
+      }
+    },
+    [],
+  );
 
   const [source, setSource] = useState("reedsy_discovery");
   const [arcBusy, setArcBusy] = useState(false);
@@ -269,7 +304,7 @@ function AuthorScout({ onBusyChange }: { onBusyChange: (busy: boolean) => void }
   ]);
   const [rfLoading, setRfLoading] = useState(false);
   const [catalog, setCatalog] = useState(RF_DEFAULT);
-  const [page, setPage] = useState(1);
+  const page = 1;
   const [limit, setLimit] = useState(20);
   const [batches, setBatches] = useState<Batch[]>([]);
   const [selected, setSelected] = useState<Batch | null>(null);
@@ -278,14 +313,13 @@ function AuthorScout({ onBusyChange }: { onBusyChange: (busy: boolean) => void }
   const [detailLoading, setDetailLoading] = useState(false);
   const [busy, setBusy] = useState("");
   useEffect(() => {
-    onBusyChange(Boolean(busy) || arcBusy);
+    onBusyChange(Boolean(busy) || arcBusy || activeCount > 0);
     return () => onBusyChange(false);
-  }, [busy, arcBusy, onBusyChange]);
+  }, [busy, arcBusy, activeCount, onBusyChange]);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [batchSource, setBatchSource] = useState("all");
   const [reviewFilter, setReviewFilter] = useState("all");
-  const [retry, setRetry] = useState<{ batch: Batch; items: Candidate[] } | null>(null);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -369,94 +403,167 @@ function AuthorScout({ onBusyChange }: { onBusyChange: (busy: boolean) => void }
     return () => controller.abort();
   }, [selected]);
 
-  async function persist(batch: Batch, items: Candidate[]) {
-    const failed: Candidate[] = [];
-    setStage("Saving authors to your batch");
-    setProgress({ done: 0, total: items.length });
-    // Sequential writes preserve the existing batch counter and avoid overwhelming storage.
-    for (const item of items) {
-      try {
-        await api("/api/admin/scout-manual-ingest", {
-          sourceSlug: batch.sources[0],
-          sourceUrl: item.sourceUrl,
-          bookUrl: item.sourceUrl,
-          authorName: item.authorName,
-          bookTitle: item.title,
-          genre: item.genre,
-          description: item.overview?.slice(0, 4000),
-          batchId: batch.id,
-          batchLabel: batch.label,
-          ...(item.rating === null
-            ? {}
-            : {
-                reviewPlatform:
-                  batch.sources[0] === "reedsy_discovery" ? "reedsy" : "readers_favorite",
-                reviewRating: item.rating,
-              }),
-        });
-      } catch {
-        failed.push(item);
-      } finally {
-        setProgress((current) => ({ ...current, done: current.done + 1 }));
-      }
-    }
-    setRetry(failed.length ? { batch, items: failed } : null);
-    const data = await api<{ items: Batch[] }>("/api/admin/scout-batches");
-    setBatches(data.items);
-    setSelected({ ...batch });
-    setNotice(
-      `${items.length - failed.length} books added to this batch.${failed.length ? ` ${failed.length} could not be saved. Retry below.` : ""}`,
-    );
+  async function waitForJob(job: SearchJob) {
+    if (job.status === "paused")
+      await new Promise<void>((resolve) => {
+        job.resume = resolve;
+      });
+    if (job.stopped) throw new Error("Search closed");
   }
 
-  async function search() {
-    setBusy("search");
-    setStage("Searching the review catalogue");
-    setProgress({ done: 0, total: 0 });
-    setError("");
-    setNotice("");
+  async function runJob(job: SearchJob) {
     try {
-      const genre =
-        source === "reedsy_discovery"
-          ? genres.find((item) => String(item.id) === genreId)?.name
-          : rfGenres.find((item) => item.path === catalog)?.name;
-      const { item: batch } = await api<{ item: Batch }>("/api/admin/scout-batches", {
-        label: `${source === "reedsy_discovery" ? "Reedsy" : "Readers’ Favorite"} · ${genre ?? "Book reviews"}${source === "readers_favorite" ? ` · Page ${page}` : ""}`,
-        source,
-        genre,
-        requestedMax: source === "reedsy_discovery" ? limit : 10,
-      });
-      setBatchSource("all");
-      setBatches((current) => [batch, ...current]);
-      setSelected(batch);
-      let items: Candidate[];
-      if (source === "reedsy_discovery") {
-        const data = await api<{
-          items: (Omit<Candidate, "rating"> & { verdictRating: number | null })[];
-        }>("/api/admin/scout-reedsy-search", { genreId: Number(genreId), genreName: genre, limit });
-        items = data.items.map((item) => ({ ...item, rating: item.verdictRating }));
-      } else {
-        const data = await api<{ items: Candidate[]; genres: { path: string; name: string }[] }>(
-          "/api/admin/scout-readers-favorite",
-          { catalog, page },
-        );
-        items = data.items;
-        setRfGenres((current) => [
-          ...new Map([...current, ...data.genres].map((item) => [item.path, item])).values(),
-        ]);
+      await waitForJob(job);
+      if (!job.batch) {
+        const { item } = await api<{ item: Batch }>("/api/admin/scout-batches", {
+          label: job.label,
+          source: job.source,
+          genre: job.genre,
+          requestedMax: job.target,
+        });
+        job.batch = item;
+        setBatches((current) => [item, ...current]);
       }
-      const valid = items.filter((item) => item.authorName && item.title && item.sourceUrl);
-      await persist(batch, valid);
-      if (valid.length !== items.length)
-        setNotice(
-          (current) =>
-            `${current} ${items.length - valid.length} listings were missing an author name, title, or source URL.`,
+      while (job.saved < job.target) {
+        await waitForJob(job);
+        if (!job.queue.length) {
+          if (!job.nextPage) break;
+          job.message = `Searching catalogue page ${job.nextPage}`;
+          publishJobs();
+          if (job.source === "reedsy_discovery") {
+            const data = await api<{
+              items: (Candidate & { verdictRating: number | null; qualified: boolean })[];
+              nextPage: number | null;
+            }>("/api/admin/scout-reedsy-search", {
+              genreId: job.genreId,
+              genreName: job.genre,
+              limit: job.target - job.saved,
+              page: job.nextPage,
+            });
+            job.queue = data.items
+              .filter((item) => item.qualified)
+              .map((item) => ({ ...item, rating: item.verdictRating }));
+            job.nextPage = data.nextPage;
+          } else {
+            const data = await api<{ items: Candidate[]; hasNext: boolean }>(
+              "/api/admin/scout-readers-favorite",
+              { catalog: job.catalog, page: job.nextPage },
+            );
+            job.queue = data.items.filter(
+              (item) => item.authorName && item.title && item.sourceUrl,
+            );
+            job.nextPage = data.hasNext && job.nextPage < 100 ? job.nextPage + 1 : null;
+          }
+          continue;
+        }
+        await waitForJob(job);
+        job.message = "Saving new authors";
+        publishJobs();
+        // Four independent writes at once; the database atomically claims authors.
+        const chunk = job.queue.slice(0, Math.min(4, job.target - job.saved));
+        const outcomes = await Promise.allSettled(
+          chunk.map(async (item) => {
+            const result = await api<{ duplicate?: boolean }>("/api/admin/scout-manual-ingest", {
+              sourceSlug: job.source,
+              sourceUrl: item.sourceUrl,
+              bookUrl: item.sourceUrl,
+              authorName: item.authorName,
+              bookTitle: item.title,
+              genre: item.genre,
+              description: item.overview?.slice(0, 4000),
+              batchId: job.batch!.id,
+              batchLabel: job.label,
+              ...(item.rating == null
+                ? {}
+                : {
+                    reviewPlatform:
+                      job.source === "reedsy_discovery" ? "reedsy" : "readers_favorite",
+                    reviewRating: item.rating,
+                  }),
+            });
+            if (result.duplicate) job.skipped++;
+            else job.saved++;
+            job.queue.splice(job.queue.indexOf(item), 1);
+          }),
         );
+        setBatches((current) =>
+          current.map((batch) =>
+            batch.id === job.batch!.id ? { ...batch, item_count: job.saved } : batch,
+          ),
+        );
+        publishJobs();
+        const failure = outcomes.find((result) => result.status === "rejected");
+        if (failure?.status === "rejected") throw failure.reason;
+      }
+      job.status = "completed";
+      job.message =
+        job.saved >= job.target
+          ? "Batch complete"
+          : "Catalogue exhausted; fewer new authors available";
     } catch (e) {
-      setError((e as Error).message);
+      if (job.stopped) return;
+      job.status = "error";
+      job.message = (e as Error).message;
     } finally {
-      setBusy("");
+      if (!job.stopped) {
+        publishJobs();
+        setSelected((current) =>
+          current && current.id === job.batch?.id ? { ...current } : current,
+        );
+      }
     }
+  }
+
+  function search() {
+    const active = jobsRef.current.filter((job) => job.status !== "completed").length;
+    if (
+      !Number.isInteger(limit) ||
+      limit < 1 ||
+      limit > 100 ||
+      !Number.isInteger(batchCount) ||
+      batchCount < 1 ||
+      active + batchCount > 3
+    ) {
+      setError("Choose 1–100 authors per batch and no more than 3 unfinished batches.");
+      return;
+    }
+    const genre =
+      (source === "reedsy_discovery"
+        ? genres.find((item) => String(item.id) === genreId)?.name
+        : rfGenres.find((item) => item.path === catalog)?.name) ?? "Book reviews";
+    const created = Array.from({ length: batchCount }, (_, index): SearchJob => ({
+      id: crypto.randomUUID(),
+      label: `${source === "reedsy_discovery" ? "Reedsy" : "Readers’ Favorite"} · ${genre}${batchCount > 1 ? ` · Batch ${index + 1}` : ""}`,
+      source,
+      genre,
+      genreId: Number(genreId),
+      catalog,
+      target: limit,
+      nextPage: source === "reedsy_discovery" ? 1 : page,
+      queue: [],
+      saved: 0,
+      skipped: 0,
+      status: "running",
+      message: "Creating batch",
+    }));
+    jobsRef.current.push(...created);
+    setError("");
+    publishJobs();
+    for (const job of created) void runJob(job);
+  }
+
+  function toggleJob(id: string) {
+    const job = jobsRef.current.find((item) => item.id === id)!;
+    if (job.status === "running") job.status = "paused";
+    else if (job.status === "paused") {
+      job.status = "running";
+      job.resume?.();
+      delete job.resume;
+    } else if (job.status === "error") {
+      job.status = "running";
+      void runJob(job);
+    }
+    publishJobs();
   }
 
   async function save(book: Book) {
@@ -580,7 +687,7 @@ function AuthorScout({ onBusyChange }: { onBusyChange: (busy: boolean) => void }
             <option value="reedsy_discovery">Reedsy Discovery</option>
             <option value="readers_favorite">Readers’ Favorite</option>
             {Object.entries(ARC_SOURCES).map(([slug, spec]) => (
-              <option key={slug} value={slug}>
+              <option key={slug} value={slug} disabled={activeCount > 0}>
                 {spec.name}
               </option>
             ))}
@@ -636,7 +743,7 @@ function AuthorScout({ onBusyChange }: { onBusyChange: (busy: boolean) => void }
               <option value="reedsy_discovery">Reedsy Discovery</option>
               <option value="readers_favorite">Readers’ Favorite</option>
               {Object.entries(ARC_SOURCES).map(([slug, spec]) => (
-                <option key={slug} value={slug}>
+                <option key={slug} value={slug} disabled={activeCount > 0}>
                   {spec.name}
                 </option>
               ))}
@@ -653,7 +760,6 @@ function AuthorScout({ onBusyChange }: { onBusyChange: (busy: boolean) => void }
                 if (source === "reedsy_discovery") setGenreId(event.target.value);
                 else {
                   setCatalog(event.target.value);
-                  setPage(1);
                 }
               }}
             >
@@ -671,47 +777,41 @@ function AuthorScout({ onBusyChange }: { onBusyChange: (busy: boolean) => void }
                   ))}
             </select>
           </label>
-          {source === "reedsy_discovery" ? (
-            <label className="text-sm font-medium">
-              Authors to find
-              <select
-                aria-label="Authors to find"
-                className={field}
-                value={limit}
-                disabled={Boolean(busy)}
-                onChange={(event) => setLimit(Number(event.target.value))}
-              >
-                {[10, 20, 30, 50].map((value) => (
-                  <option key={value} value={value}>
-                    {value} authors
-                  </option>
-                ))}
-              </select>
-            </label>
-          ) : (
-            <label className="text-sm font-medium">
-              Results page
-              <select
-                aria-label="Results page"
-                className={field}
-                value={page}
-                disabled={Boolean(busy)}
-                onChange={(event) => setPage(Number(event.target.value))}
-              >
-                {Array.from({ length: 100 }, (_, index) => (
-                  <option key={index + 1} value={index + 1}>
-                    Page {index + 1}
-                  </option>
-                ))}
-              </select>
-            </label>
-          )}
+          <label className="text-sm font-medium">
+            Authors per batch (maximum 100)
+            <input
+              aria-label="Authors to find"
+              className={field}
+              type="number"
+              min={1}
+              max={100}
+              step={1}
+              required
+              value={Number.isNaN(limit) ? "" : limit}
+              onChange={(event) => setLimit(event.target.valueAsNumber)}
+            />
+          </label>
+          <label className="text-sm font-medium">
+            Batches to generate
+            <select
+              aria-label="Batches to generate"
+              className={field}
+              value={batchCount}
+              onChange={(event) => setBatchCount(Number(event.target.value))}
+            >
+              {[1, 2, 3].map((count) => (
+                <option key={count} value={count}>
+                  {count}
+                </option>
+              ))}
+            </select>
+          </label>
         </div>
         <div className="mt-5 flex flex-wrap items-center gap-4">
           <button
             disabled={
               Boolean(busy) ||
-              Boolean(retry) ||
+              activeCount + batchCount > 3 ||
               (source === "readers_favorite" && rfLoading) ||
               (source === "reedsy_discovery" && !genreId)
             }
@@ -725,18 +825,65 @@ function AuthorScout({ onBusyChange }: { onBusyChange: (busy: boolean) => void }
             {busy === "search" ? "Creating batch…" : "Search & create batch"}
           </button>
           <p className="text-xs text-muted-foreground">
-            Results are saved automatically, including books found in earlier searches.
+            Only authors new to your workspace are added. Up to 3 batches at once.
           </p>
         </div>
       </form>
       {(source === "reedsy_discovery" ? genreLoading : rfLoading) && (
         <GlassLoading label="Loading review categories…" />
       )}
-      {busy === "search" && (
-        <GlassLoading
-          label={progress.total ? `${stage} · ${progress.done} of ${progress.total}` : stage}
-          progress={progress.total ? progress : undefined}
-        />
+      {jobs.length > 0 && (
+        <section aria-label="Generation batches" className="space-y-3">
+          <h2 className="text-lg font-semibold">Generation batches · {activeCount}/3 slots used</h2>
+          <p className="text-xs text-muted-foreground">
+            Keep this tab open while generating. Pause finishes requests already in progress; saved
+            authors remain available.
+          </p>
+          {jobs.map((job) => (
+            <article key={job.id} className="rounded-xl border p-4">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <h3 className="font-medium">{job.label}</h3>
+                  <p role="status" className="text-sm">
+                    {job.saved}/{job.target} authors · {job.status} · {job.skipped} duplicates
+                    skipped
+                  </p>
+                  <p className="text-xs text-muted-foreground">{job.message}</p>
+                </div>
+                <div className="flex gap-3">
+                  {job.status !== "completed" && (
+                    <button
+                      type="button"
+                      className="rounded-lg border px-3 py-2"
+                      onClick={() => toggleJob(job.id)}
+                    >
+                      {job.status === "running"
+                        ? "Pause"
+                        : job.status === "error"
+                          ? "Retry"
+                          : "Resume"}
+                    </button>
+                  )}
+                  {job.batch && (
+                    <button
+                      type="button"
+                      className="rounded-lg border px-3 py-2"
+                      onClick={() => setSelected({ ...job.batch!, item_count: job.saved })}
+                    >
+                      Open batch
+                    </button>
+                  )}
+                </div>
+              </div>
+              <progress
+                aria-label={`${job.label} progress`}
+                className="mt-3 w-full"
+                value={job.saved}
+                max={job.target}
+              />
+            </article>
+          ))}
+        </section>
       )}
       {error && (
         <p
@@ -758,25 +905,6 @@ function AuthorScout({ onBusyChange }: { onBusyChange: (busy: boolean) => void }
         <p role="status" className="rounded-xl bg-secondary p-4 text-sm">
           {notice}
         </p>
-      )}
-      {retry && (
-        <button
-          disabled={Boolean(busy)}
-          className="rounded-xl border px-4 py-2"
-          onClick={async () => {
-            setBusy("search");
-            setError("");
-            try {
-              await persist(retry.batch, retry.items);
-            } catch (e) {
-              setError((e as Error).message);
-            } finally {
-              setBusy("");
-            }
-          }}
-        >
-          Retry {retry.items.length} unsaved results
-        </button>
       )}
       <section className="space-y-4" aria-label="Batch">
         <div className="flex flex-wrap items-end justify-between gap-4">
@@ -803,7 +931,7 @@ function AuthorScout({ onBusyChange }: { onBusyChange: (busy: boolean) => void }
               <option value="reedsy_discovery">Reedsy Discovery</option>
               <option value="readers_favorite">Readers’ Favorite</option>
               {Object.entries(ARC_SOURCES).map(([slug, spec]) => (
-                <option key={slug} value={slug}>
+                <option key={slug} value={slug} disabled={activeCount > 0}>
                   {spec.name}
                 </option>
               ))}

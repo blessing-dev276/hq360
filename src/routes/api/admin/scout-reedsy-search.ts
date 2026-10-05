@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
-import { isAdminOrExpertRequest } from "@/lib/expert-auth.server";
+import { resolveScoutAccess } from "@/lib/scout/owner.server";
+import { generatedAuthorNames } from "@/lib/scout/history.server";
+import { normalizedName } from "@/lib/scout/db";
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -15,13 +17,14 @@ function json(body: unknown, status = 200) {
 const schema = z.object({
   genreId: z.number().int().positive(),
   genreName: z.string().trim().min(1).max(120),
-  limit: z.number().int().min(1).max(50),
+  limit: z.number().int().min(1).max(100),
+  page: z.number().int().min(1).max(1000).default(1),
   minVerdictRating: z.number().int().min(1).max(5).default(1),
   debutOnly: z.boolean().default(false),
 });
 
 const DEBUT_MAX_BOOKS = 2;
-const MAX_SEARCH_PAGES = 6;
+const MAX_SEARCH_PAGES = 3;
 const USER_AGENT =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";
 
@@ -36,6 +39,32 @@ type ReedsyBook = {
     reviewer?: { name?: string };
   };
 };
+
+type ReedsyPage = { books?: ReedsyBook[]; meta?: { next_page?: number | null } };
+// Share source responses across simultaneous batches; apply workspace exclusions afterwards.
+const pages = new Map<string, { until: number; value: Promise<ReedsyPage> }>();
+function sourcePage(genreId: number, page: number) {
+  const key = `${genreId}:${page}`;
+  const cached = pages.get(key);
+  if (cached && cached.until > Date.now()) return cached.value;
+  const url = new URL("https://reedsy.com/discovery/api/books");
+  url.searchParams.set("query[genre_id]", String(genreId));
+  url.searchParams.set("page", String(page));
+  const value = (async () => {
+    const response = await fetch(url, {
+      signal: AbortSignal.timeout(12000),
+      headers: { "user-agent": USER_AGENT, accept: "application/json" },
+    });
+    if (!response.ok) throw new Error(`Reedsy search failed (${response.status})`);
+    return (await response.json()) as ReedsyPage;
+  })().catch((error) => {
+    pages.delete(key);
+    throw error;
+  });
+  if (pages.size >= 100) pages.delete(pages.keys().next().value!);
+  pages.set(key, { until: Date.now() + 60000, value });
+  return value;
+}
 
 function cleanTitle(value: string) {
   return value.replace(/\s*[:|–-]\s*(paperback|hardcover|kindle edition|a novel).*$/i, "").trim();
@@ -66,38 +95,40 @@ export const Route = createFileRoute("/api/admin/scout-reedsy-search")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        if (!(await isAdminOrExpertRequest(request)))
-          return json({ ok: false, error: "unauthorized" }, 401);
+        const access = await resolveScoutAccess(request);
+        if (!access) return json({ ok: false, error: "unauthorized" }, 401);
         const parsed = schema.safeParse(await request.json().catch(() => null));
         if (!parsed.success) return json({ ok: false, error: "invalid" }, 400);
         const { genreId, genreName, limit, minVerdictRating, debutOnly } = parsed.data;
 
         try {
+          const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+          const seen = await generatedAuthorNames(supabaseAdmin, access.owner);
           const candidates: ReedsyBook[] = [];
+          let nextPage: number | null = parsed.data.page;
           let searched = 0;
-          for (let page = 1; page <= MAX_SEARCH_PAGES && candidates.length < limit; page += 1) {
-            const controller = new AbortController();
-            const timeout = setTimeout(() => controller.abort(), 20_000);
-            const url = new URL("https://reedsy.com/discovery/api/books");
-            url.searchParams.set("query[genre_id]", String(genreId));
-            url.searchParams.set("page", String(page));
-            const response = await fetch(url, {
-              signal: controller.signal,
-              headers: { "user-agent": USER_AGENT, accept: "application/json" },
-            }).finally(() => clearTimeout(timeout));
-            if (!response.ok) throw new Error(`Reedsy search failed (${response.status})`);
-            const data = (await response.json()) as {
-              books?: ReedsyBook[];
-              meta?: { next_page?: number | null };
-            };
+          for (
+            let attempt = 0;
+            attempt < MAX_SEARCH_PAGES && nextPage && candidates.length < limit;
+            attempt += 1
+          ) {
+            const data = await sourcePage(genreId, nextPage);
             const pageBooks = data.books ?? [];
             searched += pageBooks.length;
-            candidates.push(...pageBooks.slice(0, Math.max(0, limit - candidates.length)));
-            if (!data.meta?.next_page) break;
+            for (const book of pageBooks) {
+              const key = normalizedName(book.author?.name ?? "");
+              if (!key || !book.title || !book.url || seen.has(key)) continue;
+              seen.add(key);
+              candidates.push(book);
+            }
+            nextPage =
+              data.meta?.next_page && data.meta.next_page > nextPage && data.meta.next_page <= 1000
+                ? data.meta.next_page
+                : null;
           }
 
           const items = await Promise.all(
-            candidates.map(async (book) => {
+            candidates.slice(0, limit).map(async (book) => {
               const reasons: string[] = [];
               const title = book.title ? cleanTitle(book.title) : undefined;
               const authorName = book.author?.name;
@@ -146,6 +177,7 @@ export const Route = createFileRoute("/api/admin/scout-reedsy-search")({
             ok: true,
             items,
             searched,
+            nextPage,
             qualifying: items.filter((item) => item.qualified).length,
           });
         } catch (error) {

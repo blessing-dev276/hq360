@@ -21,7 +21,7 @@ export const Route = createFileRoute("/api/admin/scout-batches")({
             label: z.string().trim().min(1).max(200),
             source: z.enum(["reedsy_discovery", "readers_favorite"]),
             genre: z.string().trim().max(120).optional(),
-            requestedMax: z.number().int().min(1).max(50),
+            requestedMax: z.number().int().min(1).max(100),
           })
           .safeParse(await request.json().catch(() => null));
         if (!parsed.success) return json({ ok: false, error: "invalid" }, 400);

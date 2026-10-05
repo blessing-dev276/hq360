@@ -248,7 +248,7 @@ export function ArcScout({
     target: ArcBatch,
     values: { title: string; author: string; date: string },
   ) {
-    const result = await api<{ item: { book: { id: string } } }>(
+    const result = await api<{ duplicate?: boolean; item: { book: { id: string } } }>(
       "/api/admin/scout-manual-ingest",
       "POST",
       {
@@ -264,6 +264,7 @@ export function ArcScout({
         batchLabel: target.label,
       },
     );
+    if (result.duplicate) return false;
     await api(endpoint, "PATCH", { listingId: item.id, bookId: result.item.book.id });
     setItems((current) =>
       current.map((row) =>
@@ -278,6 +279,7 @@ export function ArcScout({
           : row,
       ),
     );
+    return true;
   }
   async function saveReady(rows: ArcListing[], target: ArcBatch) {
     const pending = rows.filter(
@@ -287,24 +289,26 @@ export function ArcScout({
       (item) => !item.book_id && (!item.title.trim() || !item.author_name?.trim()),
     ).length;
     let saved = 0,
+      skipped = 0,
       failed = 0;
     setProgress({ done: 0, total: pending.length });
     for (const [index, item] of pending.entries()) {
       setBusy(`Saving authors ${index + 1} of ${pending.length}…`);
       try {
-        await persistAuthor(item, target, {
+        const added = await persistAuthor(item, target, {
           title: item.title,
           author: item.author_name!,
           date: item.publication_date ?? "",
         });
-        saved++;
+        if (added) saved++;
+        else skipped++;
       } catch {
         failed++;
       }
       setProgress({ done: index + 1, total: pending.length });
     }
     setProgress(undefined);
-    return `${saved} authors saved automatically.${incomplete ? ` ${incomplete} listings need a name or book title.` : ""}${failed ? ` ${failed} could not be saved. Use Save all ready authors to retry.` : ""}`;
+    return `${saved} authors saved automatically.${skipped ? ` ${skipped} previously generated authors skipped.` : ""}${incomplete ? ` ${incomplete} listings need a name or book title.` : ""}${failed ? ` ${failed} could not be saved. Use Save all ready authors to retry.` : ""}`;
   }
   async function saveBatch() {
     if (!batch || busy) return;
@@ -322,7 +326,8 @@ export function ArcScout({
     setBusy("Saving author details…");
     setError("");
     try {
-      await persistAuthor(item, batch, values);
+      const added = await persistAuthor(item, batch, values);
+      if (!added) setNotice("This author was already generated in your workspace and was skipped.");
     } catch (e) {
       setError((e as Error).message);
     } finally {

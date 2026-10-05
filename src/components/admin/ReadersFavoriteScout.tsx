@@ -102,10 +102,12 @@ export function ReadersFavoriteScout() {
     setBusy(true);
     setError("");
     let count = 0;
+    let skipped = 0;
     const batchId = crypto.randomUUID();
     try {
       for (const item of visible.filter((item) => selected.includes(item.sourceUrl))) {
         const result = await request<{
+          duplicate?: boolean;
           item: { author: { id: string; name: string }; book: { id: string } };
         }>("/api/admin/scout-manual-ingest", {
           sourceSlug: "readers_favorite",
@@ -120,6 +122,11 @@ export function ReadersFavoriteScout() {
             ? {}
             : { reviewPlatform: "readers_favorite", reviewRating: item.rating }),
         });
+        if (result.duplicate) {
+          skipped++;
+          setSelected((current) => current.filter((url) => url !== item.sourceUrl));
+          continue;
+        }
         setSaved((current) => [
           {
             id: result.item.book.id,
@@ -133,7 +140,7 @@ export function ReadersFavoriteScout() {
         count++;
       }
       setMessage(
-        `${count} books imported. Use Save for follow-up below to add authors to the existing lead workflow.`,
+        `${count} books imported. ${skipped} previously generated authors skipped. Use Save for follow-up below to add authors to the existing lead workflow.`,
       );
     } catch (e) {
       setError(

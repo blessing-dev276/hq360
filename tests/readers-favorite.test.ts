@@ -76,3 +76,30 @@ test("source migration retains old platforms and stores RF stars separately from
     await db.close();
   }
 }, 30000);
+
+test("category totals use the source's actual final page rather than the requested page", () => {
+  const html = fixture.replace(
+    /<ul class="pagination">.*?<\/ul>/,
+    `<ul class="pagination"><li class="active"><a data-page="384">385</a></li><li class="next disabled"><span>Next</span></li></ul>`,
+  );
+  const result = parseReadersFavorite(
+    html,
+    `https://readersfavorite.com${RF_DEFAULT}?page=1000000&per-page=10`,
+  );
+  expect(result.bookCount).toBe(3842);
+  expect(result.genres[0]?.bookCount).toBe(3842);
+});
+
+test("a sliding pagination window is only a lower bound and missing totals stay unknown", () => {
+  const result = parseReadersFavorite(
+    fixture + `<ul class="pagination"><li><a href="${RF_DEFAULT}?page=10">10</a></li></ul>`,
+    readersFavoriteCatalog(RF_DEFAULT),
+  );
+  expect(result.bookCount).toBeNull();
+  expect(result.minimumBookCount).toBe(91);
+  const unknown = parseReadersFavorite(
+    fixture.replace(/<ul class="pagination">.*?<\/ul>/, ""),
+    readersFavoriteCatalog(RF_DEFAULT),
+  );
+  expect(unknown.bookCount).toBeNull();
+});

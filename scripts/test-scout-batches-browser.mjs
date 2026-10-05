@@ -55,6 +55,29 @@ await context.route("**/api/admin/scout-reedsy-search", async (route) => {
     },
   });
 });
+await context.route("**/api/admin/scout-readers-favorite", (route) => {
+  const body = route.request().postDataJSON();
+  expect(body.metadataOnly).toBe(true);
+  return route.fulfill({
+    json: {
+      genres: [
+        {
+          path: "/book-reviews/book-reviews-genre-fiction-thriller-general.htm",
+          name: "Thriller",
+          bookCount: 3844,
+          minimumBookCount: 3844,
+        },
+        {
+          path: "/book-reviews/book-reviews-genre-fiction-fantasy.htm",
+          name: "Fantasy",
+          bookCount: body.catalog.includes("fantasy") ? 123 : null,
+          minimumBookCount: 0,
+        },
+      ],
+      items: [],
+    },
+  });
+});
 await context.route("**/api/admin/scout-manual-ingest", async (route) => {
   const body = route.request().postDataJSON();
   writes++;
@@ -72,41 +95,64 @@ try {
   await page.goto(`${process.env.SCOUT_TEST_URL || "http://127.0.0.1:8082"}/scout`);
   const count = page.getByRole("spinbutton", { name: "Authors to find" });
   const start = page.getByRole("button", { name: "Search & create batch" });
+  await expect(page.getByLabel("Batches to generate")).toHaveCount(0);
+  await expect(page.getByRole("region", { name: "Generation batches" })).toHaveCount(0);
   await count.fill("101");
-  await start.click();
-  expect(batches).toHaveLength(0);
+  await expect(count).toHaveValue("100");
+  await count.fill("9999");
+  await expect(count).toHaveValue("100");
+  await count.fill("");
+  await expect(count).toHaveValue("");
   await count.fill("20");
-  await page.getByLabel("Batches to generate").selectOption("3");
-  await start.click();
-  const jobs = page.getByRole("region", { name: "Generation batches" }).locator("article");
+  const panel = page.getByRole("region", { name: "Generation batches" });
+  const jobs = panel.locator("article");
+  for (let index = 0; index < 3; index++) {
+    await start.click();
+    await jobs.nth(index).getByRole("button", { name: "Pause", exact: true }).click();
+  }
   await expect(jobs).toHaveCount(3);
+  await expect(panel.getByRole("heading", { name: /3\/3 slots used/ })).toBeVisible();
   await expect(start).toBeDisabled();
-  await jobs.nth(0).getByRole("button", { name: "Pause", exact: true }).click();
-  await expect(jobs.nth(0).getByRole("button", { name: "Resume" })).toBeVisible();
-  await expect(jobs.nth(1).getByText("Batch complete", { exact: true })).toBeVisible({
-    timeout: 20000,
-  });
-  await expect(jobs.nth(2).getByText("Batch complete", { exact: true })).toBeVisible({
-    timeout: 20000,
-  });
+  await page.waitForTimeout(500);
   const stoppedAt = writes;
   await page.waitForTimeout(400);
   expect(writes).toBe(stoppedAt);
   await jobs.nth(0).getByRole("button", { name: "Resume" }).click();
-  await expect(jobs.nth(0).getByText("Batch complete", { exact: true })).toBeVisible({
-    timeout: 20000,
-  });
+  await expect(jobs).toHaveCount(2, { timeout: 20000 });
+  await expect(start).toBeEnabled();
+  await expect(panel.getByRole("heading", { name: /2\/3 slots used/ })).toBeVisible();
+  await jobs.nth(0).getByRole("button", { name: "Resume" }).click();
+  await expect(jobs).toHaveCount(1, { timeout: 20000 });
+  await jobs.nth(0).getByRole("button", { name: "Resume" }).click();
+  await expect(panel).toHaveCount(0, { timeout: 20000 });
   expect(claims.size).toBe(60);
   for (const batch of batches)
     expect([...claims.values()].filter((id) => id === batch.id)).toHaveLength(20);
-  await page.getByLabel("Batches to generate").selectOption("1");
+  expect(batches).toHaveLength(3);
   failOnce = true;
   await start.click();
-  await jobs.nth(3).getByRole("button", { name: "Retry", exact: true }).click();
-  await expect(jobs.nth(3).getByText("Batch complete", { exact: true })).toBeVisible({
-    timeout: 20000,
-  });
+  await jobs.nth(0).getByRole("button", { name: "Retry", exact: true }).click();
+  await expect(panel).toHaveCount(0, { timeout: 20000 });
   expect(claims.size).toBe(80);
+  await expect(page.getByLabel("Choose a batch").locator("option")).toHaveCount(5);
+  await page.getByLabel("Review source", { exact: true }).selectOption("readers_favorite");
+  await expect(
+    page
+      .getByLabel("Book review category")
+      .locator("option", { hasText: "Thriller (3,844 books)" }),
+  ).toHaveCount(1);
+  await page
+    .getByLabel("Book review category")
+    .selectOption("/book-reviews/book-reviews-genre-fiction-fantasy.htm");
+  await expect(
+    page.getByLabel("Book review category").locator("option", { hasText: "Fantasy (123 books)" }),
+  ).toHaveCount(1);
+  await page
+    .getByLabel("Book review category")
+    .selectOption("/book-reviews/book-reviews-genre-fiction-thriller-general.htm");
+  await expect(
+    page.getByLabel("Book review category").locator("option", { hasText: "Fantasy (123 books)" }),
+  ).toHaveCount(1);
   await page.setViewportSize({ width: 390, height: 844 });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
     true,

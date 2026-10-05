@@ -370,9 +370,11 @@ export function ArcScout({
                   disabled={!!busy}
                   onChange={(e) => setGenre(e.target.value)}
                 >
-                  <option value="">All genres</option>
+                  <option value="">All genres (total unavailable)</option>
                   {ARC_GENRES.map((g) => (
-                    <option key={g}>{g}</option>
+                    <option key={g} value={g}>
+                      {g} (total unavailable)
+                    </option>
                   ))}
                 </select>
               </label>

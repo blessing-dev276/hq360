@@ -11,6 +11,7 @@ import {
   parseReadersFavorite,
 } from "@/lib/scout/readers-favorite";
 const schema = z.object({
+  metadataOnly: z.boolean().default(false),
   catalog: z.string().max(300).default(RF_DEFAULT),
   page: z.number().int().min(1).max(100).default(1),
 });
@@ -60,13 +61,22 @@ export const Route = createFileRoute("/api/admin/scout-readers-favorite")({
         const parsed = schema.safeParse(await request.json().catch(() => null));
         if (!parsed.success)
           return Response.json({ error: "Invalid search options." }, { status: 400 });
+        const metadataOnly = parsed.data.metadataOnly;
         let url: string;
         try {
           url = readersFavoriteCatalog(parsed.data.catalog, parsed.data.page);
+          if (metadataOnly) {
+            // Readers’ Favorite clamps out-of-range requests to its final page.
+            // One page supplies the active page number and exact remainder.
+            const lastPage = new URL(url);
+            lastPage.searchParams.set("page", "1000000");
+            url = lastPage.href;
+          }
         } catch {
           return Response.json({ error: "Use a Readers’ Favorite genre URL." }, { status: 400 });
         }
         async function freshResults(body: ReturnType<typeof parseReadersFavorite>) {
+          if (metadataOnly) return { ...body, items: [] };
           const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
           const seen = await generatedAuthorNames(supabaseAdmin, access!.owner);
           return {
@@ -101,7 +111,10 @@ export const Route = createFileRoute("/api/admin/scout-readers-favorite")({
             throw new Error("This source currently disallows automated catalog access.");
           const body = parseReadersFavorite(await publicPage(url), url);
           if (cache.size >= 100) cache.delete(cache.keys().next().value!);
-          cache.set(url, { until: Date.now() + 300000, body });
+          cache.set(url, {
+            until: Date.now() + (metadataOnly ? 1800000 : 300000),
+            body,
+          });
           return Response.json(await freshResults(body));
         } catch (error) {
           return Response.json(

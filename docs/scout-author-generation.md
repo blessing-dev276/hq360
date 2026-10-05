@@ -1,6 +1,6 @@
 # Author generation
 
-Reedsy and Readers’ Favorite searches accept a typed count of 1–100 authors per batch. The generation panel supports up to three unfinished batches in the current tab, including paused or failed batches. Each batch has separate pause, resume/retry and progress controls. Keep the tab open: job cursors and pending candidates live in browser memory; saved results survive closing or reloading it. Pause lets requests already in flight finish before starting more work.
+Reedsy and Readers’ Favorite searches accept a typed count of 1–100 authors per batch. Each search creates one batch. The generation panel appears only while there are unfinished batches and supports three slots in the current tab, including paused or failed batches. Completed cards disappear automatically and release their slots; completed results remain in batch history. The number input clamps typed and pasted values to 100. Each batch has separate pause, resume/retry and progress controls. Keep the tab open: job cursors and pending candidates live in browser memory; saved results survive closing or reloading it. Pause lets requests already in flight finish before starting more work.
 
 Searches continue through catalogue pages until the requested number of new authors is saved or the available catalogue ends. Reedsy shares short-lived source page requests between simultaneous batches. Saves use four concurrent requests per batch. Source rate limits are respected with bounded retries.
 
@@ -12,3 +12,5 @@ Verification:
 
 - `bun test tests/scout-unique-authors.test.ts tests/scout-database.test.ts`
 - Start a local preview, then `SCOUT_TEST_URL=http://127.0.0.1:8082 bun scripts/test-scout-batches-browser.mjs` (fixture API responses; no production writes).
+
+Readers’ Favorite category selection fetches and caches its final public catalogue page to compute the exact book total from the active page and remaining listings. This count is independent of workspace exclusions and is not a distinct-author count. If the source does not supply a verifiable total, the UI labels it unavailable; pagination may supply a clearly labelled lower bound. Other ARC providers currently have no verified category-total feed, so their genres show “total unavailable”.

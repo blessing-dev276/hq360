@@ -73,9 +73,52 @@ export function parseReadersFavorite(html: string, url: string) {
   const nextHref = $(".pagination .next:not(.disabled) a[href]").attr("href");
   const current = new URL(url);
   const next = nextHref ? new URL(nextHref, RF_ORIGIN) : null;
+  // Pagination is a lower bound, not an exact total: the visible page window
+  // can stop long before the last page. Never multiply it into a claimed total.
+  const activePageIndex = $(".pagination .active a[data-page]").attr("data-page");
+  const activePage = activePageIndex !== undefined ? Number(activePageIndex) + 1 : null;
+  const requestedPage = Number(current.searchParams.get("page") || 1);
+  const currentPage =
+    activePage !== null && Number.isInteger(activePage) && activePage > 0
+      ? activePage
+      : requestedPage <= 100
+        ? requestedPage
+        : 1;
+  const pageNumbers = $(".pagination a[href]")
+    .toArray()
+    .flatMap((element) => {
+      try {
+        const link = new URL($(element).attr("href")!, RF_ORIGIN);
+        const page = Number(link.searchParams.get("page"));
+        return link.origin === RF_ORIGIN &&
+          link.pathname === current.pathname &&
+          Number.isInteger(page) &&
+          page > 0
+          ? [page]
+          : [];
+      } catch {
+        return [];
+      }
+    });
+  const minimumBookCount = Math.max(
+    ...pageNumbers.map((page) => (page - 1) * 10 + 1),
+    (currentPage - 1) * 10 + $(".book-short-dtl").length,
+  );
+  // An explicitly disabled Next control proves this is the final page.
+  const finalPage =
+    $(".pagination .next.disabled").length > 0 && (requestedPage <= 100 || activePage !== null);
+  const bookCount = finalPage ? (currentPage - 1) * 10 + $(".book-short-dtl").length : null;
+  if (genre) genres.set(current.pathname, genre);
   return {
     items,
-    genres: [...genres].map(([path, name]) => ({ path, name })),
+    bookCount,
+    minimumBookCount,
+    genres: [...genres].map(([path, name]) => ({
+      path,
+      name,
+      bookCount: path === current.pathname ? bookCount : null,
+      minimumBookCount: path === current.pathname ? minimumBookCount : 0,
+    })),
     hasNext:
       !!next &&
       next.origin === RF_ORIGIN &&

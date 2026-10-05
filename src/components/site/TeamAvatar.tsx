@@ -1,9 +1,9 @@
-import blessingPhoto from "@/assets/team-blessing.png";
-import zainab from "@/assets/team-zainab.jpg";
-import emmanuel from "@/assets/team-emmanuel.jpg";
-import richard from "@/assets/team-richard.jpg";
-import ebenezer from "@/assets/team-ebenezer.jpg";
-import racheal from "@/assets/team-racheal.jpg";
+import blessingPhoto from "@/assets/team-blessing.webp";
+import zainab from "@/assets/team-zainab.webp";
+import emmanuel from "@/assets/team-emmanuel.webp";
+import richard from "@/assets/team-richard.webp";
+import ebenezer from "@/assets/team-ebenezer.webp";
+import racheal from "@/assets/team-racheal.webp";
 
 /** Bundled fallback portraits, keyed by first name lowercased. Exported so
  * other team layouts (e.g. the homepage showcase) can render the image

@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
-import teamGroup1 from "@/assets/team-group-hero.jpg";
-import teamGroup2 from "@/assets/team-group-2.jpg";
-import teamGroup3 from "@/assets/team-group-3.jpg";
-import teamGroup4 from "@/assets/team-group-4.jpg";
+import teamGroup1 from "@/assets/team-group-hero.webp";
+import teamGroup2 from "@/assets/team-group-2.webp";
+import teamGroup3 from "@/assets/team-group-3.webp";
+import teamGroup4 from "@/assets/team-group-4.webp";
 import { AGENCY_PROCESS } from "@/data/agency";
 import { BRAND } from "@/config/brand";
 import { useExpertDirectory } from "@/lib/experts";

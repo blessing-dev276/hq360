@@ -1,0 +1,125 @@
+/* HQ360 skeleton / shimmer system. One implementation for the whole site:
+   neutral blocks with a soft light streak that slides across via transform
+   (compositor-only, no layout/paint per frame). Colours come from tokens so
+   the same markup works on the light site, the dark public pages (.hqd /
+   .dark) and the dark admin/expert workspaces. */
+
+:root {
+  --hq-skel-base: var(--skeleton-base, oklch(0.93 0.004 90));
+  --hq-skel-highlight: rgb(255 255 255 / 0.55);
+  --hq-skel-duration: var(--skeleton-duration, 1.6s);
+}
+.dark,
+.hqd,
+.admin-workspace,
+.admin-dialog {
+  --hq-skel-base: rgb(255 255 255 / 0.06);
+  --hq-skel-highlight: rgb(255 255 255 / 0.07);
+}
+
+.hq-skel {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  flex-shrink: 0;
+  border-radius: 0.5rem;
+  background: var(--hq-skel-base);
+}
+.hq-skel.is-circle {
+  border-radius: 999px;
+}
+.hq-skel.is-pill {
+  border-radius: 999px;
+}
+.hq-skel::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    100deg,
+    transparent 15%,
+    var(--hq-skel-highlight) 50%,
+    transparent 85%
+  );
+  animation: hq-skel-sweep var(--hq-skel-speed, var(--hq-skel-duration)) ease-in-out infinite;
+  will-change: transform;
+}
+.hq-skel.no-shimmer::after {
+  display: none;
+}
+@keyframes hq-skel-sweep {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Layout helpers so skeletons hold the same space as the real UI. */
+.hq-skel-stack {
+  display: grid;
+  gap: 0.6rem;
+}
+.hq-skel-row {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+.hq-skel-card {
+  display: grid;
+  gap: 0.75rem;
+  padding: 1.25rem;
+  border: 1px solid var(--border, rgb(255 255 255 / 0.08));
+  border-radius: 1.1rem;
+}
+.hq-skel-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--hq-skel-min, 16rem)), 1fr));
+}
+.hq-skel-table {
+  display: grid;
+  border: 1px solid var(--border, rgb(255 255 255 / 0.08));
+  border-radius: 1rem;
+  overflow: hidden;
+}
+.hq-skel-table > div {
+  display: grid;
+  grid-template-columns: var(--hq-skel-cols);
+  gap: 1.25rem;
+  align-items: center;
+  padding: 1rem 1.4rem;
+  border-bottom: 1px solid var(--border, rgb(255 255 255 / 0.08));
+}
+.hq-skel-table > div:last-child {
+  border-bottom: 0;
+}
+.hq-skel-table > div:first-child {
+  background: rgb(127 127 127 / 0.05);
+}
+
+/* Real content arriving after a skeleton: a short, quiet fade. */
+.hq-fade-in {
+  animation: hq-fade-in 220ms ease-out both;
+}
+@keyframes hq-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hq-skel::after {
+    animation: none;
+    display: none;
+  }
+  .hq-fade-in {
+    animation: none;
+  }
+}
+
+/* Light surfaces inside the dark site (buyer invoice, unsubscribe). */
+.buyer-invoice-page {
+  --hq-skel-base: #efece8;
+  --hq-skel-highlight: rgb(255 255 255 / 0.75);
+}

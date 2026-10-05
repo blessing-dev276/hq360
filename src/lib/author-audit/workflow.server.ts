@@ -246,10 +246,23 @@ export async function autoValidate(id: string, actor: string) {
   return {
     accepted: goodFindings!.length,
     rejected: badFindings!.length,
-    listopia: goodLists!.length,
-    actions: goodActions!.length,
+    counts: {
+      findings: goodFindings!.length,
+      sections: state.sections.filter((s) => s.enabled && s.review_status !== "approved").length,
+      listopia: goodLists!.length,
+      actions: goodActions!.length,
+      screenshots: goodAssets!.length,
+      checks: doneTasks!.length + closedTasks!.length,
+    },
     remaining,
   };
+}
+function hostOf(value: string) {
+  try {
+    return new URL(value).hostname.replace(/^www\./, "");
+  } catch {
+    return "";
+  }
 }
 export function clientSnapshot(state: Awaited<ReturnType<typeof workflowState>>) {
   const sections = state.sections
@@ -376,7 +389,8 @@ export function clientSnapshot(state: Awaited<ReturnType<typeof workflowState>>)
     ctaEnabled: state.audit.cta_enabled,
     metrics: {
       sources: urls.length,
-      platforms: new Set(urls.map((u) => new URL(u).hostname)).size,
+      // Screenshot sources are free text ("Amazon"), so only real URLs count.
+      platforms: new Set(urls.map(hostOf).filter(Boolean)).size,
       findings: findings.length,
       screenshots: assets.length,
       actions: actions.length,
@@ -827,7 +841,14 @@ export async function workflowPost(request: Request, id: string) {
           .max(3000)
           .parse(body.notes ?? ""),
       });
-      if (r.error) throw new Error("Audit changed while generating. Refresh and try again.");
+      if (r.error) {
+        console.error("[audit] generate", r.error.message);
+        throw new Error(
+          /Audit changed/.test(r.error.message)
+            ? "Audit changed while generating. Refresh and try again."
+            : `Could not generate the client site: ${r.error.message}`,
+        );
+      }
       return privateJson({ ok: true, versionId: r.data });
     }
     if (action === "qa") {

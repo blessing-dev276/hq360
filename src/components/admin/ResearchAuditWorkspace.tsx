@@ -1696,8 +1696,8 @@ function FastApprove({
           <p className="text-xs font-semibold tracking-widest text-brand uppercase">Fast approve</p>
           <h2 className="mt-1 text-xl font-semibold">Already verified this research?</h2>
           <p className="mt-2 text-sm text-muted-foreground">
-            Approve everything in one step instead of item by item. Rejected and hidden items are
-            left alone, and screenshot requests still need a real uploaded image.
+            Validate everything in one step: cited findings with a recommendation are approved, the
+            rest are rejected, and manual checks are closed.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">

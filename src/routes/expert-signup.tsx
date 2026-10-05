@@ -5,7 +5,6 @@ import {
   BadgeCheck,
   CheckCircle2,
   FileText,
-  ScanSearch,
   Sparkles,
   UserRound,
   Users,
@@ -18,7 +17,7 @@ export const Route = createFileRoute("/expert-signup")({
     buildSeo({
       title: "Become an Expert | HQ360",
       description:
-        "Apply to join the HQ360 expert network. Approved experts get access to Audit and Scout, and a public profile page.",
+        "Apply to join the HQ360 expert network. Approved experts get access to Audit and a public profile page.",
       path: "/expert-signup",
     }),
   component: BecomeAnExpert,
@@ -34,11 +33,6 @@ const PERKS = [
     icon: FileText,
     title: "Audit",
     body: "Research and build author visibility reports with HQ360’s tooling.",
-  },
-  {
-    icon: ScanSearch,
-    title: "Scout",
-    body: "Find and research new and debut authors with the prospecting workspace.",
   },
   {
     icon: Users,

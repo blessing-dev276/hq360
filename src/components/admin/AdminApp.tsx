@@ -7,6 +7,7 @@ import { uploadAdminMedia, type AdminBucket } from "@/lib/admin-upload";
 import type { SerializedCaseStudy } from "@/lib/case-study-shape";
 import { AuthorAuditAdmin } from "@/components/admin/AuthorAuditAdmin";
 import { ExpertsAdmin } from "@/components/admin/ExpertsAdmin";
+import { VisitorsAdmin } from "@/components/admin/VisitorsAdmin";
 
 import {
   LayoutDashboard,
@@ -18,6 +19,7 @@ import {
   ArrowUpRight,
   LogOut,
   UserCheck,
+  Globe2,
 } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { PaymentsAdmin } from "./PaymentsAdmin";
@@ -150,7 +152,8 @@ type Tab =
   | "team"
   | "testimonials"
   | "audits"
-  | "experts";
+  | "experts"
+  | "visitors";
 type WorkView = "cases" | "gallery";
 const NAV = [
   {
@@ -202,6 +205,12 @@ const NAV = [
     icon: UserCheck,
     description: "Manage experts — accounts, profiles, portfolios and what they can access.",
   },
+  {
+    id: "visitors",
+    label: "Visitors",
+    icon: Globe2,
+    description: "Who is visiting the website, from which country, and what they read.",
+  },
 ] as const;
 const input =
   "w-full rounded-xl border border-border bg-background px-3.5 py-2.5 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring";
@@ -233,7 +242,7 @@ export function AdminApp({ initialTab = "overview" }: { initialTab?: Tab }) {
         </a>
         <p className="admin-nav-label">WORKSPACE</p>
         <nav aria-label="Admin navigation">
-          {["overview", "scout", "audits", "experts", "projects", "payments", "work"].map((key) =>
+          {["overview", "scout", "audits", "experts", "visitors", "projects", "payments", "work"].map((key) =>
             (() => {
               const { id, label, icon: Icon } = NAV.find((item) => item.id === key)!;
               return (
@@ -312,6 +321,8 @@ export function AdminApp({ initialTab = "overview" }: { initialTab?: Tab }) {
             <PaymentsAdmin />
           ) : tab === "experts" ? (
             <ExpertsAdmin />
+          ) : tab === "visitors" ? (
+            <VisitorsAdmin />
           ) : tab === "audits" ? (
             <AuthorAuditAdmin />
           ) : (

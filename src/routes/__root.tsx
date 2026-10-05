@@ -15,6 +15,7 @@ import { PageLoadError, RouteProgress } from "@/components/site/loading/RouteLoa
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { SiteFooter } from "@/components/site/SiteFooter";
 import { CookieBanner } from "@/components/site/CookieBanner";
+import { VisitTracker } from "@/components/site/VisitTracker";
 import { LeadPopup } from "@/components/site/LeadPopup";
 import { VoiceMessage } from "@/components/site/VoiceMessage";
 import { BRAND } from "@/config/brand";
@@ -130,6 +131,7 @@ function RootComponent() {
           <>
             <SiteFooter />
             <CookieBanner />
+            <VisitTracker />
             <LeadPopup />
             <VoiceMessage />
           </>

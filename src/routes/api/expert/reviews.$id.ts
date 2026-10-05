@@ -10,7 +10,7 @@ export const Route = createFileRoute("/api/expert/reviews/$id")({
       DELETE: async ({ request, params }) => {
         const { isExpertRequest } = await import("@/lib/expert-auth.server");
         const { expertReviews } = await import("@/lib/expert-reviews.server");
-        const expertId = await isExpertRequest(request);
+        const expertId = await isExpertRequest(request, { profileWrite: true });
         if (!expertId) return json({ error: "Unauthorized" }, 401);
         if (request.headers.get("origin") !== new URL(request.url).origin)
           return json({ error: "Invalid origin" }, 403);

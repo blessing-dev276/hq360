@@ -82,11 +82,15 @@ export function ExpertApp() {
   const [tab, setTab] = useState<Tab>("dashboard");
   const [permissions, setPermissions] = useState<string[]>([]);
   const [role, setRole] = useState("contributor");
+  // Guests have no profile: only the tools the admin granted them.
+  const [guest, setGuest] = useState(false);
   const [logoutError, setLogoutError] = useState("");
 
   const unlocked = TOOLS.filter((t) => permissions.includes(t.id));
-  const locked = TOOLS.filter((t) => !permissions.includes(t.id));
-  const nav = [...CORE, ...unlocked];
+  const locked = guest ? [] : TOOLS.filter((t) => !permissions.includes(t.id));
+  const nav = guest
+    ? [...CORE.filter((c) => c.id === "leads" && permissions.includes("scout")), ...unlocked]
+    : [...CORE, ...unlocked];
 
   useEffect(() => {
     fetch("/api/expert/profile")
@@ -94,6 +98,13 @@ export function ExpertApp() {
       .then((data) => {
         setPermissions(data.profile?.permissions ?? []);
         setRole(data.profile?.role ?? "contributor");
+        if (data.profile?.is_guest) {
+          setGuest(true);
+          const tools: string[] = data.profile.permissions ?? [];
+          // Open their first tool instead of the (profile) dashboard.
+          const first = TOOLS.find((t) => tools.includes(t.id));
+          if (first && !window.location.hash) setTab(first.id);
+        }
       })
       .catch(() => {});
   }, []);
@@ -121,7 +132,7 @@ export function ExpertApp() {
       setLogoutError("Could not sign out. Please try again.");
     }
   }
-  const current = nav.find((item) => item.id === tab) ?? CORE[0]!;
+  const current = nav.find((item) => item.id === tab) ?? nav[0] ?? CORE[0]!;
 
   return (
     <div className="admin-workspace">
@@ -162,10 +173,12 @@ export function ExpertApp() {
           ))}
         </nav>
         <div className="admin-sidebar-bottom">
-          <a href="/experts" target="_blank" rel="noreferrer" className="admin-nav-item">
-            <UserRound size={18} />
-            Experts directory
-          </a>
+          {!guest && (
+            <a href="/experts" target="_blank" rel="noreferrer" className="admin-nav-item">
+              <UserRound size={18} />
+              Experts directory
+            </a>
+          )}
           <button className="admin-nav-item" onClick={() => void signOut()}>
             <LogOut size={18} />
             Sign out
@@ -188,13 +201,19 @@ export function ExpertApp() {
               }}
             />
             <span className="admin-account-label">
-              HQ360 Expert<small>{roleLabel(role)}</small>
+              {guest ? "HQ360 Guest" : "HQ360 Expert"}
+              <small>{guest ? "Guest access" : roleLabel(role)}</small>
             </span>
-            <span className="admin-user-avatar">EX</span>
+            <span className="admin-user-avatar">{guest ? "GU" : "EX"}</span>
           </div>
         </header>
         <div className="admin-page">
-          {current.id === "dashboard" ? (
+          {guest && nav.length === 0 ? (
+            <div className="admin-empty">
+              <h3>No tools yet</h3>
+              <p>HQ360 hasn't given you access to any tools right now.</p>
+            </div>
+          ) : current.id === "dashboard" ? (
             <ExpertDashboard onNavigate={navigate} />
           ) : current.id === "profile" ? (
             <ExpertProfileEditor />

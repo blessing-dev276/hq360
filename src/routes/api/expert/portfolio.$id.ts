@@ -22,7 +22,7 @@ export const Route = createFileRoute("/api/expert/portfolio/$id")({
     handlers: {
       PUT: async ({ request, params }) => {
         const { isExpertRequest, expertPortfolioItems } = await import("@/lib/expert-auth.server");
-        const expertId = await isExpertRequest(request);
+        const expertId = await isExpertRequest(request, { profileWrite: true });
         if (!expertId) return json({ error: "Unauthorized" }, 401);
         if (request.headers.get("origin") !== new URL(request.url).origin)
           return json({ error: "Invalid origin" }, 403);
@@ -56,7 +56,7 @@ export const Route = createFileRoute("/api/expert/portfolio/$id")({
       },
       DELETE: async ({ request, params }) => {
         const { isExpertRequest, expertPortfolioItems } = await import("@/lib/expert-auth.server");
-        const expertId = await isExpertRequest(request);
+        const expertId = await isExpertRequest(request, { profileWrite: true });
         if (!expertId) return json({ error: "Unauthorized" }, 401);
         const { error } = await expertPortfolioItems()
           .delete()

@@ -36,7 +36,7 @@ const schema = z.object({
 });
 
 const FIELDS =
-  "id, email, slug, full_name, headline, summary, bio, photo_url, specialties, location, website_url, linkedin_url, fiverr_url, upwork_url, is_public, status, profile_status, profile_submitted_at, profile_reviewed_at, profile_review_note, claimed_team_member_id, role, permissions, is_founder";
+  "id, email, slug, full_name, headline, summary, bio, photo_url, specialties, location, website_url, linkedin_url, fiverr_url, upwork_url, is_public, status, profile_status, profile_submitted_at, profile_reviewed_at, profile_review_note, claimed_team_member_id, role, permissions, is_founder, is_guest";
 
 export const Route = createFileRoute("/api/expert/profile")({
   server: {
@@ -54,7 +54,7 @@ export const Route = createFileRoute("/api/expert/profile")({
       },
       PUT: async ({ request }) => {
         const { isExpertRequest, expertProfiles } = await import("@/lib/expert-auth.server");
-        const expertId = await isExpertRequest(request);
+        const expertId = await isExpertRequest(request, { profileWrite: true });
         if (!expertId) return json({ error: "Unauthorized" }, 401);
         if (request.headers.get("origin") !== new URL(request.url).origin)
           return json({ error: "Invalid origin" }, 403);

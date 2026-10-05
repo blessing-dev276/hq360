@@ -9,6 +9,7 @@ import {
   Images,
   Inbox,
   Link2,
+  Mail,
   Pencil,
   Plus,
   RefreshCw,
@@ -17,6 +18,7 @@ import {
   Trash2,
   Unlink,
   UserCheck,
+  UserPlus,
   UserRound,
   Users,
   UserX,
@@ -52,6 +54,9 @@ type Expert = {
   role: string;
   permissions: string[];
   is_founder: boolean;
+  is_guest?: boolean;
+  invited_at?: string | null;
+  invite_expires_at?: string | null;
 };
 type TeamMember = { id: string; name: string; title: string; claimed_by_expert_id: string | null };
 type SitePortfolioItem = { id: string; title: string };
@@ -81,7 +86,7 @@ type TestimonialVideo = {
   video_url: string;
   status: "pending" | "approved" | "rejected";
 };
-type Filter = "all" | "attention" | "published" | "unpublished" | "pending" | "rejected";
+type Filter = "all" | "attention" | "published" | "unpublished" | "pending" | "rejected" | "guests";
 type DrawerTab = "overview" | "profile" | "portfolio" | "access";
 type ExpertAction =
   | "approve"
@@ -94,7 +99,8 @@ type ExpertAction =
   | "unlink_team"
   | "assign_portfolio"
   | "set_access"
-  | "update_profile";
+  | "update_profile"
+  | "resend_invite";
 
 async function post(url: string, body: unknown) {
   const response = await fetch(url, {
@@ -108,6 +114,12 @@ async function post(url: string, body: unknown) {
 }
 
 function profileState(e: Expert): { label: string; tone: string } {
+  if (e.is_guest) {
+    if (e.status === "rejected") return { label: "Guest · suspended", tone: "overdue" };
+    return e.invite_expires_at
+      ? { label: "Guest · invite sent", tone: "pending" }
+      : { label: "Guest", tone: "paid" };
+  }
   if (e.status === "pending") return { label: "Awaiting approval", tone: "pending" };
   if (e.status === "rejected") return { label: "Rejected", tone: "overdue" };
   if (e.is_public) return { label: "Published", tone: "paid" };
@@ -155,6 +167,8 @@ export function ExpertsAdmin() {
   const [search, setSearch] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [drawerTab, setDrawerTab] = useState<DrawerTab>("overview");
+  const [inviting, setInviting] = useState(false);
+  const [inviteLink, setInviteLink] = useState("");
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -287,11 +301,12 @@ export function ExpertsAdmin() {
       .toLowerCase()
       .includes(search.toLowerCase());
     if (!matches) return false;
+    if (filter === "guests") return !!e.is_guest;
     if (filter === "attention") return needsAction(e);
     if (filter === "published") return e.status === "approved" && !!e.is_public;
-    if (filter === "unpublished") return e.status === "approved" && !e.is_public;
+    if (filter === "unpublished") return e.status === "approved" && !e.is_public && !e.is_guest;
     if (filter === "pending") return e.status === "pending";
-    if (filter === "rejected") return e.status === "rejected";
+    if (filter === "rejected") return e.status === "rejected" && !e.is_guest;
     return true;
   });
   const selected = experts.find((e) => e.id === selectedId) ?? null;
@@ -322,7 +337,7 @@ export function ExpertsAdmin() {
 
   return (
     <div style={{ display: "grid", gap: 22 }}>
-      {!selected && feedback}
+      {!selected && !inviting && feedback}
 
       <div
         className="admin-stats"
@@ -331,8 +346,8 @@ export function ExpertsAdmin() {
         <Stat
           label="Experts"
           icon={Users}
-          value={experts.length}
-          note={`${experts.filter((e) => e.status === "approved").length} approved`}
+          value={experts.filter((e) => !e.is_guest).length}
+          note={`${experts.filter((e) => e.status === "approved" && !e.is_guest).length} approved · ${experts.filter((e) => e.is_guest).length} guests`}
         />
         <Stat
           label="Needs your action"
@@ -552,6 +567,17 @@ export function ExpertsAdmin() {
             </h2>
             <p>Open an expert to manage their account, profile, portfolio and access.</p>
           </div>
+          <button
+            className="admin-button admin-button-primary"
+            onClick={() => {
+              setInviting(true);
+              setInviteLink("");
+              setError("");
+              setNotice("");
+            }}
+          >
+            <UserPlus size={15} /> Invite guest
+          </button>
         </div>
         <div className="admin-table-toolbar">
           <div className="admin-filters" aria-label="Filter experts">
@@ -563,6 +589,7 @@ export function ExpertsAdmin() {
                 ["unpublished", "Not published"],
                 ["pending", "Awaiting approval"],
                 ["rejected", "Rejected"],
+                ["guests", "Guests"],
               ] as [Filter, string][]
             ).map(([value, label]) => (
               <button
@@ -639,7 +666,13 @@ export function ExpertsAdmin() {
                       <td>
                         <span className={`admin-status ${state.tone}`}>{state.label}</span>
                       </td>
-                      <td>{e.status === "approved" ? roleLabel(e.role) : "—"}</td>
+                      <td>
+                        {e.is_guest
+                          ? toolList(e.permissions)
+                          : e.status === "approved"
+                            ? roleLabel(e.role)
+                            : "—"}
+                      </td>
                       <td>
                         {items.filter((i) => i.status === "approved").length} live
                         {items.some((i) => i.status === "pending") && (
@@ -665,6 +698,30 @@ export function ExpertsAdmin() {
         )}
       </section>
 
+      {inviting && (
+        <InviteGuestDrawer
+          busy={busy}
+          feedback={feedback}
+          link={inviteLink}
+          onClose={() => {
+            setInviting(false);
+            setInviteLink("");
+          }}
+          onInvite={(input) =>
+            run("invite-guest", async () => {
+              const data = await post("/api/admin/expert-guests", input);
+              setInviteLink(data.link);
+              setNotice(
+                data.emailed
+                  ? `Invite emailed to ${input.email}.`
+                  : "Guest created, but the email didn't send. Copy the invite link below and share it yourself.",
+              );
+              return data;
+            })
+          }
+        />
+      )}
+
       {selected && (
         <div
           className="admin-drawer-backdrop"
@@ -689,7 +746,7 @@ export function ExpertsAdmin() {
                   <span className={`admin-status ${profileState(selected).tone}`}>
                     {profileState(selected).label}
                   </span>
-                  {selected.status === "approved" && (
+                  {selected.status === "approved" && !selected.is_guest && (
                     <span className="admin-status draft">{roleLabel(selected.role)}</span>
                   )}
                 </div>
@@ -705,12 +762,17 @@ export function ExpertsAdmin() {
             </div>
             <div className="admin-segmented" style={{ alignSelf: "start" }}>
               {(
-                [
-                  ["overview", "Overview"],
-                  ["profile", "Profile"],
-                  ["portfolio", "Portfolio"],
-                  ["access", "Access"],
-                ] as [DrawerTab, string][]
+                (selected.is_guest
+                  ? [
+                      ["overview", "Overview"],
+                      ["access", "Tools"],
+                    ]
+                  : [
+                      ["overview", "Overview"],
+                      ["profile", "Profile"],
+                      ["portfolio", "Portfolio"],
+                      ["access", "Access"],
+                    ]) as [DrawerTab, string][]
               ).map(([value, label]) => (
                 <button
                   key={value}
@@ -722,7 +784,30 @@ export function ExpertsAdmin() {
               ))}
             </div>
             {feedback}
-            {drawerTab === "overview" && (
+            {drawerTab === "overview" && selected.is_guest && (
+              <GuestOverview
+                expert={selected}
+                busy={busy}
+                onAct={(action, success) => void act(selected, action, undefined, success)}
+                onResend={() =>
+                  void run(selected.id + "resend_invite", async () => {
+                    const data = await post(`/api/admin/experts/${selected.id}`, {
+                      action: "resend_invite",
+                    });
+                    setInviteLink(data.link);
+                    setNotice(
+                      data.emailed
+                        ? "A new invite was emailed. The old link no longer works."
+                        : "New link created, but the email didn't send. Copy it below.",
+                    );
+                    return data;
+                  })
+                }
+                inviteLink={inviteLink}
+                onDelete={() => remove(selected)}
+              />
+            )}
+            {drawerTab === "overview" && !selected.is_guest && (
               <OverviewTab
                 expert={selected}
                 team={team}
@@ -1731,6 +1816,26 @@ function AccessTab({
     );
     setRole(match?.key ?? "custom");
   }
+  if (expert.is_guest)
+    return (
+      <div style={{ display: "grid", gap: 16 }}>
+        <strong style={{ fontSize: 12 }}>Tools this guest can use</strong>
+        <ToolPicker value={perms} onChange={setPerms} />
+        <div className="admin-button-row">
+          <button
+            className="admin-button admin-button-primary"
+            disabled={!!busy || perms.length === 0}
+            onClick={() => onSave("custom", perms)}
+          >
+            <ShieldCheck size={15} /> {busy === expert.id + "set_access" ? "Saving…" : "Save tools"}
+          </button>
+        </div>
+        <p className="admin-form-note">
+          Guests have no profile or portfolio and never appear on the website. They're emailed when
+          their tools change.
+        </p>
+      </div>
+    );
   if (expert.status !== "approved")
     return (
       <div className="admin-empty">
@@ -1807,6 +1912,244 @@ function AccessTab({
         The expert sees new tools the next time they open their workspace. Access is enforced on the
         server.
       </p>
+    </div>
+  );
+}
+
+function toolList(permissions: string[]) {
+  const labels = EXPERT_FEATURES.filter((f) => permissions.includes(f.key)).map((f) => f.label);
+  return labels.length ? labels.join(", ") : "No tools";
+}
+
+function ToolPicker({ value, onChange }: { value: string[]; onChange: (next: string[]) => void }) {
+  return (
+    <div style={{ display: "grid", gap: 8 }}>
+      {EXPERT_FEATURES.map((f) => (
+        <label
+          key={f.key}
+          className="admin-drawer-card"
+          style={{ flexDirection: "row", alignItems: "center", cursor: "pointer" }}
+        >
+          <input
+            type="checkbox"
+            checked={value.includes(f.key)}
+            onChange={() =>
+              onChange(value.includes(f.key) ? value.filter((p) => p !== f.key) : [...value, f.key])
+            }
+          />
+          <span>
+            <strong>{f.label}</strong> <small>{f.hint}</small>
+          </span>
+        </label>
+      ))}
+    </div>
+  );
+}
+
+function InviteLinkBox({ link }: { link: string }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <div className="admin-drawer-card admin-invoice-form">
+      <label>
+        Invite link (works once, expires in 7 days)
+        <input readOnly value={link} onFocus={(e) => e.target.select()} />
+      </label>
+      <div className="admin-button-row">
+        <button
+          type="button"
+          className="admin-button"
+          onClick={() =>
+            void navigator.clipboard.writeText(link).then(() => {
+              setCopied(true);
+              window.setTimeout(() => setCopied(false), 2000);
+            })
+          }
+        >
+          <Link2 size={15} /> {copied ? "Copied" : "Copy link"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function InviteGuestDrawer({
+  busy,
+  feedback,
+  link,
+  onClose,
+  onInvite,
+}: {
+  busy: string;
+  feedback: ReactNode;
+  link: string;
+  onClose: () => void;
+  onInvite: (input: { full_name: string; email: string; permissions: string[] }) => unknown;
+}) {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [perms, setPerms] = useState<string[]>(["scout"]);
+  const sending = busy === "invite-guest";
+  function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    void onInvite({ full_name: name.trim(), email: email.trim(), permissions: perms });
+  }
+  return (
+    <div
+      className="admin-drawer-backdrop"
+      role="presentation"
+      onClick={(ev) => ev.target === ev.currentTarget && !busy && onClose()}
+    >
+      <aside className="admin-drawer" role="dialog" aria-modal="true" aria-label="Invite a guest">
+        <div className="admin-drawer-head">
+          <div style={{ minWidth: 0, flex: 1 }}>
+            <h2>Invite a guest</h2>
+            <small>
+              A guest signs in to the expert workspace and sees only the tools you pick. No profile,
+              no portfolio, never shown on the website.
+            </small>
+          </div>
+          <button
+            className="admin-icon-button"
+            aria-label="Close"
+            disabled={!!busy}
+            onClick={onClose}
+          >
+            <X size={17} />
+          </button>
+        </div>
+        {feedback}
+        {link ? (
+          <>
+            <InviteLinkBox link={link} />
+            <div className="admin-button-row">
+              <button className="admin-button admin-button-primary" onClick={onClose}>
+                Done
+              </button>
+            </div>
+          </>
+        ) : (
+          <div style={{ display: "grid", gap: 16 }}>
+            <form id="invite-guest-form" className="admin-invoice-form" onSubmit={submit}>
+              <div className="admin-form-grid">
+                <label>
+                  Full name
+                  <input
+                    required
+                    minLength={2}
+                    maxLength={150}
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                  />
+                </label>
+                <label>
+                  Email
+                  <input
+                    type="email"
+                    required
+                    maxLength={254}
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
+                </label>
+              </div>
+            </form>
+            <div>
+              <strong style={{ fontSize: 12 }}>Tools they can use</strong>
+              <div style={{ marginTop: 8 }}>
+                <ToolPicker value={perms} onChange={setPerms} />
+              </div>
+            </div>
+            <div className="admin-button-row">
+              <button
+                type="submit"
+                form="invite-guest-form"
+                className="admin-button admin-button-primary"
+                disabled={!!busy || perms.length === 0}
+              >
+                <Mail size={15} /> {sending ? "Sending invite…" : "Send invite"}
+              </button>
+            </div>
+            <p className="admin-form-note">
+              They get an email with a one-time link to set their password, then sign in at /expert.
+            </p>
+          </div>
+        )}
+      </aside>
+    </div>
+  );
+}
+
+function GuestOverview({
+  expert,
+  busy,
+  inviteLink,
+  onAct,
+  onResend,
+  onDelete,
+}: {
+  expert: Expert;
+  busy: string;
+  inviteLink: string;
+  onAct: (action: ExpertAction, success: string) => void;
+  onResend: () => void;
+  onDelete: () => void;
+}) {
+  const pending = !!expert.invite_expires_at;
+  const expired = pending && new Date(expert.invite_expires_at!).getTime() < Date.now();
+  return (
+    <div style={{ display: "grid", gap: 16 }}>
+      <DrawerCard
+        icon={UserRound}
+        title="Guest access"
+        text={
+          expert.status === "rejected"
+            ? "Suspended — cannot sign in."
+            : pending
+              ? expired
+                ? "The invite expired before they set a password. Send a new one."
+                : "Invited — waiting for them to set a password."
+              : "Active — signs in to the workspace with only their tools."
+        }
+      >
+        {expert.status === "rejected" ? (
+          <button
+            className="admin-button admin-button-primary"
+            disabled={!!busy}
+            onClick={() => onAct("approve", "Guest access restored.")}
+          >
+            <UserCheck size={15} /> Restore access
+          </button>
+        ) : (
+          <>
+            <button className="admin-button" disabled={!!busy} onClick={onResend}>
+              <Mail size={15} />{" "}
+              {busy === expert.id + "resend_invite"
+                ? "Sending…"
+                : pending
+                  ? "Resend invite"
+                  : "Send password link"}
+            </button>
+            <button
+              className="admin-button text-destructive"
+              disabled={!!busy}
+              onClick={() => onAct("reject", "Guest suspended.")}
+            >
+              <UserX size={15} /> Suspend
+            </button>
+          </>
+        )}
+      </DrawerCard>
+      {inviteLink && <InviteLinkBox link={inviteLink} />}
+      <DrawerCard icon={ShieldCheck} title="Tools" text={toolList(expert.permissions)} />
+      <DrawerCard
+        icon={Trash2}
+        title="Delete guest"
+        text="Removes their login for good. Leads and work they created stay."
+      >
+        <button className="admin-button text-destructive" disabled={!!busy} onClick={onDelete}>
+          <Trash2 size={15} /> Delete
+        </button>
+      </DrawerCard>
     </div>
   );
 }

@@ -20,6 +20,7 @@ export const Route = createFileRoute("/api/admin/experts/$id")({
           "assign_portfolio",
           "set_access",
           "update_profile",
+          "resend_invite",
         ];
         if (!actions.includes(action))
           return Response.json({ error: "Invalid action" }, { status: 400 });
@@ -30,6 +31,18 @@ export const Route = createFileRoute("/api/admin/experts/$id")({
           const { error } = await supabaseAdmin.auth.admin.deleteUser(params.id);
           if (error) return Response.json({ error: "Could not delete expert." }, { status: 503 });
           return Response.json({ ok: true });
+        }
+
+        if (action === "resend_invite") {
+          const { resendGuestInvite } = await import("@/lib/expert-guests.server");
+          try {
+            return Response.json({ ok: true, ...(await resendGuestInvite(params.id)) });
+          } catch (err) {
+            return Response.json(
+              { error: err instanceof Error ? err.message : "Could not resend the invite." },
+              { status: 409 },
+            );
+          }
         }
 
         const { expertProfiles } = await import("@/lib/expert-auth.server");

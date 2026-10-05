@@ -56,8 +56,12 @@ export function clearExpertCookie(): string {
   return `${COOKIE_NAME}=; Path=/; HttpOnly; SameSite=Strict; Max-Age=0${secure}`;
 }
 /** Returns the expert's id if the request carries a valid, still-approved
- *  expert session cookie; null otherwise. Re-checks approval status live. */
-export async function isExpertRequest(request: Request): Promise<string | null> {
+ *  expert session cookie; null otherwise. Re-checks approval status live.
+ *  `profileWrite` also refuses guests, who have no profile or portfolio. */
+export async function isExpertRequest(
+  request: Request,
+  options: { profileWrite?: boolean } = {},
+): Promise<string | null> {
   if (!secret()) return null;
   const cookies = request.headers.get("cookie") ?? "";
   const raw = cookies
@@ -70,8 +74,10 @@ export async function isExpertRequest(request: Request): Promise<string | null> 
   if (!userId || !expiresAt || !suppliedSignature || !/^\d+$/.test(expiresAt)) return null;
   if (Number(expiresAt) <= Math.floor(Date.now() / 1000)) return null;
   if (!safeEqual(suppliedSignature, signature(userId, expiresAt))) return null;
-  const { data: profile } = await expertProfiles().select("status").eq("id", userId).maybeSingle();
-  return (profile as { status?: string } | null)?.status === "approved" ? userId : null;
+  const { data } = await expertProfiles().select("status, is_guest").eq("id", userId).maybeSingle();
+  const profile = data as { status?: string; is_guest?: boolean } | null;
+  if (profile?.status !== "approved") return null;
+  return options.profileWrite && profile.is_guest ? null : userId;
 }
 export type StaffAccess = { role: "admin" } | { role: "expert"; expertId: string };
 /** Combined gate for routes shared between full admins and approved experts

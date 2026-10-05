@@ -23,6 +23,7 @@ import { Route as CreatorsRouteImport } from './routes/creators'
 import { Route as EcommerceRouteImport } from './routes/ecommerce'
 import { Route as ExpertRouteImport } from './routes/expert'
 import { Route as ExpertSignupRouteImport } from './routes/expert-signup'
+import { Route as ExpertWelcomeRouteImport } from './routes/expert-welcome'
 import { Route as FaqsRouteImport } from './routes/faqs'
 import { Route as GuaranteeRouteImport } from './routes/guarantee'
 import { Route as HomeServicesRouteImport } from './routes/home-services'
@@ -70,6 +71,7 @@ import { Route as WorkSlugRouteImport } from './routes/work.$slug'
 import { Route as ApiAdminAuthorAuditLeadsRouteImport } from './routes/api/admin/author-audit-leads'
 import { Route as ApiAdminAuthorAuditsRouteImport } from './routes/api/admin/author-audits'
 import { Route as ApiAdminCaseStudiesRouteImport } from './routes/api/admin/case-studies'
+import { Route as ApiAdminExpertGuestsRouteImport } from './routes/api/admin/expert-guests'
 import { Route as ApiAdminExpertPortfolioRouteImport } from './routes/api/admin/expert-portfolio'
 import { Route as ApiAdminExpertReviewsRouteImport } from './routes/api/admin/expert-reviews'
 import { Route as ApiAdminExpertTestimonialsRouteImport } from './routes/api/admin/expert-testimonials'
@@ -98,6 +100,7 @@ import { Route as ApiAdminTeamRouteImport } from './routes/api/admin/team'
 import { Route as ApiAdminTestimonialsRouteImport } from './routes/api/admin/testimonials'
 import { Route as ApiAdminUploadRouteImport } from './routes/api/admin/upload'
 import { Route as ApiAdminUploadUrlRouteImport } from './routes/api/admin/upload-url'
+import { Route as ApiExpertInviteRouteImport } from './routes/api/expert/invite'
 import { Route as ApiExpertInvoiceRequestsRouteImport } from './routes/api/expert/invoice-requests'
 import { Route as ApiExpertLeadsRouteImport } from './routes/api/expert/leads'
 import { Route as ApiExpertNotificationsRouteImport } from './routes/api/expert/notifications'
@@ -248,6 +251,11 @@ const ExpertRoute = ExpertRouteImport.update({
 const ExpertSignupRoute = ExpertSignupRouteImport.update({
   id: '/expert-signup',
   path: '/expert-signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ExpertWelcomeRoute = ExpertWelcomeRouteImport.update({
+  id: '/expert-welcome',
+  path: '/expert-welcome',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FaqsRoute = FaqsRouteImport.update({
@@ -487,6 +495,11 @@ const ApiAdminCaseStudiesRoute = ApiAdminCaseStudiesRouteImport.update({
   path: '/api/admin/case-studies',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAdminExpertGuestsRoute = ApiAdminExpertGuestsRouteImport.update({
+  id: '/api/admin/expert-guests',
+  path: '/api/admin/expert-guests',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAdminExpertPortfolioRoute = ApiAdminExpertPortfolioRouteImport.update({
   id: '/api/admin/expert-portfolio',
   path: '/api/admin/expert-portfolio',
@@ -634,6 +647,11 @@ const ApiAdminUploadRoute = ApiAdminUploadRouteImport.update({
 const ApiAdminUploadUrlRoute = ApiAdminUploadUrlRouteImport.update({
   id: '/api/admin/upload-url',
   path: '/api/admin/upload-url',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiExpertInviteRoute = ApiExpertInviteRouteImport.update({
+  id: '/api/expert/invite',
+  path: '/api/expert/invite',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiExpertInvoiceRequestsRoute =
@@ -1092,6 +1110,7 @@ export interface FileRoutesByFullPath {
   '/ecommerce': typeof EcommerceRoute
   '/expert': typeof ExpertRoute
   '/expert-signup': typeof ExpertSignupRoute
+  '/expert-welcome': typeof ExpertWelcomeRoute
   '/faqs': typeof FaqsRoute
   '/guarantee': typeof GuaranteeRoute
   '/home-services': typeof HomeServicesRoute
@@ -1139,6 +1158,7 @@ export interface FileRoutesByFullPath {
   '/api/admin/author-audit-leads': typeof ApiAdminAuthorAuditLeadsRoute
   '/api/admin/author-audits': typeof ApiAdminAuthorAuditsRouteWithChildren
   '/api/admin/case-studies': typeof ApiAdminCaseStudiesRouteWithChildren
+  '/api/admin/expert-guests': typeof ApiAdminExpertGuestsRoute
   '/api/admin/expert-portfolio': typeof ApiAdminExpertPortfolioRouteWithChildren
   '/api/admin/expert-reviews': typeof ApiAdminExpertReviewsRouteWithChildren
   '/api/admin/expert-testimonials': typeof ApiAdminExpertTestimonialsRouteWithChildren
@@ -1167,6 +1187,7 @@ export interface FileRoutesByFullPath {
   '/api/admin/testimonials': typeof ApiAdminTestimonialsRouteWithChildren
   '/api/admin/upload': typeof ApiAdminUploadRoute
   '/api/admin/upload-url': typeof ApiAdminUploadUrlRoute
+  '/api/expert/invite': typeof ApiExpertInviteRoute
   '/api/expert/invoice-requests': typeof ApiExpertInvoiceRequestsRoute
   '/api/expert/leads': typeof ApiExpertLeadsRoute
   '/api/expert/notifications': typeof ApiExpertNotificationsRoute
@@ -1263,6 +1284,7 @@ export interface FileRoutesByTo {
   '/ecommerce': typeof EcommerceRoute
   '/expert': typeof ExpertRoute
   '/expert-signup': typeof ExpertSignupRoute
+  '/expert-welcome': typeof ExpertWelcomeRoute
   '/faqs': typeof FaqsRoute
   '/guarantee': typeof GuaranteeRoute
   '/home-services': typeof HomeServicesRoute
@@ -1310,6 +1332,7 @@ export interface FileRoutesByTo {
   '/api/admin/author-audit-leads': typeof ApiAdminAuthorAuditLeadsRoute
   '/api/admin/author-audits': typeof ApiAdminAuthorAuditsRouteWithChildren
   '/api/admin/case-studies': typeof ApiAdminCaseStudiesRouteWithChildren
+  '/api/admin/expert-guests': typeof ApiAdminExpertGuestsRoute
   '/api/admin/expert-portfolio': typeof ApiAdminExpertPortfolioRouteWithChildren
   '/api/admin/expert-reviews': typeof ApiAdminExpertReviewsRouteWithChildren
   '/api/admin/expert-testimonials': typeof ApiAdminExpertTestimonialsRouteWithChildren
@@ -1338,6 +1361,7 @@ export interface FileRoutesByTo {
   '/api/admin/testimonials': typeof ApiAdminTestimonialsRouteWithChildren
   '/api/admin/upload': typeof ApiAdminUploadRoute
   '/api/admin/upload-url': typeof ApiAdminUploadUrlRoute
+  '/api/expert/invite': typeof ApiExpertInviteRoute
   '/api/expert/invoice-requests': typeof ApiExpertInvoiceRequestsRoute
   '/api/expert/leads': typeof ApiExpertLeadsRoute
   '/api/expert/notifications': typeof ApiExpertNotificationsRoute
@@ -1435,6 +1459,7 @@ export interface FileRoutesById {
   '/ecommerce': typeof EcommerceRoute
   '/expert': typeof ExpertRoute
   '/expert-signup': typeof ExpertSignupRoute
+  '/expert-welcome': typeof ExpertWelcomeRoute
   '/faqs': typeof FaqsRoute
   '/guarantee': typeof GuaranteeRoute
   '/home-services': typeof HomeServicesRoute
@@ -1482,6 +1507,7 @@ export interface FileRoutesById {
   '/api/admin/author-audit-leads': typeof ApiAdminAuthorAuditLeadsRoute
   '/api/admin/author-audits': typeof ApiAdminAuthorAuditsRouteWithChildren
   '/api/admin/case-studies': typeof ApiAdminCaseStudiesRouteWithChildren
+  '/api/admin/expert-guests': typeof ApiAdminExpertGuestsRoute
   '/api/admin/expert-portfolio': typeof ApiAdminExpertPortfolioRouteWithChildren
   '/api/admin/expert-reviews': typeof ApiAdminExpertReviewsRouteWithChildren
   '/api/admin/expert-testimonials': typeof ApiAdminExpertTestimonialsRouteWithChildren
@@ -1510,6 +1536,7 @@ export interface FileRoutesById {
   '/api/admin/testimonials': typeof ApiAdminTestimonialsRouteWithChildren
   '/api/admin/upload': typeof ApiAdminUploadRoute
   '/api/admin/upload-url': typeof ApiAdminUploadUrlRoute
+  '/api/expert/invite': typeof ApiExpertInviteRoute
   '/api/expert/invoice-requests': typeof ApiExpertInvoiceRequestsRoute
   '/api/expert/leads': typeof ApiExpertLeadsRoute
   '/api/expert/notifications': typeof ApiExpertNotificationsRoute
@@ -1608,6 +1635,7 @@ export interface FileRouteTypes {
     | '/ecommerce'
     | '/expert'
     | '/expert-signup'
+    | '/expert-welcome'
     | '/faqs'
     | '/guarantee'
     | '/home-services'
@@ -1655,6 +1683,7 @@ export interface FileRouteTypes {
     | '/api/admin/author-audit-leads'
     | '/api/admin/author-audits'
     | '/api/admin/case-studies'
+    | '/api/admin/expert-guests'
     | '/api/admin/expert-portfolio'
     | '/api/admin/expert-reviews'
     | '/api/admin/expert-testimonials'
@@ -1683,6 +1712,7 @@ export interface FileRouteTypes {
     | '/api/admin/testimonials'
     | '/api/admin/upload'
     | '/api/admin/upload-url'
+    | '/api/expert/invite'
     | '/api/expert/invoice-requests'
     | '/api/expert/leads'
     | '/api/expert/notifications'
@@ -1779,6 +1809,7 @@ export interface FileRouteTypes {
     | '/ecommerce'
     | '/expert'
     | '/expert-signup'
+    | '/expert-welcome'
     | '/faqs'
     | '/guarantee'
     | '/home-services'
@@ -1826,6 +1857,7 @@ export interface FileRouteTypes {
     | '/api/admin/author-audit-leads'
     | '/api/admin/author-audits'
     | '/api/admin/case-studies'
+    | '/api/admin/expert-guests'
     | '/api/admin/expert-portfolio'
     | '/api/admin/expert-reviews'
     | '/api/admin/expert-testimonials'
@@ -1854,6 +1886,7 @@ export interface FileRouteTypes {
     | '/api/admin/testimonials'
     | '/api/admin/upload'
     | '/api/admin/upload-url'
+    | '/api/expert/invite'
     | '/api/expert/invoice-requests'
     | '/api/expert/leads'
     | '/api/expert/notifications'
@@ -1950,6 +1983,7 @@ export interface FileRouteTypes {
     | '/ecommerce'
     | '/expert'
     | '/expert-signup'
+    | '/expert-welcome'
     | '/faqs'
     | '/guarantee'
     | '/home-services'
@@ -1997,6 +2031,7 @@ export interface FileRouteTypes {
     | '/api/admin/author-audit-leads'
     | '/api/admin/author-audits'
     | '/api/admin/case-studies'
+    | '/api/admin/expert-guests'
     | '/api/admin/expert-portfolio'
     | '/api/admin/expert-reviews'
     | '/api/admin/expert-testimonials'
@@ -2025,6 +2060,7 @@ export interface FileRouteTypes {
     | '/api/admin/testimonials'
     | '/api/admin/upload'
     | '/api/admin/upload-url'
+    | '/api/expert/invite'
     | '/api/expert/invoice-requests'
     | '/api/expert/leads'
     | '/api/expert/notifications'
@@ -2122,6 +2158,7 @@ export interface RootRouteChildren {
   EcommerceRoute: typeof EcommerceRoute
   ExpertRoute: typeof ExpertRoute
   ExpertSignupRoute: typeof ExpertSignupRoute
+  ExpertWelcomeRoute: typeof ExpertWelcomeRoute
   FaqsRoute: typeof FaqsRoute
   GuaranteeRoute: typeof GuaranteeRoute
   HomeServicesRoute: typeof HomeServicesRoute
@@ -2169,6 +2206,7 @@ export interface RootRouteChildren {
   ApiAdminAuthorAuditLeadsRoute: typeof ApiAdminAuthorAuditLeadsRoute
   ApiAdminAuthorAuditsRoute: typeof ApiAdminAuthorAuditsRouteWithChildren
   ApiAdminCaseStudiesRoute: typeof ApiAdminCaseStudiesRouteWithChildren
+  ApiAdminExpertGuestsRoute: typeof ApiAdminExpertGuestsRoute
   ApiAdminExpertPortfolioRoute: typeof ApiAdminExpertPortfolioRouteWithChildren
   ApiAdminExpertReviewsRoute: typeof ApiAdminExpertReviewsRouteWithChildren
   ApiAdminExpertTestimonialsRoute: typeof ApiAdminExpertTestimonialsRouteWithChildren
@@ -2197,6 +2235,7 @@ export interface RootRouteChildren {
   ApiAdminTestimonialsRoute: typeof ApiAdminTestimonialsRouteWithChildren
   ApiAdminUploadRoute: typeof ApiAdminUploadRoute
   ApiAdminUploadUrlRoute: typeof ApiAdminUploadUrlRoute
+  ApiExpertInviteRoute: typeof ApiExpertInviteRoute
   ApiExpertInvoiceRequestsRoute: typeof ApiExpertInvoiceRequestsRoute
   ApiExpertLeadsRoute: typeof ApiExpertLeadsRoute
   ApiExpertNotificationsRoute: typeof ApiExpertNotificationsRoute
@@ -2333,6 +2372,13 @@ declare module '@tanstack/react-router' {
       path: '/expert-signup'
       fullPath: '/expert-signup'
       preLoaderRoute: typeof ExpertSignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/expert-welcome': {
+      id: '/expert-welcome'
+      path: '/expert-welcome'
+      fullPath: '/expert-welcome'
+      preLoaderRoute: typeof ExpertWelcomeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/faqs': {
@@ -2664,6 +2710,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAdminCaseStudiesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/admin/expert-guests': {
+      id: '/api/admin/expert-guests'
+      path: '/api/admin/expert-guests'
+      fullPath: '/api/admin/expert-guests'
+      preLoaderRoute: typeof ApiAdminExpertGuestsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/admin/expert-portfolio': {
       id: '/api/admin/expert-portfolio'
       path: '/api/admin/expert-portfolio'
@@ -2858,6 +2911,13 @@ declare module '@tanstack/react-router' {
       path: '/api/admin/upload-url'
       fullPath: '/api/admin/upload-url'
       preLoaderRoute: typeof ApiAdminUploadUrlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/expert/invite': {
+      id: '/api/expert/invite'
+      path: '/api/expert/invite'
+      fullPath: '/api/expert/invite'
+      preLoaderRoute: typeof ApiExpertInviteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/expert/invoice-requests': {
@@ -3778,6 +3838,7 @@ const rootRouteChildren: RootRouteChildren = {
   EcommerceRoute: EcommerceRoute,
   ExpertRoute: ExpertRoute,
   ExpertSignupRoute: ExpertSignupRoute,
+  ExpertWelcomeRoute: ExpertWelcomeRoute,
   FaqsRoute: FaqsRoute,
   GuaranteeRoute: GuaranteeRoute,
   HomeServicesRoute: HomeServicesRoute,
@@ -3825,6 +3886,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAdminAuthorAuditLeadsRoute: ApiAdminAuthorAuditLeadsRoute,
   ApiAdminAuthorAuditsRoute: ApiAdminAuthorAuditsRouteWithChildren,
   ApiAdminCaseStudiesRoute: ApiAdminCaseStudiesRouteWithChildren,
+  ApiAdminExpertGuestsRoute: ApiAdminExpertGuestsRoute,
   ApiAdminExpertPortfolioRoute: ApiAdminExpertPortfolioRouteWithChildren,
   ApiAdminExpertReviewsRoute: ApiAdminExpertReviewsRouteWithChildren,
   ApiAdminExpertTestimonialsRoute: ApiAdminExpertTestimonialsRouteWithChildren,
@@ -3854,6 +3916,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAdminTestimonialsRoute: ApiAdminTestimonialsRouteWithChildren,
   ApiAdminUploadRoute: ApiAdminUploadRoute,
   ApiAdminUploadUrlRoute: ApiAdminUploadUrlRoute,
+  ApiExpertInviteRoute: ApiExpertInviteRoute,
   ApiExpertInvoiceRequestsRoute: ApiExpertInvoiceRequestsRoute,
   ApiExpertLeadsRoute: ApiExpertLeadsRoute,
   ApiExpertNotificationsRoute: ApiExpertNotificationsRoute,

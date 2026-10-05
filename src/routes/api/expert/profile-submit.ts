@@ -5,7 +5,7 @@ function json(body: unknown, status = 200) {
 }
 
 const FIELDS =
-  "id, email, slug, full_name, headline, summary, bio, photo_url, specialties, location, website_url, linkedin_url, fiverr_url, upwork_url, is_public, status, profile_status, profile_submitted_at, profile_reviewed_at, profile_review_note, claimed_team_member_id, role, permissions, is_founder";
+  "id, email, slug, full_name, headline, summary, bio, photo_url, specialties, location, website_url, linkedin_url, fiverr_url, upwork_url, is_public, status, profile_status, profile_submitted_at, profile_reviewed_at, profile_review_note, claimed_team_member_id, role, permissions, is_founder, is_guest";
 
 /** Puts the expert's current profile content up for admin review. Doesn't
  *  publish anything itself -- only an admin "publish" action sets is_public. */
@@ -14,7 +14,7 @@ export const Route = createFileRoute("/api/expert/profile-submit")({
     handlers: {
       POST: async ({ request }) => {
         const { isExpertRequest, expertProfiles } = await import("@/lib/expert-auth.server");
-        const expertId = await isExpertRequest(request);
+        const expertId = await isExpertRequest(request, { profileWrite: true });
         if (!expertId) return json({ error: "Unauthorized" }, 401);
         const { data, error } = await expertProfiles()
           .update({

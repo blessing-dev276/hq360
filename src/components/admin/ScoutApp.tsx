@@ -277,6 +277,7 @@ export function ScoutApp() {
 }
 function AuthorScout({ onBusyChange }: { onBusyChange: (busy: boolean) => void }) {
   const queryClient = useQueryClient();
+  const [view, setView] = useState<"scouting" | "batches">("scouting");
   const [genreLoading, setGenreLoading] = useState(true);
   const [loadAttempt, setLoadAttempt] = useState(0);
   const [detailError, setDetailError] = useState("");
@@ -437,16 +438,6 @@ function AuthorScout({ onBusyChange }: { onBusyChange: (busy: boolean) => void }
   async function runJob(job: SearchJob) {
     try {
       await waitForJob(job);
-      if (!job.batch) {
-        const { item } = await api<{ item: Batch }>("/api/admin/scout-batches", {
-          label: job.label,
-          source: job.source,
-          genre: job.genre,
-          requestedMax: job.target,
-        });
-        job.batch = item;
-        setBatches((current) => [item, ...current]);
-      }
       while (job.saved < job.target) {
         await waitForJob(job);
         if (!job.queue.length) {
@@ -480,6 +471,15 @@ function AuthorScout({ onBusyChange }: { onBusyChange: (busy: boolean) => void }
           continue;
         }
         await waitForJob(job);
+        if (!job.batch) {
+          const { item } = await api<{ item: Batch }>("/api/admin/scout-batches", {
+            label: job.label,
+            source: job.source,
+            genre: job.genre,
+            requestedMax: job.target,
+          });
+          job.batch = item;
+        }
         job.message = "Saving new authors";
         publishJobs();
         // Four independent writes at once; the database atomically claims authors.
@@ -509,17 +509,30 @@ function AuthorScout({ onBusyChange }: { onBusyChange: (busy: boolean) => void }
             job.queue.splice(job.queue.indexOf(item), 1);
           }),
         );
-        setBatches((current) =>
-          current.map((batch) =>
-            batch.id === job.batch!.id ? { ...batch, item_count: job.saved } : batch,
-          ),
-        );
+        if (job.saved > 0)
+          setBatches((current) => [
+            { ...job.batch!, item_count: job.saved },
+            ...current.filter((batch) => batch.id !== job.batch!.id),
+          ]);
         publishJobs();
         const failure = outcomes.find((result) => result.status === "rejected");
         if (failure?.status === "rejected") throw failure.reason;
       }
+      if (job.saved === 0 && job.batch) {
+        const response = await fetch(`/api/admin/scout-batches/${job.batch.id}`, {
+          method: "DELETE",
+        });
+        const result = await response.json();
+        if (!response.ok || !result.ok)
+          throw new Error(result.error ?? "Could not discard empty batch.");
+        if (!result.removed)
+          throw new Error("Batch changed while searching. Open Batches to review it.");
+        setBatches((current) => current.filter((batch) => batch.id !== job.batch!.id));
+      }
       setNotice(
-        `${job.label}: ${job.saved} of ${job.target} new authors saved.${job.saved < job.target ? " No more new authors were found in the available catalogue." : ""}`,
+        job.saved === 0
+          ? "No books found. No batch was saved. Try another category or source."
+          : `${job.label}: ${job.saved} of ${job.target} new authors saved.${job.saved < job.target ? " No more new authors were found in the available catalogue." : ""}`,
       );
       job.status = "completed";
       job.message =
@@ -648,7 +661,8 @@ function AuthorScout({ onBusyChange }: { onBusyChange: (busy: boolean) => void }
       (reviewFilter === "unknown" ? score(book) == null : score(book) === Number(reviewFilter)),
   );
   const visibleBatches = batches.filter(
-    (batch) => batchSource === "all" || batch.sources.includes(batchSource),
+    (batch) =>
+      batch.item_count > 0 && (batchSource === "all" || batch.sources.includes(batchSource)),
   );
   function exportCsv() {
     const rows = [
@@ -690,10 +704,17 @@ function AuthorScout({ onBusyChange }: { onBusyChange: (busy: boolean) => void }
     link.click();
     window.setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
-  if (isArcSource(source))
+  if (isArcSource(source) && view === "scouting")
     return (
       <main className="mx-auto max-w-6xl space-y-6 px-4 py-8 sm:px-6">
         <h1 className="font-display text-3xl">Author scouting</h1>
+        <button
+          type="button"
+          className="rounded-xl border px-5 py-3"
+          onClick={() => setView("batches")}
+        >
+          Batches
+        </button>
         <label className="block text-sm font-medium">
           Review source
           <select
@@ -723,6 +744,7 @@ function AuthorScout({ onBusyChange }: { onBusyChange: (busy: boolean) => void }
             ]);
             setSelected({ ...batch, genre: null });
             setBatchSource("all");
+            setView("batches");
             setSource("reedsy_discovery");
             setLoadAttempt((n) => n + 1);
           }}
@@ -737,11 +759,30 @@ function AuthorScout({ onBusyChange }: { onBusyChange: (busy: boolean) => void }
         </p>
         <h1 className="mt-3 font-display text-3xl sm:text-4xl">Author scouting</h1>
         <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
-          Discover authors through book reviews. Every search creates a batch you can open, review
-          and export from HQ360.
+          Discover authors through book reviews. Searches with results create a batch you can open,
+          review and export from HQ360.
         </p>
       </header>
+      <nav aria-label="Scouting sections" className="flex gap-2">
+        <button
+          type="button"
+          aria-pressed={view === "scouting"}
+          className="rounded-xl border px-5 py-3 aria-pressed:bg-secondary"
+          onClick={() => setView("scouting")}
+        >
+          Scouting
+        </button>
+        <button
+          type="button"
+          aria-pressed={view === "batches"}
+          className="rounded-xl border px-5 py-3 aria-pressed:bg-secondary"
+          onClick={() => setView("batches")}
+        >
+          Batches
+        </button>
+      </nav>
       <form
+        hidden={view !== "scouting"}
         className="rounded-2xl border border-border bg-card p-5 sm:p-6"
         onSubmit={(event) => {
           event.preventDefault();
@@ -877,11 +918,14 @@ function AuthorScout({ onBusyChange }: { onBusyChange: (busy: boolean) => void }
                           : "Resume"}
                     </button>
                   )}
-                  {job.batch && (
+                  {job.batch && job.saved > 0 && (
                     <button
                       type="button"
                       className="rounded-lg border px-3 py-2"
-                      onClick={() => setSelected({ ...job.batch!, item_count: job.saved })}
+                      onClick={() => {
+                        setSelected({ ...job.batch!, item_count: job.saved });
+                        setView("batches");
+                      }}
                     >
                       Open batch
                     </button>
@@ -919,146 +963,149 @@ function AuthorScout({ onBusyChange }: { onBusyChange: (busy: boolean) => void }
           {notice}
         </p>
       )}
-      <section className="space-y-4" aria-label="Batch">
-        <div className="flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <h2 className="text-2xl font-semibold">Batch</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Open a search to see its authors and book details.
-            </p>
-          </div>
-          <label className="text-sm">
-            Filter batches
-            <select
-              aria-label="Filter batches"
-              className={field}
-              value={batchSource}
-              disabled={Boolean(busy)}
-              onChange={(event) => {
-                setBatchSource(event.target.value);
-                setSelected(null);
-                setBooks([]);
-              }}
-            >
-              <option value="all">All review sources</option>
-              <option value="reedsy_discovery">Reedsy Discovery</option>
-              <option value="readers_favorite">Readers’ Favorite</option>
-              {Object.entries(ARC_SOURCES).map(([slug, spec]) => (
-                <option key={slug} value={slug} disabled={activeCount > 0}>
-                  {spec.name}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
-        {loading ? (
-          <GlassLoading label="Loading your batches…" />
-        ) : (
-          <label className="block text-sm font-medium">
-            Choose a batch
-            <select
-              aria-label="Choose a batch"
-              className={field}
-              value={selected?.id ?? ""}
-              disabled={Boolean(busy) || !visibleBatches.length}
-              onChange={(event) => {
-                setSelected(batches.find((batch) => batch.id === event.target.value) ?? null);
-              }}
-            >
-              <option value="">
-                {visibleBatches.length ? "Select a saved search" : "No batches for this source"}
-              </option>
-              {visibleBatches.map((batch) => (
-                <option key={batch.id} value={batch.id}>
-                  {batch.label} · {formatDiscoveredAt(batch.created_at)} · {batch.item_count} books
-                </option>
-              ))}
-            </select>
-          </label>
-        )}
-      </section>
-      {selected && (
-        <section className="space-y-4 border-t border-border pt-6" aria-label="Batch details">
+      <div hidden={view !== "batches"} className="space-y-6">
+        <section className="space-y-4" aria-label="Batches">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
-              <p className="text-xs uppercase tracking-widest text-brand">Batch details</p>
-              <h2 className="mt-2 text-xl font-semibold">{selected.label}</h2>
+              <h2 className="text-2xl font-semibold">Batches</h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                {visible.length} of {books.length} books
+                Open a search to see its authors and book details.
               </p>
             </div>
-            <div className="flex flex-wrap items-end gap-3">
-              <button
-                type="button"
-                disabled={
-                  Boolean(busy) || detailLoading || !books.some((b) => !b.scout_prospects.length)
-                }
-                onClick={() => void scoutWholeBatch()}
-                className="rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground disabled:opacity-50"
+            <label className="text-sm">
+              Filter batches
+              <select
+                aria-label="Filter batches"
+                className={field}
+                value={batchSource}
+                disabled={Boolean(busy)}
+                onChange={(event) => {
+                  setBatchSource(event.target.value);
+                  setSelected(null);
+                  setBooks([]);
+                }}
               >
-                {busy === "batch-scout"
-                  ? "Marking…"
-                  : books.length && books.every((b) => b.scout_prospects.length)
-                    ? "Whole batch scouted"
-                    : "Mark whole batch scouted"}
-              </button>
-              <label className="text-sm">
-                Book reviews
-                <select
-                  aria-label="Book reviews"
-                  className={field}
-                  value={reviewFilter}
-                  onChange={(event) => setReviewFilter(event.target.value)}
-                >
-                  <option value="all">All review scores</option>
-                  {[5, 4, 3, 2, 1].map((value) => (
-                    <option key={value} value={value}>
-                      {value} / 5
-                    </option>
-                  ))}
-                  <option value="unknown">Score unavailable</option>
-                </select>
-              </label>
-              <button
-                onClick={exportCsv}
-                disabled={!visible.length || detailLoading}
-                className="inline-flex items-center gap-2 rounded-xl border px-4 py-3 text-sm disabled:opacity-50"
-              >
-                <Download className="size-4" />
-                Export CSV
-              </button>
-            </div>
+                <option value="all">All review sources</option>
+                <option value="reedsy_discovery">Reedsy Discovery</option>
+                <option value="readers_favorite">Readers’ Favorite</option>
+                {Object.entries(ARC_SOURCES).map(([slug, spec]) => (
+                  <option key={slug} value={slug} disabled={activeCount > 0}>
+                    {spec.name}
+                  </option>
+                ))}
+              </select>
+            </label>
           </div>
-          {detailError && (
-            <p role="alert" className="text-sm text-destructive">
-              {detailError}{" "}
-              <button
-                className="underline"
-                onClick={() => setSelected((current) => (current ? { ...current } : null))}
-              >
-                Retry batch details
-              </button>
-            </p>
-          )}
-          {detailLoading ? (
-            <GlassLoading label="Loading author details…" cards />
-          ) : detailError ? null : !visible.length ? (
-            <p className="rounded-xl bg-secondary/40 p-6 text-sm">
-              {books.length
-                ? "No books match this review filter."
-                : busy === "search"
-                  ? "Collecting this batch’s results…"
-                  : "This batch has no saved results."}
-            </p>
+          {loading ? (
+            <GlassLoading label="Loading your batches…" />
           ) : (
-            <div className="grid gap-4 md:grid-cols-2">
-              {visible.map((book) => (
-                <BookCard key={book.id} book={book} busy={busy} onSave={save} />
-              ))}
-            </div>
+            <label className="block text-sm font-medium">
+              Choose a batch
+              <select
+                aria-label="Choose a batch"
+                className={field}
+                value={selected?.id ?? ""}
+                disabled={Boolean(busy) || !visibleBatches.length}
+                onChange={(event) => {
+                  setSelected(batches.find((batch) => batch.id === event.target.value) ?? null);
+                }}
+              >
+                <option value="">
+                  {visibleBatches.length ? "Select a saved search" : "No batches for this source"}
+                </option>
+                {visibleBatches.map((batch) => (
+                  <option key={batch.id} value={batch.id}>
+                    {batch.label} · {formatDiscoveredAt(batch.created_at)} · {batch.item_count}{" "}
+                    books
+                  </option>
+                ))}
+              </select>
+            </label>
           )}
         </section>
-      )}
+        {selected && (
+          <section className="space-y-4 border-t border-border pt-6" aria-label="Batch details">
+            <div className="flex flex-wrap items-end justify-between gap-4">
+              <div>
+                <p className="text-xs uppercase tracking-widest text-brand">Batch details</p>
+                <h2 className="mt-2 text-xl font-semibold">{selected.label}</h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {visible.length} of {books.length} books
+                </p>
+              </div>
+              <div className="flex flex-wrap items-end gap-3">
+                <button
+                  type="button"
+                  disabled={
+                    Boolean(busy) || detailLoading || !books.some((b) => !b.scout_prospects.length)
+                  }
+                  onClick={() => void scoutWholeBatch()}
+                  className="rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground disabled:opacity-50"
+                >
+                  {busy === "batch-scout"
+                    ? "Marking…"
+                    : books.length && books.every((b) => b.scout_prospects.length)
+                      ? "Whole batch scouted"
+                      : "Mark whole batch scouted"}
+                </button>
+                <label className="text-sm">
+                  Book reviews
+                  <select
+                    aria-label="Book reviews"
+                    className={field}
+                    value={reviewFilter}
+                    onChange={(event) => setReviewFilter(event.target.value)}
+                  >
+                    <option value="all">All review scores</option>
+                    {[5, 4, 3, 2, 1].map((value) => (
+                      <option key={value} value={value}>
+                        {value} / 5
+                      </option>
+                    ))}
+                    <option value="unknown">Score unavailable</option>
+                  </select>
+                </label>
+                <button
+                  onClick={exportCsv}
+                  disabled={!visible.length || detailLoading}
+                  className="inline-flex items-center gap-2 rounded-xl border px-4 py-3 text-sm disabled:opacity-50"
+                >
+                  <Download className="size-4" />
+                  Export CSV
+                </button>
+              </div>
+            </div>
+            {detailError && (
+              <p role="alert" className="text-sm text-destructive">
+                {detailError}{" "}
+                <button
+                  className="underline"
+                  onClick={() => setSelected((current) => (current ? { ...current } : null))}
+                >
+                  Retry batch details
+                </button>
+              </p>
+            )}
+            {detailLoading ? (
+              <GlassLoading label="Loading author details…" cards />
+            ) : detailError ? null : !visible.length ? (
+              <p className="rounded-xl bg-secondary/40 p-6 text-sm">
+                {books.length
+                  ? "No books match this review filter."
+                  : busy === "search"
+                    ? "Collecting this batch’s results…"
+                    : "This batch has no saved results."}
+              </p>
+            ) : (
+              <div className="grid gap-4 md:grid-cols-2">
+                {visible.map((book) => (
+                  <BookCard key={book.id} book={book} busy={busy} onSave={save} />
+                ))}
+              </div>
+            )}
+          </section>
+        )}
+      </div>
     </main>
   );
 }

@@ -14,6 +14,27 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export const Route = createFileRoute("/api/admin/scout-batches/$id")({
   server: {
     handlers: {
+      DELETE: async ({ request, params }) => {
+        const access = await resolveScoutAccess(request);
+        if (!access) return json({ ok: false, error: "unauthorized" }, 401);
+        if (request.headers.get("origin") !== new URL(request.url).origin)
+          return json({ ok: false, error: "Invalid origin" }, 403);
+        if (!UUID.test(params.id)) return json({ ok: false, error: "invalid" }, 400);
+        try {
+          const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+          const { data, error } = await asScoutDb(supabaseAdmin).rpc("scout_discard_empty_batch", {
+            p_id: params.id,
+            p_owner: access.owner,
+          });
+          if (error) throw error;
+          return json({ ok: true, removed: data === true });
+        } catch {
+          return json(
+            { ok: false, error: "Could not discard the empty batch. Please retry." },
+            503,
+          );
+        }
+      },
       GET: async ({ request, params }) => {
         const access = await resolveScoutAccess(request);
         if (!access) return json({ ok: false, error: "unauthorized" }, 401);

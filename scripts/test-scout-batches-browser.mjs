@@ -9,6 +9,7 @@ const batches = [];
 const claims = new Map();
 let writes = 0;
 let failOnce = false;
+let searchMode = "normal";
 await context.route("**/api/admin/session", (route) =>
   route.fulfill({ json: { configured: true, authed: true } }),
 );
@@ -32,12 +33,37 @@ await context.route("**/api/admin/scout-batches", (route) => {
   }
   return route.fulfill({ json: { items: batches } });
 });
-await context.route("**/api/admin/scout-batches/*", (route) =>
-  route.fulfill({ json: { items: [] } }),
-);
+await context.route("**/api/admin/scout-batches/*", (route) => {
+  if (route.request().method() === "DELETE") {
+    const id = route.request().url().split("/").pop();
+    const index = batches.findIndex((batch) => batch.id === id);
+    if (index >= 0) batches.splice(index, 1);
+    return route.fulfill({ json: { ok: true, removed: true } });
+  }
+  return route.fulfill({ json: { items: [] } });
+});
 await context.route("**/api/admin/scout-reedsy-search", async (route) => {
   const body = route.request().postDataJSON();
   await new Promise((resolve) => setTimeout(resolve, 100));
+  if (searchMode !== "normal")
+    return route.fulfill({
+      json: {
+        nextPage: null,
+        items:
+          searchMode === "empty"
+            ? []
+            : [
+                {
+                  authorName: "Author 0",
+                  title: "Book 0",
+                  sourceUrl: "https://reedsy.com/discovery/book/0",
+                  genre: "Fiction",
+                  verdictRating: 4,
+                  qualified: true,
+                },
+              ],
+      },
+    });
   return route.fulfill({
     json: {
       nextPage: body.page < 20 ? body.page + 1 : null,
@@ -134,7 +160,27 @@ try {
   await jobs.nth(0).getByRole("button", { name: "Retry", exact: true }).click();
   await expect(panel).toHaveCount(0, { timeout: 20000 });
   expect(claims.size).toBe(80);
+  searchMode = "empty";
+  await start.click();
+  await expect(
+    page.getByText("No books found. No batch was saved. Try another category or source."),
+  ).toBeVisible();
+  expect(batches).toHaveLength(4);
+  searchMode = "duplicates";
+  await start.click();
+  await expect(panel).toHaveCount(0, { timeout: 20000 });
+  expect(batches).toHaveLength(4);
+  await page
+    .getByRole("navigation", { name: "Scouting sections" })
+    .getByRole("button", { name: "Batches", exact: true })
+    .click();
+  await expect(page.getByRole("heading", { name: "Batches", exact: true })).toBeVisible();
+  await expect(start).toBeHidden();
   await expect(page.getByLabel("Choose a batch").locator("option")).toHaveCount(5);
+  await page
+    .getByRole("navigation", { name: "Scouting sections" })
+    .getByRole("button", { name: "Scouting", exact: true })
+    .click();
   await page.getByLabel("Review source", { exact: true }).selectOption("readers_favorite");
   await expect(
     page

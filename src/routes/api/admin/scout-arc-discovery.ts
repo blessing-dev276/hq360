@@ -86,6 +86,11 @@ export const Route = createFileRoute("/api/admin/scout-arc-discovery")({
               502,
             );
           }
+          if (!found.items.length)
+            return json({
+              empty: true,
+              message: "No books found. No batch was saved. Try another genre or source.",
+            });
           const label = `${ARC_SOURCES[input.source].name} · ${input.genre || "All genres"} · ${input.listingUrl ? "Added link" : input.source === "booksirens" ? "Catalogue sample" : input.source === "booknotification" ? "Upcoming releases" : `Page ${input.page}`}`;
           const saved = await db.rpc("scout_save_arc_batch", {
             p_id: input.requestId,

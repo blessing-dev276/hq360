@@ -224,10 +224,19 @@ export function ArcScout({
     setError("");
     setNotice("");
     try {
-      const result = await api<{ batch: ArcBatch; message: string }>(endpoint, "POST", {
-        ...values,
-        requestId: retry.current.id,
-      });
+      const result = await api<{ batch: ArcBatch; message: string; empty?: boolean }>(
+        endpoint,
+        "POST",
+        {
+          ...values,
+          requestId: retry.current.id,
+        },
+      );
+      if (result.empty) {
+        retry.current = null;
+        setNotice(result.message);
+        return;
+      }
       const discovered = await api<{ items: ArcListing[] }>(
         `${endpoint}?source=${source}&batchId=${result.batch.id}`,
       );

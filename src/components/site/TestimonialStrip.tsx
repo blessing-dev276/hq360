@@ -1,3 +1,4 @@
+import { LazyVideoPreview } from "@/components/site/LazyVideoPreview";
 import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Play, X } from "lucide-react";
@@ -85,15 +86,7 @@ export function TestimonialStrip({
                   <span className="tst-shot">
                     {it.media_type === "video" ? (
                       <>
-                        <video
-                          src={it.media_url}
-                          poster={it.thumbnail_url ?? undefined}
-                          controlsList="nodownload"
-                          onContextMenu={(event) => event.preventDefault()}
-                          muted
-                          playsInline
-                          preload="metadata"
-                        />
+                        <LazyVideoPreview src={it.media_url} poster={it.thumbnail_url} />
                         <span className="tst-play" aria-hidden="true">
                           <Play />
                         </span>

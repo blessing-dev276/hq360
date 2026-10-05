@@ -1,3 +1,4 @@
+import { LazyVideoPreview } from "@/components/site/LazyVideoPreview";
 import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowUpRight, X } from "lucide-react";
@@ -108,13 +109,7 @@ function PortfolioCard({ item, onOpen }: { item: PortfolioItem; onOpen: () => vo
         </span>
         <span className="pf-card-shot">
           {item.media_type === "video" ? (
-            <video
-              src={item.media_url}
-              poster={item.thumbnail_url ?? undefined}
-              muted
-              playsInline
-              preload="metadata"
-            />
+            <LazyVideoPreview src={item.media_url} poster={item.thumbnail_url} />
           ) : (
             <img
               src={item.media_url}

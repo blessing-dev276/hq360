@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { ArrowUpRight } from "lucide-react";
 import team1 from "@/assets/team-hero-1-rim.webp";
@@ -6,15 +6,43 @@ import team2 from "@/assets/team-hero-2-rim.webp";
 import team3 from "@/assets/team-hero-3-rim.webp";
 import team4 from "@/assets/team-hero-4-rim.webp";
 import team5 from "@/assets/team-hero-5-rim.webp";
+import team1m from "@/assets/team-hero-1-rim-720.webp";
+import team2m from "@/assets/team-hero-2-rim-720.webp";
+import team3m from "@/assets/team-hero-3-rim-720.webp";
+import team4m from "@/assets/team-hero-4-rim-720.webp";
+import team5m from "@/assets/team-hero-5-rim-720.webp";
+import thumb1 from "@/assets/team-hero-1-thumb.webp";
+import thumb2 from "@/assets/team-hero-2-thumb.webp";
+import thumb3 from "@/assets/team-hero-3-thumb.webp";
+import thumb4 from "@/assets/team-hero-4-thumb.webp";
+import thumb5 from "@/assets/team-hero-5-thumb.webp";
 import { CORE_SERVICES } from "@/data/agency";
 import { Grain, Pill } from "./Hqd";
 
 // Each word shows with one portrait; both loops share the same timing in hqd.css.
 const WORDS = ["Websites", "Apps", "Systems", "Stories", "Brands"];
-const TEAM = [team1, team2, team3, team4, team5];
+const TEAM = [
+  { full: team1, medium: team1m, thumb: thumb1 },
+  { full: team2, medium: team2m, thumb: thumb2 },
+  { full: team3, medium: team3m, thumb: thumb3 },
+  { full: team4, medium: team4m, thumb: thumb4 },
+  { full: team5, medium: team5m, thumb: thumb5 },
+];
+// Rendered width of a portrait (measured): ~56vw on desktop, the panel width on smaller screens.
+const HERO_SIZES = "(max-width: 1023px) min(36rem, 104vw), 56vw";
 
 export function HomeHero() {
   const photoRef = useRef<HTMLDivElement>(null);
+  // Only one portrait is visible at a time, so the first loads with the page
+  // and the rest after it, instead of all five competing for bandwidth. The
+  // <img> elements all exist from the start to keep the CSS slideshow in sync.
+  const [restReady, setRestReady] = useState(false);
+  useEffect(() => {
+    const start = () => setRestReady(true);
+    if (document.readyState === "complete") start();
+    else window.addEventListener("load", start, { once: true });
+    return () => window.removeEventListener("load", start);
+  }, []);
   const frame = useRef(0);
 
   function parallax(event: React.PointerEvent<HTMLDivElement>) {
@@ -40,13 +68,16 @@ export function HomeHero() {
       <div className="hqd-hero-panel" onPointerMove={parallax}>
         <span className="hqd-hero-glow" aria-hidden="true" />
         <div className="hqd-hero-photo hqd-hero-team" ref={photoRef} aria-hidden="true">
-          {TEAM.map((src, index) => (
+          {TEAM.map((photo, index) => (
             <img
-              key={src}
-              src={src}
+              key={photo.full}
+              {...(index === 0 || restReady
+                ? { src: photo.full, srcSet: `${photo.medium} 720w, ${photo.full} 1086w` }
+                : {})}
+              sizes={HERO_SIZES}
               alt=""
               decoding="async"
-              {...(index === 0 ? { fetchPriority: "high" as const } : { loading: "lazy" as const })}
+              {...(index === 0 ? { fetchPriority: "high" as const } : {})}
             />
           ))}
         </div>
@@ -79,8 +110,8 @@ export function HomeHero() {
               </h1>
               <Link to="/experts" className="hqd-team-strip" aria-label="Meet the HQ360 team">
                 <span className="hqd-team-faces" aria-hidden="true">
-                  {TEAM.map((src) => (
-                    <img key={src} src={src} alt="" loading="lazy" />
+                  {TEAM.map((photo) => (
+                    <img key={photo.thumb} src={photo.thumb} alt="" width={33} height={44} />
                   ))}
                 </span>
                 <span>

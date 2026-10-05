@@ -130,6 +130,10 @@ try {
   await page.setViewportSize({ width: 1440, height: 960 });
   await ready("/");
   await expect(page.locator(".hqd-hero-team img")).toHaveCount(5);
+  // Portraits 2-5 get their src after window load (only one shows at a time).
+  await page.waitForFunction(() =>
+    [...document.querySelectorAll(".hqd-hero-team img")].every((img) => img.currentSrc),
+  );
   await page.locator(".hqd-hero-team img").evaluateAll(async (imgs) => {
     await Promise.all(imgs.map((img) => img.decode()));
   });

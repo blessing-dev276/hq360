@@ -867,14 +867,8 @@ export async function workflowPost(request: Request, id: string) {
       await activity(id, actor.id, "final_qa_completed", versionId);
       return privateJson({ ok: true });
     }
-    if (!actor.admin) return privateJson({ error: "Only Admin can publish or manage access" }, 403);
-    if (action === "publish") {
-      const versionId = uuid.parse(body.versionId),
-        override = z
-          .string()
-          .max(3000)
-          .parse(body.override ?? "");
-      const issues = reviewIssues(state);
+    async function publishVersion(versionId: string, override: string) {
+      const issues = reviewIssues(await workflowState(id));
       if (issues.length && override.trim().length < 10)
         return privateJson({ error: "Required review items remain incomplete", issues }, 409);
       const existing = await db
@@ -898,13 +892,61 @@ export async function workflowPost(request: Request, id: string) {
         p_version: versionId,
         p_slug: publicSlug,
         p_hash: code ? digest(normalizeCode(code)) : null,
-        p_actor: actor.id,
+        p_actor: actor!.id,
         p_override: override,
       });
       if (r.error)
-        throw new Error("Generate a current draft and complete final QA before publishing");
+        throw new Error(
+          /Generate current draft/.test(r.error.message)
+            ? "This version is out of date or hasn't passed final QA. Use “Publish audit website” to publish the latest version in one step."
+            : `Could not publish: ${r.error.message}`,
+        );
       return privateJson({ ok: true, code, path: `/author-audit/${publicSlug}` });
     }
+    // Admins and any expert on the audit can publish and manage client access.
+    if (!actor.review)
+      return privateJson({ error: "Only people on this audit can publish it" }, 403);
+    if (action === "publish_now") {
+      // One click: validate, generate a fresh version, confirm QA and publish.
+      let current = state;
+      if (reviewIssues(current).length) {
+        await autoValidate(id, actor.id);
+        current = await workflowState(id);
+      }
+      const remaining = reviewIssues(current);
+      if (remaining.length)
+        return privateJson(
+          { error: "Some items still need attention before publishing", issues: remaining },
+          409,
+        );
+      const created = await db.rpc("audit_create_reviewed_version", {
+        p_audit: id,
+        p_revision: current.audit.workflow_revision,
+        p_snapshot: clientSnapshot(current),
+        p_actor: actor.id,
+        p_notes: "Published in one step",
+      });
+      if (created.error) throw new Error(`Could not generate the site: ${created.error.message}`);
+      const versionId = created.data as string;
+      assertOk(
+        await db
+          .from("audit_client_versions")
+          .update({ qa_confirmed: true })
+          .eq("id", versionId)
+          .eq("audit_id", id),
+      );
+      await activity(id, actor.id, "final_qa_completed", versionId);
+      return publishVersion(versionId, "");
+    }
+    if (action === "publish")
+      return publishVersion(
+        uuid.parse(body.versionId),
+        z
+          .string()
+          .max(3000)
+          .parse(body.override ?? ""),
+      );
+
     if (["regenerate", "revoke", "disable", "expiry"].includes(action)) {
       const patch: Record<string, unknown> = { generation: randomUUID() };
       let code: string | null = null;

@@ -1449,6 +1449,24 @@ export function ResearchAuditWorkspace({
       {tab === "Client Site" && (
         <>
           <section className={`${card} space-y-4`}>
+            {data.permissions.review && (
+              <div className="rounded-xl border border-brand/40 bg-brand/5 p-4">
+                <h2 className="text-xl font-semibold">
+                  {data.access ? "Update the audit website" : "Publish the audit website"}
+                </h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  One step: validates the research, builds the latest version, confirms QA and
+                  publishes it. {data.access ? "The link and access code stay the same." : ""}
+                </p>
+                <button
+                  className={`${primary} mt-3`}
+                  disabled={!!busy}
+                  onClick={() => void act({ action: "publish_now" })}
+                >
+                  {data.access ? "Publish latest version" : "Publish audit website"}
+                </button>
+              </div>
+            )}
             <h2 className="text-xl font-semibold">Client site & final QA</h2>
             <p className="text-sm text-muted-foreground">
               Generate an immutable draft from approved material. Preview it, complete final QA,
@@ -1506,7 +1524,7 @@ export function ResearchAuditWorkspace({
               >
                 Final QA complete
               </button>
-              {data.permissions.admin && (
+              {data.permissions.review && (
                 <button
                   className={primary}
                   disabled={!version || !!busy}
@@ -1526,10 +1544,10 @@ export function ResearchAuditWorkspace({
                 ))}
               </ul>
             </details>
-            {data.permissions.admin && (
+            {data.permissions.review && (
               <>
                 <label className="block text-sm">
-                  Admin override reason (only if required checks cannot be completed)
+                  Override reason (only if required checks cannot be completed)
                   <textarea
                     className={field}
                     value={override}
@@ -1572,7 +1590,7 @@ export function ResearchAuditWorkspace({
                   ? new Date(data.access.last_viewed_at).toLocaleString()
                   : "Never"}
               </p>
-              {data.permissions.admin && (
+              {data.permissions.review && (
                 <>
                   <div className="flex flex-wrap gap-2">
                     {["regenerate", "revoke", "disable"].map((action) => (

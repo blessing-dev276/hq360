@@ -105,7 +105,6 @@ export async function resolveStaffAccess(request: Request): Promise<StaffAccess 
       const { auditActor } = await import("@/lib/author-audit/workflow-access.server");
       if (!(await auditActor(request, auditMatch[1]!))) return null;
     }
-    if (auditMatch[2] === "publishing" && request.method !== "GET" && !admin) return null;
   }
   if (admin) return { role: "admin" };
   const expertId = await isExpertRequest(request);

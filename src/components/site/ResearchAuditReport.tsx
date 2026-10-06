@@ -1,5 +1,6 @@
 import type { WorkflowSnapshot } from "@/lib/author-audit/workflow.server";
 import { label } from "@/lib/author-audit/workflow";
+import { reportBrand, sectionNarrative } from "@/lib/author-audit/report-presentation";
 import { Logo } from "@/components/Logo";
 
 type Report = WorkflowSnapshot;
@@ -51,10 +52,15 @@ export function ResearchAuditReport({
   report: Report;
   imageBase?: string;
 }) {
-  const summary = r.sections.find((s) => s.key === "executive_summary")?.content;
-  const bodySections = r.sections.filter(
+  const sections = r.sections.map((s) => ({
+    ...s,
+    title: reportBrand(s.title),
+    ...sectionNarrative(s.content),
+  }));
+  const summary = sections.find((s) => s.key === "executive_summary")?.text;
+  const bodySections = sections.filter(
     (s) =>
-      s.key !== "executive_summary" && (s.content || r.findings.some((f) => f.category === s.key)),
+      s.key !== "executive_summary" && (s.text || r.findings.some((f) => f.category === s.key)),
   );
   const looseEvidence = r.assets.filter((a) => !a.finding_id && !a.listopia_id);
   const metrics = METRICS.filter(([k]) => Number(r.metrics[k]) > 0);
@@ -176,21 +182,6 @@ export function ResearchAuditReport({
       </nav>
 
       <div className="mx-auto max-w-6xl px-5 sm:px-10">
-        {/* Snapshot */}
-        {metrics.length > 0 && (
-          <section className="py-12">
-            <Eyebrow>Audit snapshot</Eyebrow>
-            <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-5">
-              {metrics.map(([key, title]) => (
-                <div key={key} className="rounded-2xl border border-white/10 bg-white/[.03] p-5">
-                  <strong className="font-display text-4xl text-white">{r.metrics[key]}</strong>
-                  <p className="mt-2 text-xs text-slate-400">{title}</p>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
-
         {/* Findings by section */}
         {bodySections.map((s, i) => (
           <section key={s.key} id={s.key} className="scroll-mt-20 border-t border-white/10 py-14">
@@ -200,10 +191,32 @@ export function ResearchAuditReport({
               </span>
               <h2 className="font-display text-3xl tracking-tight sm:text-4xl">{s.title}</h2>
             </div>
-            {s.content && (
+            {s.text && (
               <p className="mt-5 max-w-3xl leading-relaxed whitespace-pre-line text-slate-300">
-                {s.content}
+                {s.text}
               </p>
+            )}
+            {s.sources.filter(
+              (url) => !r.findings.some((f) => f.category === s.key && f.source_urls.includes(url)),
+            ).length > 0 && (
+              <div className="mt-4 flex flex-wrap gap-2">
+                {s.sources
+                  .filter(
+                    (url) =>
+                      !r.findings.some((f) => f.category === s.key && f.source_urls.includes(url)),
+                  )
+                  .map((url) => (
+                    <a
+                      key={url}
+                      href={url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="rounded-full border border-white/10 px-3 py-1 text-xs text-slate-300 hover:text-white"
+                    >
+                      {host(url)} ↗
+                    </a>
+                  ))}
+              </div>
             )}
             <div className="mt-8 space-y-6">
               {r.findings
@@ -243,23 +256,29 @@ export function ResearchAuditReport({
                 )}
                 <div className="my-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
                   {[
-                    ["Current position", l.position === null ? "—" : `#${l.position}`, true],
-                    ["Page", l.page ?? "—", false],
-                    ["Votes", l.votes ?? "—", false],
-                    ["Competition", label(l.competition), false],
-                  ].map(([k, v, hero]) => (
-                    <div
-                      key={String(k)}
-                      className={`rounded-2xl p-4 ${hero ? "bg-[#ff5a00]/[.12]" : "bg-white/[.04]"}`}
-                    >
-                      <p className="text-xs text-slate-400">{k}</p>
-                      <strong
-                        className={`mt-1 block font-display text-3xl ${hero ? "text-[#ff8a3d]" : "text-white"}`}
+                    ["Current position", l.position == null ? null : `#${l.position}`, true],
+                    ["Page", l.page, false],
+                    ["Votes", l.votes, false],
+                    [
+                      "Competition",
+                      l.competition === "unknown" ? null : label(l.competition),
+                      false,
+                    ],
+                  ]
+                    .filter(([, v]) => v != null)
+                    .map(([k, v, hero]) => (
+                      <div
+                        key={String(k)}
+                        className={`rounded-2xl p-4 ${hero ? "bg-[#ff5a00]/[.12]" : "bg-white/[.04]"}`}
                       >
-                        {v}
-                      </strong>
-                    </div>
-                  ))}
+                        <p className="text-xs text-slate-400">{k}</p>
+                        <strong
+                          className={`mt-1 block font-display text-3xl ${hero ? "text-[#ff8a3d]" : "text-white"}`}
+                        >
+                          {v}
+                        </strong>
+                      </div>
+                    ))}
                 </div>
                 {(l.books_above.length > 0 || l.books_below.length > 0) && (
                   <div className="mb-6 grid gap-3 text-sm sm:grid-cols-2">
@@ -279,12 +298,11 @@ export function ResearchAuditReport({
                 )}
                 <div className="grid gap-6 sm:grid-cols-2">
                   <div>
-                    <h3 className="text-sm font-semibold text-white">Why you are here</h3>
+                    <h3 className="text-sm font-semibold text-white">
+                      {l.position == null ? "List relevance" : "Why you are here"}
+                    </h3>
                     <p className="mt-2 leading-relaxed whitespace-pre-line text-slate-300">
                       {l.why_position || "The cause of this position has not been established."}
-                    </p>
-                    <p className="mt-2 text-xs text-slate-500">
-                      This is our interpretation; it does not describe how Goodreads ranks lists.
                     </p>
                   </div>
                   <div className="rounded-2xl border border-[#ff5a00]/30 bg-[#ff5a00]/[.06] p-5">
@@ -394,16 +412,9 @@ export function ResearchAuditReport({
             </h2>
             <div className="mt-5 max-w-3xl space-y-4 leading-relaxed text-slate-400">
               <p>
-                This audit was researched and reviewed by HQ360 using publicly available information
-                across the author’s publishing ecosystem. Our process combines platform inspection,
-                book and author research, retailer analysis, reader-path analysis, competitive
-                research, and manual verification.
-              </p>
-              <p>
-                AI-assisted research tools may be used to accelerate information gathering and
-                organization, but findings presented in this audit are reviewed by HQ360 before
-                publication. We distinguish verified observations from strategic interpretations and
-                do not present unverified assumptions as facts.
+                HQ360 reviewed public book, author, retailer and reader-discovery sources, using
+                AI-assisted research where helpful. Findings distinguish verified observations from
+                interpretations and reflect the sources available on the research date.
               </p>
             </div>
             {metrics.length > 0 && (
@@ -504,7 +515,7 @@ function FindingCard({ f, evidence }: { f: Finding; evidence: React.ReactNode })
           </ol>
         </div>
       )}
-      {(f.evidence || f.interpretation) && (
+      {f.evidence && (
         <div className="grid gap-6 text-sm sm:grid-cols-2">
           {f.evidence && (
             <div>
@@ -513,16 +524,6 @@ function FindingCard({ f, evidence }: { f: Finding; evidence: React.ReactNode })
               </h4>
               <p className="mt-2 leading-relaxed whitespace-pre-line text-slate-400">
                 {f.evidence}
-              </p>
-            </div>
-          )}
-          {f.interpretation && (
-            <div>
-              <h4 className="text-[11px] font-semibold tracking-[.2em] text-slate-500 uppercase">
-                Our interpretation
-              </h4>
-              <p className="mt-2 leading-relaxed whitespace-pre-line text-slate-400">
-                {f.interpretation}
               </p>
             </div>
           )}

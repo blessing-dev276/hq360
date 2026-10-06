@@ -13,5 +13,7 @@ export async function auditActor(request: Request, id?: string) {
     .eq("expert_id", expert)
     .maybeSingle();
   if (error || !data) return null;
-  return { id: expert, admin: false, review: data.role === "reviewer" };
+  // Research is validated automatically, so there's no separate human review
+  // step: anyone working on the audit can approve and generate its client site.
+  return { id: expert, admin: false, review: Boolean(data.role) };
 }

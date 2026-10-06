@@ -51,3 +51,13 @@ If the output fails schema validation, the editable JSON and specific errors
 are shown instead of importing it. The optional search focus narrows the query;
 `AUDIT_AI_MODEL` selects the server-side model (default `claude-sonnet-5`).
 Public search snippets are treated as leads, not verified live-page metrics.
+
+## Simplified workspace
+
+The default workspace now follows three steps: Research → Review → Publish.
+Existing audits open on their findings; successful AI research also moves directly
+into review. Findings, actions, Goodreads lists, evidence and checks are grouped
+under Review. Section configuration, assignments and activity history are reached
+through Settings & history. Manual research imports and prompt customization are
+collapsed, as are the detailed preview/version/QA controls on Publish. The existing
+server validation, permissions and publication operations remain authoritative.

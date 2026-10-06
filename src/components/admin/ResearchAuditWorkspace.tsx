@@ -19,19 +19,13 @@ const btn =
   "rounded-xl border border-border bg-card px-4 py-2 text-sm font-medium hover:bg-secondary disabled:opacity-40";
 const primary = `${btn} !bg-primary text-primary-foreground`;
 const card = "rounded-2xl border border-border bg-card p-5 sm:p-6";
-const tabs = [
-  "Overview",
-  "Research",
-  "Findings",
-  "Goodreads",
-  "Amazon",
-  "Website",
-  "Screenshots",
-  "Manual Review",
-  "Action Plan",
-  "Client Site",
-  "History",
-];
+const reviewTabs = [
+  ["Findings", "Findings"],
+  ["Action Plan", "Action plan"],
+  ["Goodreads", "Goodreads lists"],
+  ["Screenshots", "Evidence"],
+  ["Manual Review", "Checks"],
+] as const;
 type Entity = "finding" | "section" | "listopia" | "task" | "action" | "asset";
 type Values = Record<string, unknown>;
 type Field = {
@@ -294,7 +288,7 @@ export function ResearchAuditWorkspace({
   autoResearch?: boolean;
 }) {
   const [data, setData] = useState<WorkflowState | null>(null),
-    [tab, setTab] = useState("Overview"),
+    [tab, setTab] = useState("Research"),
     [error, setError] = useState(""),
     [busy, setBusy] = useState(""),
     [notice, setNotice] = useState(""),
@@ -344,6 +338,7 @@ export function ResearchAuditWorkspace({
         );
       }
       await load();
+      setTab("Findings");
       setNotice(
         `Researched ${result.sources.length} public sources: ${result.validation?.accepted ?? result.findings} findings validated${result.validation?.rejected ? `, ${result.validation.rejected} rejected` : ""}.${result.droppedFindings ? ` ${result.droppedFindings} uncited findings were excluded.` : ""}${result.skippedDuplicates ? ` ${result.skippedDuplicates} existing findings were skipped.` : ""}${result.failures?.length ? ` ${result.failures.length} searches were unavailable.` : ""}${result.validation && !result.validation.remaining.length ? " The audit is approved and ready to generate." : ""}`,
       );
@@ -377,6 +372,7 @@ export function ResearchAuditWorkspace({
         if (!r.ok) throw new Error(body.error);
         if (active) {
           setData(body);
+          setTab(body.findings.length ? "Findings" : "Research");
           setTemplate(body.template);
           setSource(body.audit.research_source);
         }
@@ -603,20 +599,18 @@ export function ResearchAuditWorkspace({
                   { key: "notes", title: "Reviewer notes", kind: "long" as const },
                 ];
   return (
-    <div className="mx-auto max-w-7xl space-y-6 p-4 sm:p-8">
+    <div className="mx-auto min-w-0 max-w-7xl space-y-6 p-4 [overflow-wrap:anywhere] sm:p-8">
       <button className={btn} onClick={onBack} disabled={!!busy}>
         ← Audits
       </button>
       <header className="rounded-3xl border border-border bg-secondary/30 p-6 sm:p-8">
         <p className="text-xs font-semibold uppercase tracking-widest text-brand">
-          HQ360 · Research & review
+          HQ360 · Book audit
         </p>
         <h1 className="mt-3 font-display text-3xl sm:text-4xl">{data.audit.books.title}</h1>
         <p className="mt-2 text-muted-foreground">{data.audit.authors.name}</p>
         <div className="mt-4 flex flex-wrap gap-2">
           <Badge value={data.audit.status} />
-          <Badge value={data.audit.review_status} />
-          <span className="self-center text-xs text-muted-foreground">Audit {id}</span>
         </div>
         {data.access && (
           <p className="mt-4 text-sm text-muted-foreground">
@@ -624,20 +618,98 @@ export function ResearchAuditWorkspace({
           </p>
         )}
       </header>
-      <nav aria-label="Audit workflow" className="flex gap-2 overflow-x-auto pb-2">
-        {tabs.map((t) => (
+      <nav aria-label="Audit workflow" className="grid grid-cols-3 gap-2">
+        {(
+          [
+            ["Research", "1. Research", "Find sources and build the draft"],
+            ["Findings", "2. Review", "Check findings and choose actions"],
+            ["Client Site", "3. Publish", "Share the report with your client"],
+          ] as const
+        ).map(([target, title, description]) => {
+          const active =
+            target === "Findings"
+              ? reviewTabs.some(([key]) => key === tab) || ["Amazon", "Website"].includes(tab)
+              : tab === target;
+          return (
+            <button
+              key={target}
+              aria-current={active ? "step" : undefined}
+              className={`${btn} text-left ${active ? "!bg-primary text-primary-foreground" : ""}`}
+              onClick={() => {
+                setTab(target);
+                setEditing(null);
+              }}
+            >
+              <span className="block">{title}</span>
+              <span className="mt-1 hidden text-xs font-normal opacity-75 sm:block">
+                {description}
+              </span>
+            </button>
+          );
+        })}
+      </nav>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        {reviewTabs.some(([key]) => key === tab) && (
+          <nav aria-label="Review content" className="flex flex-wrap gap-2">
+            {reviewTabs.map(([key, title]) => (
+              <button
+                key={key}
+                className={`${btn} ${tab === key ? "border-primary text-primary" : ""}`}
+                aria-pressed={tab === key}
+                onClick={() => {
+                  setTab(key);
+                  setEditing(null);
+                }}
+              >
+                {title}
+              </button>
+            ))}
+          </nav>
+        )}
+        <details className="ml-auto rounded-xl border border-border p-3 text-sm">
+          <summary className="cursor-pointer">Settings & history</summary>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <button
+              className={btn}
+              onClick={() => {
+                setTab("Overview");
+                setEditing(null);
+              }}
+            >
+              Sections & assignments
+            </button>
+            <button
+              className={btn}
+              onClick={() => {
+                setTab("History");
+                setEditing(null);
+              }}
+            >
+              Activity history
+            </button>
+          </div>
+        </details>
+      </div>
+      {reviewTabs.some(([key]) => key === tab) && (
+        <section className={`${card} flex flex-wrap items-center justify-between gap-4`}>
+          <div>
+            <h2 className="font-semibold">Review your report</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {data.findings.length} findings · {data.actions.length} actions ·{" "}
+              {issues.length ? `${issues.length} checks need attention` : "Ready to publish"}
+            </p>
+          </div>
           <button
-            key={t}
-            className={`${btn} shrink-0 ${tab === t ? "!bg-primary text-primary-foreground" : ""}`}
+            className={primary}
             onClick={() => {
-              setTab(t);
+              setTab("Client Site");
               setEditing(null);
             }}
           >
-            {t}
+            Continue to publish →
           </button>
-        ))}
-      </nav>
+        </section>
+      )}
       {error && (
         <p
           role="alert"
@@ -660,55 +732,6 @@ export function ResearchAuditWorkspace({
       )}
       {tab === "Overview" && (
         <>
-          {data.permissions.review && <FastApprove act={act} busy={!!busy} />}
-          <section className={card}>
-            <h2 className="text-xl font-semibold">Review progress</h2>
-            <div className="mt-5 grid gap-4 sm:grid-cols-3">
-              {[
-                [
-                  "Research imported",
-                  data.imports.length ? `${data.imports.length} imports` : "Pending",
-                ],
-                [
-                  "Findings reviewed",
-                  `${data.findings.filter((f) => ["approved", "rejected"].includes(f.review_status)).length} / ${data.findings.length}`,
-                ],
-                [
-                  "Screenshots completed",
-                  `${data.tasks.filter((t) => t.kind === "screenshot" && ["approved", "not_applicable"].includes(t.status)).length} / ${data.tasks.filter((t) => t.kind === "screenshot").length}`,
-                ],
-                [
-                  "Manual checks pending",
-                  data.tasks.filter(
-                    (t) =>
-                      t.kind === "manual" && !["approved", "not_applicable"].includes(t.status),
-                  ).length,
-                ],
-                [
-                  "Recommendations approved",
-                  data.actions.filter((a) => a.review_status === "approved").length,
-                ],
-                [
-                  "Client site ready",
-                  issues.length ? `${issues.length} checks remain` : "Ready for QA",
-                ],
-              ].map(([title, value]) => (
-                <div key={title} className="rounded-xl bg-secondary/50 p-4">
-                  <strong className="text-2xl">{value}</strong>
-                  <p className="mt-2 text-sm text-muted-foreground">{title}</p>
-                </div>
-              ))}
-            </div>
-            {data.permissions.review && (
-              <button
-                className={`${primary} mt-5`}
-                disabled={!!busy}
-                onClick={() => void act({ action: "approve" })}
-              >
-                Approve audit
-              </button>
-            )}
-          </section>
           <section className={`${card} space-y-4`}>
             <div className="flex flex-wrap items-center justify-between gap-3">
               <h2 className="text-xl font-semibold">Audit sections</h2>
@@ -872,202 +895,218 @@ export function ResearchAuditWorkspace({
               </details>
             )}
           </section>
-          <section className={`${card} space-y-4`}>
-            <h2 className="text-xl font-semibold">Research prompt</h2>
-            <label className="block text-sm">
-              Research source
-              <select
-                aria-label="Research source"
-                className={field}
-                value={source}
-                onChange={(e) => setSource(e.target.value)}
-              >
-                {["Claude", "ChatGPT", "Gemini", "Other"].map((s) => (
-                  <option key={s}>{s}</option>
-                ))}
-              </select>
-            </label>
-            <div className="flex flex-wrap gap-2">
-              <button
-                className={primary}
-                disabled={!!busy}
-                onClick={() => void act({ action: "prompt", source })}
-              >
-                {data.audit.generated_prompt ? "Regenerate Prompt" : "Generate Prompt"}
-              </button>
-              {data.audit.generated_prompt && (
-                <>
-                  <button
-                    className={btn}
-                    onClick={() =>
-                      void navigator.clipboard
-                        .writeText(data.audit.generated_prompt!)
-                        .then(() => setNotice("Prompt copied."))
-                        .catch(() => setError("Copy failed. Use Download Prompt."))
-                    }
-                  >
-                    Copy Prompt
-                  </button>
-                  <button
-                    className={btn}
-                    onClick={() =>
-                      download(data.audit.generated_prompt!, "hq360-research-prompt.txt")
-                    }
-                  >
-                    Download Prompt
-                  </button>
-                </>
-              )}
-            </div>
-            {data.audit.generated_prompt && (
-              <textarea
-                aria-label="Generated research prompt"
-                className={field}
-                rows={10}
-                readOnly
-                value={data.audit.generated_prompt}
-              />
-            )}{" "}
-            {data.permissions.admin && (
-              <details>
-                <summary className="cursor-pointer text-sm">Edit reusable prompt template</summary>
-                <textarea
-                  aria-label="Prompt template"
-                  className={field}
-                  rows={10}
-                  value={template}
-                  onChange={(e) => setTemplate(e.target.value)}
-                />
-                <button
-                  className={`${btn} mt-3`}
-                  disabled={!!busy}
-                  onClick={() => void act({ action: "template", template })}
-                >
-                  Save template
-                </button>
-              </details>
-            )}
-          </section>
-          <section className={`${card} space-y-4`}>
-            <h2 className="text-xl font-semibold">Import research</h2>
-            <p className="text-sm text-muted-foreground">
-              Paste the research JSON or upload a .json file. Validation checks identity, structure,
-              duplicates, URLs and required sections. Importing never approves or publishes
-              findings.
-            </p>
-            <label className="block text-sm">
-              Upload JSON
-              <input
-                type="file"
-                accept=".json,application/json"
-                className={field}
-                onChange={(e) => {
-                  const f = e.target.files?.[0];
-                  if (f) {
-                    if (f.size > 2000000) {
-                      setError("JSON must be at most 2 MB");
-                      return;
-                    }
-                    void f.text().then((text) => {
-                      setRaw(text);
-                      setValidation(null);
-                    });
-                  }
-                }}
-              />
-            </label>
-            <label className="block text-sm">
-              Research JSON
-              <textarea
-                aria-label="Research JSON"
-                rows={10}
-                className={field}
-                value={raw}
-                onChange={(e) => {
-                  setRaw(e.target.value);
-                  setValidation(null);
-                }}
-              />
-            </label>
-            <button
-              className={btn}
-              disabled={!raw || !!busy}
-              onClick={async () => {
-                setBusy("Validating research…");
-                setError("");
-                try {
-                  const r = await fetch(base, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ action: "validate", raw }),
-                  });
-                  const result = await r.json();
-                  if (!("valid" in result)) throw new Error(result.error);
-                  setValidation(result);
-                } catch (e) {
-                  setError((e as Error).message);
-                } finally {
-                  setBusy("");
-                }
-              }}
-            >
-              Validate JSON
+          {data.findings.length > 0 && (
+            <button className={primary} onClick={() => setTab("Findings")}>
+              Review findings →
             </button>
-            {validation && !validation.valid && (
-              <ul role="alert" className="list-disc space-y-1 pl-5 text-sm text-destructive">
-                {validation.errors.map((e, i) => (
-                  <li key={i}>{e}</li>
-                ))}
-              </ul>
-            )}
-            {validation?.valid && (
-              <div className="space-y-3 rounded-xl border border-emerald-500/30 p-4">
-                <h3 className="font-semibold">Research preview</h3>
-                <p>
-                  {validation.data?.findings.length} findings · {validation.data?.listopia.length}{" "}
-                  Listopia lists · {validation.data?.tasks.length} review tasks
-                </p>
-                {validation.data?.findings.map((f, i) => (
-                  <div key={i} className="rounded-lg bg-secondary p-3">
-                    <strong>{f.title}</strong>
-                    <p className="text-sm">{f.what_we_found}</p>
-                    <Badge value={f.classification} />
-                  </div>
-                ))}
+          )}
+          <details
+            className="space-y-4 rounded-2xl border border-border p-5"
+            open={validation?.valid === false || undefined}
+          >
+            <summary className="cursor-pointer font-medium">
+              Import research or customize the prompt
+            </summary>
+            <section className={`${card} space-y-4`}>
+              <h2 className="text-xl font-semibold">Research prompt</h2>
+              <label className="block text-sm">
+                Research source
+                <select
+                  aria-label="Research source"
+                  className={field}
+                  value={source}
+                  onChange={(e) => setSource(e.target.value)}
+                >
+                  {["Claude", "ChatGPT", "Gemini", "Other"].map((s) => (
+                    <option key={s}>{s}</option>
+                  ))}
+                </select>
+              </label>
+              <div className="flex flex-wrap gap-2">
                 <button
                   className={primary}
                   disabled={!!busy}
-                  onClick={async () => {
-                    const result = await act({ action: "import", raw, source });
-                    if (result) {
-                      const v = result.validation;
-                      if (v)
-                        setNotice(
-                          `Imported and validated: ${v.accepted} findings accepted${v.rejected ? `, ${v.rejected} rejected (no citation or recommendation)` : ""}.${v.remaining.length ? "" : " The audit is approved and ready to generate."}`,
-                        );
-                      setRaw("");
-                      setValidation(null);
-                      setTab("Findings");
+                  onClick={() => void act({ action: "prompt", source })}
+                >
+                  {data.audit.generated_prompt ? "Regenerate Prompt" : "Generate Prompt"}
+                </button>
+                {data.audit.generated_prompt && (
+                  <>
+                    <button
+                      className={btn}
+                      onClick={() =>
+                        void navigator.clipboard
+                          .writeText(data.audit.generated_prompt!)
+                          .then(() => setNotice("Prompt copied."))
+                          .catch(() => setError("Copy failed. Use Download Prompt."))
+                      }
+                    >
+                      Copy Prompt
+                    </button>
+                    <button
+                      className={btn}
+                      onClick={() =>
+                        download(data.audit.generated_prompt!, "hq360-research-prompt.txt")
+                      }
+                    >
+                      Download Prompt
+                    </button>
+                  </>
+                )}
+              </div>
+              {data.audit.generated_prompt && (
+                <textarea
+                  aria-label="Generated research prompt"
+                  className={field}
+                  rows={10}
+                  readOnly
+                  value={data.audit.generated_prompt}
+                />
+              )}{" "}
+              {data.permissions.admin && (
+                <details>
+                  <summary className="cursor-pointer text-sm">
+                    Edit reusable prompt template
+                  </summary>
+                  <textarea
+                    aria-label="Prompt template"
+                    className={field}
+                    rows={10}
+                    value={template}
+                    onChange={(e) => setTemplate(e.target.value)}
+                  />
+                  <button
+                    className={`${btn} mt-3`}
+                    disabled={!!busy}
+                    onClick={() => void act({ action: "template", template })}
+                  >
+                    Save template
+                  </button>
+                </details>
+              )}
+            </section>
+            <section className={`${card} space-y-4`}>
+              <h2 className="text-xl font-semibold">Import research</h2>
+              <p className="text-sm text-muted-foreground">
+                Paste the research JSON or upload a .json file. Validation checks identity,
+                structure, duplicates, URLs and required sections. Importing never approves or
+                publishes findings.
+              </p>
+              <label className="block text-sm">
+                Upload JSON
+                <input
+                  type="file"
+                  accept=".json,application/json"
+                  className={field}
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f) {
+                      if (f.size > 2000000) {
+                        setError("JSON must be at most 2 MB");
+                        return;
+                      }
+                      void f.text().then((text) => {
+                        setRaw(text);
+                        setValidation(null);
+                      });
                     }
                   }}
-                >
-                  Import Research
-                </button>
-              </div>
-            )}
-          </section>
-          <section className={`${card} space-y-3`}>
-            <h2 className="text-lg font-semibold">Original research archive</h2>
-            {data.imports.map((i) => (
-              <a
-                key={i.id}
-                className="block text-sm text-brand underline"
-                href={`${base}?import=${i.id}`}
+                />
+              </label>
+              <label className="block text-sm">
+                Research JSON
+                <textarea
+                  aria-label="Research JSON"
+                  rows={10}
+                  className={field}
+                  value={raw}
+                  onChange={(e) => {
+                    setRaw(e.target.value);
+                    setValidation(null);
+                  }}
+                />
+              </label>
+              <button
+                className={btn}
+                disabled={!raw || !!busy}
+                onClick={async () => {
+                  setBusy("Validating research…");
+                  setError("");
+                  try {
+                    const r = await fetch(base, {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ action: "validate", raw }),
+                    });
+                    const result = await r.json();
+                    if (!("valid" in result)) throw new Error(result.error);
+                    setValidation(result);
+                  } catch (e) {
+                    setError((e as Error).message);
+                  } finally {
+                    setBusy("");
+                  }
+                }}
               >
-                {i.source} · {new Date(i.created_at).toLocaleString()} · Download immutable original
-              </a>
-            ))}
-          </section>
+                Validate JSON
+              </button>
+              {validation && !validation.valid && (
+                <ul role="alert" className="list-disc space-y-1 pl-5 text-sm text-destructive">
+                  {validation.errors.map((e, i) => (
+                    <li key={i}>{e}</li>
+                  ))}
+                </ul>
+              )}
+              {validation?.valid && (
+                <div className="space-y-3 rounded-xl border border-emerald-500/30 p-4">
+                  <h3 className="font-semibold">Research preview</h3>
+                  <p>
+                    {validation.data?.findings.length} findings · {validation.data?.listopia.length}{" "}
+                    Listopia lists · {validation.data?.tasks.length} review tasks
+                  </p>
+                  {validation.data?.findings.map((f, i) => (
+                    <div key={i} className="rounded-lg bg-secondary p-3">
+                      <strong>{f.title}</strong>
+                      <p className="text-sm">{f.what_we_found}</p>
+                      <Badge value={f.classification} />
+                    </div>
+                  ))}
+                  <button
+                    className={primary}
+                    disabled={!!busy}
+                    onClick={async () => {
+                      const result = await act({ action: "import", raw, source });
+                      if (result) {
+                        const v = result.validation;
+                        if (v)
+                          setNotice(
+                            `Imported and validated: ${v.accepted} findings accepted${v.rejected ? `, ${v.rejected} rejected (no citation or recommendation)` : ""}.${v.remaining.length ? "" : " The audit is approved and ready to generate."}`,
+                          );
+                        setRaw("");
+                        setValidation(null);
+                        setTab("Findings");
+                      }
+                    }}
+                  >
+                    Import Research
+                  </button>
+                </div>
+              )}
+            </section>
+            <section className={`${card} space-y-3`}>
+              <h2 className="text-lg font-semibold">Original research archive</h2>
+              {data.imports.map((i) => (
+                <a
+                  key={i.id}
+                  className="block text-sm text-brand underline"
+                  href={`${base}?import=${i.id}`}
+                >
+                  {i.source} · {new Date(i.created_at).toLocaleString()} · Download immutable
+                  original
+                </a>
+              ))}
+            </section>
+          </details>
         </>
       )}
       {["Findings", "Amazon", "Website"].includes(tab) && (
@@ -1102,87 +1141,101 @@ export function ResearchAuditWorkspace({
                 {f.effort_score ?? "—"}/10 · Confidence {f.confidence_score ?? "—"}% · Finding{" "}
                 {f.id}
               </p>
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-4">
                 {[
-                  ["What we checked", f.what_we_checked],
                   ["What we found", f.what_we_found],
-                  ["Evidence", f.evidence],
-                  ["Interpretation", f.interpretation],
                   ["Why it matters", f.why_it_matters],
                   ["Recommendation", f.recommendation],
-                  ["HQ360 service match", f.service_match],
-                  ["Reviewer notes", f.reviewer_notes],
-                ].map(([title, value]) => (
-                  <div key={title}>
-                    <h4 className="text-xs font-semibold uppercase text-muted-foreground">
-                      {title}
-                    </h4>
-                    <p className="mt-1 whitespace-pre-line text-sm">{value || "Not provided"}</p>
-                  </div>
-                ))}
-              </div>
-              {f.implementation_steps.length > 0 && (
-                <ol className="list-decimal space-y-1 pl-5 text-sm">
-                  {f.implementation_steps.map((step, i) => (
-                    <li key={i}>{step}</li>
-                  ))}
-                </ol>
-              )}
-              <div className="flex flex-wrap gap-3">
-                {f.source_urls.map((url) => (
-                  <a
-                    key={url}
-                    href={url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="break-all text-sm text-brand underline"
-                  >
-                    {url}
-                  </a>
-                ))}
-              </div>
-              <Badge value={f.manual_status} />
-              <div className="grid gap-3 sm:grid-cols-2">
-                {data.assets
-                  .filter((a) => a.finding_id === f.id)
-                  .map((a) => (
-                    <img
-                      key={a.id}
-                      className="max-h-60 rounded-xl object-contain"
-                      src={`${base}?asset=${a.id}`}
-                      alt={a.caption || "Finding evidence"}
-                    />
+                ]
+                  .filter(([, value]) => value)
+                  .map(([title, value]) => (
+                    <div key={title}>
+                      <h4 className="text-xs font-semibold text-muted-foreground">{title}</h4>
+                      <p className="mt-1 whitespace-pre-line text-sm">{value}</p>
+                    </div>
                   ))}
               </div>
               {reviewButtons("finding", f)}
-              <div className="flex flex-wrap gap-2">
-                {["Move section", "Add evidence", "Add reviewer note"].map((title) => (
-                  <button key={title} className={btn} onClick={() => edit("finding", f)}>
-                    {title}
-                  </button>
-                ))}
-                <button
-                  className={btn}
-                  disabled={!!busy}
-                  onClick={() => void act({ action: "duplicate", entity: "finding", id: f.id })}
-                >
-                  Duplicate
-                </button>
-                <label className={`${btn} cursor-pointer`}>
-                  Add Screenshot
-                  <input
-                    aria-label={`Add screenshot to ${f.title}`}
-                    type="file"
-                    accept="image/png,image/jpeg,image/webp"
-                    className="sr-only"
+              <details className="space-y-4 rounded-xl border border-border p-4">
+                <summary className="cursor-pointer text-sm font-medium">Evidence & details</summary>
+                <div className="grid min-w-0 gap-4 sm:grid-cols-2">
+                  {[
+                    ["What we checked", f.what_we_checked],
+                    ["Evidence", f.evidence],
+                    ["Interpretation", f.interpretation],
+                    ["HQ360 service match", f.service_match],
+                    ["Reviewer notes", f.reviewer_notes],
+                  ].map(([title, value]) => (
+                    <div key={title}>
+                      <h4 className="text-xs font-semibold uppercase text-muted-foreground">
+                        {title}
+                      </h4>
+                      <p className="mt-1 whitespace-pre-line text-sm">{value || "Not provided"}</p>
+                    </div>
+                  ))}
+                </div>
+                {f.implementation_steps.length > 0 && (
+                  <ol className="list-decimal space-y-1 pl-5 text-sm">
+                    {f.implementation_steps.map((step, i) => (
+                      <li key={i}>{step}</li>
+                    ))}
+                  </ol>
+                )}
+                <div className="flex flex-wrap gap-3">
+                  {f.source_urls.map((url) => (
+                    <a
+                      key={url}
+                      href={url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="break-all text-sm text-brand underline"
+                    >
+                      {url}
+                    </a>
+                  ))}
+                </div>
+                <Badge value={f.manual_status} />
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {data.assets
+                    .filter((a) => a.finding_id === f.id)
+                    .map((a) => (
+                      <img
+                        key={a.id}
+                        className="max-h-60 rounded-xl object-contain"
+                        src={`${base}?asset=${a.id}`}
+                        alt={a.caption || "Finding evidence"}
+                      />
+                    ))}
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {["Move section", "Add evidence", "Add reviewer note"].map((title) => (
+                    <button key={title} className={btn} onClick={() => edit("finding", f)}>
+                      {title}
+                    </button>
+                  ))}
+                  <button
+                    className={btn}
                     disabled={!!busy}
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) void upload(file, undefined, f.id);
-                    }}
-                  />
-                </label>
-              </div>
+                    onClick={() => void act({ action: "duplicate", entity: "finding", id: f.id })}
+                  >
+                    Duplicate
+                  </button>
+                  <label className={`${btn} cursor-pointer`}>
+                    Add Screenshot
+                    <input
+                      aria-label={`Add screenshot to ${f.title}`}
+                      type="file"
+                      accept="image/png,image/jpeg,image/webp"
+                      className="sr-only"
+                      disabled={!!busy}
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) void upload(file, undefined, f.id);
+                      }}
+                    />
+                  </label>
+                </div>
+              </details>
             </article>
           ))}
           {!findings.length && (
@@ -1467,104 +1520,125 @@ export function ResearchAuditWorkspace({
                 </button>
               </div>
             )}
-            <h2 className="text-xl font-semibold">Client site & final QA</h2>
-            <p className="text-sm text-muted-foreground">
-              Generate an immutable draft from approved material. Preview it, complete final QA,
-              then publish. Unapproved findings and internal notes never appear in the client site.
-            </p>
-            <label className="block text-sm">
-              Version change notes
-              <textarea
-                className={field}
-                value={changeNotes}
-                onChange={(e) => setChangeNotes(e.target.value)}
-              />
-            </label>
-            <button
-              className={primary}
-              disabled={!!busy || !data.permissions.review}
-              onClick={() => void act({ action: "generate", notes: changeNotes })}
-            >
-              {data.access ? "Create Draft Revision" : "Generate Client Site"}
-            </button>
-            <label className="block text-sm">
-              Version
-              <select
-                aria-label="Audit version"
-                className={field}
-                value={version}
-                onChange={(e) => {
-                  setVersion(e.target.value);
-                  setPreview(null);
-                }}
-              >
-                <option value="">Choose a version</option>
-                {[...data.versions]
-                  .sort((a, b) => b.version_number - a.version_number)
-                  .map((v) => (
-                    <option key={v.id} value={v.id}>
-                      Version {v.version_number} · {v.published_at ? "Published" : "Draft"} ·{" "}
-                      {v.change_notes}
-                    </option>
+            {issues.length > 0 && (
+              <div className="rounded-xl border border-border p-4 text-sm">
+                <p className="font-medium">Before publishing</p>
+                <ul className="mt-2 list-disc space-y-1 pl-5">
+                  {issues.map((issue, i) => (
+                    <li key={i}>{issue}</li>
                   ))}
-              </select>
-            </label>
-            <div className="flex flex-wrap gap-2">
-              <button
-                className={btn}
-                disabled={!version || !!busy}
-                onClick={() => void showPreview()}
-              >
-                Preview client site
-              </button>
-              <button
-                className={btn}
-                disabled={!version || !!busy || !preview || !data.permissions.review}
-                onClick={() => void act({ action: "qa", versionId: version })}
-              >
-                Final QA complete
-              </button>
-              {data.permissions.review && (
-                <button
-                  className={primary}
-                  disabled={!version || !!busy}
-                  onClick={() => void act({ action: "publish", versionId: version, override })}
-                >
-                  Publish version
+                </ul>
+                <button className={`${btn} mt-3`} onClick={() => setTab("Findings")}>
+                  Back to review
                 </button>
-              )}
-            </div>
-            <details>
-              <summary className="cursor-pointer text-sm">
-                {issues.length} outstanding review checks
-              </summary>
-              <ul className="mt-3 list-disc space-y-1 pl-5 text-sm">
-                {issues.map((issue, i) => (
-                  <li key={i}>{issue}</li>
-                ))}
-              </ul>
-            </details>
-            {data.permissions.review && (
-              <>
-                <label className="block text-sm">
-                  Override reason (only if required checks cannot be completed)
-                  <textarea
-                    className={field}
-                    value={override}
-                    onChange={(e) => setOverride(e.target.value)}
-                  />
-                </label>
-                <label className="flex gap-2 text-sm">
-                  <input
-                    type="checkbox"
-                    checked={data.audit.cta_enabled}
-                    disabled={!!busy}
-                    onChange={(e) => void act({ action: "settings", ctaEnabled: e.target.checked })}
-                  />
-                  Enable contact CTA on the next published version
-                </label>
-              </>
+              </div>
             )}
+            <details className="space-y-4 rounded-xl border border-border p-4">
+              <summary className="cursor-pointer font-medium">
+                Preview, versions & publishing options
+              </summary>
+              <h2 className="text-xl font-semibold">Report versions</h2>
+              <p className="text-sm text-muted-foreground">
+                Generate an immutable draft from approved material. Preview it, complete final QA,
+                then publish. Unapproved findings and internal notes never appear in the client
+                site.
+              </p>
+              <label className="block text-sm">
+                Version change notes
+                <textarea
+                  className={field}
+                  value={changeNotes}
+                  onChange={(e) => setChangeNotes(e.target.value)}
+                />
+              </label>
+              <button
+                className={primary}
+                disabled={!!busy || !data.permissions.review}
+                onClick={() => void act({ action: "generate", notes: changeNotes })}
+              >
+                {data.access ? "Create Draft Revision" : "Generate Client Site"}
+              </button>
+              <label className="block text-sm">
+                Version
+                <select
+                  aria-label="Audit version"
+                  className={field}
+                  value={version}
+                  onChange={(e) => {
+                    setVersion(e.target.value);
+                    setPreview(null);
+                  }}
+                >
+                  <option value="">Choose a version</option>
+                  {[...data.versions]
+                    .sort((a, b) => b.version_number - a.version_number)
+                    .map((v) => (
+                      <option key={v.id} value={v.id}>
+                        Version {v.version_number} · {v.published_at ? "Published" : "Draft"} ·{" "}
+                        {v.change_notes}
+                      </option>
+                    ))}
+                </select>
+              </label>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  className={btn}
+                  disabled={!version || !!busy}
+                  onClick={() => void showPreview()}
+                >
+                  Preview client site
+                </button>
+                <button
+                  className={btn}
+                  disabled={!version || !!busy || !preview || !data.permissions.review}
+                  onClick={() => void act({ action: "qa", versionId: version })}
+                >
+                  Final QA complete
+                </button>
+                {data.permissions.review && (
+                  <button
+                    className={primary}
+                    disabled={!version || !!busy}
+                    onClick={() => void act({ action: "publish", versionId: version, override })}
+                  >
+                    Publish version
+                  </button>
+                )}
+              </div>
+              <details>
+                <summary className="cursor-pointer text-sm">
+                  {issues.length} outstanding review checks
+                </summary>
+                <ul className="mt-3 list-disc space-y-1 pl-5 text-sm">
+                  {issues.map((issue, i) => (
+                    <li key={i}>{issue}</li>
+                  ))}
+                </ul>
+              </details>
+              {data.permissions.review && (
+                <>
+                  <label className="block text-sm">
+                    Override reason (only if required checks cannot be completed)
+                    <textarea
+                      className={field}
+                      value={override}
+                      onChange={(e) => setOverride(e.target.value)}
+                    />
+                  </label>
+                  <label className="flex gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      checked={data.audit.cta_enabled}
+                      disabled={!!busy}
+                      onChange={(e) =>
+                        void act({ action: "settings", ctaEnabled: e.target.checked })
+                      }
+                    />
+                    Enable contact CTA on the next published version
+                  </label>
+                </>
+              )}
+            </details>
           </section>
           {code && (
             <div role="status" className={`${card} border-emerald-500/30`}>
@@ -1677,83 +1751,5 @@ export function ResearchAuditWorkspace({
         </section>
       )}
     </div>
-  );
-}
-
-type FastResult = {
-  counts: Record<string, number>;
-  remaining: string[];
-};
-/** One-click review for research that was verified before it was imported. */
-function FastApprove({
-  act,
-  busy,
-}: {
-  act: (body: Values, refresh?: boolean) => Promise<{ [key: string]: unknown } | null>;
-  busy: boolean;
-}) {
-  const [result, setResult] = useState<FastResult | null>(null);
-  async function run(generate: boolean) {
-    if (
-      !window.confirm(
-        "Approve and verify every finding, section, Listopia list, action and uploaded screenshot that isn't rejected or hidden? Use this only if you verified the research before importing it.",
-      )
-    )
-      return;
-    const r = (await act({ action: "approve_all" })) as FastResult | null;
-    if (!r) return;
-    setResult(r);
-    if (generate && !r.remaining.length)
-      await act({ action: "generate", notes: "Approved in one step" });
-  }
-  const total = result ? Object.values(result.counts).reduce((a, b) => a + b, 0) : 0;
-  return (
-    <section className={`${card} border-brand/40`}>
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="max-w-xl">
-          <p className="text-xs font-semibold tracking-widest text-brand uppercase">Fast approve</p>
-          <h2 className="mt-1 text-xl font-semibold">Already verified this research?</h2>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Validate everything in one step: cited findings with a recommendation are approved, the
-            rest are rejected, and manual checks are closed.
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <button className={btn} disabled={busy} onClick={() => void run(false)}>
-            Approve everything
-          </button>
-          <button className={primary} disabled={busy} onClick={() => void run(true)}>
-            Approve all &amp; generate site
-          </button>
-        </div>
-      </div>
-      {result && (
-        <div className="mt-4 rounded-xl bg-secondary/50 p-4 text-sm">
-          <p className="font-semibold">
-            Approved {total} item{total === 1 ? "" : "s"} ·{" "}
-            {Object.entries(result.counts)
-              .filter(([, n]) => n)
-              .map(([k, n]) => `${n} ${k}`)
-              .join(", ") || "nothing new"}
-          </p>
-          {result.remaining.length ? (
-            <>
-              <p className="mt-2 text-muted-foreground">
-                {result.remaining.length} still need you before publishing:
-              </p>
-              <ul className="mt-2 list-disc space-y-1 pl-5">
-                {result.remaining.slice(0, 12).map((issue) => (
-                  <li key={issue}>{issue}</li>
-                ))}
-              </ul>
-            </>
-          ) : (
-            <p className="mt-2 text-muted-foreground">
-              Review complete — open Client Site to preview, run final QA and publish.
-            </p>
-          )}
-        </div>
-      )}
-    </section>
   );
 }

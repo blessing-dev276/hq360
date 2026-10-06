@@ -38,10 +38,28 @@ async function act(body, status = 200) {
   return data;
 }
 async function tab(name) {
+  const review = {
+    Findings: "Findings",
+    Goodreads: "Goodreads lists",
+    Screenshots: "Evidence",
+    "Manual Review": "Checks",
+    "Action Plan": "Action plan",
+  };
+  const target =
+    name === "Research" ? "1. Research" : name === "Client Site" ? "3. Publish" : "2. Review";
   await page
-    .getByRole("navigation", { name: "Audit workflow" })
-    .getByRole("button", { name, exact: true })
+    .getByRole("navigation", { name: "Audit workflow", exact: true })
+    .getByRole("button", { name: new RegExp(target.replace(".", "\\.")) })
     .click();
+  if (review[name])
+    await page
+      .getByRole("navigation", { name: "Review content" })
+      .getByRole("button", { name: review[name], exact: true })
+      .click();
+  if (name === "Research")
+    await page.getByText("Import research or customize the prompt", { exact: true }).click();
+  if (name === "Client Site")
+    await page.getByText("Preview, versions & publishing options", { exact: true }).click();
 }
 async function settle() {
   await expect(

@@ -5,6 +5,11 @@ export const EXPERT_FEATURES = [
   { key: "audit", label: "Audit", hint: "Research and build author growth reports." },
   { key: "invoices", label: "Invoices", hint: "Request invoices for their own clients." },
   {
+    key: "quotes",
+    label: "Quotes",
+    hint: "Create branded pricing pages for buyers (link, PDF, image).",
+  },
+  {
     key: "contacts",
     label: "Find Author Contact",
     hint: "Find and verify author emails inside Scouting (needs Scouting).",
@@ -49,5 +54,6 @@ export function roleLabel(role: string) {
 export function featureForPath(pathname: string): ExpertFeature | null {
   if (pathname.startsWith("/api/admin/scout")) return "scout";
   if (pathname.startsWith("/api/admin/author-audit")) return "audit";
+  if (pathname.startsWith("/api/admin/quotes")) return "quotes";
   return null;
 }

@@ -1,3 +1,4 @@
+import { QuotesWorkspace } from "@/components/quotes/QuotesWorkspace";
 import { useEffect, useState } from "react";
 import { PanelRefreshButton } from "@/components/admin/PanelRefreshButton";
 import { NotificationBell } from "@/components/admin/NotificationBell";
@@ -12,6 +13,7 @@ import {
   ScanSearch,
   UserRound,
   type LucideIcon,
+  ReceiptText,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getSupabase } from "@/integrations/supabase/lazy";
@@ -77,6 +79,12 @@ const TOOLS: (NavItem & { id: ExpertFeature })[] = [
     label: "Invoices",
     icon: CreditCard,
     description: "Request invoices for your clients and follow each payment.",
+  },
+  {
+    id: "quotes",
+    label: "Quotes",
+    icon: ReceiptText,
+    description: "Branded pricing pages for buyers — share a link, PDF or image.",
   },
 ];
 
@@ -232,6 +240,8 @@ export function ExpertApp() {
             </>
           ) : current.id === "scout" ? (
             <ScoutApp canFindEmail={permissions.includes("contacts")} />
+          ) : current.id === "quotes" ? (
+            <QuotesWorkspace />
           ) : current.id === "audit" ? (
             <>
               <ExpertAuditLink />

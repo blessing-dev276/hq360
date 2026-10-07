@@ -93,7 +93,7 @@ export function buildInvoiceEmail(invoice: Invoice, payUrl: string, siteOrigin: 
         <tr><td style="height:6px;background:${ORANGE};font-size:0;line-height:6px;">&nbsp;</td></tr>
         <tr><td style="padding:28px 36px 8px;">
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
-            <td><img src="${siteOrigin}/logo-text.png" width="120" alt="HQ360" style="display:block;width:120px;height:auto;border:0;"></td>
+            <td><img src="${siteOrigin}/logo-email.png" width="120" alt="HQ360" style="display:block;width:120px;height:auto;border:0;"></td>
             <td align="right" style="font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:${MUTED};">Invoice<br><span style="font-size:15px;letter-spacing:0;text-transform:none;color:${INK};font-weight:700;">${esc(invoice.number)}</span></td>
           </tr></table>
         </td></tr>

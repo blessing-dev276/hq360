@@ -111,7 +111,7 @@ function RootComponent() {
   const privateAudit = useRouterState({
     select: (state) =>
       state.location.pathname === "/expert" ||
-      ["/author-audit", "/admin", "/scout", "/pay/"].some((path) =>
+      ["/author-audit", "/admin", "/scout", "/pay/", "/quote/"].some((path) =>
         state.location.pathname.startsWith(path),
       ),
   });

@@ -1,3 +1,4 @@
+import { QuotesWorkspace } from "@/components/quotes/QuotesWorkspace";
 import { GlassLoading } from "@/components/ui/glass-loading";
 import { PanelRefreshButton } from "./PanelRefreshButton";
 import { ScoutApp } from "./ScoutApp";
@@ -22,6 +23,7 @@ import {
   LogOut,
   UserCheck,
   Globe2,
+  ReceiptText,
 } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { PaymentsAdmin } from "./PaymentsAdmin";
@@ -156,7 +158,8 @@ type Tab =
   | "testimonials"
   | "audits"
   | "experts"
-  | "visitors";
+  | "visitors"
+  | "quotes";
 type WorkView = "cases" | "gallery";
 const NAV = [
   {
@@ -201,6 +204,12 @@ const NAV = [
     label: "Audit",
     icon: ScanSearch,
     description: "Turn research into a clear growth direction.",
+  },
+  {
+    id: "quotes",
+    label: "Quotes",
+    icon: ReceiptText,
+    description: "Branded pricing pages for buyers — share a link, PDF or image.",
   },
   {
     id: "experts",
@@ -250,6 +259,7 @@ export function AdminApp({ initialTab = "overview" }: { initialTab?: Tab }) {
             "overview",
             "scout",
             "audits",
+            "quotes",
             "experts",
             "visitors",
             "projects",
@@ -334,6 +344,8 @@ export function AdminApp({ initialTab = "overview" }: { initialTab?: Tab }) {
             <LeadsAdmin />
           ) : tab === "payments" ? (
             <PaymentsAdmin />
+          ) : tab === "quotes" ? (
+            <QuotesWorkspace />
           ) : tab === "experts" ? (
             <ExpertsAdmin />
           ) : tab === "visitors" ? (

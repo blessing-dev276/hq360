@@ -130,7 +130,7 @@ function BuyerInvoice() {
             <div className="buyer-card-inner">
               <div className="buyer-head">
                 <a href="/" aria-label="HQ360 home">
-                  <img src="/logo-text.png" width={120} height={60} alt="HQ360" />
+                  <img src="/logo-text.webp" width={120} height={60} alt="HQ360" />
                 </a>
                 <div className="buyer-number">
                   Invoice

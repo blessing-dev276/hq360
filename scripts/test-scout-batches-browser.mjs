@@ -137,7 +137,7 @@ try {
     await jobs.nth(index).getByRole("button", { name: "Pause", exact: true }).click();
   }
   await expect(jobs).toHaveCount(3);
-  await expect(panel.getByRole("heading", { name: /3\/3 slots used/ })).toBeVisible();
+  await expect(panel.getByText(/3\/3 slots in use/)).toBeVisible();
   await expect(start).toBeDisabled();
   await page.waitForTimeout(500);
   const stoppedAt = writes;
@@ -146,7 +146,7 @@ try {
   await jobs.nth(0).getByRole("button", { name: "Resume" }).click();
   await expect(jobs).toHaveCount(2, { timeout: 20000 });
   await expect(start).toBeEnabled();
-  await expect(panel.getByRole("heading", { name: /2\/3 slots used/ })).toBeVisible();
+  await expect(panel.getByText(/2\/3 slots in use/)).toBeVisible();
   await jobs.nth(0).getByRole("button", { name: "Resume" }).click();
   await expect(jobs).toHaveCount(1, { timeout: 20000 });
   await jobs.nth(0).getByRole("button", { name: "Resume" }).click();
@@ -176,7 +176,17 @@ try {
     .click();
   await expect(page.getByRole("heading", { name: "Batches", exact: true })).toBeVisible();
   await expect(start).toBeHidden();
-  await expect(page.getByLabel("Choose a batch").locator("option")).toHaveCount(5);
+  // Batches are cards now (was a <select> with a placeholder option).
+  const batchCards = page.getByRole("list", { name: "Saved batches" }).getByRole("listitem");
+  await expect(batchCards).toHaveCount(4);
+  // Opening one shows it as its own page (?batch=<id>); "All batches" returns.
+  await batchCards.first().getByRole("button").click();
+  await expect(page.getByRole("region", { name: "Batch details" })).toBeVisible();
+  await expect(page.getByRole("region", { name: "Batches" })).toBeHidden();
+  expect(new URL(page.url()).searchParams.get("batch")).toBeTruthy();
+  await page.getByRole("button", { name: "All batches" }).click();
+  await expect(batchCards).toHaveCount(4);
+  expect(new URL(page.url()).searchParams.get("batch")).toBeNull();
   await page
     .getByRole("navigation", { name: "Scouting sections" })
     .getByRole("button", { name: "Scouting", exact: true })

@@ -6,6 +6,7 @@ import { AudienceScout } from "./AudienceScout";
 import { SCOUT_AUDIENCES } from "@/lib/scout/audiences";
 import { useEffect, useRef, useState } from "react";
 import {
+  ArrowLeft,
   Bookmark,
   Check,
   Download,
@@ -252,10 +253,11 @@ const field =
 export function ScoutApp({ canFindEmail = false }: { canFindEmail?: boolean }) {
   const [audienceId, setAudienceId] = useState("authors");
   const [locked, setLocked] = useState(false);
+  const [batchPage, setBatchPage] = useState(false);
   const audience = SCOUT_AUDIENCES.find((item) => item.id === audienceId)!;
   return (
     <div>
-      <div className="mx-auto max-w-6xl px-4 pt-6 sm:px-6">
+      <div className="mx-auto max-w-6xl px-4 pt-6 sm:px-6" hidden={batchPage}>
         <label className="block text-sm font-medium">
           Audience
           <select
@@ -275,7 +277,11 @@ export function ScoutApp({ canFindEmail = false }: { canFindEmail?: boolean }) {
         </label>
       </div>
       {audienceId === "authors" ? (
-        <AuthorScout onBusyChange={setLocked} canFindEmail={canFindEmail} />
+        <AuthorScout
+          onBusyChange={setLocked}
+          onBatchPageChange={setBatchPage}
+          canFindEmail={canFindEmail}
+        />
       ) : (
         <AudienceScout
           key={audienceId}
@@ -289,9 +295,12 @@ export function ScoutApp({ canFindEmail = false }: { canFindEmail?: boolean }) {
 }
 function AuthorScout({
   onBusyChange,
+  onBatchPageChange,
   canFindEmail,
 }: {
   onBusyChange: (busy: boolean) => void;
+  /** True while a single batch is open as its own page. */
+  onBatchPageChange?: (open: boolean) => void;
   canFindEmail: boolean;
 }) {
   const queryClient = useQueryClient();
@@ -329,6 +338,33 @@ function AuthorScout({
   const [limit, setLimit] = useState(20);
   const [batches, setBatches] = useState<Batch[]>([]);
   const [selected, setSelected] = useState<Batch | null>(null);
+  // A batch opens as its own page: the list is replaced by the batch, and the
+  // URL carries ?batch=<id> (the #tab hash is untouched) so Back, reload and
+  // shared links all work.
+  const pendingBatchRef = useRef<string | null>(
+    typeof window === "undefined" ? null : new URL(window.location.href).searchParams.get("batch"),
+  );
+  function setBatchParam(id: string | null, push: boolean) {
+    const url = new URL(window.location.href);
+    if (id) url.searchParams.set("batch", id);
+    else url.searchParams.delete("batch");
+    if (url.href === window.location.href) return;
+    window.history[push ? "pushState" : "replaceState"](window.history.state, "", url);
+  }
+  function openBatch(batch: Batch) {
+    setSelected(batch);
+    setView("batches");
+    setBatchParam(batch.id, true);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+  function closeBatch() {
+    setSelected(null);
+    setBatchParam(null, true);
+  }
+  const batchPage = Boolean(selected) && view === "batches";
+  useEffect(() => {
+    onBatchPageChange?.(batchPage);
+  }, [batchPage, onBatchPageChange]);
   const [books, setBooks] = useState<Book[]>([]);
   const [loading, setLoading] = useState(true);
   const [detailLoading, setDetailLoading] = useState(false);
@@ -426,6 +462,34 @@ function AuthorScout({
       });
     return () => controller.abort();
   }, [source, catalog, loadAttempt, queryClient]);
+
+  useEffect(() => {
+    const sync = () => {
+      const id = new URL(window.location.href).searchParams.get("batch");
+      if (!id) {
+        setSelected(null);
+        return;
+      }
+      const match = batches.find((b) => b.id === id);
+      if (match) {
+        setSelected((current) => (current?.id === id ? current : match));
+        setView("batches");
+      } else pendingBatchRef.current = id;
+    };
+    window.addEventListener("popstate", sync);
+    return () => window.removeEventListener("popstate", sync);
+  }, [batches]);
+  // Open a batch named in the URL once the batch list has loaded.
+  useEffect(() => {
+    const id = pendingBatchRef.current;
+    if (!id || !batches.length) return;
+    pendingBatchRef.current = null;
+    const match = batches.find((b) => b.id === id);
+    if (match) {
+      setSelected(match);
+      setView("batches");
+    } else setBatchParam(null, false);
+  }, [batches]);
 
   // Re-opening the same batch (retry/refresh) keeps its rows on screen;
   // switching to a different batch clears them so results never mislabel.
@@ -762,9 +826,8 @@ function AuthorScout({
               { ...batch, genre: null },
               ...current.filter((b) => b.id !== batch.id),
             ]);
-            setSelected({ ...batch, genre: null });
             setBatchSource("all");
-            setView("batches");
+            openBatch({ ...batch, genre: null });
             setSource("reedsy_discovery");
             setLoadAttempt((n) => n + 1);
           }}
@@ -773,7 +836,10 @@ function AuthorScout({
     );
   return (
     <main className="mx-auto max-w-6xl space-y-7 px-4 py-8 sm:px-6">
-      <header className="rounded-3xl border border-border bg-secondary/40 p-6 sm:p-8">
+      <header
+        className="rounded-3xl border border-border bg-secondary/40 p-6 sm:p-8"
+        hidden={batchPage}
+      >
         <p className="text-xs font-semibold uppercase tracking-widest text-brand">
           HQ360 · Scouting workspace
         </p>
@@ -783,7 +849,7 @@ function AuthorScout({
           review and export from HQ360.
         </p>
       </header>
-      <nav aria-label="Scouting sections" className="flex gap-2">
+      <nav aria-label="Scouting sections" className="flex gap-2" hidden={batchPage}>
         <button
           type="button"
           aria-pressed={view === "scouting"}
@@ -1036,8 +1102,7 @@ function AuthorScout({
                         type="button"
                         className="rounded-full border px-4 py-2 text-sm font-semibold hover:bg-secondary"
                         onClick={() => {
-                          setSelected({ ...job.batch!, item_count: job.saved });
-                          setView("batches");
+                          openBatch({ ...job.batch!, item_count: job.saved });
                         }}
                       >
                         Open batch ({job.saved})
@@ -1072,7 +1137,7 @@ function AuthorScout({
         </p>
       )}
       <div hidden={view !== "batches"} className="space-y-6">
-        <section className="space-y-4" aria-label="Batches">
+        <section className="space-y-4" aria-label="Batches" hidden={Boolean(selected)}>
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
               <h2 className="text-2xl font-semibold">Batches</h2>
@@ -1093,14 +1158,24 @@ function AuthorScout({
                 setBooks([]);
               }}
               selectedId={selected?.id ?? null}
-              onSelect={(batch) => setSelected(batches.find((b) => b.id === batch.id) ?? null)}
+              onSelect={(batch) => {
+                const match = batches.find((b) => b.id === batch.id);
+                if (match) openBatch(match);
+              }}
               disabled={Boolean(busy)}
               lockArcSources={activeCount > 0}
             />
           )}
         </section>
         {selected && (
-          <section className="space-y-4 border-t border-border pt-6" aria-label="Batch details">
+          <section className="space-y-4 hq-fade-in" aria-label="Batch details">
+            <nav aria-label="Breadcrumb" className="scout-batch-crumbs">
+              <button type="button" onClick={closeBatch} className="scout-batch-back">
+                <ArrowLeft size={15} aria-hidden="true" /> All batches
+              </button>
+              <span aria-hidden="true">/</span>
+              <span aria-current="page">{selected.genre || selected.label}</span>
+            </nav>
             <div className="flex flex-wrap items-end justify-between gap-4">
               <div>
                 <p className="text-xs uppercase tracking-widest text-brand">Batch details</p>

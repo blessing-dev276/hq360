@@ -1792,3 +1792,32 @@
     width: 100%;
   }
 }
+
+/* Batch page breadcrumb */
+.scout-batch-crumbs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--muted-foreground);
+}
+.scout-batch-crumbs [aria-current="page"] {
+  color: var(--foreground);
+  font-weight: 550;
+}
+.scout-batch-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px 7px 11px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.04);
+  color: var(--foreground);
+  font-weight: 550;
+  transition: border-color 0.15s;
+}
+.scout-batch-back:hover {
+  border-color: rgb(255 122 47 / 0.5);
+}

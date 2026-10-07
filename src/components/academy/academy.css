@@ -1,0 +1,613 @@
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap");
+
+/* Author Scout Academy theme. Scoped to .asa so the main site is untouched. */
+.asa {
+  --asa-orange: #ee4d0a;
+  --asa-orange-2: #fe8b17;
+  --asa-ink: #14181a;
+  --asa-muted: #62666b;
+  --asa-line: #e6e3de;
+  --asa-bg: #faf9f7;
+  --asa-card: #ffffff;
+  --asa-soft: #f2efea;
+  --asa-good: #1f8a4c;
+  --asa-warn: #b7791f;
+  --asa-bad: #c0392b;
+  --asa-scout: #14181a;
+  --asa-scout-text: #ffffff;
+  --asa-author: #efedea;
+  --asa-banner: #14181a;
+
+  min-height: 100vh;
+  background: var(--asa-bg);
+  color: var(--asa-ink);
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+@media (prefers-color-scheme: dark) {
+  .asa {
+    --asa-orange: #ff6a2b;
+    --asa-orange-2: #ff9a3d;
+    --asa-ink: #f1efec;
+    --asa-muted: #a3a6aa;
+    --asa-line: #2c3034;
+    --asa-bg: #121416;
+    --asa-card: #1b1e21;
+    --asa-soft: #23272b;
+    --asa-good: #3cb371;
+    --asa-warn: #d9a03f;
+    --asa-bad: #e35d4f;
+    --asa-scout: #f1efec;
+    --asa-scout-text: #14181a;
+    --asa-author: #262a2e;
+    --asa-banner: #0b0c0d;
+  }
+}
+
+.asa h1,
+.asa h2,
+.asa h3,
+.asa .asa-serif {
+  font-family: "Fraunces", Georgia, serif;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.15;
+}
+
+.asa-wrap {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+@media (min-width: 768px) {
+  .asa-wrap {
+    padding: 0 28px;
+  }
+}
+
+/* top bar */
+.asa-bar {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: color-mix(in srgb, var(--asa-bg) 92%, transparent);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--asa-line);
+}
+.asa-bar-inner {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-height: 64px;
+}
+.asa-logo {
+  height: 30px;
+  width: auto;
+}
+.asa-tabs {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  flex: 1;
+}
+.asa-tab {
+  white-space: nowrap;
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--asa-muted);
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+.asa-tab:hover {
+  color: var(--asa-ink);
+}
+.asa-tab[aria-current="page"] {
+  background: var(--asa-ink);
+  color: var(--asa-bg);
+}
+@media (max-width: 767px) {
+  .asa-bar-inner {
+    flex-wrap: wrap;
+    padding: 10px 0;
+    gap: 8px;
+  }
+  .asa-tabs {
+    order: 3;
+    flex-basis: 100%;
+  }
+}
+
+/* primitives */
+.asa-card {
+  background: var(--asa-card);
+  border: 1px solid var(--asa-line);
+  border-radius: 18px;
+  padding: 22px;
+}
+.asa-label {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--asa-orange);
+}
+.asa-muted {
+  color: var(--asa-muted);
+}
+.asa-orange {
+  color: var(--asa-orange);
+}
+.asa-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px 20px;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 14px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  background: var(--asa-orange);
+  color: #fff;
+  text-decoration: none;
+}
+.asa-btn:hover {
+  filter: brightness(1.05);
+}
+.asa-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.asa-btn-ghost {
+  background: var(--asa-card);
+  color: var(--asa-ink);
+  border-color: var(--asa-line);
+}
+.asa-btn-ghost:hover {
+  border-color: var(--asa-orange);
+  color: var(--asa-orange);
+  filter: none;
+}
+.asa-btn-dark {
+  background: var(--asa-ink);
+  color: var(--asa-bg);
+}
+.asa-btn-danger {
+  background: var(--asa-card);
+  color: var(--asa-bad);
+  border-color: var(--asa-line);
+}
+.asa-btn-sm {
+  padding: 7px 14px;
+  font-size: 13px;
+}
+.asa-input {
+  width: 100%;
+  border: 1px solid var(--asa-line);
+  background: var(--asa-bg);
+  color: var(--asa-ink);
+  border-radius: 14px;
+  padding: 12px 14px;
+  font: inherit;
+  outline: none;
+}
+.asa-input:focus {
+  border-color: var(--asa-orange);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--asa-orange) 20%, transparent);
+}
+.asa-callout {
+  border-left: 4px solid var(--asa-orange);
+  background: color-mix(in srgb, var(--asa-orange) 8%, var(--asa-card));
+  border-radius: 12px;
+  padding: 16px 18px;
+  margin: 18px 0;
+}
+.asa-callout strong {
+  display: block;
+  margin-bottom: 4px;
+}
+.asa-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.asa-table th,
+.asa-table td {
+  text-align: left;
+  vertical-align: top;
+  padding: 12px 10px;
+  border-bottom: 1px solid var(--asa-line);
+}
+.asa-table th {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--asa-muted);
+  font-weight: 600;
+}
+.asa-scroll-x {
+  overflow-x: auto;
+}
+.asa-grid-2 {
+  display: grid;
+  gap: 16px;
+}
+@media (min-width: 720px) {
+  .asa-grid-2 {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+.asa-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  color: #fff;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+.asa-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--asa-soft);
+  color: var(--asa-muted);
+}
+.asa-pill-good {
+  background: color-mix(in srgb, var(--asa-good) 15%, transparent);
+  color: var(--asa-good);
+}
+.asa-pill-warn {
+  background: color-mix(in srgb, var(--asa-warn) 15%, transparent);
+  color: var(--asa-warn);
+}
+.asa-pill-bad {
+  background: color-mix(in srgb, var(--asa-bad) 15%, transparent);
+  color: var(--asa-bad);
+}
+
+/* playbook */
+.asa-cover {
+  display: grid;
+  gap: 28px;
+  padding: 48px 0 40px;
+}
+@media (min-width: 900px) {
+  .asa-cover {
+    grid-template-columns: 1fr 320px;
+    align-items: center;
+    padding: 72px 0 56px;
+  }
+}
+.asa-cover h1 {
+  font-size: clamp(38px, 6vw, 64px);
+  margin: 12px 0 16px;
+}
+.asa-counters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 28px;
+  margin: 26px 0;
+}
+.asa-counters b {
+  display: block;
+  font-family: "Fraunces", serif;
+  font-size: 34px;
+  color: var(--asa-orange);
+  line-height: 1;
+}
+.asa-trainer img {
+  width: 100%;
+  aspect-ratio: 4 / 4.2;
+  object-fit: cover;
+  border-radius: 14px;
+  background: var(--asa-soft);
+}
+.asa-book {
+  display: grid;
+  gap: 36px;
+  padding-bottom: 64px;
+}
+@media (min-width: 960px) {
+  .asa-book {
+    grid-template-columns: 240px 1fr;
+  }
+  .asa-toc {
+    position: sticky;
+    top: 84px;
+    align-self: start;
+  }
+}
+.asa-toc a {
+  display: flex;
+  gap: 10px;
+  padding: 7px 10px;
+  border-radius: 10px;
+  font-size: 14px;
+  color: var(--asa-muted);
+  text-decoration: none;
+}
+.asa-toc a span {
+  font-variant-numeric: tabular-nums;
+  color: var(--asa-orange);
+  font-weight: 600;
+}
+.asa-toc a.active {
+  background: var(--asa-card);
+  color: var(--asa-ink);
+  box-shadow: inset 0 0 0 1px var(--asa-line);
+}
+@media (max-width: 959px) {
+  .asa-toc {
+    display: flex;
+    overflow-x: auto;
+    gap: 4px;
+  }
+  .asa-toc a {
+    white-space: nowrap;
+  }
+}
+.asa-chapter {
+  scroll-margin-top: 90px;
+  padding: 8px 0 40px;
+  border-bottom: 1px solid var(--asa-line);
+  margin-bottom: 40px;
+}
+.asa-chapter h2 {
+  font-size: clamp(28px, 4vw, 38px);
+  margin: 6px 0 16px;
+}
+.asa-chapter h3 {
+  font-size: 20px;
+  margin: 26px 0 10px;
+}
+.asa-chapter p {
+  margin: 0 0 14px;
+  max-width: 70ch;
+}
+.asa-chapter ol,
+.asa-chapter ul {
+  padding-left: 20px;
+  margin: 0 0 14px;
+}
+.asa-chapter li {
+  margin-bottom: 8px;
+}
+.asa-stages {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 10px;
+  margin: 20px 0 8px;
+}
+.asa-stage {
+  position: relative;
+  padding: 14px;
+  border-radius: 14px;
+  background: var(--asa-card);
+  border: 1px solid var(--asa-line);
+}
+.asa-stage b {
+  display: block;
+  font-family: "Fraunces", serif;
+  font-size: 18px;
+}
+.asa-stage small {
+  color: var(--asa-muted);
+}
+.asa-stage.hot {
+  border-color: var(--asa-orange);
+}
+.asa-quote {
+  border-radius: 14px;
+  padding: 16px 18px;
+  font-size: 14px;
+}
+.asa-quote.bad {
+  background: color-mix(in srgb, var(--asa-bad) 8%, var(--asa-card));
+  border: 1px solid color-mix(in srgb, var(--asa-bad) 30%, transparent);
+}
+.asa-quote.good {
+  background: color-mix(in srgb, var(--asa-good) 8%, var(--asa-card));
+  border: 1px solid color-mix(in srgb, var(--asa-good) 30%, transparent);
+}
+.asa-line-row {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--asa-line);
+}
+.asa-line-row .src {
+  width: 130px;
+  flex-shrink: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--asa-orange);
+}
+.asa-line-row .txt {
+  flex: 1;
+}
+@media (max-width: 600px) {
+  .asa-line-row {
+    flex-wrap: wrap;
+  }
+  .asa-line-row .src {
+    width: 100%;
+  }
+}
+.asa-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin: 18px 0;
+}
+.asa-tile b {
+  display: block;
+  font-family: "Fraunces", serif;
+  font-size: 36px;
+  color: var(--asa-orange);
+  line-height: 1.1;
+}
+.asa-banner {
+  margin-top: 28px;
+  background: var(--asa-banner);
+  color: #f1efec;
+  border-radius: 20px;
+  padding: 28px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: center;
+  justify-content: space-between;
+}
+.asa-banner h3 {
+  margin: 0;
+  font-size: 28px;
+}
+
+/* practice */
+.asa-practice {
+  display: grid;
+  gap: 20px;
+  padding: 32px 0 64px;
+}
+@media (min-width: 960px) {
+  .asa-practice {
+    grid-template-columns: 360px 1fr;
+    align-items: start;
+  }
+}
+.asa-toggle {
+  display: flex;
+  padding: 4px;
+  border-radius: 999px;
+  background: var(--asa-soft);
+}
+.asa-toggle button {
+  flex: 1;
+  padding: 9px 12px;
+  border-radius: 999px;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--asa-muted);
+  cursor: pointer;
+}
+.asa-toggle button[aria-pressed="true"] {
+  background: var(--asa-card);
+  color: var(--asa-ink);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.12);
+}
+.asa-chat {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 320px;
+  max-height: 60vh;
+  overflow-y: auto;
+  padding: 18px;
+  background: var(--asa-bg);
+  border: 1px solid var(--asa-line);
+  border-radius: 16px;
+}
+.asa-msg {
+  max-width: 85%;
+  padding: 12px 15px;
+  border-radius: 16px;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  font-size: 14.5px;
+}
+.asa-msg.scout {
+  align-self: flex-end;
+  background: var(--asa-scout);
+  color: var(--asa-scout-text);
+  border-bottom-right-radius: 4px;
+}
+.asa-msg.author {
+  align-self: flex-start;
+  background: var(--asa-author);
+  border-bottom-left-radius: 4px;
+}
+.asa-sys {
+  align-self: center;
+  text-align: center;
+  font-size: 12.5px;
+  color: var(--asa-muted);
+  max-width: 90%;
+}
+.asa-bars > div {
+  display: grid;
+  grid-template-columns: 130px 1fr 40px;
+  gap: 10px;
+  align-items: center;
+  font-size: 14px;
+  margin: 8px 0;
+}
+.asa-bar-track {
+  height: 10px;
+  border-radius: 999px;
+  background: var(--asa-soft);
+  overflow: hidden;
+}
+.asa-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--asa-orange), var(--asa-orange-2));
+}
+.asa-better {
+  font-family: "Fraunces", serif;
+  font-size: 18px;
+  border-left: 4px solid var(--asa-orange);
+  padding: 6px 0 6px 16px;
+  margin: 8px 0 0;
+}
+.asa-cards {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+}
+.asa-session-card {
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+.asa-session-card:hover,
+.asa-session-card.selected {
+  border-color: var(--asa-orange);
+}
+.asa-row-link {
+  cursor: pointer;
+}
+.asa-row-link:hover td {
+  background: var(--asa-soft);
+}
+
+/* Embedded in /admin: follow the site's own tokens instead of device dark mode. */
+.asa.asa-embed {
+  --asa-ink: var(--foreground);
+  --asa-muted: var(--muted-foreground);
+  --asa-line: var(--border);
+  --asa-bg: var(--background);
+  --asa-card: var(--card);
+  --asa-soft: var(--secondary);
+  --asa-author: var(--secondary);
+  --asa-scout: var(--foreground);
+  --asa-scout-text: var(--background);
+  min-height: 0;
+  background: transparent;
+}

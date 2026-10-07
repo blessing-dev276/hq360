@@ -4,6 +4,7 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
@@ -124,6 +125,8 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  // The Author Scout Academy has its own top bar, so it skips the site chrome.
+  const bare = useRouterState({ select: (s) => s.location.pathname.startsWith("/academy") });
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -133,13 +136,13 @@ function RootComponent() {
       >
         Skip to content
       </a>
-      <SiteHeader />
+      {bare ? null : <SiteHeader />}
       <main id="main">
         {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
         <Outlet />
       </main>
-      <SiteFooter />
-      <CookieBanner />
+      {bare ? null : <SiteFooter />}
+      {bare ? null : <CookieBanner />}
     </QueryClientProvider>
   );
 }

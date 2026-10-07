@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } fro
 import { cn } from "@/lib/utils";
 import { CAPABILITIES } from "@/data/capabilities";
 import { INDUSTRIES } from "@/data/industries";
+import { TrainerTools } from "@/components/academy/TrainerTools";
 
 /* ------------------------------------------------------------------ types */
 
@@ -70,6 +71,7 @@ async function api<T>(url: string, init?: RequestInit): Promise<{ status: number
 
 export function AdminApp() {
   const [state, setState] = useState<"loading" | "gate" | "unconfigured" | "ready">("loading");
+  const [section, setSection] = useState<"portfolio" | "academy">("portfolio");
 
   const refreshSession = useCallback(async () => {
     try {
@@ -93,7 +95,9 @@ export function AdminApp() {
             <p className="text-xs font-semibold tracking-[0.18em] text-brand uppercase">
               HQ360 admin
             </p>
-            <h1 className="mt-1 font-display text-2xl">Service portfolio</h1>
+            <h1 className="mt-1 font-display text-2xl">
+              {section === "academy" ? "Author Scout Academy" : "Service portfolio"}
+            </h1>
           </div>
           {state === "ready" ? (
             <button
@@ -113,7 +117,33 @@ export function AdminApp() {
           {state === "loading" ? <p className="text-sm text-muted-foreground">Loading…</p> : null}
           {state === "unconfigured" ? <Unconfigured /> : null}
           {state === "gate" ? <Gate onAuthed={() => setState("ready")} /> : null}
-          {state === "ready" ? <Dashboard /> : null}
+          {state === "ready" ? (
+            <>
+              <div className="mb-6 flex w-fit rounded-full border border-border bg-card p-1 text-sm">
+                {(
+                  [
+                    ["portfolio", "Portfolio"],
+                    ["academy", "Author Scout Academy"],
+                  ] as const
+                ).map(([key, label]) => (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => setSection(key)}
+                    className={cn(
+                      "rounded-full px-4 py-1.5 font-medium",
+                      section === key
+                        ? "bg-primary text-primary-foreground"
+                        : "text-muted-foreground hover:text-foreground",
+                    )}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+              {section === "portfolio" ? <Dashboard /> : <AcademyAdmin />}
+            </>
+          ) : null}
         </div>
       </div>
     </div>
@@ -174,6 +204,45 @@ function Gate({ onAuthed }: { onAuthed: () => void }) {
         {busy ? "Signing in…" : "Sign in"}
       </button>
     </form>
+  );
+}
+
+/* ---------------------------------------------------------------- academy */
+
+// Uses the admin passphrase cookie, so no Supabase login is needed here.
+async function cookieFetch<T>(url: string, init?: { method?: string; body?: unknown }) {
+  const res = await fetch(url, {
+    method: init?.method ?? "GET",
+    headers: { "content-type": "application/json" },
+    body: init?.body === undefined ? undefined : JSON.stringify(init.body),
+  });
+  return { status: res.status, body: (await res.json().catch(() => ({}))) as T };
+}
+
+function AcademyAdmin() {
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-border bg-card p-5">
+        <div className="text-sm text-muted-foreground">
+          <p className="font-medium text-foreground">Trainee training and AI practice room</p>
+          <p className="mt-1">
+            Trainees sign in at <code>/academy</code>. Manage trainees, the Response Bank, hints,
+            feedback and model lines here. To publish demos, sign in to the academy as a trainer.
+          </p>
+        </div>
+        <a
+          href="/academy"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground"
+        >
+          Open the academy
+        </a>
+      </div>
+      <div className="asa asa-embed">
+        <TrainerTools fetcher={cookieFetch} />
+      </div>
+    </div>
   );
 }
 

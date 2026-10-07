@@ -910,59 +910,147 @@ function AuthorScout({
         <GlassLoading label="Loading review categories…" rows={1} />
       )}
       {jobs.length > 0 && (
-        <section aria-label="Generation batches" className="space-y-3">
-          <h2 className="text-lg font-semibold">Generation batches · {activeCount}/3 slots used</h2>
-          <p className="text-xs text-muted-foreground">
-            Keep this tab open while generating. Pause finishes requests already in progress; saved
-            authors remain available.
-          </p>
-          {jobs.map((job) => (
-            <article key={job.id} className="rounded-xl border p-4">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div>
-                  <h3 className="font-medium">{job.label}</h3>
-                  <p role="status" className="text-sm">
-                    {job.saved}/{job.target} authors · {job.status} · {job.skipped} duplicates
-                    skipped
+        <section aria-label="Generation batches" className="space-y-4">
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <h2 className="text-lg font-semibold">Generation batches</h2>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Keep this tab open while generating. Pausing lets requests in progress finish; saved
+                authors stay available.
+              </p>
+            </div>
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <span className="flex gap-1" aria-hidden="true">
+                {[0, 1, 2].map((slot) => (
+                  <span
+                    key={slot}
+                    className={`h-2 w-6 rounded-full ${slot < activeCount ? "bg-brand" : "bg-secondary"}`}
+                  />
+                ))}
+              </span>
+              {activeCount}/3 slots in use
+            </div>
+          </div>
+          {jobs.map((job) => {
+            const pct = job.target ? Math.min(100, Math.round((job.saved / job.target) * 100)) : 0;
+            const tone = {
+              running: {
+                label: "Generating",
+                dot: "bg-brand animate-pulse",
+                text: "text-brand",
+                bar: "bg-brand",
+              },
+              paused: {
+                label: "Paused",
+                dot: "bg-amber-400",
+                text: "text-amber-400",
+                bar: "bg-amber-400",
+              },
+              completed: {
+                label: "Complete",
+                dot: "bg-emerald-400",
+                text: "text-emerald-400",
+                bar: "bg-emerald-400",
+              },
+              error: {
+                label: "Stopped",
+                dot: "bg-destructive",
+                text: "text-destructive",
+                bar: "bg-destructive",
+              },
+            }[job.status];
+            const [source, ...rest] = job.label.split(" · ");
+            return (
+              <article key={job.id} className="rounded-2xl border bg-card p-5">
+                <div className="flex flex-wrap items-start justify-between gap-4">
+                  <div className="min-w-0">
+                    <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+                      {source}
+                    </p>
+                    <h3 className="mt-1 truncate text-base font-semibold">
+                      {rest.length ? rest.join(" · ") : job.label}
+                    </h3>
+                  </div>
+                  <span
+                    role="status"
+                    className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold ${tone.text}`}
+                  >
+                    <span className={`size-2 rounded-full ${tone.dot}`} aria-hidden="true" />
+                    {tone.label}
+                  </span>
+                </div>
+
+                <div className="mt-5 flex items-baseline justify-between gap-3">
+                  <p className="text-sm">
+                    <span className="text-2xl font-semibold tabular-nums">{job.saved}</span>
+                    <span className="text-muted-foreground"> / {job.target} authors saved</span>
                   </p>
-                  <p className="text-xs text-muted-foreground">{job.message}</p>
+                  <span className="text-sm font-semibold tabular-nums">{pct}%</span>
                 </div>
-                <div className="flex gap-3">
-                  {job.status !== "completed" && (
-                    <button
-                      type="button"
-                      className="rounded-lg border px-3 py-2"
-                      onClick={() => toggleJob(job.id)}
-                    >
-                      {job.status === "running"
-                        ? "Pause"
-                        : job.status === "error"
-                          ? "Retry"
-                          : "Resume"}
-                    </button>
-                  )}
-                  {job.batch && job.saved > 0 && (
-                    <button
-                      type="button"
-                      className="rounded-lg border px-3 py-2"
-                      onClick={() => {
-                        setSelected({ ...job.batch!, item_count: job.saved });
-                        setView("batches");
-                      }}
-                    >
-                      Open batch
-                    </button>
-                  )}
+                <div
+                  role="progressbar"
+                  aria-label={`${job.label} progress`}
+                  aria-valuenow={job.saved}
+                  aria-valuemin={0}
+                  aria-valuemax={job.target}
+                  className="mt-2 h-2 overflow-hidden rounded-full bg-secondary"
+                >
+                  <div
+                    className={`h-full rounded-full transition-[width] duration-500 ${tone.bar}`}
+                    style={{ width: `${Math.max(pct, job.saved ? 2 : 0)}%` }}
+                  />
                 </div>
-              </div>
-              <progress
-                aria-label={`${job.label} progress`}
-                className="mt-3 w-full"
-                value={job.saved}
-                max={job.target}
-              />
-            </article>
-          ))}
+                <p className="mt-2 text-xs text-muted-foreground">
+                  {job.skipped > 0
+                    ? `${job.skipped} already in your workspace, skipped`
+                    : "No duplicates so far"}
+                </p>
+
+                {job.status === "error" && job.message && (
+                  <p className="mt-4 rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+                    {job.message} Retry picks up where it stopped — nothing saved is lost.
+                  </p>
+                )}
+                {job.status !== "error" && job.message && (
+                  <p className="mt-3 text-xs text-muted-foreground">{job.message}</p>
+                )}
+
+                {(job.status !== "completed" || (job.batch && job.saved > 0)) && (
+                  <div className="mt-5 flex flex-wrap gap-2">
+                    {job.status !== "completed" && (
+                      <button
+                        type="button"
+                        className={`rounded-full px-4 py-2 text-sm font-semibold ${
+                          job.status === "running"
+                            ? "border hover:bg-secondary"
+                            : "bg-primary text-primary-foreground"
+                        }`}
+                        onClick={() => toggleJob(job.id)}
+                      >
+                        {job.status === "running"
+                          ? "Pause"
+                          : job.status === "error"
+                            ? "Retry"
+                            : "Resume"}
+                      </button>
+                    )}
+                    {job.batch && job.saved > 0 && (
+                      <button
+                        type="button"
+                        className="rounded-full border px-4 py-2 text-sm font-semibold hover:bg-secondary"
+                        onClick={() => {
+                          setSelected({ ...job.batch!, item_count: job.saved });
+                          setView("batches");
+                        }}
+                      >
+                        Open batch ({job.saved})
+                      </button>
+                    )}
+                  </div>
+                )}
+              </article>
+            );
+          })}
         </section>
       )}
       {error && (

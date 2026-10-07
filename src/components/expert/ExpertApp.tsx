@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { PanelRefreshButton } from "@/components/admin/PanelRefreshButton";
 import { NotificationBell } from "@/components/admin/NotificationBell";
 import { PanelThemeToggle } from "@/components/admin/PanelThemeToggle";
 import {
@@ -86,6 +87,7 @@ export function ExpertApp() {
   // Guests have no profile: only the tools the admin granted them.
   const [guest, setGuest] = useState(false);
   const [logoutError, setLogoutError] = useState("");
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const unlocked = TOOLS.filter((t) => permissions.includes(t.id));
   const locked = guest ? [] : TOOLS.filter((t) => !permissions.includes(t.id));
@@ -196,6 +198,7 @@ export function ExpertApp() {
           </div>
           <div className="admin-account">
             <PanelThemeToggle />
+            <PanelRefreshButton onRefresh={() => setRefreshKey((k) => k + 1)} />
             <NotificationBell
               endpoint="/api/expert/notifications"
               onNavigate={(value) => {
@@ -209,7 +212,7 @@ export function ExpertApp() {
             <span className="admin-user-avatar">{guest ? "GU" : "EX"}</span>
           </div>
         </header>
-        <div className="admin-page">
+        <div className="admin-page" key={refreshKey}>
           {guest && nav.length === 0 ? (
             <div className="admin-empty">
               <h3>No tools yet</h3>

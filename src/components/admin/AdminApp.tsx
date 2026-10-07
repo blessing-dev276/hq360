@@ -1,4 +1,5 @@
 import { GlassLoading } from "@/components/ui/glass-loading";
+import { PanelRefreshButton } from "./PanelRefreshButton";
 import { ScoutApp } from "./ScoutApp";
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { cn } from "@/lib/utils";
@@ -222,6 +223,7 @@ export function AdminApp({ initialTab = "overview" }: { initialTab?: Tab }) {
   const [contentTab, setContentTab] = useState<"work" | "team" | "testimonials">("work");
   const [workView, setWorkView] = useState<WorkView>("cases");
   const [logoutError, setLogoutError] = useState("");
+  const [refreshKey, setRefreshKey] = useState(0);
   const current = NAV.find((item) => item.id === tab)!;
   useEffect(() => {
     const sync = () => {
@@ -303,6 +305,7 @@ export function AdminApp({ initialTab = "overview" }: { initialTab?: Tab }) {
           </div>
           <div className="admin-account">
             <PanelThemeToggle />
+            <PanelRefreshButton onRefresh={() => setRefreshKey((k) => k + 1)} />
             <NotificationBell
               endpoint="/api/admin/notifications"
               onNavigate={(value) => {
@@ -322,7 +325,7 @@ export function AdminApp({ initialTab = "overview" }: { initialTab?: Tab }) {
             <span className="admin-user-avatar">HQ</span>
           </div>
         </header>
-        <div className="admin-page">
+        <div className="admin-page" key={refreshKey}>
           {tab === "scout" ? (
             <ScoutApp canFindEmail />
           ) : tab === "overview" ? (

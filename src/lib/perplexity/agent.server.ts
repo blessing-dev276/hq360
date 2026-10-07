@@ -84,7 +84,7 @@ export function parseAgentResponse(raw: unknown) {
       .filter((item) => item.type === "url_citation" && item.url),
   };
 }
-export const EMAIL_RESEARCH_MODEL = "openai/gpt-6-luna";
+export const EMAIL_RESEARCH_MODEL = "google/gemini-3.1-flash-lite";
 export async function runAgent(
   request: AgentRequest,
   fetcher: typeof fetch = fetch,

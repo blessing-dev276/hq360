@@ -1,10 +1,11 @@
 import { publicResultUrl } from "./audience-search.server";
 import { emailsIn, pageText } from "./perplexity-contact.server";
 
-const PAGE_HINT = /contact|about|connect|reach|press|media|booking|enquir|inquir/i;
+const PAGE_HINT =
+  /contact|about|connect|reach|press|media|booking|speaking|events?|newsletter|enquir|inquir|privacy|terms|kit/i;
 
 /** Free first pass before any paid search: read the author's own website
- *  (home page plus up to 3 contact/about-style pages) and return the emails
+ *  (home page plus up to 10 contact/about/press-style pages) and return the emails
  *  published there. */
 export async function emailsOnWebsite(website: string | null | undefined, fetcher = fetch) {
   const home = publicResultUrl(website);
@@ -21,8 +22,9 @@ export async function emailsOnWebsite(website: string | null | undefined, fetche
       // ignore malformed links
     }
   }
-  for (const path of ["/contact", "/about"]) links.add(new URL(path, home).toString());
-  const pages = await Promise.all([...links].slice(0, 3).map((url) => pageText(url, fetcher)));
+  for (const path of ["/contact", "/about", "/about-me", "/media", "/press", "/privacy"])
+    links.add(new URL(path, home).toString());
+  const pages = await Promise.all([...links].slice(0, 10).map((url) => pageText(url, fetcher)));
   const found = new Set<string>();
   for (const text of [homeHtml, ...pages]) for (const email of emailsIn(text)) found.add(email);
   return [...found].slice(0, 5);

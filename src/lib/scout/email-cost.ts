@@ -1,9 +1,8 @@
-/** Planning estimates, not a price quote or enforced spend limit. Luna's
- * standard token rates are $0.10/M input and $0.50/M output. Tool charges
- * are separate and depend on actual calls. Three adaptive four-step passes
- * can cost more than a single pass. Validate against provider billing.
- */
-export const EMAIL_SEARCH_COST = { typical: 0.015, max: 0.06 };
+/** Perplexity Agent API cost per author with google/gemini-3.1-flash-lite and
+ *  the deep 3-pass search (up to 20 steps): web search $0.0025 each, input
+ *  $0.25/M, output $1.50/M tokens, ~4.5k input tokens per search. Most authors
+ *  stop after pass 1 (~6 searches); one with no public email uses all ~20. */
+export const EMAIL_SEARCH_COST = { typical: 0.035, max: 0.076 };
 
 export function emailSearchEstimate(authors: number) {
   const usd = (n: number) => (n < 0.01 ? "<$0.01" : `$${n.toFixed(2)}`);

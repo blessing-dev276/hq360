@@ -99,7 +99,7 @@ export async function runAgent(request: AgentRequest, fetcher: typeof fetch = fe
         signal,
         headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
         body: JSON.stringify({
-          model: process.env.PERPLEXITY_MODEL?.trim() || "google/gemini-3.1-flash-lite",
+          model: process.env.PERPLEXITY_MODEL?.trim() || "perplexity/sonar",
           max_steps: 5,
           max_output_tokens: 3000,
           tools: [{ type: "web_search" }, { type: "fetch_url" }],

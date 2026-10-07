@@ -7,7 +7,7 @@ if (!process.env.PERPLEXITY_API_KEY?.trim()) {
 } else {
   try {
     const response = await runAgent({
-      model: "google/gemini-3.1-flash-lite",
+      model: "perplexity/sonar",
       max_steps: 2,
       input: "Find the official Perplexity API documentation URL.",
       instructions: "Use web search and answer in one short sentence.",

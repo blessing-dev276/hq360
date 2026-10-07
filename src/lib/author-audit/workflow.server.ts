@@ -1,3 +1,4 @@
+import { evidenceUploadTarget } from "./evidence-upload";
 import { z } from "zod";
 import { randomUUID, randomBytes } from "node:crypto";
 import { clientDb, privateJson } from "./client-access.server";
@@ -509,11 +510,9 @@ export async function workflowPost(request: Request, id: string) {
       if (!kind || kind !== file.type)
         throw new Error("File contents do not match an allowed image type");
       const taskId = String(form.get("taskId") ?? "") || null,
-        findingId = String(form.get("findingId") ?? "") || null;
-      if (taskId && !state.tasks.some((t) => t.id === taskId))
-        throw new Error("Invalid screenshot request");
-      if (findingId && !state.findings.some((f) => f.id === findingId))
-        throw new Error("Invalid finding");
+        findingId = String(form.get("findingId") ?? "") || null,
+        listopiaId = String(form.get("listopiaId") ?? "") || null;
+      const target = evidenceUploadTarget(state, { taskId, findingId, listopiaId });
       const path = `${id}/${randomUUID()}.${kind.split("/")[1]}`;
       const upload = await db.storage
         .from("audit-research-evidence")
@@ -527,12 +526,7 @@ export async function workflowPost(request: Request, id: string) {
           storage_path: path,
           original_filename: file.name.slice(0, 200),
           uploaded_by: actor.id,
-          category:
-            state.tasks.find((t) => t.id === taskId)?.category ??
-            state.findings.find((f) => f.id === findingId)?.category ??
-            "general",
-          task_id: taskId,
-          finding_id: findingId,
+          ...target,
           review_status: "pending",
           client_visible: false,
         })

@@ -70,7 +70,18 @@ test("client report keeps actions and evidence, hides duplicate prose and missin
         service: "Metadata review",
       },
     ],
-    assets: [],
+    assets: [
+      {
+        id: "ranking-proof",
+        listopia_id: "list",
+        finding_id: null,
+        caption: "List ranking proof",
+        proves: "Book position visible in the captured list",
+        source: "https://www.goodreads.com/list/show/123",
+        asset_date: "2026-10-06",
+        display_kind: "current",
+      },
+    ],
     metrics: { platforms: 1, sources: 1, findings: 1, screenshots: 0, actions: 1 },
     ctaEnabled: true,
   } as unknown as WorkflowSnapshot;
@@ -93,8 +104,13 @@ test("client report keeps actions and evidence, hides duplicate prose and missin
     ">0<",
     "List relevance",
     "Methodology",
+    "List ranking proof",
+    "Captured 2026-10-06",
+    "/api/private-audit?asset=ranking-proof",
   ])
     expect(html).toContain(kept);
   expect(html.match(/href="https:\/\/example.com\/book"/g)).toHaveLength(1);
+  const listSection = html.slice(html.indexOf('id="listopia"'), html.indexOf('id="plan"'));
+  expect(listSection).toContain("/api/private-audit?asset=ranking-proof");
   expect(report.findings[0].interpretation).toBe("Duplicate interpretation");
 });

@@ -451,7 +451,7 @@ export function ResearchAuditWorkspace({
       values: { ...values },
     });
   }
-  async function upload(file: File, taskId?: string, findingId?: string) {
+  async function upload(file: File, taskId?: string, findingId?: string, listopiaId?: string) {
     setBusy("Uploading evidence…");
     setError("");
     try {
@@ -459,6 +459,7 @@ export function ResearchAuditWorkspace({
       form.set("file", file);
       if (taskId) form.set("taskId", taskId);
       if (findingId) form.set("findingId", findingId);
+      if (listopiaId) form.set("listopiaId", listopiaId);
       const r = await fetch(base, { method: "POST", body: form });
       const result = await r.json();
       if (!r.ok) throw new Error(result.error);
@@ -1281,16 +1282,42 @@ export function ResearchAuditWorkspace({
           {data.listopia.map((l) => (
             <article className={`${card} space-y-4`} key={l.id}>
               <h3 className="text-xl font-semibold">{l.list_name}</h3>
-              <p className="text-xs text-muted-foreground">List ID: {l.id}</p>
+              <label className={`${btn} inline-block cursor-pointer`}>
+                Add ranking screenshot
+                <input
+                  aria-label={`Add ranking screenshot for ${l.list_name}`}
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+                  className="sr-only"
+                  disabled={!!busy}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) void upload(file, undefined, undefined, l.id);
+                    e.target.value = "";
+                  }}
+                />
+              </label>
+              <p className="text-xs text-muted-foreground">
+                Show the book’s position and list name. PNG, JPEG or WebP, up to 8 MB. Add the
+                capture date and what it proves, then approve it for the report.
+              </p>
               {data.assets
                 .filter((a) => a.listopia_id === l.id)
                 .map((a) => (
-                  <img
-                    key={a.id}
-                    className="max-h-80 rounded-xl object-contain"
-                    src={`${base}?asset=${a.id}`}
-                    alt={a.caption || "Listopia evidence"}
-                  />
+                  <figure key={a.id} className="space-y-3 rounded-xl border border-border p-4">
+                    <img
+                      className="max-h-80 w-full rounded-xl object-contain"
+                      src={`${base}?asset=${a.id}`}
+                      alt={a.caption || "Listopia ranking screenshot"}
+                    />
+                    <figcaption className="text-sm">{a.caption || a.original_filename}</figcaption>
+                    <p className="text-xs text-muted-foreground">
+                      {a.asset_date ? `Captured ${a.asset_date}` : "Capture date needed"} ·{" "}
+                      {a.proves || "Add what this screenshot proves"}
+                    </p>
+                    <Badge value={a.review_status} />
+                    {reviewButtons("asset", a)}
+                  </figure>
                 ))}
               {l.list_url ? (
                 <a

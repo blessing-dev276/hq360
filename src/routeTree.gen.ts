@@ -107,6 +107,7 @@ import { Route as ApiExpertInviteRouteImport } from './routes/api/expert/invite'
 import { Route as ApiExpertInvoiceRequestsRouteImport } from './routes/api/expert/invoice-requests'
 import { Route as ApiExpertLeadsRouteImport } from './routes/api/expert/leads'
 import { Route as ApiExpertNotificationsRouteImport } from './routes/api/expert/notifications'
+import { Route as ApiExpertPerplexitySettingsRouteImport } from './routes/api/expert/perplexity-settings'
 import { Route as ApiExpertPhotoUrlRouteImport } from './routes/api/expert/photo-url'
 import { Route as ApiExpertPortfolioRouteImport } from './routes/api/expert/portfolio'
 import { Route as ApiExpertProfileRouteImport } from './routes/api/expert/profile'
@@ -692,6 +693,12 @@ const ApiExpertNotificationsRoute = ApiExpertNotificationsRouteImport.update({
   path: '/api/expert/notifications',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiExpertPerplexitySettingsRoute =
+  ApiExpertPerplexitySettingsRouteImport.update({
+    id: '/api/expert/perplexity-settings',
+    path: '/api/expert/perplexity-settings',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiExpertPhotoUrlRoute = ApiExpertPhotoUrlRouteImport.update({
   id: '/api/expert/photo-url',
   path: '/api/expert/photo-url',
@@ -1236,6 +1243,7 @@ export interface FileRoutesByFullPath {
   '/api/expert/invoice-requests': typeof ApiExpertInvoiceRequestsRoute
   '/api/expert/leads': typeof ApiExpertLeadsRoute
   '/api/expert/notifications': typeof ApiExpertNotificationsRoute
+  '/api/expert/perplexity-settings': typeof ApiExpertPerplexitySettingsRoute
   '/api/expert/photo-url': typeof ApiExpertPhotoUrlRoute
   '/api/expert/portfolio': typeof ApiExpertPortfolioRouteWithChildren
   '/api/expert/profile': typeof ApiExpertProfileRoute
@@ -1417,6 +1425,7 @@ export interface FileRoutesByTo {
   '/api/expert/invoice-requests': typeof ApiExpertInvoiceRequestsRoute
   '/api/expert/leads': typeof ApiExpertLeadsRoute
   '/api/expert/notifications': typeof ApiExpertNotificationsRoute
+  '/api/expert/perplexity-settings': typeof ApiExpertPerplexitySettingsRoute
   '/api/expert/photo-url': typeof ApiExpertPhotoUrlRoute
   '/api/expert/portfolio': typeof ApiExpertPortfolioRouteWithChildren
   '/api/expert/profile': typeof ApiExpertProfileRoute
@@ -1599,6 +1608,7 @@ export interface FileRoutesById {
   '/api/expert/invoice-requests': typeof ApiExpertInvoiceRequestsRoute
   '/api/expert/leads': typeof ApiExpertLeadsRoute
   '/api/expert/notifications': typeof ApiExpertNotificationsRoute
+  '/api/expert/perplexity-settings': typeof ApiExpertPerplexitySettingsRoute
   '/api/expert/photo-url': typeof ApiExpertPhotoUrlRoute
   '/api/expert/portfolio': typeof ApiExpertPortfolioRouteWithChildren
   '/api/expert/profile': typeof ApiExpertProfileRoute
@@ -1782,6 +1792,7 @@ export interface FileRouteTypes {
     | '/api/expert/invoice-requests'
     | '/api/expert/leads'
     | '/api/expert/notifications'
+    | '/api/expert/perplexity-settings'
     | '/api/expert/photo-url'
     | '/api/expert/portfolio'
     | '/api/expert/profile'
@@ -1963,6 +1974,7 @@ export interface FileRouteTypes {
     | '/api/expert/invoice-requests'
     | '/api/expert/leads'
     | '/api/expert/notifications'
+    | '/api/expert/perplexity-settings'
     | '/api/expert/photo-url'
     | '/api/expert/portfolio'
     | '/api/expert/profile'
@@ -2144,6 +2156,7 @@ export interface FileRouteTypes {
     | '/api/expert/invoice-requests'
     | '/api/expert/leads'
     | '/api/expert/notifications'
+    | '/api/expert/perplexity-settings'
     | '/api/expert/photo-url'
     | '/api/expert/portfolio'
     | '/api/expert/profile'
@@ -2326,6 +2339,7 @@ export interface RootRouteChildren {
   ApiExpertInvoiceRequestsRoute: typeof ApiExpertInvoiceRequestsRoute
   ApiExpertLeadsRoute: typeof ApiExpertLeadsRoute
   ApiExpertNotificationsRoute: typeof ApiExpertNotificationsRoute
+  ApiExpertPerplexitySettingsRoute: typeof ApiExpertPerplexitySettingsRoute
   ApiExpertPhotoUrlRoute: typeof ApiExpertPhotoUrlRoute
   ApiExpertPortfolioRoute: typeof ApiExpertPortfolioRouteWithChildren
   ApiExpertProfileRoute: typeof ApiExpertProfileRoute
@@ -3050,6 +3064,13 @@ declare module '@tanstack/react-router' {
       path: '/api/expert/notifications'
       fullPath: '/api/expert/notifications'
       preLoaderRoute: typeof ApiExpertNotificationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/expert/perplexity-settings': {
+      id: '/api/expert/perplexity-settings'
+      path: '/api/expert/perplexity-settings'
+      fullPath: '/api/expert/perplexity-settings'
+      preLoaderRoute: typeof ApiExpertPerplexitySettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/expert/photo-url': {
@@ -4074,6 +4095,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiExpertInvoiceRequestsRoute: ApiExpertInvoiceRequestsRoute,
   ApiExpertLeadsRoute: ApiExpertLeadsRoute,
   ApiExpertNotificationsRoute: ApiExpertNotificationsRoute,
+  ApiExpertPerplexitySettingsRoute: ApiExpertPerplexitySettingsRoute,
   ApiExpertPhotoUrlRoute: ApiExpertPhotoUrlRoute,
   ApiExpertPortfolioRoute: ApiExpertPortfolioRouteWithChildren,
   ApiExpertProfileRoute: ApiExpertProfileRoute,

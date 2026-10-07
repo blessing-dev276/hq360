@@ -3,7 +3,8 @@ import { z } from "zod";
 import { canSeeAuthor, resolveScoutAccess, canFindContacts } from "@/lib/scout/owner.server";
 import { asScoutDb, type ScoutAuthor } from "@/lib/scout/db";
 import { findAuthorContacts } from "@/lib/scout/perplexity-contact.server";
-import { PerplexityError } from "@/lib/perplexity/agent.server";
+import { keyForSearch } from "@/lib/perplexity/credentials.server";
+import { PerplexityError, runAgent } from "@/lib/perplexity/agent.server";
 
 function json(body: unknown, status = 200, retryAfter?: string) {
   return new Response(JSON.stringify(body), {
@@ -90,11 +91,15 @@ export const Route = createFileRoute("/api/admin/scout-authors/$id/find-contact"
                   verified: true,
                 })),
               }
-            : await findAuthorContacts({
-                author: author.name,
-                book: book.title,
-                website: author.website_url,
-              });
+            : await (async () => {
+                const apiKey = await keyForSearch(access);
+                return findAuthorContacts(
+                  { author: author.name, book: book.title, website: author.website_url },
+                  (request) => runAgent(request, fetch, { apiKey }),
+                  fetch,
+                  { allowSharedSearch: access.role === "admin" },
+                );
+              })();
           // Author's own address first, then agent/publisher/publicist.
           const emails = [
             ...result.contacts.filter((c) => c.role === "author"),

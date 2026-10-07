@@ -10,6 +10,12 @@ import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 // Vercel; nitro's "vercel" preset emits .vercel/output (Build Output API v3),
 // which Vercel deploys directly. Change the preset for another host.
 export default defineConfig(async ({ command, mode, isPreview }) => {
+  // Vite runs under Node in development/preview; load this server-only value
+  // without defining it in either bundle. Production hosts supply runtime env.
+  if (command === "serve" && process.env.PERPLEXITY_API_KEY === undefined) {
+    const local = loadEnv(mode, process.cwd(), "PERPLEXITY_API_KEY");
+    if (local.PERPLEXITY_API_KEY) process.env.PERPLEXITY_API_KEY = local.PERPLEXITY_API_KEY;
+  }
   // Inline VITE_-prefixed env into the client bundle (import.meta.env.*).
   const env = loadEnv(mode, process.cwd(), "VITE_");
   const define: Record<string, string> = {};

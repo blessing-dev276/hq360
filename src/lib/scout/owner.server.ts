@@ -16,11 +16,11 @@ export async function resolveScoutAccess(request: Request): Promise<ScoutAccess 
   return { ...access, owner: access.role === "admin" ? TEAM_OWNER : access.expertId };
 }
 
-/** Admins, plus experts the admin granted "Find Author Contact" (`contacts`). */
+/** Scouting experts can research contacts using their own provider key. */
 export async function canFindContacts(access: ScoutAccess) {
   if (access.role === "admin") return true;
   const { expertHasFeature } = await import("@/lib/expert-auth.server");
-  return expertHasFeature(access.expertId, "contacts");
+  return expertHasFeature(access.expertId, "scout");
 }
 
 type Db = ReturnType<typeof asScoutDb>;

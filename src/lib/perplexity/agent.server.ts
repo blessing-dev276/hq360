@@ -83,8 +83,13 @@ export function parseAgentResponse(raw: unknown) {
       .filter((item) => item.type === "url_citation" && item.url),
   };
 }
-export async function runAgent(request: AgentRequest, fetcher: typeof fetch = fetch) {
-  const key = process.env.PERPLEXITY_API_KEY?.trim();
+export const EMAIL_RESEARCH_MODEL = "google/gemini-3.1-flash-lite";
+export async function runAgent(
+  request: AgentRequest,
+  fetcher: typeof fetch = fetch,
+  credentials?: { apiKey: string },
+) {
+  const key = (credentials ? credentials.apiKey : process.env.PERPLEXITY_API_KEY)?.trim();
   if (!key)
     throw new PerplexityError(
       "Set PERPLEXITY_API_KEY in the server environment to enable author contact research.",
@@ -99,7 +104,7 @@ export async function runAgent(request: AgentRequest, fetcher: typeof fetch = fe
         signal,
         headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
         body: JSON.stringify({
-          model: process.env.PERPLEXITY_MODEL?.trim() || "perplexity/sonar",
+          model: EMAIL_RESEARCH_MODEL,
           max_steps: 5,
           max_output_tokens: 3000,
           tools: [{ type: "web_search" }, { type: "fetch_url" }],
@@ -134,7 +139,7 @@ export async function runAgent(request: AgentRequest, fetcher: typeof fetch = fe
     }
     if (response.status === 401 || response.status === 403)
       throw new PerplexityError(
-        "Perplexity authentication failed. Check or rotate the server API key in the Perplexity Console.",
+        "Perplexity authentication failed. Check your key in Email search settings (experts) or the server environment (admin), and ensure the Perplexity account has API access.",
         503,
         undefined,
         response.status,

@@ -1,3 +1,4 @@
+import { PerplexitySettings } from "./PerplexitySettings";
 import { QuotesWorkspace } from "@/components/quotes/QuotesWorkspace";
 import { useEffect, useState } from "react";
 import { PanelRefreshButton } from "@/components/admin/PanelRefreshButton";
@@ -239,7 +240,10 @@ export function ExpertApp() {
               <ExpertReviews />
             </>
           ) : current.id === "scout" ? (
-            <ScoutApp canFindEmail={permissions.includes("contacts")} />
+            <>
+              <PerplexitySettings />
+              <ScoutApp canFindEmail={permissions.includes("scout")} />
+            </>
           ) : current.id === "quotes" ? (
             <QuotesWorkspace />
           ) : current.id === "audit" ? (

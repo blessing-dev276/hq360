@@ -1,33 +1,45 @@
 # Perplexity author contact research
 
-Admin Scout → a saved author/book card → **Find author email**.
-Email discovery and contact confirmation are admin-only, enforced by the server;
-expert workspaces do not show the discovery controls. This uses the author
-name and selected book title to research public professional contact addresses,
-including Gmail when the author publishes it for contact. Public Facebook pages,
-author sites, publishers, agents and interviews are included in the research
-instructions. Private pages, inaccessible sources and missing addresses may yield
-no result. It does not send email or promise exhaustive coverage or deliverability.
+Experts open **Scouting → Email search settings** to save, replace or remove their
+own Perplexity API key. Approved experts with Scouting access can find author
+emails. Paid expert research uses only that expert's key, never the admin key.
+Admins continue using the server's `PERPLEXITY_API_KEY`.
 
-## Setup
+Research finds publicly published professional contacts using the author name
+and book title. It does not send email or guarantee deliverability.
 
-Set `PERPLEXITY_API_KEY` in `.env.local` and the deployment's server environment.
-Never add a `VITE_` copy or commit a key. Create/rotate keys in the
-[Perplexity Console](https://console.perplexity.ai). Restart the local server after
-changing its environment. Rotate any key exposed in a chat or log.
+## Setup and storage
 
-No dependency was added: the TypeScript server uses native fetch with
-`POST https://api.perplexity.ai/v1/agent`, Bearer authentication, the `low` preset,
-explicit `web_search` and `fetch_url` tools, up to five steps, a 90-second timeout,
-and structured `response_format` output. Model/tool usage incurs provider charges.
+Create keys in the [Perplexity Console](https://console.perplexity.ai).
+Experts enter keys in their authenticated settings, not environment files.
+The settings API returns only configuration status and update time.
+Credentials are encrypted with AES-256-GCM, bound to the expert ID, and stored in
+`expert_perplexity_credentials`, a service-role-only table with RLS enabled.
+Apply migration `20261007190000_expert_perplexity_credentials.sql` on other environments.
+Encryption derives from `SUPABASE_SERVICE_ROLE_KEY`; rotating that secret requires
+re-encrypting stored credentials first or asking experts to re-enter their keys.
+
+For admin searches, set `PERPLEXITY_API_KEY` in `.env.local` and the deployment's
+server environment. Local Vite loads the server-only key; restart after changing
+it. Hosted deployments need their own environment setting and redeployment.
+Never add a `VITE_` copy or commit a key. Rotate keys exposed in chat or logs.
+
+No dependency was added. Native fetch calls `POST https://api.perplexity.ai/v1/agent`
+with Bearer authentication, `google/gemini-3.1-flash-lite`, `web_search` and
+`fetch_url`, a five-step limit, structured output, and a 90-second timeout.
+Cached results and free website extraction run before paid research. Expert
+searches do not use the admin's paid SerpAPI fallback. Provider usage is billed
+to the key owner; these limits reduce costs but do not impose a dollar budget.
+Saving a key does not make a paid validation request.
 429 responses honor Retry-After: one short retry, otherwise the delay is returned
-to the UI. Authentication errors expose a setup message, never provider bodies.
+to the UI. Errors never expose provider response bodies or credentials.
 
 ## Verification and invocation
 
 ```sh
 bun scripts/test-perplexity-agent.ts
-bun test tests/perplexity-agent.test.ts
+bun test tests/perplexity-credentials.test.ts
+bun scripts/test-expert-perplexity-settings.ts
 bun run lint
 bunx tsc --noEmit
 bun run build

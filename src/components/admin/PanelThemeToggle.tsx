@@ -31,7 +31,9 @@ export function PanelThemeToggle() {
     let saved: Choice = "system";
     try {
       saved = (localStorage.getItem(KEY) as Choice) || "system";
-    } catch {}
+    } catch {
+      // Storage blocked (private mode): fall back to the system theme.
+    }
     setChoice(saved);
     apply(saved);
   }, []);
@@ -50,7 +52,9 @@ export function PanelThemeToggle() {
     apply(next);
     try {
       localStorage.setItem(KEY, next);
-    } catch {}
+    } catch {
+      // Storage blocked: the choice still applies for this visit.
+    }
   }
 
   const Icon = choice === "system" ? Monitor : choice === "light" ? Sun : Moon;

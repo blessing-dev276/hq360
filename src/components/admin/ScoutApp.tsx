@@ -1,3 +1,5 @@
+import { EmailRunReport } from "./EmailRunReport";
+import type { ContactEvidence } from "@/lib/scout/email-report";
 import { EmailCheckBadge } from "./EmailCheckBadge";
 import {
   AuthorContactSearch,
@@ -58,6 +60,7 @@ type Book = {
     contact_form_url?: string | null;
     contact_emails?: string[] | null;
     contact_search_status?: string | null;
+    contact_evidence?: ContactEvidence[] | null;
     publishing_type?: string | null;
     author_profile_url?: string | null;
     social_links?: string[];
@@ -399,6 +402,7 @@ function AuthorScout({
   }, [batchPage, onBatchPageChange]);
   const [books, setBooks] = useState<Book[]>([]);
   const emails = useEmailSearch();
+  const [emailBudget, setEmailBudget] = useState(1);
   const emailSearchFor = (book: Book) =>
     (book.scout_authors && emails.state[book.scout_authors.id]) || savedSearch(book.scout_authors);
   // One search per author (an author can have several books); skip any
@@ -411,12 +415,12 @@ function AuthorScout({
       if (!id || book.localOnly || seen.has(id)) continue;
       seen.add(id);
       const status = emailSearchFor(book).status;
-      if (status === "idle" || status === "error") targets.push({ authorId: id, bookId: book.id });
+      if (status === "idle" || status === "error" || status === "paused")
+        targets.push({ authorId: id, bookId: book.id });
     }
     return targets;
   })();
-  // Batch email totals, one per author. "Verified" comes from the automatic
-  // email check (confirmed on a source page, or likely valid).
+  // Only evidence-backed direct author addresses count as source verified.
   const emailTotals = (() => {
     const seen = new Set<string>();
     const t = { authors: 0, emails: 0, verified: 0, none: 0, total: 0 };
@@ -428,8 +432,7 @@ function AuthorScout({
       if (r.status === "found" || author.contact_email) {
         t.authors++;
         t.emails += Math.max(r.emails.length, 1);
-        if (["verified_source", "likely_valid"].includes(author.email_check_status ?? ""))
-          t.verified++;
+        if (r.contacts?.some((c) => c.role === "author" && c.verified)) t.verified++;
       } else if (r.status === "not_found") t.none++;
     }
     t.total = seen.size;
@@ -446,6 +449,13 @@ function AuthorScout({
     }
     return out;
   })();
+  const pilotTargets = [
+    ...new Map(
+      books
+        .filter((b) => b.scout_authors && !b.localOnly)
+        .map((b) => [b.scout_authors!.id, { authorId: b.scout_authors!.id, bookId: b.id }]),
+    ).values(),
+  ].slice(0, 50);
   function retryNotFound() {
     const n = notFoundTargets.length;
     if (
@@ -455,7 +465,7 @@ function AuthorScout({
       )
     )
       return;
-    void emails.findAll(notFoundTargets, true);
+    void emails.findAll(notFoundTargets, true, emailBudget);
   }
   function findAllEmails() {
     const n = emailTargets.length;
@@ -466,7 +476,7 @@ function AuthorScout({
       )
     )
       return;
-    void emails.findAll(emailTargets);
+    void emails.findAll(emailTargets, false, emailBudget);
   }
   const [loading, setLoading] = useState(true);
   const [detailLoading, setDetailLoading] = useState(false);
@@ -1391,7 +1401,8 @@ function AuthorScout({
                     {emailTotals.authors} of {emailTotals.total} authors
                   </span>
                   <span>
-                    <b className="text-emerald-500">{emailTotals.verified}</b> verified
+                    <b className="text-emerald-500">{emailTotals.verified}</b> direct, source
+                    verified
                   </span>
                   <span className="text-muted-foreground">{emailTotals.none} not found</span>
                   {notFoundTargets.length > 0 && !emails.run && (
@@ -1400,6 +1411,45 @@ function AuthorScout({
                     </button>
                   )}
                 </p>
+              )}
+              {canFindEmail && (
+                <div className="my-3 space-y-2 rounded-xl border p-3 text-sm">
+                  <label>
+                    Batch search budget (USD)
+                    <input
+                      aria-label="Batch search budget"
+                      className="ml-2 w-24 rounded border bg-background p-2"
+                      type="number"
+                      min={0.1}
+                      max={25}
+                      step={0.1}
+                      value={emailBudget}
+                      disabled={Boolean(emails.run)}
+                      onChange={(e) => setEmailBudget(Number(e.target.value))}
+                    />
+                  </label>
+                  <p className="text-xs text-muted-foreground">
+                    Each paid pass reserves $0.10 before starting, then uses the reported cost.
+                    Unconfirmed charges keep their reservation. Free checks continue after the
+                    threshold; in-flight charges may exceed it.
+                  </p>
+                  <button
+                    className="rounded-lg border px-3 py-2"
+                    disabled={
+                      Boolean(emails.run) ||
+                      !pilotTargets.length ||
+                      emailBudget < 0.1 ||
+                      emailBudget > 25
+                    }
+                    onClick={() => void emails.findAll(pilotTargets, true, emailBudget)}
+                  >
+                    Measure {pilotTargets.length}-author sample
+                  </button>
+                  {emails.runError && <p role="alert">{emails.runError}</p>}
+                </div>
+              )}
+              {canFindEmail && emails.lastRunId && (
+                <EmailRunReport id={emails.lastRunId} revision={emails.revision} />
               )}
               {canFindEmail && emailTargets.length > 0 && !emails.run && (
                 <p className="text-xs text-muted-foreground">

@@ -18,6 +18,15 @@ const sourceSchema = z.object({
 const responseSchema = z.object({
   id: z.string(),
   status: z.string(),
+  usage: z
+    .object({
+      cost: z
+        .object({ currency: z.string(), total_cost: z.number().nonnegative() })
+        .passthrough()
+        .optional(),
+    })
+    .passthrough()
+    .optional(),
   output: z.array(
     z
       .object({
@@ -71,6 +80,9 @@ export function parseAgentResponse(raw: unknown) {
     .filter((item) => item.type === "output_text");
   return {
     id: response.id,
+    ...(response.usage?.cost?.currency === "USD"
+      ? { costUsd: response.usage.cost.total_cost }
+      : {}),
     text: messages.map((item) => item.text ?? "").join("\n"),
     sources: response.output.flatMap((item) =>
       item.type === "search_results"

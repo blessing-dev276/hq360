@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AboutRouteImport } from './routes/about'
+import { Route as AcademyRouteImport } from './routes/academy'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AgenciesRouteImport } from './routes/agencies'
 import { Route as AppointmentBasedBusinessesRouteImport } from './routes/appointment-based-businesses'
@@ -69,6 +70,13 @@ import { Route as ToolsAuthorVisibilityAuditRouteImport } from './routes/tools/a
 import { Route as ToolsWebsiteAuditRouteImport } from './routes/tools/website-audit'
 import { Route as WorkIndexRouteImport } from './routes/work.index'
 import { Route as WorkSlugRouteImport } from './routes/work.$slug'
+import { Route as ApiAcademyCoachRouteImport } from './routes/api/academy/coach'
+import { Route as ApiAcademyDemosRouteImport } from './routes/api/academy/demos'
+import { Route as ApiAcademyHintRouteImport } from './routes/api/academy/hint'
+import { Route as ApiAcademyMeRouteImport } from './routes/api/academy/me'
+import { Route as ApiAcademyReplyRouteImport } from './routes/api/academy/reply'
+import { Route as ApiAcademySessionRouteImport } from './routes/api/academy/session'
+import { Route as ApiAcademySessionsRouteImport } from './routes/api/academy/sessions'
 import { Route as ApiAdminAuthorAuditLeadsRouteImport } from './routes/api/admin/author-audit-leads'
 import { Route as ApiAdminAuthorAuditsRouteImport } from './routes/api/admin/author-audits'
 import { Route as ApiAdminCaseStudiesRouteImport } from './routes/api/admin/case-studies'
@@ -140,6 +148,10 @@ import { Route as ApiScoutVerifyEmailsRouteImport } from './routes/api/scout/ver
 import { Route as AuthorAuditAuthorBookRouteImport } from './routes/author-audit.$author.$book'
 import { Route as InsightsAnswersSlugRouteImport } from './routes/insights.answers.$slug'
 import { Route as InsightsGuidesSlugRouteImport } from './routes/insights.guides.$slug'
+import { Route as ApiAcademyAdminContentRouteImport } from './routes/api/academy/admin.content'
+import { Route as ApiAcademyAdminTraineesRouteImport } from './routes/api/academy/admin.trainees'
+import { Route as ApiAcademyDemosIdRouteImport } from './routes/api/academy/demos.$id'
+import { Route as ApiAcademySessionsIdRouteImport } from './routes/api/academy/sessions.$id'
 import { Route as ApiAdminAuthorAuditsIdRouteImport } from './routes/api/admin/author-audits.$id'
 import { Route as ApiAdminCaseStudiesIdRouteImport } from './routes/api/admin/case-studies.$id'
 import { Route as ApiAdminCaseStudiesReorderRouteImport } from './routes/api/admin/case-studies.reorder'
@@ -199,6 +211,11 @@ const IndexRoute = IndexRouteImport.update({
 const AboutRoute = AboutRouteImport.update({
   id: '/about',
   path: '/about',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AcademyRoute = AcademyRouteImport.update({
+  id: '/academy',
+  path: '/academy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminRoute = AdminRouteImport.update({
@@ -491,6 +508,41 @@ const WorkIndexRoute = WorkIndexRouteImport.update({
 const WorkSlugRoute = WorkSlugRouteImport.update({
   id: '/work/$slug',
   path: '/work/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAcademyCoachRoute = ApiAcademyCoachRouteImport.update({
+  id: '/api/academy/coach',
+  path: '/api/academy/coach',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAcademyDemosRoute = ApiAcademyDemosRouteImport.update({
+  id: '/api/academy/demos',
+  path: '/api/academy/demos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAcademyHintRoute = ApiAcademyHintRouteImport.update({
+  id: '/api/academy/hint',
+  path: '/api/academy/hint',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAcademyMeRoute = ApiAcademyMeRouteImport.update({
+  id: '/api/academy/me',
+  path: '/api/academy/me',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAcademyReplyRoute = ApiAcademyReplyRouteImport.update({
+  id: '/api/academy/reply',
+  path: '/api/academy/reply',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAcademySessionRoute = ApiAcademySessionRouteImport.update({
+  id: '/api/academy/session',
+  path: '/api/academy/session',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAcademySessionsRoute = ApiAcademySessionsRouteImport.update({
+  id: '/api/academy/sessions',
+  path: '/api/academy/sessions',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiAdminAuthorAuditLeadsRoute =
@@ -864,6 +916,26 @@ const InsightsGuidesSlugRoute = InsightsGuidesSlugRouteImport.update({
   path: '/insights/guides/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAcademyAdminContentRoute = ApiAcademyAdminContentRouteImport.update({
+  id: '/api/academy/admin/content',
+  path: '/api/academy/admin/content',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAcademyAdminTraineesRoute = ApiAcademyAdminTraineesRouteImport.update({
+  id: '/api/academy/admin/trainees',
+  path: '/api/academy/admin/trainees',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAcademyDemosIdRoute = ApiAcademyDemosIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ApiAcademyDemosRoute,
+} as any)
+const ApiAcademySessionsIdRoute = ApiAcademySessionsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ApiAcademySessionsRoute,
+} as any)
 const ApiAdminAuthorAuditsIdRoute = ApiAdminAuthorAuditsIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -1153,6 +1225,7 @@ const ApiAdminAuthorAuditsIdStrengthsStrengthIdRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/academy': typeof AcademyRoute
   '/admin': typeof AdminRoute
   '/agencies': typeof AgenciesRoute
   '/appointment-based-businesses': typeof AppointmentBasedBusinessesRoute
@@ -1211,6 +1284,13 @@ export interface FileRoutesByFullPath {
   '/services/': typeof ServicesIndexRoute
   '/tools/': typeof ToolsIndexRoute
   '/work/': typeof WorkIndexRoute
+  '/api/academy/coach': typeof ApiAcademyCoachRoute
+  '/api/academy/demos': typeof ApiAcademyDemosRouteWithChildren
+  '/api/academy/hint': typeof ApiAcademyHintRoute
+  '/api/academy/me': typeof ApiAcademyMeRoute
+  '/api/academy/reply': typeof ApiAcademyReplyRoute
+  '/api/academy/session': typeof ApiAcademySessionRoute
+  '/api/academy/sessions': typeof ApiAcademySessionsRouteWithChildren
   '/api/admin/author-audit-leads': typeof ApiAdminAuthorAuditLeadsRoute
   '/api/admin/author-audits': typeof ApiAdminAuthorAuditsRouteWithChildren
   '/api/admin/case-studies': typeof ApiAdminCaseStudiesRouteWithChildren
@@ -1282,6 +1362,10 @@ export interface FileRoutesByFullPath {
   '/author-audit/$author/$book': typeof AuthorAuditAuthorBookRoute
   '/insights/answers/$slug': typeof InsightsAnswersSlugRoute
   '/insights/guides/$slug': typeof InsightsGuidesSlugRoute
+  '/api/academy/admin/content': typeof ApiAcademyAdminContentRoute
+  '/api/academy/admin/trainees': typeof ApiAcademyAdminTraineesRoute
+  '/api/academy/demos/$id': typeof ApiAcademyDemosIdRoute
+  '/api/academy/sessions/$id': typeof ApiAcademySessionsIdRoute
   '/api/admin/author-audits/$id': typeof ApiAdminAuthorAuditsIdRouteWithChildren
   '/api/admin/case-studies/$id': typeof ApiAdminCaseStudiesIdRoute
   '/api/admin/case-studies/reorder': typeof ApiAdminCaseStudiesReorderRoute
@@ -1336,6 +1420,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/academy': typeof AcademyRoute
   '/admin': typeof AdminRoute
   '/agencies': typeof AgenciesRoute
   '/appointment-based-businesses': typeof AppointmentBasedBusinessesRoute
@@ -1394,6 +1479,13 @@ export interface FileRoutesByTo {
   '/services': typeof ServicesIndexRoute
   '/tools': typeof ToolsIndexRoute
   '/work': typeof WorkIndexRoute
+  '/api/academy/coach': typeof ApiAcademyCoachRoute
+  '/api/academy/demos': typeof ApiAcademyDemosRouteWithChildren
+  '/api/academy/hint': typeof ApiAcademyHintRoute
+  '/api/academy/me': typeof ApiAcademyMeRoute
+  '/api/academy/reply': typeof ApiAcademyReplyRoute
+  '/api/academy/session': typeof ApiAcademySessionRoute
+  '/api/academy/sessions': typeof ApiAcademySessionsRouteWithChildren
   '/api/admin/author-audit-leads': typeof ApiAdminAuthorAuditLeadsRoute
   '/api/admin/author-audits': typeof ApiAdminAuthorAuditsRouteWithChildren
   '/api/admin/case-studies': typeof ApiAdminCaseStudiesRouteWithChildren
@@ -1465,6 +1557,10 @@ export interface FileRoutesByTo {
   '/author-audit/$author/$book': typeof AuthorAuditAuthorBookRoute
   '/insights/answers/$slug': typeof InsightsAnswersSlugRoute
   '/insights/guides/$slug': typeof InsightsGuidesSlugRoute
+  '/api/academy/admin/content': typeof ApiAcademyAdminContentRoute
+  '/api/academy/admin/trainees': typeof ApiAcademyAdminTraineesRoute
+  '/api/academy/demos/$id': typeof ApiAcademyDemosIdRoute
+  '/api/academy/sessions/$id': typeof ApiAcademySessionsIdRoute
   '/api/admin/author-audits/$id': typeof ApiAdminAuthorAuditsIdRouteWithChildren
   '/api/admin/case-studies/$id': typeof ApiAdminCaseStudiesIdRoute
   '/api/admin/case-studies/reorder': typeof ApiAdminCaseStudiesReorderRoute
@@ -1520,6 +1616,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/academy': typeof AcademyRoute
   '/admin': typeof AdminRoute
   '/agencies': typeof AgenciesRoute
   '/appointment-based-businesses': typeof AppointmentBasedBusinessesRoute
@@ -1578,6 +1675,13 @@ export interface FileRoutesById {
   '/services/': typeof ServicesIndexRoute
   '/tools/': typeof ToolsIndexRoute
   '/work/': typeof WorkIndexRoute
+  '/api/academy/coach': typeof ApiAcademyCoachRoute
+  '/api/academy/demos': typeof ApiAcademyDemosRouteWithChildren
+  '/api/academy/hint': typeof ApiAcademyHintRoute
+  '/api/academy/me': typeof ApiAcademyMeRoute
+  '/api/academy/reply': typeof ApiAcademyReplyRoute
+  '/api/academy/session': typeof ApiAcademySessionRoute
+  '/api/academy/sessions': typeof ApiAcademySessionsRouteWithChildren
   '/api/admin/author-audit-leads': typeof ApiAdminAuthorAuditLeadsRoute
   '/api/admin/author-audits': typeof ApiAdminAuthorAuditsRouteWithChildren
   '/api/admin/case-studies': typeof ApiAdminCaseStudiesRouteWithChildren
@@ -1649,6 +1753,10 @@ export interface FileRoutesById {
   '/author-audit/$author/$book': typeof AuthorAuditAuthorBookRoute
   '/insights/answers/$slug': typeof InsightsAnswersSlugRoute
   '/insights/guides/$slug': typeof InsightsGuidesSlugRoute
+  '/api/academy/admin/content': typeof ApiAcademyAdminContentRoute
+  '/api/academy/admin/trainees': typeof ApiAcademyAdminTraineesRoute
+  '/api/academy/demos/$id': typeof ApiAcademyDemosIdRoute
+  '/api/academy/sessions/$id': typeof ApiAcademySessionsIdRoute
   '/api/admin/author-audits/$id': typeof ApiAdminAuthorAuditsIdRouteWithChildren
   '/api/admin/case-studies/$id': typeof ApiAdminCaseStudiesIdRoute
   '/api/admin/case-studies/reorder': typeof ApiAdminCaseStudiesReorderRoute
@@ -1705,6 +1813,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/about'
+    | '/academy'
     | '/admin'
     | '/agencies'
     | '/appointment-based-businesses'
@@ -1763,6 +1872,13 @@ export interface FileRouteTypes {
     | '/services/'
     | '/tools/'
     | '/work/'
+    | '/api/academy/coach'
+    | '/api/academy/demos'
+    | '/api/academy/hint'
+    | '/api/academy/me'
+    | '/api/academy/reply'
+    | '/api/academy/session'
+    | '/api/academy/sessions'
     | '/api/admin/author-audit-leads'
     | '/api/admin/author-audits'
     | '/api/admin/case-studies'
@@ -1834,6 +1950,10 @@ export interface FileRouteTypes {
     | '/author-audit/$author/$book'
     | '/insights/answers/$slug'
     | '/insights/guides/$slug'
+    | '/api/academy/admin/content'
+    | '/api/academy/admin/trainees'
+    | '/api/academy/demos/$id'
+    | '/api/academy/sessions/$id'
     | '/api/admin/author-audits/$id'
     | '/api/admin/case-studies/$id'
     | '/api/admin/case-studies/reorder'
@@ -1888,6 +2008,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/about'
+    | '/academy'
     | '/admin'
     | '/agencies'
     | '/appointment-based-businesses'
@@ -1946,6 +2067,13 @@ export interface FileRouteTypes {
     | '/services'
     | '/tools'
     | '/work'
+    | '/api/academy/coach'
+    | '/api/academy/demos'
+    | '/api/academy/hint'
+    | '/api/academy/me'
+    | '/api/academy/reply'
+    | '/api/academy/session'
+    | '/api/academy/sessions'
     | '/api/admin/author-audit-leads'
     | '/api/admin/author-audits'
     | '/api/admin/case-studies'
@@ -2017,6 +2145,10 @@ export interface FileRouteTypes {
     | '/author-audit/$author/$book'
     | '/insights/answers/$slug'
     | '/insights/guides/$slug'
+    | '/api/academy/admin/content'
+    | '/api/academy/admin/trainees'
+    | '/api/academy/demos/$id'
+    | '/api/academy/sessions/$id'
     | '/api/admin/author-audits/$id'
     | '/api/admin/case-studies/$id'
     | '/api/admin/case-studies/reorder'
@@ -2071,6 +2203,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/about'
+    | '/academy'
     | '/admin'
     | '/agencies'
     | '/appointment-based-businesses'
@@ -2129,6 +2262,13 @@ export interface FileRouteTypes {
     | '/services/'
     | '/tools/'
     | '/work/'
+    | '/api/academy/coach'
+    | '/api/academy/demos'
+    | '/api/academy/hint'
+    | '/api/academy/me'
+    | '/api/academy/reply'
+    | '/api/academy/session'
+    | '/api/academy/sessions'
     | '/api/admin/author-audit-leads'
     | '/api/admin/author-audits'
     | '/api/admin/case-studies'
@@ -2200,6 +2340,10 @@ export interface FileRouteTypes {
     | '/author-audit/$author/$book'
     | '/insights/answers/$slug'
     | '/insights/guides/$slug'
+    | '/api/academy/admin/content'
+    | '/api/academy/admin/trainees'
+    | '/api/academy/demos/$id'
+    | '/api/academy/sessions/$id'
     | '/api/admin/author-audits/$id'
     | '/api/admin/case-studies/$id'
     | '/api/admin/case-studies/reorder'
@@ -2255,6 +2399,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
+  AcademyRoute: typeof AcademyRoute
   AdminRoute: typeof AdminRoute
   AgenciesRoute: typeof AgenciesRoute
   AppointmentBasedBusinessesRoute: typeof AppointmentBasedBusinessesRoute
@@ -2313,6 +2458,13 @@ export interface RootRouteChildren {
   ServicesIndexRoute: typeof ServicesIndexRoute
   ToolsIndexRoute: typeof ToolsIndexRoute
   WorkIndexRoute: typeof WorkIndexRoute
+  ApiAcademyCoachRoute: typeof ApiAcademyCoachRoute
+  ApiAcademyDemosRoute: typeof ApiAcademyDemosRouteWithChildren
+  ApiAcademyHintRoute: typeof ApiAcademyHintRoute
+  ApiAcademyMeRoute: typeof ApiAcademyMeRoute
+  ApiAcademyReplyRoute: typeof ApiAcademyReplyRoute
+  ApiAcademySessionRoute: typeof ApiAcademySessionRoute
+  ApiAcademySessionsRoute: typeof ApiAcademySessionsRouteWithChildren
   ApiAdminAuthorAuditLeadsRoute: typeof ApiAdminAuthorAuditLeadsRoute
   ApiAdminAuthorAuditsRoute: typeof ApiAdminAuthorAuditsRouteWithChildren
   ApiAdminCaseStudiesRoute: typeof ApiAdminCaseStudiesRouteWithChildren
@@ -2384,6 +2536,8 @@ export interface RootRouteChildren {
   AuthorAuditAuthorBookRoute: typeof AuthorAuditAuthorBookRoute
   InsightsAnswersSlugRoute: typeof InsightsAnswersSlugRoute
   InsightsGuidesSlugRoute: typeof InsightsGuidesSlugRoute
+  ApiAcademyAdminContentRoute: typeof ApiAcademyAdminContentRoute
+  ApiAcademyAdminTraineesRoute: typeof ApiAcademyAdminTraineesRoute
   ApiAdminScoutAudienceLeadsIdRoute: typeof ApiAdminScoutAudienceLeadsIdRoute
   ApiAdminScoutAuthorsIdRoute: typeof ApiAdminScoutAuthorsIdRouteWithChildren
   ApiPaymentsFlutterwaveWebhookRoute: typeof ApiPaymentsFlutterwaveWebhookRoute
@@ -2405,6 +2559,13 @@ declare module '@tanstack/react-router' {
       path: '/about'
       fullPath: '/about'
       preLoaderRoute: typeof AboutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/academy': {
+      id: '/academy'
+      path: '/academy'
+      fullPath: '/academy'
+      preLoaderRoute: typeof AcademyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin': {
@@ -2811,6 +2972,55 @@ declare module '@tanstack/react-router' {
       path: '/work/$slug'
       fullPath: '/work/$slug'
       preLoaderRoute: typeof WorkSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/academy/coach': {
+      id: '/api/academy/coach'
+      path: '/api/academy/coach'
+      fullPath: '/api/academy/coach'
+      preLoaderRoute: typeof ApiAcademyCoachRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/academy/demos': {
+      id: '/api/academy/demos'
+      path: '/api/academy/demos'
+      fullPath: '/api/academy/demos'
+      preLoaderRoute: typeof ApiAcademyDemosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/academy/hint': {
+      id: '/api/academy/hint'
+      path: '/api/academy/hint'
+      fullPath: '/api/academy/hint'
+      preLoaderRoute: typeof ApiAcademyHintRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/academy/me': {
+      id: '/api/academy/me'
+      path: '/api/academy/me'
+      fullPath: '/api/academy/me'
+      preLoaderRoute: typeof ApiAcademyMeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/academy/reply': {
+      id: '/api/academy/reply'
+      path: '/api/academy/reply'
+      fullPath: '/api/academy/reply'
+      preLoaderRoute: typeof ApiAcademyReplyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/academy/session': {
+      id: '/api/academy/session'
+      path: '/api/academy/session'
+      fullPath: '/api/academy/session'
+      preLoaderRoute: typeof ApiAcademySessionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/academy/sessions': {
+      id: '/api/academy/sessions'
+      path: '/api/academy/sessions'
+      fullPath: '/api/academy/sessions'
+      preLoaderRoute: typeof ApiAcademySessionsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/admin/author-audit-leads': {
@@ -3310,6 +3520,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InsightsGuidesSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/academy/admin/content': {
+      id: '/api/academy/admin/content'
+      path: '/api/academy/admin/content'
+      fullPath: '/api/academy/admin/content'
+      preLoaderRoute: typeof ApiAcademyAdminContentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/academy/admin/trainees': {
+      id: '/api/academy/admin/trainees'
+      path: '/api/academy/admin/trainees'
+      fullPath: '/api/academy/admin/trainees'
+      preLoaderRoute: typeof ApiAcademyAdminTraineesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/academy/demos/$id': {
+      id: '/api/academy/demos/$id'
+      path: '/$id'
+      fullPath: '/api/academy/demos/$id'
+      preLoaderRoute: typeof ApiAcademyDemosIdRouteImport
+      parentRoute: typeof ApiAcademyDemosRoute
+    }
+    '/api/academy/sessions/$id': {
+      id: '/api/academy/sessions/$id'
+      path: '/$id'
+      fullPath: '/api/academy/sessions/$id'
+      preLoaderRoute: typeof ApiAcademySessionsIdRouteImport
+      parentRoute: typeof ApiAcademySessionsRoute
+    }
     '/api/admin/author-audits/$id': {
       id: '/api/admin/author-audits/$id'
       path: '/$id'
@@ -3662,6 +3900,29 @@ declare module '@tanstack/react-router' {
     }
   }
 }
+
+interface ApiAcademyDemosRouteChildren {
+  ApiAcademyDemosIdRoute: typeof ApiAcademyDemosIdRoute
+}
+
+const ApiAcademyDemosRouteChildren: ApiAcademyDemosRouteChildren = {
+  ApiAcademyDemosIdRoute: ApiAcademyDemosIdRoute,
+}
+
+const ApiAcademyDemosRouteWithChildren = ApiAcademyDemosRoute._addFileChildren(
+  ApiAcademyDemosRouteChildren,
+)
+
+interface ApiAcademySessionsRouteChildren {
+  ApiAcademySessionsIdRoute: typeof ApiAcademySessionsIdRoute
+}
+
+const ApiAcademySessionsRouteChildren: ApiAcademySessionsRouteChildren = {
+  ApiAcademySessionsIdRoute: ApiAcademySessionsIdRoute,
+}
+
+const ApiAcademySessionsRouteWithChildren =
+  ApiAcademySessionsRoute._addFileChildren(ApiAcademySessionsRouteChildren)
 
 interface ApiAdminAuthorAuditsIdComparablesRouteChildren {
   ApiAdminAuthorAuditsIdComparablesComparableIdRoute: typeof ApiAdminAuthorAuditsIdComparablesComparableIdRoute
@@ -4018,6 +4279,7 @@ const ApiAdminScoutAuthorsIdRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
+  AcademyRoute: AcademyRoute,
   AdminRoute: AdminRoute,
   AgenciesRoute: AgenciesRoute,
   AppointmentBasedBusinessesRoute: AppointmentBasedBusinessesRoute,
@@ -4076,6 +4338,13 @@ const rootRouteChildren: RootRouteChildren = {
   ServicesIndexRoute: ServicesIndexRoute,
   ToolsIndexRoute: ToolsIndexRoute,
   WorkIndexRoute: WorkIndexRoute,
+  ApiAcademyCoachRoute: ApiAcademyCoachRoute,
+  ApiAcademyDemosRoute: ApiAcademyDemosRouteWithChildren,
+  ApiAcademyHintRoute: ApiAcademyHintRoute,
+  ApiAcademyMeRoute: ApiAcademyMeRoute,
+  ApiAcademyReplyRoute: ApiAcademyReplyRoute,
+  ApiAcademySessionRoute: ApiAcademySessionRoute,
+  ApiAcademySessionsRoute: ApiAcademySessionsRouteWithChildren,
   ApiAdminAuthorAuditLeadsRoute: ApiAdminAuthorAuditLeadsRoute,
   ApiAdminAuthorAuditsRoute: ApiAdminAuthorAuditsRouteWithChildren,
   ApiAdminCaseStudiesRoute: ApiAdminCaseStudiesRouteWithChildren,
@@ -4148,6 +4417,8 @@ const rootRouteChildren: RootRouteChildren = {
   AuthorAuditAuthorBookRoute: AuthorAuditAuthorBookRoute,
   InsightsAnswersSlugRoute: InsightsAnswersSlugRoute,
   InsightsGuidesSlugRoute: InsightsGuidesSlugRoute,
+  ApiAcademyAdminContentRoute: ApiAcademyAdminContentRoute,
+  ApiAcademyAdminTraineesRoute: ApiAcademyAdminTraineesRoute,
   ApiAdminScoutAudienceLeadsIdRoute: ApiAdminScoutAudienceLeadsIdRoute,
   ApiAdminScoutAuthorsIdRoute: ApiAdminScoutAuthorsIdRouteWithChildren,
   ApiPaymentsFlutterwaveWebhookRoute: ApiPaymentsFlutterwaveWebhookRoute,

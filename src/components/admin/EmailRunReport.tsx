@@ -40,6 +40,7 @@ export function EmailRunReport({ id, revision }: { id: string | null; revision: 
       return () => controller.abort();
     }
     setSelected(id);
+    return undefined;
   }, [id]);
   useEffect(() => {
     const controller = new AbortController();

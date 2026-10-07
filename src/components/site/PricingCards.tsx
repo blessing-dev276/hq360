@@ -54,7 +54,7 @@ export function AudiencePackageCard({
       </ul>
       <p className="mt-5 text-sm leading-relaxed text-muted-foreground">{item.note}</p>
       <Link
-        to={compact ? `/${item.slug}#project-inquiry` : `/${item.slug}`}
+        to={(compact ? `/${item.slug}#project-inquiry` : `/${item.slug}`) as string}
         className="mt-auto inline-flex items-center gap-2 pt-6 text-sm font-semibold text-brand underline-offset-4 hover:underline focus-visible:underline"
       >
         {compact ? "Discuss this package" : `Explore ${item.audience}`}

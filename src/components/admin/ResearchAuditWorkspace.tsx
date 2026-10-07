@@ -1752,6 +1752,7 @@ export function ResearchAuditWorkspace({
                 {data.versions.find((v) => v.id === version)?.version_number}
               </p>
               <ResearchAuditReport
+                syncUrl={false}
                 report={preview}
                 imageBase={`${base}?version=${version}&asset=`}
               />

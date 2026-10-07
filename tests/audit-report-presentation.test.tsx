@@ -85,7 +85,15 @@ test("client report keeps actions and evidence, hides duplicate prose and missin
     metrics: { platforms: 1, sources: 1, findings: 1, screenshots: 0, actions: 1 },
     ctaEnabled: true,
   } as unknown as WorkflowSnapshot;
-  const html = renderToStaticMarkup(<ResearchAuditReport report={report} />);
+  // The report is a multi-page site: render every page and check them together.
+  const render = (page: string) =>
+    renderToStaticMarkup(
+      <ResearchAuditReport report={report} initialPage={page} syncUrl={false} />,
+    );
+  const pages = Object.fromEntries(
+    ["overview", "book_identity", "listopia", "plan", "help"].map((p) => [p, render(p)]),
+  );
+  const html = Object.values(pages).join("\n");
   for (const absent of [
     "Audit snapshot",
     "What We Found:",
@@ -94,6 +102,7 @@ test("client report keeps actions and evidence, hides duplicate prose and missin
     "Current position",
     ">Page<",
     "This is our interpretation;",
+    "Methodology",
   ])
     expect(html).not.toContain(absent);
   for (const kept of [
@@ -103,14 +112,12 @@ test("client report keeps actions and evidence, hides duplicate prose and missin
     "Votes",
     ">0<",
     "List relevance",
-    "Methodology",
     "List ranking proof",
     "Captured 2026-10-06",
     "/api/private-audit?asset=ranking-proof",
   ])
     expect(html).toContain(kept);
-  expect(html.match(/href="https:\/\/example.com\/book"/g)).toHaveLength(1);
-  const listSection = html.slice(html.indexOf('id="listopia"'), html.indexOf('id="plan"'));
-  expect(listSection).toContain("/api/private-audit?asset=ranking-proof");
+  expect(pages.book_identity!.match(/href="https:\/\/example.com\/book"/g)).toHaveLength(1);
+  expect(pages.listopia).toContain("/api/private-audit?asset=ranking-proof");
   expect(report.findings[0].interpretation).toBe("Duplicate interpretation");
 });

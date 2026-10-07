@@ -4,7 +4,7 @@ import { canSeeAuthor, type ScoutAccess } from "./owner.server";
 import { PerplexityError, runAgent } from "@/lib/perplexity/agent.server";
 import { keyForSearch } from "@/lib/perplexity/credentials.server";
 import { findAuthorContacts, type AuthorContactResult } from "./perplexity-contact.server";
-import { websiteContactEvidence } from "./website-contact.server";
+import { freeContactEvidence, websiteContactEvidence } from "./website-contact.server";
 import {
   emailDb,
   createEmailRun,
@@ -72,7 +72,7 @@ export async function researchAuthorEmail(
     const input = { author: author.name, book: book.title, website: author.website_url };
     let free = cache.get(-1);
     if (!free) {
-      free = await websiteContactEvidence(input);
+      free = await freeContactEvidence(input);
       await saveStageCache(authorId, -1, free);
     }
     let result = free;
@@ -94,6 +94,7 @@ export async function researchAuthorEmail(
             ticket = await reserveEmailPass(run.id, access.owner, authorId, stage);
           },
           onStage: async (stage, value) => saveStageCache(authorId, stage, value),
+          checkWebsite: (website) => websiteContactEvidence({ ...input, website }),
         },
       );
       const merged = new Map(free.contacts.map((c) => [c.email, c]));

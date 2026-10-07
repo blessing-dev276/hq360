@@ -61,8 +61,24 @@ export async function websiteContactEvidence(
     urls.map(async (url) => ({ url, text: url === home ? html : await pageText(url, fetcher) })),
   );
   const contacts = new Map<string, AuthorContactResult["contacts"][number]>();
-  for (const page of pages) {
-    const text = page.text.replace(/<[^>]+>/g, " ");
+  // Style blocks hold font credits and vendor addresses, not contacts.
+  const visible = (html: string) =>
+    html.replace(/<style\b[\s\S]*?<\/style>/gi, " ").replace(/<[^>]+>/g, " ");
+  // The site must be this author's: full name on it, plus the book or writing.
+  const site = pages
+    .map((p) => visible(p.text))
+    .join(" ")
+    .toLowerCase();
+  const names = input.author.toLowerCase().split(/\s+/);
+  const titleWords = input.book
+    .toLowerCase()
+    .split(/[^a-z0-9]+/)
+    .filter((w) => w.length > 3 && !["with", "from", "that", "this", "your", "book"].includes(w));
+  const ownSite =
+    site.includes(names.at(-1)!) &&
+    (titleWords.some((w) => site.includes(w)) || /\b(author|novels?|writer)\b/.test(site));
+  for (const page of ownSite ? pages : []) {
+    const text = visible(page.text);
     for (const email of emailsIn(text)) {
       const at = text.toLowerCase().indexOf(email);
       const evidence =
@@ -77,8 +93,15 @@ export async function websiteContactEvidence(
             ? "publisher"
             : "author";
       const verified =
+        ownSite &&
         emailOfAuthor(text, email, input.author, input.book) &&
-        !/privacy|webmaster|web design|data protection/i.test(evidence);
+        // A privacy-page address counts only when it carries the author's name.
+        (!/privacy|webmaster|web design|data protection/i.test(evidence) ||
+          email
+            .split("@")[0]!
+            .replace(/[^a-z]/g, "")
+            .includes(names.at(-1)!.replace(/[^a-z]/g, "")) ||
+          email.split("@")[0]!.startsWith(names[0]!.replace(/[^a-z]/g, "")));
       const contact = {
         email,
         role,
@@ -95,4 +118,47 @@ export async function websiteContactEvidence(
     contacts: [...contacts.values()].slice(0, 10),
     sources: pages.map((p) => ({ url: p.url })),
   };
+}
+
+/** Likely personal domains for an author ("Timothy R Baldwin" ->
+ *  timothyrbaldwin.com, timothybaldwinauthor.com, ...). */
+export function guessAuthorSites(author: string) {
+  const parts = author
+    .normalize("NFKD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase()
+    .replace(/\b(jr|sr|ii|iii|phd|md)\b\.?/g, "")
+    .split(/[^a-z]+/)
+    .filter(Boolean);
+  if (parts.length < 2) return [];
+  const bases = [...new Set([parts.join(""), `${parts[0]}${parts.at(-1)}`])];
+  return bases.flatMap((base) =>
+    ["", "author", "books", "writer"].map((suffix) => `https://${base}${suffix}.com`),
+  );
+}
+
+/** Free pass: the saved website, or else guessed personal domains whose home
+ *  page names the author. Stops at the first site with a verified author email. */
+export async function freeContactEvidence(
+  input: { website?: string | null; author: string; book: string },
+  fetcher = fetch,
+): Promise<AuthorContactResult> {
+  if (publicResultUrl(input.website)) return websiteContactEvidence(input, fetcher);
+  const surname = input.author.trim().split(/\s+/).pop()!.toLowerCase();
+  const sites = guessAuthorSites(input.author);
+  const homes = await Promise.all(sites.map((url) => pageText(url, fetcher)));
+  const live = sites.filter((_, i) => homes[i]!.toLowerCase().includes(surname)).slice(0, 3);
+  const empty: AuthorContactResult = {
+    identity_match: false,
+    summary: "No website found",
+    contacts: [],
+    sources: [],
+  };
+  let best = empty;
+  for (const website of live) {
+    const result = await websiteContactEvidence({ ...input, website }, fetcher);
+    if (result.contacts.some((c) => c.role === "author" && c.verified)) return result;
+    if (result.contacts.length > best.contacts.length) best = result;
+  }
+  return best;
 }

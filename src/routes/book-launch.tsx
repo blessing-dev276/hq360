@@ -11,7 +11,7 @@ export const Route = createFileRoute("/book-launch")({
       {
         title: "Sanman Thapa Book Launch | HQ360",
         description:
-          "Photographs and cover reveal film from the launch of From the Window: The City of What Ifs by Sanman Thapa, published with Arti Facts Publishing and delivered with HQ360.",
+          "Photographs and a cover-reveal film from Sanman Thapa's book launch, published with Arti Facts Publishing and delivered with HQ360.",
         path: "/book-launch",
         type: "article",
       },
@@ -29,14 +29,16 @@ function BookLaunchPage() {
     <>
       <FeaturedAuthor />
 
-      <Section>
+      <Section tone="hero">
         <SectionHeader
+          as="h1"
           eyebrow="Book launch"
           title="Sanman Thapa book launch"
           intro={LAUNCH.intro}
         />
-
-        <div className="mt-12 grid gap-10 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] lg:items-start">
+      </Section>
+      <Section>
+        <div className="grid gap-10 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] lg:items-start">
           <div>
             <div className="overflow-hidden rounded-2xl border border-border bg-charcoal shadow-editorial">
               <video

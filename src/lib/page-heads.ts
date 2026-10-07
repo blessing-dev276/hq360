@@ -1,8 +1,8 @@
-import type { Industry } from "@/data/industries";
+import type { IndustryHead } from "@/data/industry-heads";
 import type { Capability } from "@/data/capabilities";
-import { breadcrumbSchema, buildSeo, faqSchema, professionalServiceSchema } from "@/lib/seo";
+import { breadcrumbSchema, buildSeo, faqSchema, serviceSchema } from "@/lib/seo";
 
-export function industryHead(industry: Industry) {
+export function industryHead(industry: IndustryHead) {
   return buildSeo(
     {
       title: industry.seo.title,
@@ -11,7 +11,7 @@ export function industryHead(industry: Industry) {
       type: "website",
     },
     [
-      professionalServiceSchema({
+      serviceSchema({
         name: industry.name,
         description: industry.seo.description,
         path: industry.path,
@@ -35,9 +35,14 @@ export function capabilityHead(capability: Capability) {
       type: "website",
     },
     [
+      serviceSchema({
+        name: capability.name,
+        description: capability.summary,
+        path: capability.path,
+      }),
       breadcrumbSchema([
         { name: "Home", path: "/" },
-        { name: "Services", path: "/capabilities" },
+        { name: "Services", path: "/services" },
         { name: capability.name, path: capability.path },
       ]),
       faqSchema(capability.faqs),

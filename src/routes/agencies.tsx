@@ -1,15 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { getIndustry } from "@/data/industries";
-import { IndustryPage } from "@/components/site/IndustryPage";
-import { industryHead } from "@/lib/page-heads";
-
-const industry = getIndustry("agencies")!;
-
+import { AudiencePage } from "@/components/site/AgencyPages";
+import { getAudience } from "@/data/agency";
+import { buildSeo } from "@/lib/seo";
+const audience = getAudience("agencies")!;
 export const Route = createFileRoute("/agencies")({
-  head: () => industryHead(industry),
-  component: RouteComponent,
+  head: () =>
+    buildSeo({ title: `${audience.name} | HQ360`, description: audience.intro, path: "/agencies" }),
+  component: () => <AudiencePage audience={audience} />,
 });
-
-function RouteComponent() {
-  return <IndustryPage industry={industry} />;
-}

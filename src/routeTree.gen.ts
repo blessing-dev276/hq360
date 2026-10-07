@@ -13,11 +13,17 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AgenciesRouteImport } from './routes/agencies'
+import { Route as AppointmentBasedBusinessesRouteImport } from './routes/appointment-based-businesses'
 import { Route as AuthorsRouteImport } from './routes/authors'
 import { Route as BookLaunchRouteImport } from './routes/book-launch'
+import { Route as CleaningBusinessesRouteImport } from './routes/cleaning-businesses'
 import { Route as CoachesRouteImport } from './routes/coaches'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as CreatorsRouteImport } from './routes/creators'
+import { Route as EcommerceRouteImport } from './routes/ecommerce'
+import { Route as ExpertRouteImport } from './routes/expert'
+import { Route as ExpertSignupRouteImport } from './routes/expert-signup'
+import { Route as ExpertWelcomeRouteImport } from './routes/expert-welcome'
 import { Route as FaqsRouteImport } from './routes/faqs'
 import { Route as GuaranteeRouteImport } from './routes/guarantee'
 import { Route as HomeServicesRouteImport } from './routes/home-services'
@@ -25,6 +31,7 @@ import { Route as HvacRouteImport } from './routes/hvac'
 import { Route as IndustriesRouteImport } from './routes/industries'
 import { Route as LawFirmsRouteImport } from './routes/law-firms'
 import { Route as LocalBusinessRouteImport } from './routes/local-business'
+import { Route as LocalBusinessesRouteImport } from './routes/local-businesses'
 import { Route as MedSpasRouteImport } from './routes/med-spas'
 import { Route as PlumbersRouteImport } from './routes/plumbers'
 import { Route as PricingRouteImport } from './routes/pricing'
@@ -34,27 +41,155 @@ import { Route as ResourcesRouteImport } from './routes/resources'
 import { Route as ResultsRouteImport } from './routes/results'
 import { Route as ReviewsRouteImport } from './routes/reviews'
 import { Route as RoofersRouteImport } from './routes/roofers'
+import { Route as ScoutRouteImport } from './routes/scout'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as TeamRouteImport } from './routes/team'
 import { Route as TermsRouteImport } from './routes/terms'
+import { Route as TestimonialsRouteImport } from './routes/testimonials'
+import { Route as UgcCreatorsRouteImport } from './routes/ugc-creators'
+import { Route as ApiCheckoutRouteImport } from './routes/api/checkout'
+import { Route as ApiPrivateAuditRouteImport } from './routes/api/private-audit'
+import { Route as AuthorAuditIndexRouteImport } from './routes/author-audit.index'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as CapabilitiesIndexRouteImport } from './routes/capabilities.index'
 import { Route as CapabilitiesSlugRouteImport } from './routes/capabilities.$slug'
+import { Route as ExpertsIndexRouteImport } from './routes/experts.index'
+import { Route as ExpertsSlugRouteImport } from './routes/experts.$slug'
 import { Route as InsightsIndexRouteImport } from './routes/insights.index'
 import { Route as InsightsSlugRouteImport } from './routes/insights.$slug'
+import { Route as InsightsGlossaryRouteImport } from './routes/insights.glossary'
+import { Route as PayTokenRouteImport } from './routes/pay.$token'
+import { Route as QuoteTokenRouteImport } from './routes/quote.$token'
 import { Route as ServicesIndexRouteImport } from './routes/services.index'
 import { Route as ServicesSlugRouteImport } from './routes/services.$slug'
+import { Route as ToolsIndexRouteImport } from './routes/tools/index'
+import { Route as ToolsToolRouteImport } from './routes/tools/$tool'
+import { Route as ToolsAuthorVisibilityAuditRouteImport } from './routes/tools/author-visibility-audit'
+import { Route as ToolsWebsiteAuditRouteImport } from './routes/tools/website-audit'
 import { Route as WorkIndexRouteImport } from './routes/work.index'
 import { Route as WorkSlugRouteImport } from './routes/work.$slug'
+import { Route as ApiAdminAuthorAuditLeadsRouteImport } from './routes/api/admin/author-audit-leads'
+import { Route as ApiAdminAuthorAuditsRouteImport } from './routes/api/admin/author-audits'
+import { Route as ApiAdminCaseStudiesRouteImport } from './routes/api/admin/case-studies'
+import { Route as ApiAdminExpertGuestsRouteImport } from './routes/api/admin/expert-guests'
+import { Route as ApiAdminExpertPortfolioRouteImport } from './routes/api/admin/expert-portfolio'
+import { Route as ApiAdminExpertReviewsRouteImport } from './routes/api/admin/expert-reviews'
+import { Route as ApiAdminExpertTestimonialsRouteImport } from './routes/api/admin/expert-testimonials'
+import { Route as ApiAdminExpertsRouteImport } from './routes/api/admin/experts'
+import { Route as ApiAdminFounderRouteImport } from './routes/api/admin/founder'
+import { Route as ApiAdminInvoiceRequestsRouteImport } from './routes/api/admin/invoice-requests'
+import { Route as ApiAdminInvoicesRouteImport } from './routes/api/admin/invoices'
+import { Route as ApiAdminLeadsRouteImport } from './routes/api/admin/leads'
+import { Route as ApiAdminNotificationsRouteImport } from './routes/api/admin/notifications'
 import { Route as ApiAdminPortfolioRouteImport } from './routes/api/admin/portfolio'
+import { Route as ApiAdminQuotesRouteImport } from './routes/api/admin/quotes'
+import { Route as ApiAdminScoutAmazonSearchRouteImport } from './routes/api/admin/scout-amazon-search'
+import { Route as ApiAdminScoutArcDiscoveryRouteImport } from './routes/api/admin/scout-arc-discovery'
+import { Route as ApiAdminScoutAudienceBatchesRouteImport } from './routes/api/admin/scout-audience-batches'
+import { Route as ApiAdminScoutBatchesRouteImport } from './routes/api/admin/scout-batches'
+import { Route as ApiAdminScoutBooksRouteImport } from './routes/api/admin/scout-books'
+import { Route as ApiAdminScoutDiscoverCountRouteImport } from './routes/api/admin/scout-discover-count'
+import { Route as ApiAdminScoutEmailRunsRouteImport } from './routes/api/admin/scout-email-runs'
+import { Route as ApiAdminScoutExportRouteImport } from './routes/api/admin/scout-export'
+import { Route as ApiAdminScoutIdentityRouteImport } from './routes/api/admin/scout-identity'
+import { Route as ApiAdminScoutManualIngestRouteImport } from './routes/api/admin/scout-manual-ingest'
+import { Route as ApiAdminScoutProspectsRouteImport } from './routes/api/admin/scout-prospects'
+import { Route as ApiAdminScoutReadersFavoriteRouteImport } from './routes/api/admin/scout-readers-favorite'
+import { Route as ApiAdminScoutReedsyGenresRouteImport } from './routes/api/admin/scout-reedsy-genres'
+import { Route as ApiAdminScoutReedsySearchRouteImport } from './routes/api/admin/scout-reedsy-search'
 import { Route as ApiAdminSessionRouteImport } from './routes/api/admin/session'
+import { Route as ApiAdminTeamRouteImport } from './routes/api/admin/team'
+import { Route as ApiAdminTestimonialsRouteImport } from './routes/api/admin/testimonials'
 import { Route as ApiAdminUploadRouteImport } from './routes/api/admin/upload'
+import { Route as ApiAdminUploadUrlRouteImport } from './routes/api/admin/upload-url'
+import { Route as ApiAdminVisitorsRouteImport } from './routes/api/admin/visitors'
+import { Route as ApiExpertInviteRouteImport } from './routes/api/expert/invite'
+import { Route as ApiExpertInvoiceRequestsRouteImport } from './routes/api/expert/invoice-requests'
+import { Route as ApiExpertLeadsRouteImport } from './routes/api/expert/leads'
+import { Route as ApiExpertNotificationsRouteImport } from './routes/api/expert/notifications'
+import { Route as ApiExpertPerplexitySettingsRouteImport } from './routes/api/expert/perplexity-settings'
+import { Route as ApiExpertPhotoUrlRouteImport } from './routes/api/expert/photo-url'
+import { Route as ApiExpertPortfolioRouteImport } from './routes/api/expert/portfolio'
+import { Route as ApiExpertProfileRouteImport } from './routes/api/expert/profile'
+import { Route as ApiExpertProfileSubmitRouteImport } from './routes/api/expert/profile-submit'
+import { Route as ApiExpertReviewsRouteImport } from './routes/api/expert/reviews'
+import { Route as ApiExpertSessionRouteImport } from './routes/api/expert/session'
+import { Route as ApiExpertSignupRouteImport } from './routes/api/expert/signup'
+import { Route as ApiExpertTestimonialsRouteImport } from './routes/api/expert/testimonials'
+import { Route as ApiExpertVideoUrlRouteImport } from './routes/api/expert/video-url'
+import { Route as ApiNotificationsDispatchRouteImport } from './routes/api/notifications/dispatch'
+import { Route as ApiPayTokenRouteImport } from './routes/api/pay/$token'
+import { Route as ApiPublicAuthorAuditRouteImport } from './routes/api/public/author-audit'
+import { Route as ApiPublicCaseStudiesRouteImport } from './routes/api/public/case-studies'
+import { Route as ApiPublicExpertPortfolioRouteImport } from './routes/api/public/expert-portfolio'
+import { Route as ApiPublicExpertReviewsRouteImport } from './routes/api/public/expert-reviews'
+import { Route as ApiPublicExpertTestimonialsRouteImport } from './routes/api/public/expert-testimonials'
+import { Route as ApiPublicExpertsRouteImport } from './routes/api/public/experts'
 import { Route as ApiPublicGrowthAuditRouteImport } from './routes/api/public/growth-audit'
 import { Route as ApiPublicInquiryRouteImport } from './routes/api/public/inquiry'
 import { Route as ApiPublicNewsletterRouteImport } from './routes/api/public/newsletter'
 import { Route as ApiPublicPortfolioRouteImport } from './routes/api/public/portfolio'
+import { Route as ApiPublicQuoteRouteImport } from './routes/api/public/quote'
 import { Route as ApiPublicResourceRequestRouteImport } from './routes/api/public/resource-request'
+import { Route as ApiPublicTeamRouteImport } from './routes/api/public/team'
+import { Route as ApiPublicTestimonialsRouteImport } from './routes/api/public/testimonials'
+import { Route as ApiPublicVisitRouteImport } from './routes/api/public/visit'
+import { Route as ApiPublicVoiceMessageRouteImport } from './routes/api/public/voice-message'
+import { Route as ApiScoutVerifyEmailsRouteImport } from './routes/api/scout/verify-emails'
+import { Route as AuthorAuditAuthorBookRouteImport } from './routes/author-audit.$author.$book'
+import { Route as InsightsAnswersSlugRouteImport } from './routes/insights.answers.$slug'
+import { Route as InsightsGuidesSlugRouteImport } from './routes/insights.guides.$slug'
+import { Route as ApiAdminAuthorAuditsIdRouteImport } from './routes/api/admin/author-audits.$id'
+import { Route as ApiAdminCaseStudiesIdRouteImport } from './routes/api/admin/case-studies.$id'
+import { Route as ApiAdminCaseStudiesReorderRouteImport } from './routes/api/admin/case-studies.reorder'
+import { Route as ApiAdminExpertPortfolioIdRouteImport } from './routes/api/admin/expert-portfolio.$id'
+import { Route as ApiAdminExpertReviewsIdRouteImport } from './routes/api/admin/expert-reviews.$id'
+import { Route as ApiAdminExpertTestimonialsIdRouteImport } from './routes/api/admin/expert-testimonials.$id'
+import { Route as ApiAdminExpertsIdRouteImport } from './routes/api/admin/experts.$id'
+import { Route as ApiAdminInvoiceRequestsIdRouteImport } from './routes/api/admin/invoice-requests.$id'
+import { Route as ApiAdminInvoicesIdRouteImport } from './routes/api/admin/invoices.$id'
 import { Route as ApiAdminPortfolioIdRouteImport } from './routes/api/admin/portfolio.$id'
 import { Route as ApiAdminPortfolioReorderRouteImport } from './routes/api/admin/portfolio.reorder'
+import { Route as ApiAdminQuotesIdRouteImport } from './routes/api/admin/quotes.$id'
+import { Route as ApiAdminScoutAudienceBatchesIdRouteImport } from './routes/api/admin/scout-audience-batches.$id'
+import { Route as ApiAdminScoutAudienceLeadsIdRouteImport } from './routes/api/admin/scout-audience-leads.$id'
+import { Route as ApiAdminScoutAuthorsIdRouteImport } from './routes/api/admin/scout-authors.$id'
+import { Route as ApiAdminScoutBatchesIdRouteImport } from './routes/api/admin/scout-batches.$id'
+import { Route as ApiAdminScoutProspectsIdRouteImport } from './routes/api/admin/scout-prospects.$id'
+import { Route as ApiAdminTeamIdRouteImport } from './routes/api/admin/team.$id'
+import { Route as ApiAdminTeamReorderRouteImport } from './routes/api/admin/team.reorder'
+import { Route as ApiAdminTestimonialsIdRouteImport } from './routes/api/admin/testimonials.$id'
+import { Route as ApiAdminTestimonialsReorderRouteImport } from './routes/api/admin/testimonials.reorder'
+import { Route as ApiExpertPortfolioIdRouteImport } from './routes/api/expert/portfolio.$id'
+import { Route as ApiExpertReviewsIdRouteImport } from './routes/api/expert/reviews.$id'
+import { Route as ApiExpertTestimonialsIdRouteImport } from './routes/api/expert/testimonials.$id'
+import { Route as ApiPaymentsFlutterwaveWebhookRouteImport } from './routes/api/payments/flutterwave/webhook'
+import { Route as ApiPaymentsNowpaymentsIpnRouteImport } from './routes/api/payments/nowpayments/ipn'
+import { Route as ApiPaymentsPaystackWebhookRouteImport } from './routes/api/payments/paystack/webhook'
+import { Route as ApiAdminAuthorAuditsIdBulkImportRouteImport } from './routes/api/admin/author-audits.$id.bulk-import'
+import { Route as ApiAdminAuthorAuditsIdComparablesRouteImport } from './routes/api/admin/author-audits.$id.comparables'
+import { Route as ApiAdminAuthorAuditsIdEvidenceAssetsRouteImport } from './routes/api/admin/author-audits.$id.evidence-assets'
+import { Route as ApiAdminAuthorAuditsIdPublishingRouteImport } from './routes/api/admin/author-audits.$id.publishing'
+import { Route as ApiAdminAuthorAuditsIdQualityCheckRouteImport } from './routes/api/admin/author-audits.$id.quality-check'
+import { Route as ApiAdminAuthorAuditsIdReportRouteImport } from './routes/api/admin/author-audits.$id.report'
+import { Route as ApiAdminAuthorAuditsIdResearchRouteImport } from './routes/api/admin/author-audits.$id.research'
+import { Route as ApiAdminAuthorAuditsIdSynthesizeRouteImport } from './routes/api/admin/author-audits.$id.synthesize'
+import { Route as ApiAdminAuthorAuditsIdSynthesizePlanRouteImport } from './routes/api/admin/author-audits.$id.synthesize-plan'
+import { Route as ApiAdminAuthorAuditsIdVerificationsRouteImport } from './routes/api/admin/author-audits.$id.verifications'
+import { Route as ApiAdminAuthorAuditsIdWorkflowRouteImport } from './routes/api/admin/author-audits.$id.workflow'
+import { Route as ApiAdminScoutAuthorsIdConfirmContactRouteImport } from './routes/api/admin/scout-authors.$id.confirm-contact'
+import { Route as ApiAdminScoutAuthorsIdFindContactRouteImport } from './routes/api/admin/scout-authors.$id.find-contact'
+import { Route as ApiAdminScoutAuthorsIdResearchWebsiteRouteImport } from './routes/api/admin/scout-authors.$id.research-website'
+import { Route as ApiAdminScoutBatchesIdExportRouteImport } from './routes/api/admin/scout-batches.$id.export'
+import { Route as ApiAdminScoutBatchesIdScoutRouteImport } from './routes/api/admin/scout-batches.$id.scout'
+import { Route as ApiAdminAuthorAuditsIdComparablesComparableIdRouteImport } from './routes/api/admin/author-audits.$id.comparables.$comparableId'
+import { Route as ApiAdminAuthorAuditsIdEvidenceAssetsAssetIdRouteImport } from './routes/api/admin/author-audits.$id.evidence-assets.$assetId'
+import { Route as ApiAdminAuthorAuditsIdFindingsFindingIdRouteImport } from './routes/api/admin/author-audits.$id.findings.$findingId'
+import { Route as ApiAdminAuthorAuditsIdMovesMoveIdRouteImport } from './routes/api/admin/author-audits.$id.moves.$moveId'
+import { Route as ApiAdminAuthorAuditsIdReaderJourneyStepIdRouteImport } from './routes/api/admin/author-audits.$id.reader-journey.$stepId'
+import { Route as ApiAdminAuthorAuditsIdRoadmapItemIdRouteImport } from './routes/api/admin/author-audits.$id.roadmap.$itemId'
+import { Route as ApiAdminAuthorAuditsIdStrengthsStrengthIdRouteImport } from './routes/api/admin/author-audits.$id.strengths.$strengthId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -76,6 +211,12 @@ const AgenciesRoute = AgenciesRouteImport.update({
   path: '/agencies',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppointmentBasedBusinessesRoute =
+  AppointmentBasedBusinessesRouteImport.update({
+    id: '/appointment-based-businesses',
+    path: '/appointment-based-businesses',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AuthorsRoute = AuthorsRouteImport.update({
   id: '/authors',
   path: '/authors',
@@ -84,6 +225,11 @@ const AuthorsRoute = AuthorsRouteImport.update({
 const BookLaunchRoute = BookLaunchRouteImport.update({
   id: '/book-launch',
   path: '/book-launch',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CleaningBusinessesRoute = CleaningBusinessesRouteImport.update({
+  id: '/cleaning-businesses',
+  path: '/cleaning-businesses',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CoachesRoute = CoachesRouteImport.update({
@@ -99,6 +245,26 @@ const ContactRoute = ContactRouteImport.update({
 const CreatorsRoute = CreatorsRouteImport.update({
   id: '/creators',
   path: '/creators',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EcommerceRoute = EcommerceRouteImport.update({
+  id: '/ecommerce',
+  path: '/ecommerce',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ExpertRoute = ExpertRouteImport.update({
+  id: '/expert',
+  path: '/expert',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ExpertSignupRoute = ExpertSignupRouteImport.update({
+  id: '/expert-signup',
+  path: '/expert-signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ExpertWelcomeRoute = ExpertWelcomeRouteImport.update({
+  id: '/expert-welcome',
+  path: '/expert-welcome',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FaqsRoute = FaqsRouteImport.update({
@@ -134,6 +300,11 @@ const LawFirmsRoute = LawFirmsRouteImport.update({
 const LocalBusinessRoute = LocalBusinessRouteImport.update({
   id: '/local-business',
   path: '/local-business',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LocalBusinessesRoute = LocalBusinessesRouteImport.update({
+  id: '/local-businesses',
+  path: '/local-businesses',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MedSpasRoute = MedSpasRouteImport.update({
@@ -181,9 +352,49 @@ const RoofersRoute = RoofersRouteImport.update({
   path: '/roofers',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ScoutRoute = ScoutRouteImport.update({
+  id: '/scout',
+  path: '/scout',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TeamRoute = TeamRouteImport.update({
+  id: '/team',
+  path: '/team',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
   path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TestimonialsRoute = TestimonialsRouteImport.update({
+  id: '/testimonials',
+  path: '/testimonials',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UgcCreatorsRoute = UgcCreatorsRouteImport.update({
+  id: '/ugc-creators',
+  path: '/ugc-creators',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiCheckoutRoute = ApiCheckoutRouteImport.update({
+  id: '/api/checkout',
+  path: '/api/checkout',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPrivateAuditRoute = ApiPrivateAuditRouteImport.update({
+  id: '/api/private-audit',
+  path: '/api/private-audit',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthorAuditIndexRoute = AuthorAuditIndexRouteImport.update({
+  id: '/author-audit/',
+  path: '/author-audit/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BlogIndexRoute = BlogIndexRouteImport.update({
@@ -206,6 +417,16 @@ const CapabilitiesSlugRoute = CapabilitiesSlugRouteImport.update({
   path: '/capabilities/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ExpertsIndexRoute = ExpertsIndexRouteImport.update({
+  id: '/experts/',
+  path: '/experts/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ExpertsSlugRoute = ExpertsSlugRouteImport.update({
+  id: '/experts/$slug',
+  path: '/experts/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const InsightsIndexRoute = InsightsIndexRouteImport.update({
   id: '/insights/',
   path: '/insights/',
@@ -214,6 +435,21 @@ const InsightsIndexRoute = InsightsIndexRouteImport.update({
 const InsightsSlugRoute = InsightsSlugRouteImport.update({
   id: '/insights/$slug',
   path: '/insights/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InsightsGlossaryRoute = InsightsGlossaryRouteImport.update({
+  id: '/insights/glossary',
+  path: '/insights/glossary',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PayTokenRoute = PayTokenRouteImport.update({
+  id: '/pay/$token',
+  path: '/pay/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const QuoteTokenRoute = QuoteTokenRouteImport.update({
+  id: '/quote/$token',
+  path: '/quote/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ServicesIndexRoute = ServicesIndexRouteImport.update({
@@ -226,6 +462,27 @@ const ServicesSlugRoute = ServicesSlugRouteImport.update({
   path: '/services/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ToolsIndexRoute = ToolsIndexRouteImport.update({
+  id: '/tools/',
+  path: '/tools/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ToolsToolRoute = ToolsToolRouteImport.update({
+  id: '/tools/$tool',
+  path: '/tools/$tool',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ToolsAuthorVisibilityAuditRoute =
+  ToolsAuthorVisibilityAuditRouteImport.update({
+    id: '/tools/author-visibility-audit',
+    path: '/tools/author-visibility-audit',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ToolsWebsiteAuditRoute = ToolsWebsiteAuditRouteImport.update({
+  id: '/tools/website-audit',
+  path: '/tools/website-audit',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const WorkIndexRoute = WorkIndexRouteImport.update({
   id: '/work/',
   path: '/work/',
@@ -236,19 +493,304 @@ const WorkSlugRoute = WorkSlugRouteImport.update({
   path: '/work/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAdminAuthorAuditLeadsRoute =
+  ApiAdminAuthorAuditLeadsRouteImport.update({
+    id: '/api/admin/author-audit-leads',
+    path: '/api/admin/author-audit-leads',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiAdminAuthorAuditsRoute = ApiAdminAuthorAuditsRouteImport.update({
+  id: '/api/admin/author-audits',
+  path: '/api/admin/author-audits',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminCaseStudiesRoute = ApiAdminCaseStudiesRouteImport.update({
+  id: '/api/admin/case-studies',
+  path: '/api/admin/case-studies',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminExpertGuestsRoute = ApiAdminExpertGuestsRouteImport.update({
+  id: '/api/admin/expert-guests',
+  path: '/api/admin/expert-guests',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminExpertPortfolioRoute = ApiAdminExpertPortfolioRouteImport.update({
+  id: '/api/admin/expert-portfolio',
+  path: '/api/admin/expert-portfolio',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminExpertReviewsRoute = ApiAdminExpertReviewsRouteImport.update({
+  id: '/api/admin/expert-reviews',
+  path: '/api/admin/expert-reviews',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminExpertTestimonialsRoute =
+  ApiAdminExpertTestimonialsRouteImport.update({
+    id: '/api/admin/expert-testimonials',
+    path: '/api/admin/expert-testimonials',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiAdminExpertsRoute = ApiAdminExpertsRouteImport.update({
+  id: '/api/admin/experts',
+  path: '/api/admin/experts',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminFounderRoute = ApiAdminFounderRouteImport.update({
+  id: '/api/admin/founder',
+  path: '/api/admin/founder',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminInvoiceRequestsRoute = ApiAdminInvoiceRequestsRouteImport.update({
+  id: '/api/admin/invoice-requests',
+  path: '/api/admin/invoice-requests',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminInvoicesRoute = ApiAdminInvoicesRouteImport.update({
+  id: '/api/admin/invoices',
+  path: '/api/admin/invoices',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminLeadsRoute = ApiAdminLeadsRouteImport.update({
+  id: '/api/admin/leads',
+  path: '/api/admin/leads',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminNotificationsRoute = ApiAdminNotificationsRouteImport.update({
+  id: '/api/admin/notifications',
+  path: '/api/admin/notifications',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAdminPortfolioRoute = ApiAdminPortfolioRouteImport.update({
   id: '/api/admin/portfolio',
   path: '/api/admin/portfolio',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAdminQuotesRoute = ApiAdminQuotesRouteImport.update({
+  id: '/api/admin/quotes',
+  path: '/api/admin/quotes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminScoutAmazonSearchRoute =
+  ApiAdminScoutAmazonSearchRouteImport.update({
+    id: '/api/admin/scout-amazon-search',
+    path: '/api/admin/scout-amazon-search',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiAdminScoutArcDiscoveryRoute =
+  ApiAdminScoutArcDiscoveryRouteImport.update({
+    id: '/api/admin/scout-arc-discovery',
+    path: '/api/admin/scout-arc-discovery',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiAdminScoutAudienceBatchesRoute =
+  ApiAdminScoutAudienceBatchesRouteImport.update({
+    id: '/api/admin/scout-audience-batches',
+    path: '/api/admin/scout-audience-batches',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiAdminScoutBatchesRoute = ApiAdminScoutBatchesRouteImport.update({
+  id: '/api/admin/scout-batches',
+  path: '/api/admin/scout-batches',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminScoutBooksRoute = ApiAdminScoutBooksRouteImport.update({
+  id: '/api/admin/scout-books',
+  path: '/api/admin/scout-books',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminScoutDiscoverCountRoute =
+  ApiAdminScoutDiscoverCountRouteImport.update({
+    id: '/api/admin/scout-discover-count',
+    path: '/api/admin/scout-discover-count',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiAdminScoutEmailRunsRoute = ApiAdminScoutEmailRunsRouteImport.update({
+  id: '/api/admin/scout-email-runs',
+  path: '/api/admin/scout-email-runs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminScoutExportRoute = ApiAdminScoutExportRouteImport.update({
+  id: '/api/admin/scout-export',
+  path: '/api/admin/scout-export',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminScoutIdentityRoute = ApiAdminScoutIdentityRouteImport.update({
+  id: '/api/admin/scout-identity',
+  path: '/api/admin/scout-identity',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminScoutManualIngestRoute =
+  ApiAdminScoutManualIngestRouteImport.update({
+    id: '/api/admin/scout-manual-ingest',
+    path: '/api/admin/scout-manual-ingest',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiAdminScoutProspectsRoute = ApiAdminScoutProspectsRouteImport.update({
+  id: '/api/admin/scout-prospects',
+  path: '/api/admin/scout-prospects',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminScoutReadersFavoriteRoute =
+  ApiAdminScoutReadersFavoriteRouteImport.update({
+    id: '/api/admin/scout-readers-favorite',
+    path: '/api/admin/scout-readers-favorite',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiAdminScoutReedsyGenresRoute =
+  ApiAdminScoutReedsyGenresRouteImport.update({
+    id: '/api/admin/scout-reedsy-genres',
+    path: '/api/admin/scout-reedsy-genres',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiAdminScoutReedsySearchRoute =
+  ApiAdminScoutReedsySearchRouteImport.update({
+    id: '/api/admin/scout-reedsy-search',
+    path: '/api/admin/scout-reedsy-search',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiAdminSessionRoute = ApiAdminSessionRouteImport.update({
   id: '/api/admin/session',
   path: '/api/admin/session',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAdminTeamRoute = ApiAdminTeamRouteImport.update({
+  id: '/api/admin/team',
+  path: '/api/admin/team',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminTestimonialsRoute = ApiAdminTestimonialsRouteImport.update({
+  id: '/api/admin/testimonials',
+  path: '/api/admin/testimonials',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAdminUploadRoute = ApiAdminUploadRouteImport.update({
   id: '/api/admin/upload',
   path: '/api/admin/upload',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminUploadUrlRoute = ApiAdminUploadUrlRouteImport.update({
+  id: '/api/admin/upload-url',
+  path: '/api/admin/upload-url',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminVisitorsRoute = ApiAdminVisitorsRouteImport.update({
+  id: '/api/admin/visitors',
+  path: '/api/admin/visitors',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiExpertInviteRoute = ApiExpertInviteRouteImport.update({
+  id: '/api/expert/invite',
+  path: '/api/expert/invite',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiExpertInvoiceRequestsRoute =
+  ApiExpertInvoiceRequestsRouteImport.update({
+    id: '/api/expert/invoice-requests',
+    path: '/api/expert/invoice-requests',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiExpertLeadsRoute = ApiExpertLeadsRouteImport.update({
+  id: '/api/expert/leads',
+  path: '/api/expert/leads',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiExpertNotificationsRoute = ApiExpertNotificationsRouteImport.update({
+  id: '/api/expert/notifications',
+  path: '/api/expert/notifications',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiExpertPerplexitySettingsRoute =
+  ApiExpertPerplexitySettingsRouteImport.update({
+    id: '/api/expert/perplexity-settings',
+    path: '/api/expert/perplexity-settings',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiExpertPhotoUrlRoute = ApiExpertPhotoUrlRouteImport.update({
+  id: '/api/expert/photo-url',
+  path: '/api/expert/photo-url',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiExpertPortfolioRoute = ApiExpertPortfolioRouteImport.update({
+  id: '/api/expert/portfolio',
+  path: '/api/expert/portfolio',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiExpertProfileRoute = ApiExpertProfileRouteImport.update({
+  id: '/api/expert/profile',
+  path: '/api/expert/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiExpertProfileSubmitRoute = ApiExpertProfileSubmitRouteImport.update({
+  id: '/api/expert/profile-submit',
+  path: '/api/expert/profile-submit',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiExpertReviewsRoute = ApiExpertReviewsRouteImport.update({
+  id: '/api/expert/reviews',
+  path: '/api/expert/reviews',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiExpertSessionRoute = ApiExpertSessionRouteImport.update({
+  id: '/api/expert/session',
+  path: '/api/expert/session',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiExpertSignupRoute = ApiExpertSignupRouteImport.update({
+  id: '/api/expert/signup',
+  path: '/api/expert/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiExpertTestimonialsRoute = ApiExpertTestimonialsRouteImport.update({
+  id: '/api/expert/testimonials',
+  path: '/api/expert/testimonials',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiExpertVideoUrlRoute = ApiExpertVideoUrlRouteImport.update({
+  id: '/api/expert/video-url',
+  path: '/api/expert/video-url',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiNotificationsDispatchRoute =
+  ApiNotificationsDispatchRouteImport.update({
+    id: '/api/notifications/dispatch',
+    path: '/api/notifications/dispatch',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPayTokenRoute = ApiPayTokenRouteImport.update({
+  id: '/api/pay/$token',
+  path: '/api/pay/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicAuthorAuditRoute = ApiPublicAuthorAuditRouteImport.update({
+  id: '/api/public/author-audit',
+  path: '/api/public/author-audit',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicCaseStudiesRoute = ApiPublicCaseStudiesRouteImport.update({
+  id: '/api/public/case-studies',
+  path: '/api/public/case-studies',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicExpertPortfolioRoute =
+  ApiPublicExpertPortfolioRouteImport.update({
+    id: '/api/public/expert-portfolio',
+    path: '/api/public/expert-portfolio',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicExpertReviewsRoute = ApiPublicExpertReviewsRouteImport.update({
+  id: '/api/public/expert-reviews',
+  path: '/api/public/expert-reviews',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicExpertTestimonialsRoute =
+  ApiPublicExpertTestimonialsRouteImport.update({
+    id: '/api/public/expert-testimonials',
+    path: '/api/public/expert-testimonials',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicExpertsRoute = ApiPublicExpertsRouteImport.update({
+  id: '/api/public/experts',
+  path: '/api/public/experts',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicGrowthAuditRoute = ApiPublicGrowthAuditRouteImport.update({
@@ -271,12 +813,106 @@ const ApiPublicPortfolioRoute = ApiPublicPortfolioRouteImport.update({
   path: '/api/public/portfolio',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicQuoteRoute = ApiPublicQuoteRouteImport.update({
+  id: '/api/public/quote',
+  path: '/api/public/quote',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicResourceRequestRoute =
   ApiPublicResourceRequestRouteImport.update({
     id: '/api/public/resource-request',
     path: '/api/public/resource-request',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicTeamRoute = ApiPublicTeamRouteImport.update({
+  id: '/api/public/team',
+  path: '/api/public/team',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicTestimonialsRoute = ApiPublicTestimonialsRouteImport.update({
+  id: '/api/public/testimonials',
+  path: '/api/public/testimonials',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicVisitRoute = ApiPublicVisitRouteImport.update({
+  id: '/api/public/visit',
+  path: '/api/public/visit',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicVoiceMessageRoute = ApiPublicVoiceMessageRouteImport.update({
+  id: '/api/public/voice-message',
+  path: '/api/public/voice-message',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiScoutVerifyEmailsRoute = ApiScoutVerifyEmailsRouteImport.update({
+  id: '/api/scout/verify-emails',
+  path: '/api/scout/verify-emails',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthorAuditAuthorBookRoute = AuthorAuditAuthorBookRouteImport.update({
+  id: '/author-audit/$author/$book',
+  path: '/author-audit/$author/$book',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InsightsAnswersSlugRoute = InsightsAnswersSlugRouteImport.update({
+  id: '/insights/answers/$slug',
+  path: '/insights/answers/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InsightsGuidesSlugRoute = InsightsGuidesSlugRouteImport.update({
+  id: '/insights/guides/$slug',
+  path: '/insights/guides/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminAuthorAuditsIdRoute = ApiAdminAuthorAuditsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ApiAdminAuthorAuditsRoute,
+} as any)
+const ApiAdminCaseStudiesIdRoute = ApiAdminCaseStudiesIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ApiAdminCaseStudiesRoute,
+} as any)
+const ApiAdminCaseStudiesReorderRoute =
+  ApiAdminCaseStudiesReorderRouteImport.update({
+    id: '/reorder',
+    path: '/reorder',
+    getParentRoute: () => ApiAdminCaseStudiesRoute,
+  } as any)
+const ApiAdminExpertPortfolioIdRoute =
+  ApiAdminExpertPortfolioIdRouteImport.update({
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => ApiAdminExpertPortfolioRoute,
+  } as any)
+const ApiAdminExpertReviewsIdRoute = ApiAdminExpertReviewsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ApiAdminExpertReviewsRoute,
+} as any)
+const ApiAdminExpertTestimonialsIdRoute =
+  ApiAdminExpertTestimonialsIdRouteImport.update({
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => ApiAdminExpertTestimonialsRoute,
+  } as any)
+const ApiAdminExpertsIdRoute = ApiAdminExpertsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ApiAdminExpertsRoute,
+} as any)
+const ApiAdminInvoiceRequestsIdRoute =
+  ApiAdminInvoiceRequestsIdRouteImport.update({
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => ApiAdminInvoiceRequestsRoute,
+  } as any)
+const ApiAdminInvoicesIdRoute = ApiAdminInvoicesIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ApiAdminInvoicesRoute,
+} as any)
 const ApiAdminPortfolioIdRoute = ApiAdminPortfolioIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -288,17 +924,248 @@ const ApiAdminPortfolioReorderRoute =
     path: '/reorder',
     getParentRoute: () => ApiAdminPortfolioRoute,
   } as any)
+const ApiAdminQuotesIdRoute = ApiAdminQuotesIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ApiAdminQuotesRoute,
+} as any)
+const ApiAdminScoutAudienceBatchesIdRoute =
+  ApiAdminScoutAudienceBatchesIdRouteImport.update({
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => ApiAdminScoutAudienceBatchesRoute,
+  } as any)
+const ApiAdminScoutAudienceLeadsIdRoute =
+  ApiAdminScoutAudienceLeadsIdRouteImport.update({
+    id: '/api/admin/scout-audience-leads/$id',
+    path: '/api/admin/scout-audience-leads/$id',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiAdminScoutAuthorsIdRoute = ApiAdminScoutAuthorsIdRouteImport.update({
+  id: '/api/admin/scout-authors/$id',
+  path: '/api/admin/scout-authors/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminScoutBatchesIdRoute = ApiAdminScoutBatchesIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ApiAdminScoutBatchesRoute,
+} as any)
+const ApiAdminScoutProspectsIdRoute =
+  ApiAdminScoutProspectsIdRouteImport.update({
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => ApiAdminScoutProspectsRoute,
+  } as any)
+const ApiAdminTeamIdRoute = ApiAdminTeamIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ApiAdminTeamRoute,
+} as any)
+const ApiAdminTeamReorderRoute = ApiAdminTeamReorderRouteImport.update({
+  id: '/reorder',
+  path: '/reorder',
+  getParentRoute: () => ApiAdminTeamRoute,
+} as any)
+const ApiAdminTestimonialsIdRoute = ApiAdminTestimonialsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ApiAdminTestimonialsRoute,
+} as any)
+const ApiAdminTestimonialsReorderRoute =
+  ApiAdminTestimonialsReorderRouteImport.update({
+    id: '/reorder',
+    path: '/reorder',
+    getParentRoute: () => ApiAdminTestimonialsRoute,
+  } as any)
+const ApiExpertPortfolioIdRoute = ApiExpertPortfolioIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ApiExpertPortfolioRoute,
+} as any)
+const ApiExpertReviewsIdRoute = ApiExpertReviewsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ApiExpertReviewsRoute,
+} as any)
+const ApiExpertTestimonialsIdRoute = ApiExpertTestimonialsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ApiExpertTestimonialsRoute,
+} as any)
+const ApiPaymentsFlutterwaveWebhookRoute =
+  ApiPaymentsFlutterwaveWebhookRouteImport.update({
+    id: '/api/payments/flutterwave/webhook',
+    path: '/api/payments/flutterwave/webhook',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPaymentsNowpaymentsIpnRoute =
+  ApiPaymentsNowpaymentsIpnRouteImport.update({
+    id: '/api/payments/nowpayments/ipn',
+    path: '/api/payments/nowpayments/ipn',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPaymentsPaystackWebhookRoute =
+  ApiPaymentsPaystackWebhookRouteImport.update({
+    id: '/api/payments/paystack/webhook',
+    path: '/api/payments/paystack/webhook',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiAdminAuthorAuditsIdBulkImportRoute =
+  ApiAdminAuthorAuditsIdBulkImportRouteImport.update({
+    id: '/bulk-import',
+    path: '/bulk-import',
+    getParentRoute: () => ApiAdminAuthorAuditsIdRoute,
+  } as any)
+const ApiAdminAuthorAuditsIdComparablesRoute =
+  ApiAdminAuthorAuditsIdComparablesRouteImport.update({
+    id: '/comparables',
+    path: '/comparables',
+    getParentRoute: () => ApiAdminAuthorAuditsIdRoute,
+  } as any)
+const ApiAdminAuthorAuditsIdEvidenceAssetsRoute =
+  ApiAdminAuthorAuditsIdEvidenceAssetsRouteImport.update({
+    id: '/evidence-assets',
+    path: '/evidence-assets',
+    getParentRoute: () => ApiAdminAuthorAuditsIdRoute,
+  } as any)
+const ApiAdminAuthorAuditsIdPublishingRoute =
+  ApiAdminAuthorAuditsIdPublishingRouteImport.update({
+    id: '/publishing',
+    path: '/publishing',
+    getParentRoute: () => ApiAdminAuthorAuditsIdRoute,
+  } as any)
+const ApiAdminAuthorAuditsIdQualityCheckRoute =
+  ApiAdminAuthorAuditsIdQualityCheckRouteImport.update({
+    id: '/quality-check',
+    path: '/quality-check',
+    getParentRoute: () => ApiAdminAuthorAuditsIdRoute,
+  } as any)
+const ApiAdminAuthorAuditsIdReportRoute =
+  ApiAdminAuthorAuditsIdReportRouteImport.update({
+    id: '/report',
+    path: '/report',
+    getParentRoute: () => ApiAdminAuthorAuditsIdRoute,
+  } as any)
+const ApiAdminAuthorAuditsIdResearchRoute =
+  ApiAdminAuthorAuditsIdResearchRouteImport.update({
+    id: '/research',
+    path: '/research',
+    getParentRoute: () => ApiAdminAuthorAuditsIdRoute,
+  } as any)
+const ApiAdminAuthorAuditsIdSynthesizeRoute =
+  ApiAdminAuthorAuditsIdSynthesizeRouteImport.update({
+    id: '/synthesize',
+    path: '/synthesize',
+    getParentRoute: () => ApiAdminAuthorAuditsIdRoute,
+  } as any)
+const ApiAdminAuthorAuditsIdSynthesizePlanRoute =
+  ApiAdminAuthorAuditsIdSynthesizePlanRouteImport.update({
+    id: '/synthesize-plan',
+    path: '/synthesize-plan',
+    getParentRoute: () => ApiAdminAuthorAuditsIdRoute,
+  } as any)
+const ApiAdminAuthorAuditsIdVerificationsRoute =
+  ApiAdminAuthorAuditsIdVerificationsRouteImport.update({
+    id: '/verifications',
+    path: '/verifications',
+    getParentRoute: () => ApiAdminAuthorAuditsIdRoute,
+  } as any)
+const ApiAdminAuthorAuditsIdWorkflowRoute =
+  ApiAdminAuthorAuditsIdWorkflowRouteImport.update({
+    id: '/workflow',
+    path: '/workflow',
+    getParentRoute: () => ApiAdminAuthorAuditsIdRoute,
+  } as any)
+const ApiAdminScoutAuthorsIdConfirmContactRoute =
+  ApiAdminScoutAuthorsIdConfirmContactRouteImport.update({
+    id: '/confirm-contact',
+    path: '/confirm-contact',
+    getParentRoute: () => ApiAdminScoutAuthorsIdRoute,
+  } as any)
+const ApiAdminScoutAuthorsIdFindContactRoute =
+  ApiAdminScoutAuthorsIdFindContactRouteImport.update({
+    id: '/find-contact',
+    path: '/find-contact',
+    getParentRoute: () => ApiAdminScoutAuthorsIdRoute,
+  } as any)
+const ApiAdminScoutAuthorsIdResearchWebsiteRoute =
+  ApiAdminScoutAuthorsIdResearchWebsiteRouteImport.update({
+    id: '/research-website',
+    path: '/research-website',
+    getParentRoute: () => ApiAdminScoutAuthorsIdRoute,
+  } as any)
+const ApiAdminScoutBatchesIdExportRoute =
+  ApiAdminScoutBatchesIdExportRouteImport.update({
+    id: '/export',
+    path: '/export',
+    getParentRoute: () => ApiAdminScoutBatchesIdRoute,
+  } as any)
+const ApiAdminScoutBatchesIdScoutRoute =
+  ApiAdminScoutBatchesIdScoutRouteImport.update({
+    id: '/scout',
+    path: '/scout',
+    getParentRoute: () => ApiAdminScoutBatchesIdRoute,
+  } as any)
+const ApiAdminAuthorAuditsIdComparablesComparableIdRoute =
+  ApiAdminAuthorAuditsIdComparablesComparableIdRouteImport.update({
+    id: '/$comparableId',
+    path: '/$comparableId',
+    getParentRoute: () => ApiAdminAuthorAuditsIdComparablesRoute,
+  } as any)
+const ApiAdminAuthorAuditsIdEvidenceAssetsAssetIdRoute =
+  ApiAdminAuthorAuditsIdEvidenceAssetsAssetIdRouteImport.update({
+    id: '/$assetId',
+    path: '/$assetId',
+    getParentRoute: () => ApiAdminAuthorAuditsIdEvidenceAssetsRoute,
+  } as any)
+const ApiAdminAuthorAuditsIdFindingsFindingIdRoute =
+  ApiAdminAuthorAuditsIdFindingsFindingIdRouteImport.update({
+    id: '/findings/$findingId',
+    path: '/findings/$findingId',
+    getParentRoute: () => ApiAdminAuthorAuditsIdRoute,
+  } as any)
+const ApiAdminAuthorAuditsIdMovesMoveIdRoute =
+  ApiAdminAuthorAuditsIdMovesMoveIdRouteImport.update({
+    id: '/moves/$moveId',
+    path: '/moves/$moveId',
+    getParentRoute: () => ApiAdminAuthorAuditsIdRoute,
+  } as any)
+const ApiAdminAuthorAuditsIdReaderJourneyStepIdRoute =
+  ApiAdminAuthorAuditsIdReaderJourneyStepIdRouteImport.update({
+    id: '/reader-journey/$stepId',
+    path: '/reader-journey/$stepId',
+    getParentRoute: () => ApiAdminAuthorAuditsIdRoute,
+  } as any)
+const ApiAdminAuthorAuditsIdRoadmapItemIdRoute =
+  ApiAdminAuthorAuditsIdRoadmapItemIdRouteImport.update({
+    id: '/roadmap/$itemId',
+    path: '/roadmap/$itemId',
+    getParentRoute: () => ApiAdminAuthorAuditsIdRoute,
+  } as any)
+const ApiAdminAuthorAuditsIdStrengthsStrengthIdRoute =
+  ApiAdminAuthorAuditsIdStrengthsStrengthIdRouteImport.update({
+    id: '/strengths/$strengthId',
+    path: '/strengths/$strengthId',
+    getParentRoute: () => ApiAdminAuthorAuditsIdRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/admin': typeof AdminRoute
   '/agencies': typeof AgenciesRoute
+  '/appointment-based-businesses': typeof AppointmentBasedBusinessesRoute
   '/authors': typeof AuthorsRoute
   '/book-launch': typeof BookLaunchRoute
+  '/cleaning-businesses': typeof CleaningBusinessesRoute
   '/coaches': typeof CoachesRoute
   '/contact': typeof ContactRoute
   '/creators': typeof CreatorsRoute
+  '/ecommerce': typeof EcommerceRoute
+  '/expert': typeof ExpertRoute
+  '/expert-signup': typeof ExpertSignupRoute
+  '/expert-welcome': typeof ExpertWelcomeRoute
   '/faqs': typeof FaqsRoute
   '/guarantee': typeof GuaranteeRoute
   '/home-services': typeof HomeServicesRoute
@@ -306,6 +1173,7 @@ export interface FileRoutesByFullPath {
   '/industries': typeof IndustriesRoute
   '/law-firms': typeof LawFirmsRoute
   '/local-business': typeof LocalBusinessRoute
+  '/local-businesses': typeof LocalBusinessesRoute
   '/med-spas': typeof MedSpasRoute
   '/plumbers': typeof PlumbersRoute
   '/pricing': typeof PricingRoute
@@ -315,38 +1183,172 @@ export interface FileRoutesByFullPath {
   '/results': typeof ResultsRoute
   '/reviews': typeof ReviewsRoute
   '/roofers': typeof RoofersRoute
+  '/scout': typeof ScoutRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/team': typeof TeamRoute
   '/terms': typeof TermsRoute
+  '/testimonials': typeof TestimonialsRoute
+  '/ugc-creators': typeof UgcCreatorsRoute
+  '/api/checkout': typeof ApiCheckoutRoute
+  '/api/private-audit': typeof ApiPrivateAuditRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/capabilities/$slug': typeof CapabilitiesSlugRoute
+  '/experts/$slug': typeof ExpertsSlugRoute
   '/insights/$slug': typeof InsightsSlugRoute
+  '/insights/glossary': typeof InsightsGlossaryRoute
+  '/pay/$token': typeof PayTokenRoute
+  '/quote/$token': typeof QuoteTokenRoute
   '/services/$slug': typeof ServicesSlugRoute
+  '/tools/$tool': typeof ToolsToolRoute
+  '/tools/author-visibility-audit': typeof ToolsAuthorVisibilityAuditRoute
+  '/tools/website-audit': typeof ToolsWebsiteAuditRoute
   '/work/$slug': typeof WorkSlugRoute
+  '/author-audit/': typeof AuthorAuditIndexRoute
   '/blog/': typeof BlogIndexRoute
   '/capabilities/': typeof CapabilitiesIndexRoute
+  '/experts/': typeof ExpertsIndexRoute
   '/insights/': typeof InsightsIndexRoute
   '/services/': typeof ServicesIndexRoute
+  '/tools/': typeof ToolsIndexRoute
   '/work/': typeof WorkIndexRoute
+  '/api/admin/author-audit-leads': typeof ApiAdminAuthorAuditLeadsRoute
+  '/api/admin/author-audits': typeof ApiAdminAuthorAuditsRouteWithChildren
+  '/api/admin/case-studies': typeof ApiAdminCaseStudiesRouteWithChildren
+  '/api/admin/expert-guests': typeof ApiAdminExpertGuestsRoute
+  '/api/admin/expert-portfolio': typeof ApiAdminExpertPortfolioRouteWithChildren
+  '/api/admin/expert-reviews': typeof ApiAdminExpertReviewsRouteWithChildren
+  '/api/admin/expert-testimonials': typeof ApiAdminExpertTestimonialsRouteWithChildren
+  '/api/admin/experts': typeof ApiAdminExpertsRouteWithChildren
+  '/api/admin/founder': typeof ApiAdminFounderRoute
+  '/api/admin/invoice-requests': typeof ApiAdminInvoiceRequestsRouteWithChildren
+  '/api/admin/invoices': typeof ApiAdminInvoicesRouteWithChildren
+  '/api/admin/leads': typeof ApiAdminLeadsRoute
+  '/api/admin/notifications': typeof ApiAdminNotificationsRoute
   '/api/admin/portfolio': typeof ApiAdminPortfolioRouteWithChildren
+  '/api/admin/quotes': typeof ApiAdminQuotesRouteWithChildren
+  '/api/admin/scout-amazon-search': typeof ApiAdminScoutAmazonSearchRoute
+  '/api/admin/scout-arc-discovery': typeof ApiAdminScoutArcDiscoveryRoute
+  '/api/admin/scout-audience-batches': typeof ApiAdminScoutAudienceBatchesRouteWithChildren
+  '/api/admin/scout-batches': typeof ApiAdminScoutBatchesRouteWithChildren
+  '/api/admin/scout-books': typeof ApiAdminScoutBooksRoute
+  '/api/admin/scout-discover-count': typeof ApiAdminScoutDiscoverCountRoute
+  '/api/admin/scout-email-runs': typeof ApiAdminScoutEmailRunsRoute
+  '/api/admin/scout-export': typeof ApiAdminScoutExportRoute
+  '/api/admin/scout-identity': typeof ApiAdminScoutIdentityRoute
+  '/api/admin/scout-manual-ingest': typeof ApiAdminScoutManualIngestRoute
+  '/api/admin/scout-prospects': typeof ApiAdminScoutProspectsRouteWithChildren
+  '/api/admin/scout-readers-favorite': typeof ApiAdminScoutReadersFavoriteRoute
+  '/api/admin/scout-reedsy-genres': typeof ApiAdminScoutReedsyGenresRoute
+  '/api/admin/scout-reedsy-search': typeof ApiAdminScoutReedsySearchRoute
   '/api/admin/session': typeof ApiAdminSessionRoute
+  '/api/admin/team': typeof ApiAdminTeamRouteWithChildren
+  '/api/admin/testimonials': typeof ApiAdminTestimonialsRouteWithChildren
   '/api/admin/upload': typeof ApiAdminUploadRoute
+  '/api/admin/upload-url': typeof ApiAdminUploadUrlRoute
+  '/api/admin/visitors': typeof ApiAdminVisitorsRoute
+  '/api/expert/invite': typeof ApiExpertInviteRoute
+  '/api/expert/invoice-requests': typeof ApiExpertInvoiceRequestsRoute
+  '/api/expert/leads': typeof ApiExpertLeadsRoute
+  '/api/expert/notifications': typeof ApiExpertNotificationsRoute
+  '/api/expert/perplexity-settings': typeof ApiExpertPerplexitySettingsRoute
+  '/api/expert/photo-url': typeof ApiExpertPhotoUrlRoute
+  '/api/expert/portfolio': typeof ApiExpertPortfolioRouteWithChildren
+  '/api/expert/profile': typeof ApiExpertProfileRoute
+  '/api/expert/profile-submit': typeof ApiExpertProfileSubmitRoute
+  '/api/expert/reviews': typeof ApiExpertReviewsRouteWithChildren
+  '/api/expert/session': typeof ApiExpertSessionRoute
+  '/api/expert/signup': typeof ApiExpertSignupRoute
+  '/api/expert/testimonials': typeof ApiExpertTestimonialsRouteWithChildren
+  '/api/expert/video-url': typeof ApiExpertVideoUrlRoute
+  '/api/notifications/dispatch': typeof ApiNotificationsDispatchRoute
+  '/api/pay/$token': typeof ApiPayTokenRoute
+  '/api/public/author-audit': typeof ApiPublicAuthorAuditRoute
+  '/api/public/case-studies': typeof ApiPublicCaseStudiesRoute
+  '/api/public/expert-portfolio': typeof ApiPublicExpertPortfolioRoute
+  '/api/public/expert-reviews': typeof ApiPublicExpertReviewsRoute
+  '/api/public/expert-testimonials': typeof ApiPublicExpertTestimonialsRoute
+  '/api/public/experts': typeof ApiPublicExpertsRoute
   '/api/public/growth-audit': typeof ApiPublicGrowthAuditRoute
   '/api/public/inquiry': typeof ApiPublicInquiryRoute
   '/api/public/newsletter': typeof ApiPublicNewsletterRoute
   '/api/public/portfolio': typeof ApiPublicPortfolioRoute
+  '/api/public/quote': typeof ApiPublicQuoteRoute
   '/api/public/resource-request': typeof ApiPublicResourceRequestRoute
+  '/api/public/team': typeof ApiPublicTeamRoute
+  '/api/public/testimonials': typeof ApiPublicTestimonialsRoute
+  '/api/public/visit': typeof ApiPublicVisitRoute
+  '/api/public/voice-message': typeof ApiPublicVoiceMessageRoute
+  '/api/scout/verify-emails': typeof ApiScoutVerifyEmailsRoute
+  '/author-audit/$author/$book': typeof AuthorAuditAuthorBookRoute
+  '/insights/answers/$slug': typeof InsightsAnswersSlugRoute
+  '/insights/guides/$slug': typeof InsightsGuidesSlugRoute
+  '/api/admin/author-audits/$id': typeof ApiAdminAuthorAuditsIdRouteWithChildren
+  '/api/admin/case-studies/$id': typeof ApiAdminCaseStudiesIdRoute
+  '/api/admin/case-studies/reorder': typeof ApiAdminCaseStudiesReorderRoute
+  '/api/admin/expert-portfolio/$id': typeof ApiAdminExpertPortfolioIdRoute
+  '/api/admin/expert-reviews/$id': typeof ApiAdminExpertReviewsIdRoute
+  '/api/admin/expert-testimonials/$id': typeof ApiAdminExpertTestimonialsIdRoute
+  '/api/admin/experts/$id': typeof ApiAdminExpertsIdRoute
+  '/api/admin/invoice-requests/$id': typeof ApiAdminInvoiceRequestsIdRoute
+  '/api/admin/invoices/$id': typeof ApiAdminInvoicesIdRoute
   '/api/admin/portfolio/$id': typeof ApiAdminPortfolioIdRoute
   '/api/admin/portfolio/reorder': typeof ApiAdminPortfolioReorderRoute
+  '/api/admin/quotes/$id': typeof ApiAdminQuotesIdRoute
+  '/api/admin/scout-audience-batches/$id': typeof ApiAdminScoutAudienceBatchesIdRoute
+  '/api/admin/scout-audience-leads/$id': typeof ApiAdminScoutAudienceLeadsIdRoute
+  '/api/admin/scout-authors/$id': typeof ApiAdminScoutAuthorsIdRouteWithChildren
+  '/api/admin/scout-batches/$id': typeof ApiAdminScoutBatchesIdRouteWithChildren
+  '/api/admin/scout-prospects/$id': typeof ApiAdminScoutProspectsIdRoute
+  '/api/admin/team/$id': typeof ApiAdminTeamIdRoute
+  '/api/admin/team/reorder': typeof ApiAdminTeamReorderRoute
+  '/api/admin/testimonials/$id': typeof ApiAdminTestimonialsIdRoute
+  '/api/admin/testimonials/reorder': typeof ApiAdminTestimonialsReorderRoute
+  '/api/expert/portfolio/$id': typeof ApiExpertPortfolioIdRoute
+  '/api/expert/reviews/$id': typeof ApiExpertReviewsIdRoute
+  '/api/expert/testimonials/$id': typeof ApiExpertTestimonialsIdRoute
+  '/api/payments/flutterwave/webhook': typeof ApiPaymentsFlutterwaveWebhookRoute
+  '/api/payments/nowpayments/ipn': typeof ApiPaymentsNowpaymentsIpnRoute
+  '/api/payments/paystack/webhook': typeof ApiPaymentsPaystackWebhookRoute
+  '/api/admin/author-audits/$id/bulk-import': typeof ApiAdminAuthorAuditsIdBulkImportRoute
+  '/api/admin/author-audits/$id/comparables': typeof ApiAdminAuthorAuditsIdComparablesRouteWithChildren
+  '/api/admin/author-audits/$id/evidence-assets': typeof ApiAdminAuthorAuditsIdEvidenceAssetsRouteWithChildren
+  '/api/admin/author-audits/$id/publishing': typeof ApiAdminAuthorAuditsIdPublishingRoute
+  '/api/admin/author-audits/$id/quality-check': typeof ApiAdminAuthorAuditsIdQualityCheckRoute
+  '/api/admin/author-audits/$id/report': typeof ApiAdminAuthorAuditsIdReportRoute
+  '/api/admin/author-audits/$id/research': typeof ApiAdminAuthorAuditsIdResearchRoute
+  '/api/admin/author-audits/$id/synthesize': typeof ApiAdminAuthorAuditsIdSynthesizeRoute
+  '/api/admin/author-audits/$id/synthesize-plan': typeof ApiAdminAuthorAuditsIdSynthesizePlanRoute
+  '/api/admin/author-audits/$id/verifications': typeof ApiAdminAuthorAuditsIdVerificationsRoute
+  '/api/admin/author-audits/$id/workflow': typeof ApiAdminAuthorAuditsIdWorkflowRoute
+  '/api/admin/scout-authors/$id/confirm-contact': typeof ApiAdminScoutAuthorsIdConfirmContactRoute
+  '/api/admin/scout-authors/$id/find-contact': typeof ApiAdminScoutAuthorsIdFindContactRoute
+  '/api/admin/scout-authors/$id/research-website': typeof ApiAdminScoutAuthorsIdResearchWebsiteRoute
+  '/api/admin/scout-batches/$id/export': typeof ApiAdminScoutBatchesIdExportRoute
+  '/api/admin/scout-batches/$id/scout': typeof ApiAdminScoutBatchesIdScoutRoute
+  '/api/admin/author-audits/$id/comparables/$comparableId': typeof ApiAdminAuthorAuditsIdComparablesComparableIdRoute
+  '/api/admin/author-audits/$id/evidence-assets/$assetId': typeof ApiAdminAuthorAuditsIdEvidenceAssetsAssetIdRoute
+  '/api/admin/author-audits/$id/findings/$findingId': typeof ApiAdminAuthorAuditsIdFindingsFindingIdRoute
+  '/api/admin/author-audits/$id/moves/$moveId': typeof ApiAdminAuthorAuditsIdMovesMoveIdRoute
+  '/api/admin/author-audits/$id/reader-journey/$stepId': typeof ApiAdminAuthorAuditsIdReaderJourneyStepIdRoute
+  '/api/admin/author-audits/$id/roadmap/$itemId': typeof ApiAdminAuthorAuditsIdRoadmapItemIdRoute
+  '/api/admin/author-audits/$id/strengths/$strengthId': typeof ApiAdminAuthorAuditsIdStrengthsStrengthIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/admin': typeof AdminRoute
   '/agencies': typeof AgenciesRoute
+  '/appointment-based-businesses': typeof AppointmentBasedBusinessesRoute
   '/authors': typeof AuthorsRoute
   '/book-launch': typeof BookLaunchRoute
+  '/cleaning-businesses': typeof CleaningBusinessesRoute
   '/coaches': typeof CoachesRoute
   '/contact': typeof ContactRoute
   '/creators': typeof CreatorsRoute
+  '/ecommerce': typeof EcommerceRoute
+  '/expert': typeof ExpertRoute
+  '/expert-signup': typeof ExpertSignupRoute
+  '/expert-welcome': typeof ExpertWelcomeRoute
   '/faqs': typeof FaqsRoute
   '/guarantee': typeof GuaranteeRoute
   '/home-services': typeof HomeServicesRoute
@@ -354,6 +1356,7 @@ export interface FileRoutesByTo {
   '/industries': typeof IndustriesRoute
   '/law-firms': typeof LawFirmsRoute
   '/local-business': typeof LocalBusinessRoute
+  '/local-businesses': typeof LocalBusinessesRoute
   '/med-spas': typeof MedSpasRoute
   '/plumbers': typeof PlumbersRoute
   '/pricing': typeof PricingRoute
@@ -363,27 +1366,155 @@ export interface FileRoutesByTo {
   '/results': typeof ResultsRoute
   '/reviews': typeof ReviewsRoute
   '/roofers': typeof RoofersRoute
+  '/scout': typeof ScoutRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/team': typeof TeamRoute
   '/terms': typeof TermsRoute
+  '/testimonials': typeof TestimonialsRoute
+  '/ugc-creators': typeof UgcCreatorsRoute
+  '/api/checkout': typeof ApiCheckoutRoute
+  '/api/private-audit': typeof ApiPrivateAuditRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/capabilities/$slug': typeof CapabilitiesSlugRoute
+  '/experts/$slug': typeof ExpertsSlugRoute
   '/insights/$slug': typeof InsightsSlugRoute
+  '/insights/glossary': typeof InsightsGlossaryRoute
+  '/pay/$token': typeof PayTokenRoute
+  '/quote/$token': typeof QuoteTokenRoute
   '/services/$slug': typeof ServicesSlugRoute
+  '/tools/$tool': typeof ToolsToolRoute
+  '/tools/author-visibility-audit': typeof ToolsAuthorVisibilityAuditRoute
+  '/tools/website-audit': typeof ToolsWebsiteAuditRoute
   '/work/$slug': typeof WorkSlugRoute
+  '/author-audit': typeof AuthorAuditIndexRoute
   '/blog': typeof BlogIndexRoute
   '/capabilities': typeof CapabilitiesIndexRoute
+  '/experts': typeof ExpertsIndexRoute
   '/insights': typeof InsightsIndexRoute
   '/services': typeof ServicesIndexRoute
+  '/tools': typeof ToolsIndexRoute
   '/work': typeof WorkIndexRoute
+  '/api/admin/author-audit-leads': typeof ApiAdminAuthorAuditLeadsRoute
+  '/api/admin/author-audits': typeof ApiAdminAuthorAuditsRouteWithChildren
+  '/api/admin/case-studies': typeof ApiAdminCaseStudiesRouteWithChildren
+  '/api/admin/expert-guests': typeof ApiAdminExpertGuestsRoute
+  '/api/admin/expert-portfolio': typeof ApiAdminExpertPortfolioRouteWithChildren
+  '/api/admin/expert-reviews': typeof ApiAdminExpertReviewsRouteWithChildren
+  '/api/admin/expert-testimonials': typeof ApiAdminExpertTestimonialsRouteWithChildren
+  '/api/admin/experts': typeof ApiAdminExpertsRouteWithChildren
+  '/api/admin/founder': typeof ApiAdminFounderRoute
+  '/api/admin/invoice-requests': typeof ApiAdminInvoiceRequestsRouteWithChildren
+  '/api/admin/invoices': typeof ApiAdminInvoicesRouteWithChildren
+  '/api/admin/leads': typeof ApiAdminLeadsRoute
+  '/api/admin/notifications': typeof ApiAdminNotificationsRoute
   '/api/admin/portfolio': typeof ApiAdminPortfolioRouteWithChildren
+  '/api/admin/quotes': typeof ApiAdminQuotesRouteWithChildren
+  '/api/admin/scout-amazon-search': typeof ApiAdminScoutAmazonSearchRoute
+  '/api/admin/scout-arc-discovery': typeof ApiAdminScoutArcDiscoveryRoute
+  '/api/admin/scout-audience-batches': typeof ApiAdminScoutAudienceBatchesRouteWithChildren
+  '/api/admin/scout-batches': typeof ApiAdminScoutBatchesRouteWithChildren
+  '/api/admin/scout-books': typeof ApiAdminScoutBooksRoute
+  '/api/admin/scout-discover-count': typeof ApiAdminScoutDiscoverCountRoute
+  '/api/admin/scout-email-runs': typeof ApiAdminScoutEmailRunsRoute
+  '/api/admin/scout-export': typeof ApiAdminScoutExportRoute
+  '/api/admin/scout-identity': typeof ApiAdminScoutIdentityRoute
+  '/api/admin/scout-manual-ingest': typeof ApiAdminScoutManualIngestRoute
+  '/api/admin/scout-prospects': typeof ApiAdminScoutProspectsRouteWithChildren
+  '/api/admin/scout-readers-favorite': typeof ApiAdminScoutReadersFavoriteRoute
+  '/api/admin/scout-reedsy-genres': typeof ApiAdminScoutReedsyGenresRoute
+  '/api/admin/scout-reedsy-search': typeof ApiAdminScoutReedsySearchRoute
   '/api/admin/session': typeof ApiAdminSessionRoute
+  '/api/admin/team': typeof ApiAdminTeamRouteWithChildren
+  '/api/admin/testimonials': typeof ApiAdminTestimonialsRouteWithChildren
   '/api/admin/upload': typeof ApiAdminUploadRoute
+  '/api/admin/upload-url': typeof ApiAdminUploadUrlRoute
+  '/api/admin/visitors': typeof ApiAdminVisitorsRoute
+  '/api/expert/invite': typeof ApiExpertInviteRoute
+  '/api/expert/invoice-requests': typeof ApiExpertInvoiceRequestsRoute
+  '/api/expert/leads': typeof ApiExpertLeadsRoute
+  '/api/expert/notifications': typeof ApiExpertNotificationsRoute
+  '/api/expert/perplexity-settings': typeof ApiExpertPerplexitySettingsRoute
+  '/api/expert/photo-url': typeof ApiExpertPhotoUrlRoute
+  '/api/expert/portfolio': typeof ApiExpertPortfolioRouteWithChildren
+  '/api/expert/profile': typeof ApiExpertProfileRoute
+  '/api/expert/profile-submit': typeof ApiExpertProfileSubmitRoute
+  '/api/expert/reviews': typeof ApiExpertReviewsRouteWithChildren
+  '/api/expert/session': typeof ApiExpertSessionRoute
+  '/api/expert/signup': typeof ApiExpertSignupRoute
+  '/api/expert/testimonials': typeof ApiExpertTestimonialsRouteWithChildren
+  '/api/expert/video-url': typeof ApiExpertVideoUrlRoute
+  '/api/notifications/dispatch': typeof ApiNotificationsDispatchRoute
+  '/api/pay/$token': typeof ApiPayTokenRoute
+  '/api/public/author-audit': typeof ApiPublicAuthorAuditRoute
+  '/api/public/case-studies': typeof ApiPublicCaseStudiesRoute
+  '/api/public/expert-portfolio': typeof ApiPublicExpertPortfolioRoute
+  '/api/public/expert-reviews': typeof ApiPublicExpertReviewsRoute
+  '/api/public/expert-testimonials': typeof ApiPublicExpertTestimonialsRoute
+  '/api/public/experts': typeof ApiPublicExpertsRoute
   '/api/public/growth-audit': typeof ApiPublicGrowthAuditRoute
   '/api/public/inquiry': typeof ApiPublicInquiryRoute
   '/api/public/newsletter': typeof ApiPublicNewsletterRoute
   '/api/public/portfolio': typeof ApiPublicPortfolioRoute
+  '/api/public/quote': typeof ApiPublicQuoteRoute
   '/api/public/resource-request': typeof ApiPublicResourceRequestRoute
+  '/api/public/team': typeof ApiPublicTeamRoute
+  '/api/public/testimonials': typeof ApiPublicTestimonialsRoute
+  '/api/public/visit': typeof ApiPublicVisitRoute
+  '/api/public/voice-message': typeof ApiPublicVoiceMessageRoute
+  '/api/scout/verify-emails': typeof ApiScoutVerifyEmailsRoute
+  '/author-audit/$author/$book': typeof AuthorAuditAuthorBookRoute
+  '/insights/answers/$slug': typeof InsightsAnswersSlugRoute
+  '/insights/guides/$slug': typeof InsightsGuidesSlugRoute
+  '/api/admin/author-audits/$id': typeof ApiAdminAuthorAuditsIdRouteWithChildren
+  '/api/admin/case-studies/$id': typeof ApiAdminCaseStudiesIdRoute
+  '/api/admin/case-studies/reorder': typeof ApiAdminCaseStudiesReorderRoute
+  '/api/admin/expert-portfolio/$id': typeof ApiAdminExpertPortfolioIdRoute
+  '/api/admin/expert-reviews/$id': typeof ApiAdminExpertReviewsIdRoute
+  '/api/admin/expert-testimonials/$id': typeof ApiAdminExpertTestimonialsIdRoute
+  '/api/admin/experts/$id': typeof ApiAdminExpertsIdRoute
+  '/api/admin/invoice-requests/$id': typeof ApiAdminInvoiceRequestsIdRoute
+  '/api/admin/invoices/$id': typeof ApiAdminInvoicesIdRoute
   '/api/admin/portfolio/$id': typeof ApiAdminPortfolioIdRoute
   '/api/admin/portfolio/reorder': typeof ApiAdminPortfolioReorderRoute
+  '/api/admin/quotes/$id': typeof ApiAdminQuotesIdRoute
+  '/api/admin/scout-audience-batches/$id': typeof ApiAdminScoutAudienceBatchesIdRoute
+  '/api/admin/scout-audience-leads/$id': typeof ApiAdminScoutAudienceLeadsIdRoute
+  '/api/admin/scout-authors/$id': typeof ApiAdminScoutAuthorsIdRouteWithChildren
+  '/api/admin/scout-batches/$id': typeof ApiAdminScoutBatchesIdRouteWithChildren
+  '/api/admin/scout-prospects/$id': typeof ApiAdminScoutProspectsIdRoute
+  '/api/admin/team/$id': typeof ApiAdminTeamIdRoute
+  '/api/admin/team/reorder': typeof ApiAdminTeamReorderRoute
+  '/api/admin/testimonials/$id': typeof ApiAdminTestimonialsIdRoute
+  '/api/admin/testimonials/reorder': typeof ApiAdminTestimonialsReorderRoute
+  '/api/expert/portfolio/$id': typeof ApiExpertPortfolioIdRoute
+  '/api/expert/reviews/$id': typeof ApiExpertReviewsIdRoute
+  '/api/expert/testimonials/$id': typeof ApiExpertTestimonialsIdRoute
+  '/api/payments/flutterwave/webhook': typeof ApiPaymentsFlutterwaveWebhookRoute
+  '/api/payments/nowpayments/ipn': typeof ApiPaymentsNowpaymentsIpnRoute
+  '/api/payments/paystack/webhook': typeof ApiPaymentsPaystackWebhookRoute
+  '/api/admin/author-audits/$id/bulk-import': typeof ApiAdminAuthorAuditsIdBulkImportRoute
+  '/api/admin/author-audits/$id/comparables': typeof ApiAdminAuthorAuditsIdComparablesRouteWithChildren
+  '/api/admin/author-audits/$id/evidence-assets': typeof ApiAdminAuthorAuditsIdEvidenceAssetsRouteWithChildren
+  '/api/admin/author-audits/$id/publishing': typeof ApiAdminAuthorAuditsIdPublishingRoute
+  '/api/admin/author-audits/$id/quality-check': typeof ApiAdminAuthorAuditsIdQualityCheckRoute
+  '/api/admin/author-audits/$id/report': typeof ApiAdminAuthorAuditsIdReportRoute
+  '/api/admin/author-audits/$id/research': typeof ApiAdminAuthorAuditsIdResearchRoute
+  '/api/admin/author-audits/$id/synthesize': typeof ApiAdminAuthorAuditsIdSynthesizeRoute
+  '/api/admin/author-audits/$id/synthesize-plan': typeof ApiAdminAuthorAuditsIdSynthesizePlanRoute
+  '/api/admin/author-audits/$id/verifications': typeof ApiAdminAuthorAuditsIdVerificationsRoute
+  '/api/admin/author-audits/$id/workflow': typeof ApiAdminAuthorAuditsIdWorkflowRoute
+  '/api/admin/scout-authors/$id/confirm-contact': typeof ApiAdminScoutAuthorsIdConfirmContactRoute
+  '/api/admin/scout-authors/$id/find-contact': typeof ApiAdminScoutAuthorsIdFindContactRoute
+  '/api/admin/scout-authors/$id/research-website': typeof ApiAdminScoutAuthorsIdResearchWebsiteRoute
+  '/api/admin/scout-batches/$id/export': typeof ApiAdminScoutBatchesIdExportRoute
+  '/api/admin/scout-batches/$id/scout': typeof ApiAdminScoutBatchesIdScoutRoute
+  '/api/admin/author-audits/$id/comparables/$comparableId': typeof ApiAdminAuthorAuditsIdComparablesComparableIdRoute
+  '/api/admin/author-audits/$id/evidence-assets/$assetId': typeof ApiAdminAuthorAuditsIdEvidenceAssetsAssetIdRoute
+  '/api/admin/author-audits/$id/findings/$findingId': typeof ApiAdminAuthorAuditsIdFindingsFindingIdRoute
+  '/api/admin/author-audits/$id/moves/$moveId': typeof ApiAdminAuthorAuditsIdMovesMoveIdRoute
+  '/api/admin/author-audits/$id/reader-journey/$stepId': typeof ApiAdminAuthorAuditsIdReaderJourneyStepIdRoute
+  '/api/admin/author-audits/$id/roadmap/$itemId': typeof ApiAdminAuthorAuditsIdRoadmapItemIdRoute
+  '/api/admin/author-audits/$id/strengths/$strengthId': typeof ApiAdminAuthorAuditsIdStrengthsStrengthIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -391,11 +1522,17 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/admin': typeof AdminRoute
   '/agencies': typeof AgenciesRoute
+  '/appointment-based-businesses': typeof AppointmentBasedBusinessesRoute
   '/authors': typeof AuthorsRoute
   '/book-launch': typeof BookLaunchRoute
+  '/cleaning-businesses': typeof CleaningBusinessesRoute
   '/coaches': typeof CoachesRoute
   '/contact': typeof ContactRoute
   '/creators': typeof CreatorsRoute
+  '/ecommerce': typeof EcommerceRoute
+  '/expert': typeof ExpertRoute
+  '/expert-signup': typeof ExpertSignupRoute
+  '/expert-welcome': typeof ExpertWelcomeRoute
   '/faqs': typeof FaqsRoute
   '/guarantee': typeof GuaranteeRoute
   '/home-services': typeof HomeServicesRoute
@@ -403,6 +1540,7 @@ export interface FileRoutesById {
   '/industries': typeof IndustriesRoute
   '/law-firms': typeof LawFirmsRoute
   '/local-business': typeof LocalBusinessRoute
+  '/local-businesses': typeof LocalBusinessesRoute
   '/med-spas': typeof MedSpasRoute
   '/plumbers': typeof PlumbersRoute
   '/pricing': typeof PricingRoute
@@ -412,27 +1550,155 @@ export interface FileRoutesById {
   '/results': typeof ResultsRoute
   '/reviews': typeof ReviewsRoute
   '/roofers': typeof RoofersRoute
+  '/scout': typeof ScoutRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/team': typeof TeamRoute
   '/terms': typeof TermsRoute
+  '/testimonials': typeof TestimonialsRoute
+  '/ugc-creators': typeof UgcCreatorsRoute
+  '/api/checkout': typeof ApiCheckoutRoute
+  '/api/private-audit': typeof ApiPrivateAuditRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/capabilities/$slug': typeof CapabilitiesSlugRoute
+  '/experts/$slug': typeof ExpertsSlugRoute
   '/insights/$slug': typeof InsightsSlugRoute
+  '/insights/glossary': typeof InsightsGlossaryRoute
+  '/pay/$token': typeof PayTokenRoute
+  '/quote/$token': typeof QuoteTokenRoute
   '/services/$slug': typeof ServicesSlugRoute
+  '/tools/$tool': typeof ToolsToolRoute
+  '/tools/author-visibility-audit': typeof ToolsAuthorVisibilityAuditRoute
+  '/tools/website-audit': typeof ToolsWebsiteAuditRoute
   '/work/$slug': typeof WorkSlugRoute
+  '/author-audit/': typeof AuthorAuditIndexRoute
   '/blog/': typeof BlogIndexRoute
   '/capabilities/': typeof CapabilitiesIndexRoute
+  '/experts/': typeof ExpertsIndexRoute
   '/insights/': typeof InsightsIndexRoute
   '/services/': typeof ServicesIndexRoute
+  '/tools/': typeof ToolsIndexRoute
   '/work/': typeof WorkIndexRoute
+  '/api/admin/author-audit-leads': typeof ApiAdminAuthorAuditLeadsRoute
+  '/api/admin/author-audits': typeof ApiAdminAuthorAuditsRouteWithChildren
+  '/api/admin/case-studies': typeof ApiAdminCaseStudiesRouteWithChildren
+  '/api/admin/expert-guests': typeof ApiAdminExpertGuestsRoute
+  '/api/admin/expert-portfolio': typeof ApiAdminExpertPortfolioRouteWithChildren
+  '/api/admin/expert-reviews': typeof ApiAdminExpertReviewsRouteWithChildren
+  '/api/admin/expert-testimonials': typeof ApiAdminExpertTestimonialsRouteWithChildren
+  '/api/admin/experts': typeof ApiAdminExpertsRouteWithChildren
+  '/api/admin/founder': typeof ApiAdminFounderRoute
+  '/api/admin/invoice-requests': typeof ApiAdminInvoiceRequestsRouteWithChildren
+  '/api/admin/invoices': typeof ApiAdminInvoicesRouteWithChildren
+  '/api/admin/leads': typeof ApiAdminLeadsRoute
+  '/api/admin/notifications': typeof ApiAdminNotificationsRoute
   '/api/admin/portfolio': typeof ApiAdminPortfolioRouteWithChildren
+  '/api/admin/quotes': typeof ApiAdminQuotesRouteWithChildren
+  '/api/admin/scout-amazon-search': typeof ApiAdminScoutAmazonSearchRoute
+  '/api/admin/scout-arc-discovery': typeof ApiAdminScoutArcDiscoveryRoute
+  '/api/admin/scout-audience-batches': typeof ApiAdminScoutAudienceBatchesRouteWithChildren
+  '/api/admin/scout-batches': typeof ApiAdminScoutBatchesRouteWithChildren
+  '/api/admin/scout-books': typeof ApiAdminScoutBooksRoute
+  '/api/admin/scout-discover-count': typeof ApiAdminScoutDiscoverCountRoute
+  '/api/admin/scout-email-runs': typeof ApiAdminScoutEmailRunsRoute
+  '/api/admin/scout-export': typeof ApiAdminScoutExportRoute
+  '/api/admin/scout-identity': typeof ApiAdminScoutIdentityRoute
+  '/api/admin/scout-manual-ingest': typeof ApiAdminScoutManualIngestRoute
+  '/api/admin/scout-prospects': typeof ApiAdminScoutProspectsRouteWithChildren
+  '/api/admin/scout-readers-favorite': typeof ApiAdminScoutReadersFavoriteRoute
+  '/api/admin/scout-reedsy-genres': typeof ApiAdminScoutReedsyGenresRoute
+  '/api/admin/scout-reedsy-search': typeof ApiAdminScoutReedsySearchRoute
   '/api/admin/session': typeof ApiAdminSessionRoute
+  '/api/admin/team': typeof ApiAdminTeamRouteWithChildren
+  '/api/admin/testimonials': typeof ApiAdminTestimonialsRouteWithChildren
   '/api/admin/upload': typeof ApiAdminUploadRoute
+  '/api/admin/upload-url': typeof ApiAdminUploadUrlRoute
+  '/api/admin/visitors': typeof ApiAdminVisitorsRoute
+  '/api/expert/invite': typeof ApiExpertInviteRoute
+  '/api/expert/invoice-requests': typeof ApiExpertInvoiceRequestsRoute
+  '/api/expert/leads': typeof ApiExpertLeadsRoute
+  '/api/expert/notifications': typeof ApiExpertNotificationsRoute
+  '/api/expert/perplexity-settings': typeof ApiExpertPerplexitySettingsRoute
+  '/api/expert/photo-url': typeof ApiExpertPhotoUrlRoute
+  '/api/expert/portfolio': typeof ApiExpertPortfolioRouteWithChildren
+  '/api/expert/profile': typeof ApiExpertProfileRoute
+  '/api/expert/profile-submit': typeof ApiExpertProfileSubmitRoute
+  '/api/expert/reviews': typeof ApiExpertReviewsRouteWithChildren
+  '/api/expert/session': typeof ApiExpertSessionRoute
+  '/api/expert/signup': typeof ApiExpertSignupRoute
+  '/api/expert/testimonials': typeof ApiExpertTestimonialsRouteWithChildren
+  '/api/expert/video-url': typeof ApiExpertVideoUrlRoute
+  '/api/notifications/dispatch': typeof ApiNotificationsDispatchRoute
+  '/api/pay/$token': typeof ApiPayTokenRoute
+  '/api/public/author-audit': typeof ApiPublicAuthorAuditRoute
+  '/api/public/case-studies': typeof ApiPublicCaseStudiesRoute
+  '/api/public/expert-portfolio': typeof ApiPublicExpertPortfolioRoute
+  '/api/public/expert-reviews': typeof ApiPublicExpertReviewsRoute
+  '/api/public/expert-testimonials': typeof ApiPublicExpertTestimonialsRoute
+  '/api/public/experts': typeof ApiPublicExpertsRoute
   '/api/public/growth-audit': typeof ApiPublicGrowthAuditRoute
   '/api/public/inquiry': typeof ApiPublicInquiryRoute
   '/api/public/newsletter': typeof ApiPublicNewsletterRoute
   '/api/public/portfolio': typeof ApiPublicPortfolioRoute
+  '/api/public/quote': typeof ApiPublicQuoteRoute
   '/api/public/resource-request': typeof ApiPublicResourceRequestRoute
+  '/api/public/team': typeof ApiPublicTeamRoute
+  '/api/public/testimonials': typeof ApiPublicTestimonialsRoute
+  '/api/public/visit': typeof ApiPublicVisitRoute
+  '/api/public/voice-message': typeof ApiPublicVoiceMessageRoute
+  '/api/scout/verify-emails': typeof ApiScoutVerifyEmailsRoute
+  '/author-audit/$author/$book': typeof AuthorAuditAuthorBookRoute
+  '/insights/answers/$slug': typeof InsightsAnswersSlugRoute
+  '/insights/guides/$slug': typeof InsightsGuidesSlugRoute
+  '/api/admin/author-audits/$id': typeof ApiAdminAuthorAuditsIdRouteWithChildren
+  '/api/admin/case-studies/$id': typeof ApiAdminCaseStudiesIdRoute
+  '/api/admin/case-studies/reorder': typeof ApiAdminCaseStudiesReorderRoute
+  '/api/admin/expert-portfolio/$id': typeof ApiAdminExpertPortfolioIdRoute
+  '/api/admin/expert-reviews/$id': typeof ApiAdminExpertReviewsIdRoute
+  '/api/admin/expert-testimonials/$id': typeof ApiAdminExpertTestimonialsIdRoute
+  '/api/admin/experts/$id': typeof ApiAdminExpertsIdRoute
+  '/api/admin/invoice-requests/$id': typeof ApiAdminInvoiceRequestsIdRoute
+  '/api/admin/invoices/$id': typeof ApiAdminInvoicesIdRoute
   '/api/admin/portfolio/$id': typeof ApiAdminPortfolioIdRoute
   '/api/admin/portfolio/reorder': typeof ApiAdminPortfolioReorderRoute
+  '/api/admin/quotes/$id': typeof ApiAdminQuotesIdRoute
+  '/api/admin/scout-audience-batches/$id': typeof ApiAdminScoutAudienceBatchesIdRoute
+  '/api/admin/scout-audience-leads/$id': typeof ApiAdminScoutAudienceLeadsIdRoute
+  '/api/admin/scout-authors/$id': typeof ApiAdminScoutAuthorsIdRouteWithChildren
+  '/api/admin/scout-batches/$id': typeof ApiAdminScoutBatchesIdRouteWithChildren
+  '/api/admin/scout-prospects/$id': typeof ApiAdminScoutProspectsIdRoute
+  '/api/admin/team/$id': typeof ApiAdminTeamIdRoute
+  '/api/admin/team/reorder': typeof ApiAdminTeamReorderRoute
+  '/api/admin/testimonials/$id': typeof ApiAdminTestimonialsIdRoute
+  '/api/admin/testimonials/reorder': typeof ApiAdminTestimonialsReorderRoute
+  '/api/expert/portfolio/$id': typeof ApiExpertPortfolioIdRoute
+  '/api/expert/reviews/$id': typeof ApiExpertReviewsIdRoute
+  '/api/expert/testimonials/$id': typeof ApiExpertTestimonialsIdRoute
+  '/api/payments/flutterwave/webhook': typeof ApiPaymentsFlutterwaveWebhookRoute
+  '/api/payments/nowpayments/ipn': typeof ApiPaymentsNowpaymentsIpnRoute
+  '/api/payments/paystack/webhook': typeof ApiPaymentsPaystackWebhookRoute
+  '/api/admin/author-audits/$id/bulk-import': typeof ApiAdminAuthorAuditsIdBulkImportRoute
+  '/api/admin/author-audits/$id/comparables': typeof ApiAdminAuthorAuditsIdComparablesRouteWithChildren
+  '/api/admin/author-audits/$id/evidence-assets': typeof ApiAdminAuthorAuditsIdEvidenceAssetsRouteWithChildren
+  '/api/admin/author-audits/$id/publishing': typeof ApiAdminAuthorAuditsIdPublishingRoute
+  '/api/admin/author-audits/$id/quality-check': typeof ApiAdminAuthorAuditsIdQualityCheckRoute
+  '/api/admin/author-audits/$id/report': typeof ApiAdminAuthorAuditsIdReportRoute
+  '/api/admin/author-audits/$id/research': typeof ApiAdminAuthorAuditsIdResearchRoute
+  '/api/admin/author-audits/$id/synthesize': typeof ApiAdminAuthorAuditsIdSynthesizeRoute
+  '/api/admin/author-audits/$id/synthesize-plan': typeof ApiAdminAuthorAuditsIdSynthesizePlanRoute
+  '/api/admin/author-audits/$id/verifications': typeof ApiAdminAuthorAuditsIdVerificationsRoute
+  '/api/admin/author-audits/$id/workflow': typeof ApiAdminAuthorAuditsIdWorkflowRoute
+  '/api/admin/scout-authors/$id/confirm-contact': typeof ApiAdminScoutAuthorsIdConfirmContactRoute
+  '/api/admin/scout-authors/$id/find-contact': typeof ApiAdminScoutAuthorsIdFindContactRoute
+  '/api/admin/scout-authors/$id/research-website': typeof ApiAdminScoutAuthorsIdResearchWebsiteRoute
+  '/api/admin/scout-batches/$id/export': typeof ApiAdminScoutBatchesIdExportRoute
+  '/api/admin/scout-batches/$id/scout': typeof ApiAdminScoutBatchesIdScoutRoute
+  '/api/admin/author-audits/$id/comparables/$comparableId': typeof ApiAdminAuthorAuditsIdComparablesComparableIdRoute
+  '/api/admin/author-audits/$id/evidence-assets/$assetId': typeof ApiAdminAuthorAuditsIdEvidenceAssetsAssetIdRoute
+  '/api/admin/author-audits/$id/findings/$findingId': typeof ApiAdminAuthorAuditsIdFindingsFindingIdRoute
+  '/api/admin/author-audits/$id/moves/$moveId': typeof ApiAdminAuthorAuditsIdMovesMoveIdRoute
+  '/api/admin/author-audits/$id/reader-journey/$stepId': typeof ApiAdminAuthorAuditsIdReaderJourneyStepIdRoute
+  '/api/admin/author-audits/$id/roadmap/$itemId': typeof ApiAdminAuthorAuditsIdRoadmapItemIdRoute
+  '/api/admin/author-audits/$id/strengths/$strengthId': typeof ApiAdminAuthorAuditsIdStrengthsStrengthIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -441,11 +1707,17 @@ export interface FileRouteTypes {
     | '/about'
     | '/admin'
     | '/agencies'
+    | '/appointment-based-businesses'
     | '/authors'
     | '/book-launch'
+    | '/cleaning-businesses'
     | '/coaches'
     | '/contact'
     | '/creators'
+    | '/ecommerce'
+    | '/expert'
+    | '/expert-signup'
+    | '/expert-welcome'
     | '/faqs'
     | '/guarantee'
     | '/home-services'
@@ -453,6 +1725,7 @@ export interface FileRouteTypes {
     | '/industries'
     | '/law-firms'
     | '/local-business'
+    | '/local-businesses'
     | '/med-spas'
     | '/plumbers'
     | '/pricing'
@@ -462,38 +1735,172 @@ export interface FileRouteTypes {
     | '/results'
     | '/reviews'
     | '/roofers'
+    | '/scout'
+    | '/sitemap.xml'
+    | '/team'
     | '/terms'
+    | '/testimonials'
+    | '/ugc-creators'
+    | '/api/checkout'
+    | '/api/private-audit'
     | '/blog/$slug'
     | '/capabilities/$slug'
+    | '/experts/$slug'
     | '/insights/$slug'
+    | '/insights/glossary'
+    | '/pay/$token'
+    | '/quote/$token'
     | '/services/$slug'
+    | '/tools/$tool'
+    | '/tools/author-visibility-audit'
+    | '/tools/website-audit'
     | '/work/$slug'
+    | '/author-audit/'
     | '/blog/'
     | '/capabilities/'
+    | '/experts/'
     | '/insights/'
     | '/services/'
+    | '/tools/'
     | '/work/'
+    | '/api/admin/author-audit-leads'
+    | '/api/admin/author-audits'
+    | '/api/admin/case-studies'
+    | '/api/admin/expert-guests'
+    | '/api/admin/expert-portfolio'
+    | '/api/admin/expert-reviews'
+    | '/api/admin/expert-testimonials'
+    | '/api/admin/experts'
+    | '/api/admin/founder'
+    | '/api/admin/invoice-requests'
+    | '/api/admin/invoices'
+    | '/api/admin/leads'
+    | '/api/admin/notifications'
     | '/api/admin/portfolio'
+    | '/api/admin/quotes'
+    | '/api/admin/scout-amazon-search'
+    | '/api/admin/scout-arc-discovery'
+    | '/api/admin/scout-audience-batches'
+    | '/api/admin/scout-batches'
+    | '/api/admin/scout-books'
+    | '/api/admin/scout-discover-count'
+    | '/api/admin/scout-email-runs'
+    | '/api/admin/scout-export'
+    | '/api/admin/scout-identity'
+    | '/api/admin/scout-manual-ingest'
+    | '/api/admin/scout-prospects'
+    | '/api/admin/scout-readers-favorite'
+    | '/api/admin/scout-reedsy-genres'
+    | '/api/admin/scout-reedsy-search'
     | '/api/admin/session'
+    | '/api/admin/team'
+    | '/api/admin/testimonials'
     | '/api/admin/upload'
+    | '/api/admin/upload-url'
+    | '/api/admin/visitors'
+    | '/api/expert/invite'
+    | '/api/expert/invoice-requests'
+    | '/api/expert/leads'
+    | '/api/expert/notifications'
+    | '/api/expert/perplexity-settings'
+    | '/api/expert/photo-url'
+    | '/api/expert/portfolio'
+    | '/api/expert/profile'
+    | '/api/expert/profile-submit'
+    | '/api/expert/reviews'
+    | '/api/expert/session'
+    | '/api/expert/signup'
+    | '/api/expert/testimonials'
+    | '/api/expert/video-url'
+    | '/api/notifications/dispatch'
+    | '/api/pay/$token'
+    | '/api/public/author-audit'
+    | '/api/public/case-studies'
+    | '/api/public/expert-portfolio'
+    | '/api/public/expert-reviews'
+    | '/api/public/expert-testimonials'
+    | '/api/public/experts'
     | '/api/public/growth-audit'
     | '/api/public/inquiry'
     | '/api/public/newsletter'
     | '/api/public/portfolio'
+    | '/api/public/quote'
     | '/api/public/resource-request'
+    | '/api/public/team'
+    | '/api/public/testimonials'
+    | '/api/public/visit'
+    | '/api/public/voice-message'
+    | '/api/scout/verify-emails'
+    | '/author-audit/$author/$book'
+    | '/insights/answers/$slug'
+    | '/insights/guides/$slug'
+    | '/api/admin/author-audits/$id'
+    | '/api/admin/case-studies/$id'
+    | '/api/admin/case-studies/reorder'
+    | '/api/admin/expert-portfolio/$id'
+    | '/api/admin/expert-reviews/$id'
+    | '/api/admin/expert-testimonials/$id'
+    | '/api/admin/experts/$id'
+    | '/api/admin/invoice-requests/$id'
+    | '/api/admin/invoices/$id'
     | '/api/admin/portfolio/$id'
     | '/api/admin/portfolio/reorder'
+    | '/api/admin/quotes/$id'
+    | '/api/admin/scout-audience-batches/$id'
+    | '/api/admin/scout-audience-leads/$id'
+    | '/api/admin/scout-authors/$id'
+    | '/api/admin/scout-batches/$id'
+    | '/api/admin/scout-prospects/$id'
+    | '/api/admin/team/$id'
+    | '/api/admin/team/reorder'
+    | '/api/admin/testimonials/$id'
+    | '/api/admin/testimonials/reorder'
+    | '/api/expert/portfolio/$id'
+    | '/api/expert/reviews/$id'
+    | '/api/expert/testimonials/$id'
+    | '/api/payments/flutterwave/webhook'
+    | '/api/payments/nowpayments/ipn'
+    | '/api/payments/paystack/webhook'
+    | '/api/admin/author-audits/$id/bulk-import'
+    | '/api/admin/author-audits/$id/comparables'
+    | '/api/admin/author-audits/$id/evidence-assets'
+    | '/api/admin/author-audits/$id/publishing'
+    | '/api/admin/author-audits/$id/quality-check'
+    | '/api/admin/author-audits/$id/report'
+    | '/api/admin/author-audits/$id/research'
+    | '/api/admin/author-audits/$id/synthesize'
+    | '/api/admin/author-audits/$id/synthesize-plan'
+    | '/api/admin/author-audits/$id/verifications'
+    | '/api/admin/author-audits/$id/workflow'
+    | '/api/admin/scout-authors/$id/confirm-contact'
+    | '/api/admin/scout-authors/$id/find-contact'
+    | '/api/admin/scout-authors/$id/research-website'
+    | '/api/admin/scout-batches/$id/export'
+    | '/api/admin/scout-batches/$id/scout'
+    | '/api/admin/author-audits/$id/comparables/$comparableId'
+    | '/api/admin/author-audits/$id/evidence-assets/$assetId'
+    | '/api/admin/author-audits/$id/findings/$findingId'
+    | '/api/admin/author-audits/$id/moves/$moveId'
+    | '/api/admin/author-audits/$id/reader-journey/$stepId'
+    | '/api/admin/author-audits/$id/roadmap/$itemId'
+    | '/api/admin/author-audits/$id/strengths/$strengthId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/about'
     | '/admin'
     | '/agencies'
+    | '/appointment-based-businesses'
     | '/authors'
     | '/book-launch'
+    | '/cleaning-businesses'
     | '/coaches'
     | '/contact'
     | '/creators'
+    | '/ecommerce'
+    | '/expert'
+    | '/expert-signup'
+    | '/expert-welcome'
     | '/faqs'
     | '/guarantee'
     | '/home-services'
@@ -501,6 +1908,7 @@ export interface FileRouteTypes {
     | '/industries'
     | '/law-firms'
     | '/local-business'
+    | '/local-businesses'
     | '/med-spas'
     | '/plumbers'
     | '/pricing'
@@ -510,38 +1918,172 @@ export interface FileRouteTypes {
     | '/results'
     | '/reviews'
     | '/roofers'
+    | '/scout'
+    | '/sitemap.xml'
+    | '/team'
     | '/terms'
+    | '/testimonials'
+    | '/ugc-creators'
+    | '/api/checkout'
+    | '/api/private-audit'
     | '/blog/$slug'
     | '/capabilities/$slug'
+    | '/experts/$slug'
     | '/insights/$slug'
+    | '/insights/glossary'
+    | '/pay/$token'
+    | '/quote/$token'
     | '/services/$slug'
+    | '/tools/$tool'
+    | '/tools/author-visibility-audit'
+    | '/tools/website-audit'
     | '/work/$slug'
+    | '/author-audit'
     | '/blog'
     | '/capabilities'
+    | '/experts'
     | '/insights'
     | '/services'
+    | '/tools'
     | '/work'
+    | '/api/admin/author-audit-leads'
+    | '/api/admin/author-audits'
+    | '/api/admin/case-studies'
+    | '/api/admin/expert-guests'
+    | '/api/admin/expert-portfolio'
+    | '/api/admin/expert-reviews'
+    | '/api/admin/expert-testimonials'
+    | '/api/admin/experts'
+    | '/api/admin/founder'
+    | '/api/admin/invoice-requests'
+    | '/api/admin/invoices'
+    | '/api/admin/leads'
+    | '/api/admin/notifications'
     | '/api/admin/portfolio'
+    | '/api/admin/quotes'
+    | '/api/admin/scout-amazon-search'
+    | '/api/admin/scout-arc-discovery'
+    | '/api/admin/scout-audience-batches'
+    | '/api/admin/scout-batches'
+    | '/api/admin/scout-books'
+    | '/api/admin/scout-discover-count'
+    | '/api/admin/scout-email-runs'
+    | '/api/admin/scout-export'
+    | '/api/admin/scout-identity'
+    | '/api/admin/scout-manual-ingest'
+    | '/api/admin/scout-prospects'
+    | '/api/admin/scout-readers-favorite'
+    | '/api/admin/scout-reedsy-genres'
+    | '/api/admin/scout-reedsy-search'
     | '/api/admin/session'
+    | '/api/admin/team'
+    | '/api/admin/testimonials'
     | '/api/admin/upload'
+    | '/api/admin/upload-url'
+    | '/api/admin/visitors'
+    | '/api/expert/invite'
+    | '/api/expert/invoice-requests'
+    | '/api/expert/leads'
+    | '/api/expert/notifications'
+    | '/api/expert/perplexity-settings'
+    | '/api/expert/photo-url'
+    | '/api/expert/portfolio'
+    | '/api/expert/profile'
+    | '/api/expert/profile-submit'
+    | '/api/expert/reviews'
+    | '/api/expert/session'
+    | '/api/expert/signup'
+    | '/api/expert/testimonials'
+    | '/api/expert/video-url'
+    | '/api/notifications/dispatch'
+    | '/api/pay/$token'
+    | '/api/public/author-audit'
+    | '/api/public/case-studies'
+    | '/api/public/expert-portfolio'
+    | '/api/public/expert-reviews'
+    | '/api/public/expert-testimonials'
+    | '/api/public/experts'
     | '/api/public/growth-audit'
     | '/api/public/inquiry'
     | '/api/public/newsletter'
     | '/api/public/portfolio'
+    | '/api/public/quote'
     | '/api/public/resource-request'
+    | '/api/public/team'
+    | '/api/public/testimonials'
+    | '/api/public/visit'
+    | '/api/public/voice-message'
+    | '/api/scout/verify-emails'
+    | '/author-audit/$author/$book'
+    | '/insights/answers/$slug'
+    | '/insights/guides/$slug'
+    | '/api/admin/author-audits/$id'
+    | '/api/admin/case-studies/$id'
+    | '/api/admin/case-studies/reorder'
+    | '/api/admin/expert-portfolio/$id'
+    | '/api/admin/expert-reviews/$id'
+    | '/api/admin/expert-testimonials/$id'
+    | '/api/admin/experts/$id'
+    | '/api/admin/invoice-requests/$id'
+    | '/api/admin/invoices/$id'
     | '/api/admin/portfolio/$id'
     | '/api/admin/portfolio/reorder'
+    | '/api/admin/quotes/$id'
+    | '/api/admin/scout-audience-batches/$id'
+    | '/api/admin/scout-audience-leads/$id'
+    | '/api/admin/scout-authors/$id'
+    | '/api/admin/scout-batches/$id'
+    | '/api/admin/scout-prospects/$id'
+    | '/api/admin/team/$id'
+    | '/api/admin/team/reorder'
+    | '/api/admin/testimonials/$id'
+    | '/api/admin/testimonials/reorder'
+    | '/api/expert/portfolio/$id'
+    | '/api/expert/reviews/$id'
+    | '/api/expert/testimonials/$id'
+    | '/api/payments/flutterwave/webhook'
+    | '/api/payments/nowpayments/ipn'
+    | '/api/payments/paystack/webhook'
+    | '/api/admin/author-audits/$id/bulk-import'
+    | '/api/admin/author-audits/$id/comparables'
+    | '/api/admin/author-audits/$id/evidence-assets'
+    | '/api/admin/author-audits/$id/publishing'
+    | '/api/admin/author-audits/$id/quality-check'
+    | '/api/admin/author-audits/$id/report'
+    | '/api/admin/author-audits/$id/research'
+    | '/api/admin/author-audits/$id/synthesize'
+    | '/api/admin/author-audits/$id/synthesize-plan'
+    | '/api/admin/author-audits/$id/verifications'
+    | '/api/admin/author-audits/$id/workflow'
+    | '/api/admin/scout-authors/$id/confirm-contact'
+    | '/api/admin/scout-authors/$id/find-contact'
+    | '/api/admin/scout-authors/$id/research-website'
+    | '/api/admin/scout-batches/$id/export'
+    | '/api/admin/scout-batches/$id/scout'
+    | '/api/admin/author-audits/$id/comparables/$comparableId'
+    | '/api/admin/author-audits/$id/evidence-assets/$assetId'
+    | '/api/admin/author-audits/$id/findings/$findingId'
+    | '/api/admin/author-audits/$id/moves/$moveId'
+    | '/api/admin/author-audits/$id/reader-journey/$stepId'
+    | '/api/admin/author-audits/$id/roadmap/$itemId'
+    | '/api/admin/author-audits/$id/strengths/$strengthId'
   id:
     | '__root__'
     | '/'
     | '/about'
     | '/admin'
     | '/agencies'
+    | '/appointment-based-businesses'
     | '/authors'
     | '/book-launch'
+    | '/cleaning-businesses'
     | '/coaches'
     | '/contact'
     | '/creators'
+    | '/ecommerce'
+    | '/expert'
+    | '/expert-signup'
+    | '/expert-welcome'
     | '/faqs'
     | '/guarantee'
     | '/home-services'
@@ -549,6 +2091,7 @@ export interface FileRouteTypes {
     | '/industries'
     | '/law-firms'
     | '/local-business'
+    | '/local-businesses'
     | '/med-spas'
     | '/plumbers'
     | '/pricing'
@@ -558,27 +2101,155 @@ export interface FileRouteTypes {
     | '/results'
     | '/reviews'
     | '/roofers'
+    | '/scout'
+    | '/sitemap.xml'
+    | '/team'
     | '/terms'
+    | '/testimonials'
+    | '/ugc-creators'
+    | '/api/checkout'
+    | '/api/private-audit'
     | '/blog/$slug'
     | '/capabilities/$slug'
+    | '/experts/$slug'
     | '/insights/$slug'
+    | '/insights/glossary'
+    | '/pay/$token'
+    | '/quote/$token'
     | '/services/$slug'
+    | '/tools/$tool'
+    | '/tools/author-visibility-audit'
+    | '/tools/website-audit'
     | '/work/$slug'
+    | '/author-audit/'
     | '/blog/'
     | '/capabilities/'
+    | '/experts/'
     | '/insights/'
     | '/services/'
+    | '/tools/'
     | '/work/'
+    | '/api/admin/author-audit-leads'
+    | '/api/admin/author-audits'
+    | '/api/admin/case-studies'
+    | '/api/admin/expert-guests'
+    | '/api/admin/expert-portfolio'
+    | '/api/admin/expert-reviews'
+    | '/api/admin/expert-testimonials'
+    | '/api/admin/experts'
+    | '/api/admin/founder'
+    | '/api/admin/invoice-requests'
+    | '/api/admin/invoices'
+    | '/api/admin/leads'
+    | '/api/admin/notifications'
     | '/api/admin/portfolio'
+    | '/api/admin/quotes'
+    | '/api/admin/scout-amazon-search'
+    | '/api/admin/scout-arc-discovery'
+    | '/api/admin/scout-audience-batches'
+    | '/api/admin/scout-batches'
+    | '/api/admin/scout-books'
+    | '/api/admin/scout-discover-count'
+    | '/api/admin/scout-email-runs'
+    | '/api/admin/scout-export'
+    | '/api/admin/scout-identity'
+    | '/api/admin/scout-manual-ingest'
+    | '/api/admin/scout-prospects'
+    | '/api/admin/scout-readers-favorite'
+    | '/api/admin/scout-reedsy-genres'
+    | '/api/admin/scout-reedsy-search'
     | '/api/admin/session'
+    | '/api/admin/team'
+    | '/api/admin/testimonials'
     | '/api/admin/upload'
+    | '/api/admin/upload-url'
+    | '/api/admin/visitors'
+    | '/api/expert/invite'
+    | '/api/expert/invoice-requests'
+    | '/api/expert/leads'
+    | '/api/expert/notifications'
+    | '/api/expert/perplexity-settings'
+    | '/api/expert/photo-url'
+    | '/api/expert/portfolio'
+    | '/api/expert/profile'
+    | '/api/expert/profile-submit'
+    | '/api/expert/reviews'
+    | '/api/expert/session'
+    | '/api/expert/signup'
+    | '/api/expert/testimonials'
+    | '/api/expert/video-url'
+    | '/api/notifications/dispatch'
+    | '/api/pay/$token'
+    | '/api/public/author-audit'
+    | '/api/public/case-studies'
+    | '/api/public/expert-portfolio'
+    | '/api/public/expert-reviews'
+    | '/api/public/expert-testimonials'
+    | '/api/public/experts'
     | '/api/public/growth-audit'
     | '/api/public/inquiry'
     | '/api/public/newsletter'
     | '/api/public/portfolio'
+    | '/api/public/quote'
     | '/api/public/resource-request'
+    | '/api/public/team'
+    | '/api/public/testimonials'
+    | '/api/public/visit'
+    | '/api/public/voice-message'
+    | '/api/scout/verify-emails'
+    | '/author-audit/$author/$book'
+    | '/insights/answers/$slug'
+    | '/insights/guides/$slug'
+    | '/api/admin/author-audits/$id'
+    | '/api/admin/case-studies/$id'
+    | '/api/admin/case-studies/reorder'
+    | '/api/admin/expert-portfolio/$id'
+    | '/api/admin/expert-reviews/$id'
+    | '/api/admin/expert-testimonials/$id'
+    | '/api/admin/experts/$id'
+    | '/api/admin/invoice-requests/$id'
+    | '/api/admin/invoices/$id'
     | '/api/admin/portfolio/$id'
     | '/api/admin/portfolio/reorder'
+    | '/api/admin/quotes/$id'
+    | '/api/admin/scout-audience-batches/$id'
+    | '/api/admin/scout-audience-leads/$id'
+    | '/api/admin/scout-authors/$id'
+    | '/api/admin/scout-batches/$id'
+    | '/api/admin/scout-prospects/$id'
+    | '/api/admin/team/$id'
+    | '/api/admin/team/reorder'
+    | '/api/admin/testimonials/$id'
+    | '/api/admin/testimonials/reorder'
+    | '/api/expert/portfolio/$id'
+    | '/api/expert/reviews/$id'
+    | '/api/expert/testimonials/$id'
+    | '/api/payments/flutterwave/webhook'
+    | '/api/payments/nowpayments/ipn'
+    | '/api/payments/paystack/webhook'
+    | '/api/admin/author-audits/$id/bulk-import'
+    | '/api/admin/author-audits/$id/comparables'
+    | '/api/admin/author-audits/$id/evidence-assets'
+    | '/api/admin/author-audits/$id/publishing'
+    | '/api/admin/author-audits/$id/quality-check'
+    | '/api/admin/author-audits/$id/report'
+    | '/api/admin/author-audits/$id/research'
+    | '/api/admin/author-audits/$id/synthesize'
+    | '/api/admin/author-audits/$id/synthesize-plan'
+    | '/api/admin/author-audits/$id/verifications'
+    | '/api/admin/author-audits/$id/workflow'
+    | '/api/admin/scout-authors/$id/confirm-contact'
+    | '/api/admin/scout-authors/$id/find-contact'
+    | '/api/admin/scout-authors/$id/research-website'
+    | '/api/admin/scout-batches/$id/export'
+    | '/api/admin/scout-batches/$id/scout'
+    | '/api/admin/author-audits/$id/comparables/$comparableId'
+    | '/api/admin/author-audits/$id/evidence-assets/$assetId'
+    | '/api/admin/author-audits/$id/findings/$findingId'
+    | '/api/admin/author-audits/$id/moves/$moveId'
+    | '/api/admin/author-audits/$id/reader-journey/$stepId'
+    | '/api/admin/author-audits/$id/roadmap/$itemId'
+    | '/api/admin/author-audits/$id/strengths/$strengthId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -586,11 +2257,17 @@ export interface RootRouteChildren {
   AboutRoute: typeof AboutRoute
   AdminRoute: typeof AdminRoute
   AgenciesRoute: typeof AgenciesRoute
+  AppointmentBasedBusinessesRoute: typeof AppointmentBasedBusinessesRoute
   AuthorsRoute: typeof AuthorsRoute
   BookLaunchRoute: typeof BookLaunchRoute
+  CleaningBusinessesRoute: typeof CleaningBusinessesRoute
   CoachesRoute: typeof CoachesRoute
   ContactRoute: typeof ContactRoute
   CreatorsRoute: typeof CreatorsRoute
+  EcommerceRoute: typeof EcommerceRoute
+  ExpertRoute: typeof ExpertRoute
+  ExpertSignupRoute: typeof ExpertSignupRoute
+  ExpertWelcomeRoute: typeof ExpertWelcomeRoute
   FaqsRoute: typeof FaqsRoute
   GuaranteeRoute: typeof GuaranteeRoute
   HomeServicesRoute: typeof HomeServicesRoute
@@ -598,6 +2275,7 @@ export interface RootRouteChildren {
   IndustriesRoute: typeof IndustriesRoute
   LawFirmsRoute: typeof LawFirmsRoute
   LocalBusinessRoute: typeof LocalBusinessRoute
+  LocalBusinessesRoute: typeof LocalBusinessesRoute
   MedSpasRoute: typeof MedSpasRoute
   PlumbersRoute: typeof PlumbersRoute
   PricingRoute: typeof PricingRoute
@@ -607,25 +2285,110 @@ export interface RootRouteChildren {
   ResultsRoute: typeof ResultsRoute
   ReviewsRoute: typeof ReviewsRoute
   RoofersRoute: typeof RoofersRoute
+  ScoutRoute: typeof ScoutRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  TeamRoute: typeof TeamRoute
   TermsRoute: typeof TermsRoute
+  TestimonialsRoute: typeof TestimonialsRoute
+  UgcCreatorsRoute: typeof UgcCreatorsRoute
+  ApiCheckoutRoute: typeof ApiCheckoutRoute
+  ApiPrivateAuditRoute: typeof ApiPrivateAuditRoute
   BlogSlugRoute: typeof BlogSlugRoute
   CapabilitiesSlugRoute: typeof CapabilitiesSlugRoute
+  ExpertsSlugRoute: typeof ExpertsSlugRoute
   InsightsSlugRoute: typeof InsightsSlugRoute
+  InsightsGlossaryRoute: typeof InsightsGlossaryRoute
+  PayTokenRoute: typeof PayTokenRoute
+  QuoteTokenRoute: typeof QuoteTokenRoute
   ServicesSlugRoute: typeof ServicesSlugRoute
+  ToolsToolRoute: typeof ToolsToolRoute
+  ToolsAuthorVisibilityAuditRoute: typeof ToolsAuthorVisibilityAuditRoute
+  ToolsWebsiteAuditRoute: typeof ToolsWebsiteAuditRoute
   WorkSlugRoute: typeof WorkSlugRoute
+  AuthorAuditIndexRoute: typeof AuthorAuditIndexRoute
   BlogIndexRoute: typeof BlogIndexRoute
   CapabilitiesIndexRoute: typeof CapabilitiesIndexRoute
+  ExpertsIndexRoute: typeof ExpertsIndexRoute
   InsightsIndexRoute: typeof InsightsIndexRoute
   ServicesIndexRoute: typeof ServicesIndexRoute
+  ToolsIndexRoute: typeof ToolsIndexRoute
   WorkIndexRoute: typeof WorkIndexRoute
+  ApiAdminAuthorAuditLeadsRoute: typeof ApiAdminAuthorAuditLeadsRoute
+  ApiAdminAuthorAuditsRoute: typeof ApiAdminAuthorAuditsRouteWithChildren
+  ApiAdminCaseStudiesRoute: typeof ApiAdminCaseStudiesRouteWithChildren
+  ApiAdminExpertGuestsRoute: typeof ApiAdminExpertGuestsRoute
+  ApiAdminExpertPortfolioRoute: typeof ApiAdminExpertPortfolioRouteWithChildren
+  ApiAdminExpertReviewsRoute: typeof ApiAdminExpertReviewsRouteWithChildren
+  ApiAdminExpertTestimonialsRoute: typeof ApiAdminExpertTestimonialsRouteWithChildren
+  ApiAdminExpertsRoute: typeof ApiAdminExpertsRouteWithChildren
+  ApiAdminFounderRoute: typeof ApiAdminFounderRoute
+  ApiAdminInvoiceRequestsRoute: typeof ApiAdminInvoiceRequestsRouteWithChildren
+  ApiAdminInvoicesRoute: typeof ApiAdminInvoicesRouteWithChildren
+  ApiAdminLeadsRoute: typeof ApiAdminLeadsRoute
+  ApiAdminNotificationsRoute: typeof ApiAdminNotificationsRoute
   ApiAdminPortfolioRoute: typeof ApiAdminPortfolioRouteWithChildren
+  ApiAdminQuotesRoute: typeof ApiAdminQuotesRouteWithChildren
+  ApiAdminScoutAmazonSearchRoute: typeof ApiAdminScoutAmazonSearchRoute
+  ApiAdminScoutArcDiscoveryRoute: typeof ApiAdminScoutArcDiscoveryRoute
+  ApiAdminScoutAudienceBatchesRoute: typeof ApiAdminScoutAudienceBatchesRouteWithChildren
+  ApiAdminScoutBatchesRoute: typeof ApiAdminScoutBatchesRouteWithChildren
+  ApiAdminScoutBooksRoute: typeof ApiAdminScoutBooksRoute
+  ApiAdminScoutDiscoverCountRoute: typeof ApiAdminScoutDiscoverCountRoute
+  ApiAdminScoutEmailRunsRoute: typeof ApiAdminScoutEmailRunsRoute
+  ApiAdminScoutExportRoute: typeof ApiAdminScoutExportRoute
+  ApiAdminScoutIdentityRoute: typeof ApiAdminScoutIdentityRoute
+  ApiAdminScoutManualIngestRoute: typeof ApiAdminScoutManualIngestRoute
+  ApiAdminScoutProspectsRoute: typeof ApiAdminScoutProspectsRouteWithChildren
+  ApiAdminScoutReadersFavoriteRoute: typeof ApiAdminScoutReadersFavoriteRoute
+  ApiAdminScoutReedsyGenresRoute: typeof ApiAdminScoutReedsyGenresRoute
+  ApiAdminScoutReedsySearchRoute: typeof ApiAdminScoutReedsySearchRoute
   ApiAdminSessionRoute: typeof ApiAdminSessionRoute
+  ApiAdminTeamRoute: typeof ApiAdminTeamRouteWithChildren
+  ApiAdminTestimonialsRoute: typeof ApiAdminTestimonialsRouteWithChildren
   ApiAdminUploadRoute: typeof ApiAdminUploadRoute
+  ApiAdminUploadUrlRoute: typeof ApiAdminUploadUrlRoute
+  ApiAdminVisitorsRoute: typeof ApiAdminVisitorsRoute
+  ApiExpertInviteRoute: typeof ApiExpertInviteRoute
+  ApiExpertInvoiceRequestsRoute: typeof ApiExpertInvoiceRequestsRoute
+  ApiExpertLeadsRoute: typeof ApiExpertLeadsRoute
+  ApiExpertNotificationsRoute: typeof ApiExpertNotificationsRoute
+  ApiExpertPerplexitySettingsRoute: typeof ApiExpertPerplexitySettingsRoute
+  ApiExpertPhotoUrlRoute: typeof ApiExpertPhotoUrlRoute
+  ApiExpertPortfolioRoute: typeof ApiExpertPortfolioRouteWithChildren
+  ApiExpertProfileRoute: typeof ApiExpertProfileRoute
+  ApiExpertProfileSubmitRoute: typeof ApiExpertProfileSubmitRoute
+  ApiExpertReviewsRoute: typeof ApiExpertReviewsRouteWithChildren
+  ApiExpertSessionRoute: typeof ApiExpertSessionRoute
+  ApiExpertSignupRoute: typeof ApiExpertSignupRoute
+  ApiExpertTestimonialsRoute: typeof ApiExpertTestimonialsRouteWithChildren
+  ApiExpertVideoUrlRoute: typeof ApiExpertVideoUrlRoute
+  ApiNotificationsDispatchRoute: typeof ApiNotificationsDispatchRoute
+  ApiPayTokenRoute: typeof ApiPayTokenRoute
+  ApiPublicAuthorAuditRoute: typeof ApiPublicAuthorAuditRoute
+  ApiPublicCaseStudiesRoute: typeof ApiPublicCaseStudiesRoute
+  ApiPublicExpertPortfolioRoute: typeof ApiPublicExpertPortfolioRoute
+  ApiPublicExpertReviewsRoute: typeof ApiPublicExpertReviewsRoute
+  ApiPublicExpertTestimonialsRoute: typeof ApiPublicExpertTestimonialsRoute
+  ApiPublicExpertsRoute: typeof ApiPublicExpertsRoute
   ApiPublicGrowthAuditRoute: typeof ApiPublicGrowthAuditRoute
   ApiPublicInquiryRoute: typeof ApiPublicInquiryRoute
   ApiPublicNewsletterRoute: typeof ApiPublicNewsletterRoute
   ApiPublicPortfolioRoute: typeof ApiPublicPortfolioRoute
+  ApiPublicQuoteRoute: typeof ApiPublicQuoteRoute
   ApiPublicResourceRequestRoute: typeof ApiPublicResourceRequestRoute
+  ApiPublicTeamRoute: typeof ApiPublicTeamRoute
+  ApiPublicTestimonialsRoute: typeof ApiPublicTestimonialsRoute
+  ApiPublicVisitRoute: typeof ApiPublicVisitRoute
+  ApiPublicVoiceMessageRoute: typeof ApiPublicVoiceMessageRoute
+  ApiScoutVerifyEmailsRoute: typeof ApiScoutVerifyEmailsRoute
+  AuthorAuditAuthorBookRoute: typeof AuthorAuditAuthorBookRoute
+  InsightsAnswersSlugRoute: typeof InsightsAnswersSlugRoute
+  InsightsGuidesSlugRoute: typeof InsightsGuidesSlugRoute
+  ApiAdminScoutAudienceLeadsIdRoute: typeof ApiAdminScoutAudienceLeadsIdRoute
+  ApiAdminScoutAuthorsIdRoute: typeof ApiAdminScoutAuthorsIdRouteWithChildren
+  ApiPaymentsFlutterwaveWebhookRoute: typeof ApiPaymentsFlutterwaveWebhookRoute
+  ApiPaymentsNowpaymentsIpnRoute: typeof ApiPaymentsNowpaymentsIpnRoute
+  ApiPaymentsPaystackWebhookRoute: typeof ApiPaymentsPaystackWebhookRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -658,6 +2421,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AgenciesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/appointment-based-businesses': {
+      id: '/appointment-based-businesses'
+      path: '/appointment-based-businesses'
+      fullPath: '/appointment-based-businesses'
+      preLoaderRoute: typeof AppointmentBasedBusinessesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/authors': {
       id: '/authors'
       path: '/authors'
@@ -670,6 +2440,13 @@ declare module '@tanstack/react-router' {
       path: '/book-launch'
       fullPath: '/book-launch'
       preLoaderRoute: typeof BookLaunchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cleaning-businesses': {
+      id: '/cleaning-businesses'
+      path: '/cleaning-businesses'
+      fullPath: '/cleaning-businesses'
+      preLoaderRoute: typeof CleaningBusinessesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/coaches': {
@@ -691,6 +2468,34 @@ declare module '@tanstack/react-router' {
       path: '/creators'
       fullPath: '/creators'
       preLoaderRoute: typeof CreatorsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ecommerce': {
+      id: '/ecommerce'
+      path: '/ecommerce'
+      fullPath: '/ecommerce'
+      preLoaderRoute: typeof EcommerceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/expert': {
+      id: '/expert'
+      path: '/expert'
+      fullPath: '/expert'
+      preLoaderRoute: typeof ExpertRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/expert-signup': {
+      id: '/expert-signup'
+      path: '/expert-signup'
+      fullPath: '/expert-signup'
+      preLoaderRoute: typeof ExpertSignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/expert-welcome': {
+      id: '/expert-welcome'
+      path: '/expert-welcome'
+      fullPath: '/expert-welcome'
+      preLoaderRoute: typeof ExpertWelcomeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/faqs': {
@@ -740,6 +2545,13 @@ declare module '@tanstack/react-router' {
       path: '/local-business'
       fullPath: '/local-business'
       preLoaderRoute: typeof LocalBusinessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/local-businesses': {
+      id: '/local-businesses'
+      path: '/local-businesses'
+      fullPath: '/local-businesses'
+      preLoaderRoute: typeof LocalBusinessesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/med-spas': {
@@ -805,11 +2617,67 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RoofersRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/scout': {
+      id: '/scout'
+      path: '/scout'
+      fullPath: '/scout'
+      preLoaderRoute: typeof ScoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/team': {
+      id: '/team'
+      path: '/team'
+      fullPath: '/team'
+      preLoaderRoute: typeof TeamRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/terms': {
       id: '/terms'
       path: '/terms'
       fullPath: '/terms'
       preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/testimonials': {
+      id: '/testimonials'
+      path: '/testimonials'
+      fullPath: '/testimonials'
+      preLoaderRoute: typeof TestimonialsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ugc-creators': {
+      id: '/ugc-creators'
+      path: '/ugc-creators'
+      fullPath: '/ugc-creators'
+      preLoaderRoute: typeof UgcCreatorsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/checkout': {
+      id: '/api/checkout'
+      path: '/api/checkout'
+      fullPath: '/api/checkout'
+      preLoaderRoute: typeof ApiCheckoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/private-audit': {
+      id: '/api/private-audit'
+      path: '/api/private-audit'
+      fullPath: '/api/private-audit'
+      preLoaderRoute: typeof ApiPrivateAuditRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/author-audit/': {
+      id: '/author-audit/'
+      path: '/author-audit'
+      fullPath: '/author-audit/'
+      preLoaderRoute: typeof AuthorAuditIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/blog/': {
@@ -840,6 +2708,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CapabilitiesSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/experts/': {
+      id: '/experts/'
+      path: '/experts'
+      fullPath: '/experts/'
+      preLoaderRoute: typeof ExpertsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/experts/$slug': {
+      id: '/experts/$slug'
+      path: '/experts/$slug'
+      fullPath: '/experts/$slug'
+      preLoaderRoute: typeof ExpertsSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/insights/': {
       id: '/insights/'
       path: '/insights'
@@ -852,6 +2734,27 @@ declare module '@tanstack/react-router' {
       path: '/insights/$slug'
       fullPath: '/insights/$slug'
       preLoaderRoute: typeof InsightsSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/insights/glossary': {
+      id: '/insights/glossary'
+      path: '/insights/glossary'
+      fullPath: '/insights/glossary'
+      preLoaderRoute: typeof InsightsGlossaryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pay/$token': {
+      id: '/pay/$token'
+      path: '/pay/$token'
+      fullPath: '/pay/$token'
+      preLoaderRoute: typeof PayTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/quote/$token': {
+      id: '/quote/$token'
+      path: '/quote/$token'
+      fullPath: '/quote/$token'
+      preLoaderRoute: typeof QuoteTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/services/': {
@@ -868,6 +2771,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ServicesSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/tools/': {
+      id: '/tools/'
+      path: '/tools'
+      fullPath: '/tools/'
+      preLoaderRoute: typeof ToolsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tools/$tool': {
+      id: '/tools/$tool'
+      path: '/tools/$tool'
+      fullPath: '/tools/$tool'
+      preLoaderRoute: typeof ToolsToolRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tools/author-visibility-audit': {
+      id: '/tools/author-visibility-audit'
+      path: '/tools/author-visibility-audit'
+      fullPath: '/tools/author-visibility-audit'
+      preLoaderRoute: typeof ToolsAuthorVisibilityAuditRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tools/website-audit': {
+      id: '/tools/website-audit'
+      path: '/tools/website-audit'
+      fullPath: '/tools/website-audit'
+      preLoaderRoute: typeof ToolsWebsiteAuditRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/work/': {
       id: '/work/'
       path: '/work'
@@ -882,11 +2813,207 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WorkSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/admin/author-audit-leads': {
+      id: '/api/admin/author-audit-leads'
+      path: '/api/admin/author-audit-leads'
+      fullPath: '/api/admin/author-audit-leads'
+      preLoaderRoute: typeof ApiAdminAuthorAuditLeadsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/author-audits': {
+      id: '/api/admin/author-audits'
+      path: '/api/admin/author-audits'
+      fullPath: '/api/admin/author-audits'
+      preLoaderRoute: typeof ApiAdminAuthorAuditsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/case-studies': {
+      id: '/api/admin/case-studies'
+      path: '/api/admin/case-studies'
+      fullPath: '/api/admin/case-studies'
+      preLoaderRoute: typeof ApiAdminCaseStudiesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/expert-guests': {
+      id: '/api/admin/expert-guests'
+      path: '/api/admin/expert-guests'
+      fullPath: '/api/admin/expert-guests'
+      preLoaderRoute: typeof ApiAdminExpertGuestsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/expert-portfolio': {
+      id: '/api/admin/expert-portfolio'
+      path: '/api/admin/expert-portfolio'
+      fullPath: '/api/admin/expert-portfolio'
+      preLoaderRoute: typeof ApiAdminExpertPortfolioRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/expert-reviews': {
+      id: '/api/admin/expert-reviews'
+      path: '/api/admin/expert-reviews'
+      fullPath: '/api/admin/expert-reviews'
+      preLoaderRoute: typeof ApiAdminExpertReviewsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/expert-testimonials': {
+      id: '/api/admin/expert-testimonials'
+      path: '/api/admin/expert-testimonials'
+      fullPath: '/api/admin/expert-testimonials'
+      preLoaderRoute: typeof ApiAdminExpertTestimonialsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/experts': {
+      id: '/api/admin/experts'
+      path: '/api/admin/experts'
+      fullPath: '/api/admin/experts'
+      preLoaderRoute: typeof ApiAdminExpertsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/founder': {
+      id: '/api/admin/founder'
+      path: '/api/admin/founder'
+      fullPath: '/api/admin/founder'
+      preLoaderRoute: typeof ApiAdminFounderRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/invoice-requests': {
+      id: '/api/admin/invoice-requests'
+      path: '/api/admin/invoice-requests'
+      fullPath: '/api/admin/invoice-requests'
+      preLoaderRoute: typeof ApiAdminInvoiceRequestsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/invoices': {
+      id: '/api/admin/invoices'
+      path: '/api/admin/invoices'
+      fullPath: '/api/admin/invoices'
+      preLoaderRoute: typeof ApiAdminInvoicesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/leads': {
+      id: '/api/admin/leads'
+      path: '/api/admin/leads'
+      fullPath: '/api/admin/leads'
+      preLoaderRoute: typeof ApiAdminLeadsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/notifications': {
+      id: '/api/admin/notifications'
+      path: '/api/admin/notifications'
+      fullPath: '/api/admin/notifications'
+      preLoaderRoute: typeof ApiAdminNotificationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/admin/portfolio': {
       id: '/api/admin/portfolio'
       path: '/api/admin/portfolio'
       fullPath: '/api/admin/portfolio'
       preLoaderRoute: typeof ApiAdminPortfolioRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/quotes': {
+      id: '/api/admin/quotes'
+      path: '/api/admin/quotes'
+      fullPath: '/api/admin/quotes'
+      preLoaderRoute: typeof ApiAdminQuotesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/scout-amazon-search': {
+      id: '/api/admin/scout-amazon-search'
+      path: '/api/admin/scout-amazon-search'
+      fullPath: '/api/admin/scout-amazon-search'
+      preLoaderRoute: typeof ApiAdminScoutAmazonSearchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/scout-arc-discovery': {
+      id: '/api/admin/scout-arc-discovery'
+      path: '/api/admin/scout-arc-discovery'
+      fullPath: '/api/admin/scout-arc-discovery'
+      preLoaderRoute: typeof ApiAdminScoutArcDiscoveryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/scout-audience-batches': {
+      id: '/api/admin/scout-audience-batches'
+      path: '/api/admin/scout-audience-batches'
+      fullPath: '/api/admin/scout-audience-batches'
+      preLoaderRoute: typeof ApiAdminScoutAudienceBatchesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/scout-batches': {
+      id: '/api/admin/scout-batches'
+      path: '/api/admin/scout-batches'
+      fullPath: '/api/admin/scout-batches'
+      preLoaderRoute: typeof ApiAdminScoutBatchesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/scout-books': {
+      id: '/api/admin/scout-books'
+      path: '/api/admin/scout-books'
+      fullPath: '/api/admin/scout-books'
+      preLoaderRoute: typeof ApiAdminScoutBooksRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/scout-discover-count': {
+      id: '/api/admin/scout-discover-count'
+      path: '/api/admin/scout-discover-count'
+      fullPath: '/api/admin/scout-discover-count'
+      preLoaderRoute: typeof ApiAdminScoutDiscoverCountRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/scout-email-runs': {
+      id: '/api/admin/scout-email-runs'
+      path: '/api/admin/scout-email-runs'
+      fullPath: '/api/admin/scout-email-runs'
+      preLoaderRoute: typeof ApiAdminScoutEmailRunsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/scout-export': {
+      id: '/api/admin/scout-export'
+      path: '/api/admin/scout-export'
+      fullPath: '/api/admin/scout-export'
+      preLoaderRoute: typeof ApiAdminScoutExportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/scout-identity': {
+      id: '/api/admin/scout-identity'
+      path: '/api/admin/scout-identity'
+      fullPath: '/api/admin/scout-identity'
+      preLoaderRoute: typeof ApiAdminScoutIdentityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/scout-manual-ingest': {
+      id: '/api/admin/scout-manual-ingest'
+      path: '/api/admin/scout-manual-ingest'
+      fullPath: '/api/admin/scout-manual-ingest'
+      preLoaderRoute: typeof ApiAdminScoutManualIngestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/scout-prospects': {
+      id: '/api/admin/scout-prospects'
+      path: '/api/admin/scout-prospects'
+      fullPath: '/api/admin/scout-prospects'
+      preLoaderRoute: typeof ApiAdminScoutProspectsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/scout-readers-favorite': {
+      id: '/api/admin/scout-readers-favorite'
+      path: '/api/admin/scout-readers-favorite'
+      fullPath: '/api/admin/scout-readers-favorite'
+      preLoaderRoute: typeof ApiAdminScoutReadersFavoriteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/scout-reedsy-genres': {
+      id: '/api/admin/scout-reedsy-genres'
+      path: '/api/admin/scout-reedsy-genres'
+      fullPath: '/api/admin/scout-reedsy-genres'
+      preLoaderRoute: typeof ApiAdminScoutReedsyGenresRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/scout-reedsy-search': {
+      id: '/api/admin/scout-reedsy-search'
+      path: '/api/admin/scout-reedsy-search'
+      fullPath: '/api/admin/scout-reedsy-search'
+      preLoaderRoute: typeof ApiAdminScoutReedsySearchRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/admin/session': {
@@ -896,11 +3023,193 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAdminSessionRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/admin/team': {
+      id: '/api/admin/team'
+      path: '/api/admin/team'
+      fullPath: '/api/admin/team'
+      preLoaderRoute: typeof ApiAdminTeamRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/testimonials': {
+      id: '/api/admin/testimonials'
+      path: '/api/admin/testimonials'
+      fullPath: '/api/admin/testimonials'
+      preLoaderRoute: typeof ApiAdminTestimonialsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/admin/upload': {
       id: '/api/admin/upload'
       path: '/api/admin/upload'
       fullPath: '/api/admin/upload'
       preLoaderRoute: typeof ApiAdminUploadRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/upload-url': {
+      id: '/api/admin/upload-url'
+      path: '/api/admin/upload-url'
+      fullPath: '/api/admin/upload-url'
+      preLoaderRoute: typeof ApiAdminUploadUrlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/visitors': {
+      id: '/api/admin/visitors'
+      path: '/api/admin/visitors'
+      fullPath: '/api/admin/visitors'
+      preLoaderRoute: typeof ApiAdminVisitorsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/expert/invite': {
+      id: '/api/expert/invite'
+      path: '/api/expert/invite'
+      fullPath: '/api/expert/invite'
+      preLoaderRoute: typeof ApiExpertInviteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/expert/invoice-requests': {
+      id: '/api/expert/invoice-requests'
+      path: '/api/expert/invoice-requests'
+      fullPath: '/api/expert/invoice-requests'
+      preLoaderRoute: typeof ApiExpertInvoiceRequestsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/expert/leads': {
+      id: '/api/expert/leads'
+      path: '/api/expert/leads'
+      fullPath: '/api/expert/leads'
+      preLoaderRoute: typeof ApiExpertLeadsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/expert/notifications': {
+      id: '/api/expert/notifications'
+      path: '/api/expert/notifications'
+      fullPath: '/api/expert/notifications'
+      preLoaderRoute: typeof ApiExpertNotificationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/expert/perplexity-settings': {
+      id: '/api/expert/perplexity-settings'
+      path: '/api/expert/perplexity-settings'
+      fullPath: '/api/expert/perplexity-settings'
+      preLoaderRoute: typeof ApiExpertPerplexitySettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/expert/photo-url': {
+      id: '/api/expert/photo-url'
+      path: '/api/expert/photo-url'
+      fullPath: '/api/expert/photo-url'
+      preLoaderRoute: typeof ApiExpertPhotoUrlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/expert/portfolio': {
+      id: '/api/expert/portfolio'
+      path: '/api/expert/portfolio'
+      fullPath: '/api/expert/portfolio'
+      preLoaderRoute: typeof ApiExpertPortfolioRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/expert/profile': {
+      id: '/api/expert/profile'
+      path: '/api/expert/profile'
+      fullPath: '/api/expert/profile'
+      preLoaderRoute: typeof ApiExpertProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/expert/profile-submit': {
+      id: '/api/expert/profile-submit'
+      path: '/api/expert/profile-submit'
+      fullPath: '/api/expert/profile-submit'
+      preLoaderRoute: typeof ApiExpertProfileSubmitRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/expert/reviews': {
+      id: '/api/expert/reviews'
+      path: '/api/expert/reviews'
+      fullPath: '/api/expert/reviews'
+      preLoaderRoute: typeof ApiExpertReviewsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/expert/session': {
+      id: '/api/expert/session'
+      path: '/api/expert/session'
+      fullPath: '/api/expert/session'
+      preLoaderRoute: typeof ApiExpertSessionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/expert/signup': {
+      id: '/api/expert/signup'
+      path: '/api/expert/signup'
+      fullPath: '/api/expert/signup'
+      preLoaderRoute: typeof ApiExpertSignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/expert/testimonials': {
+      id: '/api/expert/testimonials'
+      path: '/api/expert/testimonials'
+      fullPath: '/api/expert/testimonials'
+      preLoaderRoute: typeof ApiExpertTestimonialsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/expert/video-url': {
+      id: '/api/expert/video-url'
+      path: '/api/expert/video-url'
+      fullPath: '/api/expert/video-url'
+      preLoaderRoute: typeof ApiExpertVideoUrlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/notifications/dispatch': {
+      id: '/api/notifications/dispatch'
+      path: '/api/notifications/dispatch'
+      fullPath: '/api/notifications/dispatch'
+      preLoaderRoute: typeof ApiNotificationsDispatchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/pay/$token': {
+      id: '/api/pay/$token'
+      path: '/api/pay/$token'
+      fullPath: '/api/pay/$token'
+      preLoaderRoute: typeof ApiPayTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/author-audit': {
+      id: '/api/public/author-audit'
+      path: '/api/public/author-audit'
+      fullPath: '/api/public/author-audit'
+      preLoaderRoute: typeof ApiPublicAuthorAuditRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/case-studies': {
+      id: '/api/public/case-studies'
+      path: '/api/public/case-studies'
+      fullPath: '/api/public/case-studies'
+      preLoaderRoute: typeof ApiPublicCaseStudiesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/expert-portfolio': {
+      id: '/api/public/expert-portfolio'
+      path: '/api/public/expert-portfolio'
+      fullPath: '/api/public/expert-portfolio'
+      preLoaderRoute: typeof ApiPublicExpertPortfolioRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/expert-reviews': {
+      id: '/api/public/expert-reviews'
+      path: '/api/public/expert-reviews'
+      fullPath: '/api/public/expert-reviews'
+      preLoaderRoute: typeof ApiPublicExpertReviewsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/expert-testimonials': {
+      id: '/api/public/expert-testimonials'
+      path: '/api/public/expert-testimonials'
+      fullPath: '/api/public/expert-testimonials'
+      preLoaderRoute: typeof ApiPublicExpertTestimonialsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/experts': {
+      id: '/api/public/experts'
+      path: '/api/public/experts'
+      fullPath: '/api/public/experts'
+      preLoaderRoute: typeof ApiPublicExpertsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/growth-audit': {
@@ -931,12 +3240,138 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicPortfolioRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/quote': {
+      id: '/api/public/quote'
+      path: '/api/public/quote'
+      fullPath: '/api/public/quote'
+      preLoaderRoute: typeof ApiPublicQuoteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/resource-request': {
       id: '/api/public/resource-request'
       path: '/api/public/resource-request'
       fullPath: '/api/public/resource-request'
       preLoaderRoute: typeof ApiPublicResourceRequestRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/api/public/team': {
+      id: '/api/public/team'
+      path: '/api/public/team'
+      fullPath: '/api/public/team'
+      preLoaderRoute: typeof ApiPublicTeamRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/testimonials': {
+      id: '/api/public/testimonials'
+      path: '/api/public/testimonials'
+      fullPath: '/api/public/testimonials'
+      preLoaderRoute: typeof ApiPublicTestimonialsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/visit': {
+      id: '/api/public/visit'
+      path: '/api/public/visit'
+      fullPath: '/api/public/visit'
+      preLoaderRoute: typeof ApiPublicVisitRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/voice-message': {
+      id: '/api/public/voice-message'
+      path: '/api/public/voice-message'
+      fullPath: '/api/public/voice-message'
+      preLoaderRoute: typeof ApiPublicVoiceMessageRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/scout/verify-emails': {
+      id: '/api/scout/verify-emails'
+      path: '/api/scout/verify-emails'
+      fullPath: '/api/scout/verify-emails'
+      preLoaderRoute: typeof ApiScoutVerifyEmailsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/author-audit/$author/$book': {
+      id: '/author-audit/$author/$book'
+      path: '/author-audit/$author/$book'
+      fullPath: '/author-audit/$author/$book'
+      preLoaderRoute: typeof AuthorAuditAuthorBookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/insights/answers/$slug': {
+      id: '/insights/answers/$slug'
+      path: '/insights/answers/$slug'
+      fullPath: '/insights/answers/$slug'
+      preLoaderRoute: typeof InsightsAnswersSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/insights/guides/$slug': {
+      id: '/insights/guides/$slug'
+      path: '/insights/guides/$slug'
+      fullPath: '/insights/guides/$slug'
+      preLoaderRoute: typeof InsightsGuidesSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/author-audits/$id': {
+      id: '/api/admin/author-audits/$id'
+      path: '/$id'
+      fullPath: '/api/admin/author-audits/$id'
+      preLoaderRoute: typeof ApiAdminAuthorAuditsIdRouteImport
+      parentRoute: typeof ApiAdminAuthorAuditsRoute
+    }
+    '/api/admin/case-studies/$id': {
+      id: '/api/admin/case-studies/$id'
+      path: '/$id'
+      fullPath: '/api/admin/case-studies/$id'
+      preLoaderRoute: typeof ApiAdminCaseStudiesIdRouteImport
+      parentRoute: typeof ApiAdminCaseStudiesRoute
+    }
+    '/api/admin/case-studies/reorder': {
+      id: '/api/admin/case-studies/reorder'
+      path: '/reorder'
+      fullPath: '/api/admin/case-studies/reorder'
+      preLoaderRoute: typeof ApiAdminCaseStudiesReorderRouteImport
+      parentRoute: typeof ApiAdminCaseStudiesRoute
+    }
+    '/api/admin/expert-portfolio/$id': {
+      id: '/api/admin/expert-portfolio/$id'
+      path: '/$id'
+      fullPath: '/api/admin/expert-portfolio/$id'
+      preLoaderRoute: typeof ApiAdminExpertPortfolioIdRouteImport
+      parentRoute: typeof ApiAdminExpertPortfolioRoute
+    }
+    '/api/admin/expert-reviews/$id': {
+      id: '/api/admin/expert-reviews/$id'
+      path: '/$id'
+      fullPath: '/api/admin/expert-reviews/$id'
+      preLoaderRoute: typeof ApiAdminExpertReviewsIdRouteImport
+      parentRoute: typeof ApiAdminExpertReviewsRoute
+    }
+    '/api/admin/expert-testimonials/$id': {
+      id: '/api/admin/expert-testimonials/$id'
+      path: '/$id'
+      fullPath: '/api/admin/expert-testimonials/$id'
+      preLoaderRoute: typeof ApiAdminExpertTestimonialsIdRouteImport
+      parentRoute: typeof ApiAdminExpertTestimonialsRoute
+    }
+    '/api/admin/experts/$id': {
+      id: '/api/admin/experts/$id'
+      path: '/$id'
+      fullPath: '/api/admin/experts/$id'
+      preLoaderRoute: typeof ApiAdminExpertsIdRouteImport
+      parentRoute: typeof ApiAdminExpertsRoute
+    }
+    '/api/admin/invoice-requests/$id': {
+      id: '/api/admin/invoice-requests/$id'
+      path: '/$id'
+      fullPath: '/api/admin/invoice-requests/$id'
+      preLoaderRoute: typeof ApiAdminInvoiceRequestsIdRouteImport
+      parentRoute: typeof ApiAdminInvoiceRequestsRoute
+    }
+    '/api/admin/invoices/$id': {
+      id: '/api/admin/invoices/$id'
+      path: '/$id'
+      fullPath: '/api/admin/invoices/$id'
+      preLoaderRoute: typeof ApiAdminInvoicesIdRouteImport
+      parentRoute: typeof ApiAdminInvoicesRoute
     }
     '/api/admin/portfolio/$id': {
       id: '/api/admin/portfolio/$id'
@@ -952,8 +3387,470 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAdminPortfolioReorderRouteImport
       parentRoute: typeof ApiAdminPortfolioRoute
     }
+    '/api/admin/quotes/$id': {
+      id: '/api/admin/quotes/$id'
+      path: '/$id'
+      fullPath: '/api/admin/quotes/$id'
+      preLoaderRoute: typeof ApiAdminQuotesIdRouteImport
+      parentRoute: typeof ApiAdminQuotesRoute
+    }
+    '/api/admin/scout-audience-batches/$id': {
+      id: '/api/admin/scout-audience-batches/$id'
+      path: '/$id'
+      fullPath: '/api/admin/scout-audience-batches/$id'
+      preLoaderRoute: typeof ApiAdminScoutAudienceBatchesIdRouteImport
+      parentRoute: typeof ApiAdminScoutAudienceBatchesRoute
+    }
+    '/api/admin/scout-audience-leads/$id': {
+      id: '/api/admin/scout-audience-leads/$id'
+      path: '/api/admin/scout-audience-leads/$id'
+      fullPath: '/api/admin/scout-audience-leads/$id'
+      preLoaderRoute: typeof ApiAdminScoutAudienceLeadsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/scout-authors/$id': {
+      id: '/api/admin/scout-authors/$id'
+      path: '/api/admin/scout-authors/$id'
+      fullPath: '/api/admin/scout-authors/$id'
+      preLoaderRoute: typeof ApiAdminScoutAuthorsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/scout-batches/$id': {
+      id: '/api/admin/scout-batches/$id'
+      path: '/$id'
+      fullPath: '/api/admin/scout-batches/$id'
+      preLoaderRoute: typeof ApiAdminScoutBatchesIdRouteImport
+      parentRoute: typeof ApiAdminScoutBatchesRoute
+    }
+    '/api/admin/scout-prospects/$id': {
+      id: '/api/admin/scout-prospects/$id'
+      path: '/$id'
+      fullPath: '/api/admin/scout-prospects/$id'
+      preLoaderRoute: typeof ApiAdminScoutProspectsIdRouteImport
+      parentRoute: typeof ApiAdminScoutProspectsRoute
+    }
+    '/api/admin/team/$id': {
+      id: '/api/admin/team/$id'
+      path: '/$id'
+      fullPath: '/api/admin/team/$id'
+      preLoaderRoute: typeof ApiAdminTeamIdRouteImport
+      parentRoute: typeof ApiAdminTeamRoute
+    }
+    '/api/admin/team/reorder': {
+      id: '/api/admin/team/reorder'
+      path: '/reorder'
+      fullPath: '/api/admin/team/reorder'
+      preLoaderRoute: typeof ApiAdminTeamReorderRouteImport
+      parentRoute: typeof ApiAdminTeamRoute
+    }
+    '/api/admin/testimonials/$id': {
+      id: '/api/admin/testimonials/$id'
+      path: '/$id'
+      fullPath: '/api/admin/testimonials/$id'
+      preLoaderRoute: typeof ApiAdminTestimonialsIdRouteImport
+      parentRoute: typeof ApiAdminTestimonialsRoute
+    }
+    '/api/admin/testimonials/reorder': {
+      id: '/api/admin/testimonials/reorder'
+      path: '/reorder'
+      fullPath: '/api/admin/testimonials/reorder'
+      preLoaderRoute: typeof ApiAdminTestimonialsReorderRouteImport
+      parentRoute: typeof ApiAdminTestimonialsRoute
+    }
+    '/api/expert/portfolio/$id': {
+      id: '/api/expert/portfolio/$id'
+      path: '/$id'
+      fullPath: '/api/expert/portfolio/$id'
+      preLoaderRoute: typeof ApiExpertPortfolioIdRouteImport
+      parentRoute: typeof ApiExpertPortfolioRoute
+    }
+    '/api/expert/reviews/$id': {
+      id: '/api/expert/reviews/$id'
+      path: '/$id'
+      fullPath: '/api/expert/reviews/$id'
+      preLoaderRoute: typeof ApiExpertReviewsIdRouteImport
+      parentRoute: typeof ApiExpertReviewsRoute
+    }
+    '/api/expert/testimonials/$id': {
+      id: '/api/expert/testimonials/$id'
+      path: '/$id'
+      fullPath: '/api/expert/testimonials/$id'
+      preLoaderRoute: typeof ApiExpertTestimonialsIdRouteImport
+      parentRoute: typeof ApiExpertTestimonialsRoute
+    }
+    '/api/payments/flutterwave/webhook': {
+      id: '/api/payments/flutterwave/webhook'
+      path: '/api/payments/flutterwave/webhook'
+      fullPath: '/api/payments/flutterwave/webhook'
+      preLoaderRoute: typeof ApiPaymentsFlutterwaveWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/payments/nowpayments/ipn': {
+      id: '/api/payments/nowpayments/ipn'
+      path: '/api/payments/nowpayments/ipn'
+      fullPath: '/api/payments/nowpayments/ipn'
+      preLoaderRoute: typeof ApiPaymentsNowpaymentsIpnRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/payments/paystack/webhook': {
+      id: '/api/payments/paystack/webhook'
+      path: '/api/payments/paystack/webhook'
+      fullPath: '/api/payments/paystack/webhook'
+      preLoaderRoute: typeof ApiPaymentsPaystackWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/author-audits/$id/bulk-import': {
+      id: '/api/admin/author-audits/$id/bulk-import'
+      path: '/bulk-import'
+      fullPath: '/api/admin/author-audits/$id/bulk-import'
+      preLoaderRoute: typeof ApiAdminAuthorAuditsIdBulkImportRouteImport
+      parentRoute: typeof ApiAdminAuthorAuditsIdRoute
+    }
+    '/api/admin/author-audits/$id/comparables': {
+      id: '/api/admin/author-audits/$id/comparables'
+      path: '/comparables'
+      fullPath: '/api/admin/author-audits/$id/comparables'
+      preLoaderRoute: typeof ApiAdminAuthorAuditsIdComparablesRouteImport
+      parentRoute: typeof ApiAdminAuthorAuditsIdRoute
+    }
+    '/api/admin/author-audits/$id/evidence-assets': {
+      id: '/api/admin/author-audits/$id/evidence-assets'
+      path: '/evidence-assets'
+      fullPath: '/api/admin/author-audits/$id/evidence-assets'
+      preLoaderRoute: typeof ApiAdminAuthorAuditsIdEvidenceAssetsRouteImport
+      parentRoute: typeof ApiAdminAuthorAuditsIdRoute
+    }
+    '/api/admin/author-audits/$id/publishing': {
+      id: '/api/admin/author-audits/$id/publishing'
+      path: '/publishing'
+      fullPath: '/api/admin/author-audits/$id/publishing'
+      preLoaderRoute: typeof ApiAdminAuthorAuditsIdPublishingRouteImport
+      parentRoute: typeof ApiAdminAuthorAuditsIdRoute
+    }
+    '/api/admin/author-audits/$id/quality-check': {
+      id: '/api/admin/author-audits/$id/quality-check'
+      path: '/quality-check'
+      fullPath: '/api/admin/author-audits/$id/quality-check'
+      preLoaderRoute: typeof ApiAdminAuthorAuditsIdQualityCheckRouteImport
+      parentRoute: typeof ApiAdminAuthorAuditsIdRoute
+    }
+    '/api/admin/author-audits/$id/report': {
+      id: '/api/admin/author-audits/$id/report'
+      path: '/report'
+      fullPath: '/api/admin/author-audits/$id/report'
+      preLoaderRoute: typeof ApiAdminAuthorAuditsIdReportRouteImport
+      parentRoute: typeof ApiAdminAuthorAuditsIdRoute
+    }
+    '/api/admin/author-audits/$id/research': {
+      id: '/api/admin/author-audits/$id/research'
+      path: '/research'
+      fullPath: '/api/admin/author-audits/$id/research'
+      preLoaderRoute: typeof ApiAdminAuthorAuditsIdResearchRouteImport
+      parentRoute: typeof ApiAdminAuthorAuditsIdRoute
+    }
+    '/api/admin/author-audits/$id/synthesize': {
+      id: '/api/admin/author-audits/$id/synthesize'
+      path: '/synthesize'
+      fullPath: '/api/admin/author-audits/$id/synthesize'
+      preLoaderRoute: typeof ApiAdminAuthorAuditsIdSynthesizeRouteImport
+      parentRoute: typeof ApiAdminAuthorAuditsIdRoute
+    }
+    '/api/admin/author-audits/$id/synthesize-plan': {
+      id: '/api/admin/author-audits/$id/synthesize-plan'
+      path: '/synthesize-plan'
+      fullPath: '/api/admin/author-audits/$id/synthesize-plan'
+      preLoaderRoute: typeof ApiAdminAuthorAuditsIdSynthesizePlanRouteImport
+      parentRoute: typeof ApiAdminAuthorAuditsIdRoute
+    }
+    '/api/admin/author-audits/$id/verifications': {
+      id: '/api/admin/author-audits/$id/verifications'
+      path: '/verifications'
+      fullPath: '/api/admin/author-audits/$id/verifications'
+      preLoaderRoute: typeof ApiAdminAuthorAuditsIdVerificationsRouteImport
+      parentRoute: typeof ApiAdminAuthorAuditsIdRoute
+    }
+    '/api/admin/author-audits/$id/workflow': {
+      id: '/api/admin/author-audits/$id/workflow'
+      path: '/workflow'
+      fullPath: '/api/admin/author-audits/$id/workflow'
+      preLoaderRoute: typeof ApiAdminAuthorAuditsIdWorkflowRouteImport
+      parentRoute: typeof ApiAdminAuthorAuditsIdRoute
+    }
+    '/api/admin/scout-authors/$id/confirm-contact': {
+      id: '/api/admin/scout-authors/$id/confirm-contact'
+      path: '/confirm-contact'
+      fullPath: '/api/admin/scout-authors/$id/confirm-contact'
+      preLoaderRoute: typeof ApiAdminScoutAuthorsIdConfirmContactRouteImport
+      parentRoute: typeof ApiAdminScoutAuthorsIdRoute
+    }
+    '/api/admin/scout-authors/$id/find-contact': {
+      id: '/api/admin/scout-authors/$id/find-contact'
+      path: '/find-contact'
+      fullPath: '/api/admin/scout-authors/$id/find-contact'
+      preLoaderRoute: typeof ApiAdminScoutAuthorsIdFindContactRouteImport
+      parentRoute: typeof ApiAdminScoutAuthorsIdRoute
+    }
+    '/api/admin/scout-authors/$id/research-website': {
+      id: '/api/admin/scout-authors/$id/research-website'
+      path: '/research-website'
+      fullPath: '/api/admin/scout-authors/$id/research-website'
+      preLoaderRoute: typeof ApiAdminScoutAuthorsIdResearchWebsiteRouteImport
+      parentRoute: typeof ApiAdminScoutAuthorsIdRoute
+    }
+    '/api/admin/scout-batches/$id/export': {
+      id: '/api/admin/scout-batches/$id/export'
+      path: '/export'
+      fullPath: '/api/admin/scout-batches/$id/export'
+      preLoaderRoute: typeof ApiAdminScoutBatchesIdExportRouteImport
+      parentRoute: typeof ApiAdminScoutBatchesIdRoute
+    }
+    '/api/admin/scout-batches/$id/scout': {
+      id: '/api/admin/scout-batches/$id/scout'
+      path: '/scout'
+      fullPath: '/api/admin/scout-batches/$id/scout'
+      preLoaderRoute: typeof ApiAdminScoutBatchesIdScoutRouteImport
+      parentRoute: typeof ApiAdminScoutBatchesIdRoute
+    }
+    '/api/admin/author-audits/$id/comparables/$comparableId': {
+      id: '/api/admin/author-audits/$id/comparables/$comparableId'
+      path: '/$comparableId'
+      fullPath: '/api/admin/author-audits/$id/comparables/$comparableId'
+      preLoaderRoute: typeof ApiAdminAuthorAuditsIdComparablesComparableIdRouteImport
+      parentRoute: typeof ApiAdminAuthorAuditsIdComparablesRoute
+    }
+    '/api/admin/author-audits/$id/evidence-assets/$assetId': {
+      id: '/api/admin/author-audits/$id/evidence-assets/$assetId'
+      path: '/$assetId'
+      fullPath: '/api/admin/author-audits/$id/evidence-assets/$assetId'
+      preLoaderRoute: typeof ApiAdminAuthorAuditsIdEvidenceAssetsAssetIdRouteImport
+      parentRoute: typeof ApiAdminAuthorAuditsIdEvidenceAssetsRoute
+    }
+    '/api/admin/author-audits/$id/findings/$findingId': {
+      id: '/api/admin/author-audits/$id/findings/$findingId'
+      path: '/findings/$findingId'
+      fullPath: '/api/admin/author-audits/$id/findings/$findingId'
+      preLoaderRoute: typeof ApiAdminAuthorAuditsIdFindingsFindingIdRouteImport
+      parentRoute: typeof ApiAdminAuthorAuditsIdRoute
+    }
+    '/api/admin/author-audits/$id/moves/$moveId': {
+      id: '/api/admin/author-audits/$id/moves/$moveId'
+      path: '/moves/$moveId'
+      fullPath: '/api/admin/author-audits/$id/moves/$moveId'
+      preLoaderRoute: typeof ApiAdminAuthorAuditsIdMovesMoveIdRouteImport
+      parentRoute: typeof ApiAdminAuthorAuditsIdRoute
+    }
+    '/api/admin/author-audits/$id/reader-journey/$stepId': {
+      id: '/api/admin/author-audits/$id/reader-journey/$stepId'
+      path: '/reader-journey/$stepId'
+      fullPath: '/api/admin/author-audits/$id/reader-journey/$stepId'
+      preLoaderRoute: typeof ApiAdminAuthorAuditsIdReaderJourneyStepIdRouteImport
+      parentRoute: typeof ApiAdminAuthorAuditsIdRoute
+    }
+    '/api/admin/author-audits/$id/roadmap/$itemId': {
+      id: '/api/admin/author-audits/$id/roadmap/$itemId'
+      path: '/roadmap/$itemId'
+      fullPath: '/api/admin/author-audits/$id/roadmap/$itemId'
+      preLoaderRoute: typeof ApiAdminAuthorAuditsIdRoadmapItemIdRouteImport
+      parentRoute: typeof ApiAdminAuthorAuditsIdRoute
+    }
+    '/api/admin/author-audits/$id/strengths/$strengthId': {
+      id: '/api/admin/author-audits/$id/strengths/$strengthId'
+      path: '/strengths/$strengthId'
+      fullPath: '/api/admin/author-audits/$id/strengths/$strengthId'
+      preLoaderRoute: typeof ApiAdminAuthorAuditsIdStrengthsStrengthIdRouteImport
+      parentRoute: typeof ApiAdminAuthorAuditsIdRoute
+    }
   }
 }
+
+interface ApiAdminAuthorAuditsIdComparablesRouteChildren {
+  ApiAdminAuthorAuditsIdComparablesComparableIdRoute: typeof ApiAdminAuthorAuditsIdComparablesComparableIdRoute
+}
+
+const ApiAdminAuthorAuditsIdComparablesRouteChildren: ApiAdminAuthorAuditsIdComparablesRouteChildren =
+  {
+    ApiAdminAuthorAuditsIdComparablesComparableIdRoute:
+      ApiAdminAuthorAuditsIdComparablesComparableIdRoute,
+  }
+
+const ApiAdminAuthorAuditsIdComparablesRouteWithChildren =
+  ApiAdminAuthorAuditsIdComparablesRoute._addFileChildren(
+    ApiAdminAuthorAuditsIdComparablesRouteChildren,
+  )
+
+interface ApiAdminAuthorAuditsIdEvidenceAssetsRouteChildren {
+  ApiAdminAuthorAuditsIdEvidenceAssetsAssetIdRoute: typeof ApiAdminAuthorAuditsIdEvidenceAssetsAssetIdRoute
+}
+
+const ApiAdminAuthorAuditsIdEvidenceAssetsRouteChildren: ApiAdminAuthorAuditsIdEvidenceAssetsRouteChildren =
+  {
+    ApiAdminAuthorAuditsIdEvidenceAssetsAssetIdRoute:
+      ApiAdminAuthorAuditsIdEvidenceAssetsAssetIdRoute,
+  }
+
+const ApiAdminAuthorAuditsIdEvidenceAssetsRouteWithChildren =
+  ApiAdminAuthorAuditsIdEvidenceAssetsRoute._addFileChildren(
+    ApiAdminAuthorAuditsIdEvidenceAssetsRouteChildren,
+  )
+
+interface ApiAdminAuthorAuditsIdRouteChildren {
+  ApiAdminAuthorAuditsIdBulkImportRoute: typeof ApiAdminAuthorAuditsIdBulkImportRoute
+  ApiAdminAuthorAuditsIdComparablesRoute: typeof ApiAdminAuthorAuditsIdComparablesRouteWithChildren
+  ApiAdminAuthorAuditsIdEvidenceAssetsRoute: typeof ApiAdminAuthorAuditsIdEvidenceAssetsRouteWithChildren
+  ApiAdminAuthorAuditsIdPublishingRoute: typeof ApiAdminAuthorAuditsIdPublishingRoute
+  ApiAdminAuthorAuditsIdQualityCheckRoute: typeof ApiAdminAuthorAuditsIdQualityCheckRoute
+  ApiAdminAuthorAuditsIdReportRoute: typeof ApiAdminAuthorAuditsIdReportRoute
+  ApiAdminAuthorAuditsIdResearchRoute: typeof ApiAdminAuthorAuditsIdResearchRoute
+  ApiAdminAuthorAuditsIdSynthesizeRoute: typeof ApiAdminAuthorAuditsIdSynthesizeRoute
+  ApiAdminAuthorAuditsIdSynthesizePlanRoute: typeof ApiAdminAuthorAuditsIdSynthesizePlanRoute
+  ApiAdminAuthorAuditsIdVerificationsRoute: typeof ApiAdminAuthorAuditsIdVerificationsRoute
+  ApiAdminAuthorAuditsIdWorkflowRoute: typeof ApiAdminAuthorAuditsIdWorkflowRoute
+  ApiAdminAuthorAuditsIdFindingsFindingIdRoute: typeof ApiAdminAuthorAuditsIdFindingsFindingIdRoute
+  ApiAdminAuthorAuditsIdMovesMoveIdRoute: typeof ApiAdminAuthorAuditsIdMovesMoveIdRoute
+  ApiAdminAuthorAuditsIdReaderJourneyStepIdRoute: typeof ApiAdminAuthorAuditsIdReaderJourneyStepIdRoute
+  ApiAdminAuthorAuditsIdRoadmapItemIdRoute: typeof ApiAdminAuthorAuditsIdRoadmapItemIdRoute
+  ApiAdminAuthorAuditsIdStrengthsStrengthIdRoute: typeof ApiAdminAuthorAuditsIdStrengthsStrengthIdRoute
+}
+
+const ApiAdminAuthorAuditsIdRouteChildren: ApiAdminAuthorAuditsIdRouteChildren =
+  {
+    ApiAdminAuthorAuditsIdBulkImportRoute:
+      ApiAdminAuthorAuditsIdBulkImportRoute,
+    ApiAdminAuthorAuditsIdComparablesRoute:
+      ApiAdminAuthorAuditsIdComparablesRouteWithChildren,
+    ApiAdminAuthorAuditsIdEvidenceAssetsRoute:
+      ApiAdminAuthorAuditsIdEvidenceAssetsRouteWithChildren,
+    ApiAdminAuthorAuditsIdPublishingRoute:
+      ApiAdminAuthorAuditsIdPublishingRoute,
+    ApiAdminAuthorAuditsIdQualityCheckRoute:
+      ApiAdminAuthorAuditsIdQualityCheckRoute,
+    ApiAdminAuthorAuditsIdReportRoute: ApiAdminAuthorAuditsIdReportRoute,
+    ApiAdminAuthorAuditsIdResearchRoute: ApiAdminAuthorAuditsIdResearchRoute,
+    ApiAdminAuthorAuditsIdSynthesizeRoute:
+      ApiAdminAuthorAuditsIdSynthesizeRoute,
+    ApiAdminAuthorAuditsIdSynthesizePlanRoute:
+      ApiAdminAuthorAuditsIdSynthesizePlanRoute,
+    ApiAdminAuthorAuditsIdVerificationsRoute:
+      ApiAdminAuthorAuditsIdVerificationsRoute,
+    ApiAdminAuthorAuditsIdWorkflowRoute: ApiAdminAuthorAuditsIdWorkflowRoute,
+    ApiAdminAuthorAuditsIdFindingsFindingIdRoute:
+      ApiAdminAuthorAuditsIdFindingsFindingIdRoute,
+    ApiAdminAuthorAuditsIdMovesMoveIdRoute:
+      ApiAdminAuthorAuditsIdMovesMoveIdRoute,
+    ApiAdminAuthorAuditsIdReaderJourneyStepIdRoute:
+      ApiAdminAuthorAuditsIdReaderJourneyStepIdRoute,
+    ApiAdminAuthorAuditsIdRoadmapItemIdRoute:
+      ApiAdminAuthorAuditsIdRoadmapItemIdRoute,
+    ApiAdminAuthorAuditsIdStrengthsStrengthIdRoute:
+      ApiAdminAuthorAuditsIdStrengthsStrengthIdRoute,
+  }
+
+const ApiAdminAuthorAuditsIdRouteWithChildren =
+  ApiAdminAuthorAuditsIdRoute._addFileChildren(
+    ApiAdminAuthorAuditsIdRouteChildren,
+  )
+
+interface ApiAdminAuthorAuditsRouteChildren {
+  ApiAdminAuthorAuditsIdRoute: typeof ApiAdminAuthorAuditsIdRouteWithChildren
+}
+
+const ApiAdminAuthorAuditsRouteChildren: ApiAdminAuthorAuditsRouteChildren = {
+  ApiAdminAuthorAuditsIdRoute: ApiAdminAuthorAuditsIdRouteWithChildren,
+}
+
+const ApiAdminAuthorAuditsRouteWithChildren =
+  ApiAdminAuthorAuditsRoute._addFileChildren(ApiAdminAuthorAuditsRouteChildren)
+
+interface ApiAdminCaseStudiesRouteChildren {
+  ApiAdminCaseStudiesIdRoute: typeof ApiAdminCaseStudiesIdRoute
+  ApiAdminCaseStudiesReorderRoute: typeof ApiAdminCaseStudiesReorderRoute
+}
+
+const ApiAdminCaseStudiesRouteChildren: ApiAdminCaseStudiesRouteChildren = {
+  ApiAdminCaseStudiesIdRoute: ApiAdminCaseStudiesIdRoute,
+  ApiAdminCaseStudiesReorderRoute: ApiAdminCaseStudiesReorderRoute,
+}
+
+const ApiAdminCaseStudiesRouteWithChildren =
+  ApiAdminCaseStudiesRoute._addFileChildren(ApiAdminCaseStudiesRouteChildren)
+
+interface ApiAdminExpertPortfolioRouteChildren {
+  ApiAdminExpertPortfolioIdRoute: typeof ApiAdminExpertPortfolioIdRoute
+}
+
+const ApiAdminExpertPortfolioRouteChildren: ApiAdminExpertPortfolioRouteChildren =
+  {
+    ApiAdminExpertPortfolioIdRoute: ApiAdminExpertPortfolioIdRoute,
+  }
+
+const ApiAdminExpertPortfolioRouteWithChildren =
+  ApiAdminExpertPortfolioRoute._addFileChildren(
+    ApiAdminExpertPortfolioRouteChildren,
+  )
+
+interface ApiAdminExpertReviewsRouteChildren {
+  ApiAdminExpertReviewsIdRoute: typeof ApiAdminExpertReviewsIdRoute
+}
+
+const ApiAdminExpertReviewsRouteChildren: ApiAdminExpertReviewsRouteChildren = {
+  ApiAdminExpertReviewsIdRoute: ApiAdminExpertReviewsIdRoute,
+}
+
+const ApiAdminExpertReviewsRouteWithChildren =
+  ApiAdminExpertReviewsRoute._addFileChildren(
+    ApiAdminExpertReviewsRouteChildren,
+  )
+
+interface ApiAdminExpertTestimonialsRouteChildren {
+  ApiAdminExpertTestimonialsIdRoute: typeof ApiAdminExpertTestimonialsIdRoute
+}
+
+const ApiAdminExpertTestimonialsRouteChildren: ApiAdminExpertTestimonialsRouteChildren =
+  {
+    ApiAdminExpertTestimonialsIdRoute: ApiAdminExpertTestimonialsIdRoute,
+  }
+
+const ApiAdminExpertTestimonialsRouteWithChildren =
+  ApiAdminExpertTestimonialsRoute._addFileChildren(
+    ApiAdminExpertTestimonialsRouteChildren,
+  )
+
+interface ApiAdminExpertsRouteChildren {
+  ApiAdminExpertsIdRoute: typeof ApiAdminExpertsIdRoute
+}
+
+const ApiAdminExpertsRouteChildren: ApiAdminExpertsRouteChildren = {
+  ApiAdminExpertsIdRoute: ApiAdminExpertsIdRoute,
+}
+
+const ApiAdminExpertsRouteWithChildren = ApiAdminExpertsRoute._addFileChildren(
+  ApiAdminExpertsRouteChildren,
+)
+
+interface ApiAdminInvoiceRequestsRouteChildren {
+  ApiAdminInvoiceRequestsIdRoute: typeof ApiAdminInvoiceRequestsIdRoute
+}
+
+const ApiAdminInvoiceRequestsRouteChildren: ApiAdminInvoiceRequestsRouteChildren =
+  {
+    ApiAdminInvoiceRequestsIdRoute: ApiAdminInvoiceRequestsIdRoute,
+  }
+
+const ApiAdminInvoiceRequestsRouteWithChildren =
+  ApiAdminInvoiceRequestsRoute._addFileChildren(
+    ApiAdminInvoiceRequestsRouteChildren,
+  )
+
+interface ApiAdminInvoicesRouteChildren {
+  ApiAdminInvoicesIdRoute: typeof ApiAdminInvoicesIdRoute
+}
+
+const ApiAdminInvoicesRouteChildren: ApiAdminInvoicesRouteChildren = {
+  ApiAdminInvoicesIdRoute: ApiAdminInvoicesIdRoute,
+}
+
+const ApiAdminInvoicesRouteWithChildren =
+  ApiAdminInvoicesRoute._addFileChildren(ApiAdminInvoicesRouteChildren)
 
 interface ApiAdminPortfolioRouteChildren {
   ApiAdminPortfolioIdRoute: typeof ApiAdminPortfolioIdRoute
@@ -968,16 +3865,172 @@ const ApiAdminPortfolioRouteChildren: ApiAdminPortfolioRouteChildren = {
 const ApiAdminPortfolioRouteWithChildren =
   ApiAdminPortfolioRoute._addFileChildren(ApiAdminPortfolioRouteChildren)
 
+interface ApiAdminQuotesRouteChildren {
+  ApiAdminQuotesIdRoute: typeof ApiAdminQuotesIdRoute
+}
+
+const ApiAdminQuotesRouteChildren: ApiAdminQuotesRouteChildren = {
+  ApiAdminQuotesIdRoute: ApiAdminQuotesIdRoute,
+}
+
+const ApiAdminQuotesRouteWithChildren = ApiAdminQuotesRoute._addFileChildren(
+  ApiAdminQuotesRouteChildren,
+)
+
+interface ApiAdminScoutAudienceBatchesRouteChildren {
+  ApiAdminScoutAudienceBatchesIdRoute: typeof ApiAdminScoutAudienceBatchesIdRoute
+}
+
+const ApiAdminScoutAudienceBatchesRouteChildren: ApiAdminScoutAudienceBatchesRouteChildren =
+  {
+    ApiAdminScoutAudienceBatchesIdRoute: ApiAdminScoutAudienceBatchesIdRoute,
+  }
+
+const ApiAdminScoutAudienceBatchesRouteWithChildren =
+  ApiAdminScoutAudienceBatchesRoute._addFileChildren(
+    ApiAdminScoutAudienceBatchesRouteChildren,
+  )
+
+interface ApiAdminScoutBatchesIdRouteChildren {
+  ApiAdminScoutBatchesIdExportRoute: typeof ApiAdminScoutBatchesIdExportRoute
+  ApiAdminScoutBatchesIdScoutRoute: typeof ApiAdminScoutBatchesIdScoutRoute
+}
+
+const ApiAdminScoutBatchesIdRouteChildren: ApiAdminScoutBatchesIdRouteChildren =
+  {
+    ApiAdminScoutBatchesIdExportRoute: ApiAdminScoutBatchesIdExportRoute,
+    ApiAdminScoutBatchesIdScoutRoute: ApiAdminScoutBatchesIdScoutRoute,
+  }
+
+const ApiAdminScoutBatchesIdRouteWithChildren =
+  ApiAdminScoutBatchesIdRoute._addFileChildren(
+    ApiAdminScoutBatchesIdRouteChildren,
+  )
+
+interface ApiAdminScoutBatchesRouteChildren {
+  ApiAdminScoutBatchesIdRoute: typeof ApiAdminScoutBatchesIdRouteWithChildren
+}
+
+const ApiAdminScoutBatchesRouteChildren: ApiAdminScoutBatchesRouteChildren = {
+  ApiAdminScoutBatchesIdRoute: ApiAdminScoutBatchesIdRouteWithChildren,
+}
+
+const ApiAdminScoutBatchesRouteWithChildren =
+  ApiAdminScoutBatchesRoute._addFileChildren(ApiAdminScoutBatchesRouteChildren)
+
+interface ApiAdminScoutProspectsRouteChildren {
+  ApiAdminScoutProspectsIdRoute: typeof ApiAdminScoutProspectsIdRoute
+}
+
+const ApiAdminScoutProspectsRouteChildren: ApiAdminScoutProspectsRouteChildren =
+  {
+    ApiAdminScoutProspectsIdRoute: ApiAdminScoutProspectsIdRoute,
+  }
+
+const ApiAdminScoutProspectsRouteWithChildren =
+  ApiAdminScoutProspectsRoute._addFileChildren(
+    ApiAdminScoutProspectsRouteChildren,
+  )
+
+interface ApiAdminTeamRouteChildren {
+  ApiAdminTeamIdRoute: typeof ApiAdminTeamIdRoute
+  ApiAdminTeamReorderRoute: typeof ApiAdminTeamReorderRoute
+}
+
+const ApiAdminTeamRouteChildren: ApiAdminTeamRouteChildren = {
+  ApiAdminTeamIdRoute: ApiAdminTeamIdRoute,
+  ApiAdminTeamReorderRoute: ApiAdminTeamReorderRoute,
+}
+
+const ApiAdminTeamRouteWithChildren = ApiAdminTeamRoute._addFileChildren(
+  ApiAdminTeamRouteChildren,
+)
+
+interface ApiAdminTestimonialsRouteChildren {
+  ApiAdminTestimonialsIdRoute: typeof ApiAdminTestimonialsIdRoute
+  ApiAdminTestimonialsReorderRoute: typeof ApiAdminTestimonialsReorderRoute
+}
+
+const ApiAdminTestimonialsRouteChildren: ApiAdminTestimonialsRouteChildren = {
+  ApiAdminTestimonialsIdRoute: ApiAdminTestimonialsIdRoute,
+  ApiAdminTestimonialsReorderRoute: ApiAdminTestimonialsReorderRoute,
+}
+
+const ApiAdminTestimonialsRouteWithChildren =
+  ApiAdminTestimonialsRoute._addFileChildren(ApiAdminTestimonialsRouteChildren)
+
+interface ApiExpertPortfolioRouteChildren {
+  ApiExpertPortfolioIdRoute: typeof ApiExpertPortfolioIdRoute
+}
+
+const ApiExpertPortfolioRouteChildren: ApiExpertPortfolioRouteChildren = {
+  ApiExpertPortfolioIdRoute: ApiExpertPortfolioIdRoute,
+}
+
+const ApiExpertPortfolioRouteWithChildren =
+  ApiExpertPortfolioRoute._addFileChildren(ApiExpertPortfolioRouteChildren)
+
+interface ApiExpertReviewsRouteChildren {
+  ApiExpertReviewsIdRoute: typeof ApiExpertReviewsIdRoute
+}
+
+const ApiExpertReviewsRouteChildren: ApiExpertReviewsRouteChildren = {
+  ApiExpertReviewsIdRoute: ApiExpertReviewsIdRoute,
+}
+
+const ApiExpertReviewsRouteWithChildren =
+  ApiExpertReviewsRoute._addFileChildren(ApiExpertReviewsRouteChildren)
+
+interface ApiExpertTestimonialsRouteChildren {
+  ApiExpertTestimonialsIdRoute: typeof ApiExpertTestimonialsIdRoute
+}
+
+const ApiExpertTestimonialsRouteChildren: ApiExpertTestimonialsRouteChildren = {
+  ApiExpertTestimonialsIdRoute: ApiExpertTestimonialsIdRoute,
+}
+
+const ApiExpertTestimonialsRouteWithChildren =
+  ApiExpertTestimonialsRoute._addFileChildren(
+    ApiExpertTestimonialsRouteChildren,
+  )
+
+interface ApiAdminScoutAuthorsIdRouteChildren {
+  ApiAdminScoutAuthorsIdConfirmContactRoute: typeof ApiAdminScoutAuthorsIdConfirmContactRoute
+  ApiAdminScoutAuthorsIdFindContactRoute: typeof ApiAdminScoutAuthorsIdFindContactRoute
+  ApiAdminScoutAuthorsIdResearchWebsiteRoute: typeof ApiAdminScoutAuthorsIdResearchWebsiteRoute
+}
+
+const ApiAdminScoutAuthorsIdRouteChildren: ApiAdminScoutAuthorsIdRouteChildren =
+  {
+    ApiAdminScoutAuthorsIdConfirmContactRoute:
+      ApiAdminScoutAuthorsIdConfirmContactRoute,
+    ApiAdminScoutAuthorsIdFindContactRoute:
+      ApiAdminScoutAuthorsIdFindContactRoute,
+    ApiAdminScoutAuthorsIdResearchWebsiteRoute:
+      ApiAdminScoutAuthorsIdResearchWebsiteRoute,
+  }
+
+const ApiAdminScoutAuthorsIdRouteWithChildren =
+  ApiAdminScoutAuthorsIdRoute._addFileChildren(
+    ApiAdminScoutAuthorsIdRouteChildren,
+  )
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
   AdminRoute: AdminRoute,
   AgenciesRoute: AgenciesRoute,
+  AppointmentBasedBusinessesRoute: AppointmentBasedBusinessesRoute,
   AuthorsRoute: AuthorsRoute,
   BookLaunchRoute: BookLaunchRoute,
+  CleaningBusinessesRoute: CleaningBusinessesRoute,
   CoachesRoute: CoachesRoute,
   ContactRoute: ContactRoute,
   CreatorsRoute: CreatorsRoute,
+  EcommerceRoute: EcommerceRoute,
+  ExpertRoute: ExpertRoute,
+  ExpertSignupRoute: ExpertSignupRoute,
+  ExpertWelcomeRoute: ExpertWelcomeRoute,
   FaqsRoute: FaqsRoute,
   GuaranteeRoute: GuaranteeRoute,
   HomeServicesRoute: HomeServicesRoute,
@@ -985,6 +4038,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndustriesRoute: IndustriesRoute,
   LawFirmsRoute: LawFirmsRoute,
   LocalBusinessRoute: LocalBusinessRoute,
+  LocalBusinessesRoute: LocalBusinessesRoute,
   MedSpasRoute: MedSpasRoute,
   PlumbersRoute: PlumbersRoute,
   PricingRoute: PricingRoute,
@@ -994,25 +4048,111 @@ const rootRouteChildren: RootRouteChildren = {
   ResultsRoute: ResultsRoute,
   ReviewsRoute: ReviewsRoute,
   RoofersRoute: RoofersRoute,
+  ScoutRoute: ScoutRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
+  TeamRoute: TeamRoute,
   TermsRoute: TermsRoute,
+  TestimonialsRoute: TestimonialsRoute,
+  UgcCreatorsRoute: UgcCreatorsRoute,
+  ApiCheckoutRoute: ApiCheckoutRoute,
+  ApiPrivateAuditRoute: ApiPrivateAuditRoute,
   BlogSlugRoute: BlogSlugRoute,
   CapabilitiesSlugRoute: CapabilitiesSlugRoute,
+  ExpertsSlugRoute: ExpertsSlugRoute,
   InsightsSlugRoute: InsightsSlugRoute,
+  InsightsGlossaryRoute: InsightsGlossaryRoute,
+  PayTokenRoute: PayTokenRoute,
+  QuoteTokenRoute: QuoteTokenRoute,
   ServicesSlugRoute: ServicesSlugRoute,
+  ToolsToolRoute: ToolsToolRoute,
+  ToolsAuthorVisibilityAuditRoute: ToolsAuthorVisibilityAuditRoute,
+  ToolsWebsiteAuditRoute: ToolsWebsiteAuditRoute,
   WorkSlugRoute: WorkSlugRoute,
+  AuthorAuditIndexRoute: AuthorAuditIndexRoute,
   BlogIndexRoute: BlogIndexRoute,
   CapabilitiesIndexRoute: CapabilitiesIndexRoute,
+  ExpertsIndexRoute: ExpertsIndexRoute,
   InsightsIndexRoute: InsightsIndexRoute,
   ServicesIndexRoute: ServicesIndexRoute,
+  ToolsIndexRoute: ToolsIndexRoute,
   WorkIndexRoute: WorkIndexRoute,
+  ApiAdminAuthorAuditLeadsRoute: ApiAdminAuthorAuditLeadsRoute,
+  ApiAdminAuthorAuditsRoute: ApiAdminAuthorAuditsRouteWithChildren,
+  ApiAdminCaseStudiesRoute: ApiAdminCaseStudiesRouteWithChildren,
+  ApiAdminExpertGuestsRoute: ApiAdminExpertGuestsRoute,
+  ApiAdminExpertPortfolioRoute: ApiAdminExpertPortfolioRouteWithChildren,
+  ApiAdminExpertReviewsRoute: ApiAdminExpertReviewsRouteWithChildren,
+  ApiAdminExpertTestimonialsRoute: ApiAdminExpertTestimonialsRouteWithChildren,
+  ApiAdminExpertsRoute: ApiAdminExpertsRouteWithChildren,
+  ApiAdminFounderRoute: ApiAdminFounderRoute,
+  ApiAdminInvoiceRequestsRoute: ApiAdminInvoiceRequestsRouteWithChildren,
+  ApiAdminInvoicesRoute: ApiAdminInvoicesRouteWithChildren,
+  ApiAdminLeadsRoute: ApiAdminLeadsRoute,
+  ApiAdminNotificationsRoute: ApiAdminNotificationsRoute,
   ApiAdminPortfolioRoute: ApiAdminPortfolioRouteWithChildren,
+  ApiAdminQuotesRoute: ApiAdminQuotesRouteWithChildren,
+  ApiAdminScoutAmazonSearchRoute: ApiAdminScoutAmazonSearchRoute,
+  ApiAdminScoutArcDiscoveryRoute: ApiAdminScoutArcDiscoveryRoute,
+  ApiAdminScoutAudienceBatchesRoute:
+    ApiAdminScoutAudienceBatchesRouteWithChildren,
+  ApiAdminScoutBatchesRoute: ApiAdminScoutBatchesRouteWithChildren,
+  ApiAdminScoutBooksRoute: ApiAdminScoutBooksRoute,
+  ApiAdminScoutDiscoverCountRoute: ApiAdminScoutDiscoverCountRoute,
+  ApiAdminScoutEmailRunsRoute: ApiAdminScoutEmailRunsRoute,
+  ApiAdminScoutExportRoute: ApiAdminScoutExportRoute,
+  ApiAdminScoutIdentityRoute: ApiAdminScoutIdentityRoute,
+  ApiAdminScoutManualIngestRoute: ApiAdminScoutManualIngestRoute,
+  ApiAdminScoutProspectsRoute: ApiAdminScoutProspectsRouteWithChildren,
+  ApiAdminScoutReadersFavoriteRoute: ApiAdminScoutReadersFavoriteRoute,
+  ApiAdminScoutReedsyGenresRoute: ApiAdminScoutReedsyGenresRoute,
+  ApiAdminScoutReedsySearchRoute: ApiAdminScoutReedsySearchRoute,
   ApiAdminSessionRoute: ApiAdminSessionRoute,
+  ApiAdminTeamRoute: ApiAdminTeamRouteWithChildren,
+  ApiAdminTestimonialsRoute: ApiAdminTestimonialsRouteWithChildren,
   ApiAdminUploadRoute: ApiAdminUploadRoute,
+  ApiAdminUploadUrlRoute: ApiAdminUploadUrlRoute,
+  ApiAdminVisitorsRoute: ApiAdminVisitorsRoute,
+  ApiExpertInviteRoute: ApiExpertInviteRoute,
+  ApiExpertInvoiceRequestsRoute: ApiExpertInvoiceRequestsRoute,
+  ApiExpertLeadsRoute: ApiExpertLeadsRoute,
+  ApiExpertNotificationsRoute: ApiExpertNotificationsRoute,
+  ApiExpertPerplexitySettingsRoute: ApiExpertPerplexitySettingsRoute,
+  ApiExpertPhotoUrlRoute: ApiExpertPhotoUrlRoute,
+  ApiExpertPortfolioRoute: ApiExpertPortfolioRouteWithChildren,
+  ApiExpertProfileRoute: ApiExpertProfileRoute,
+  ApiExpertProfileSubmitRoute: ApiExpertProfileSubmitRoute,
+  ApiExpertReviewsRoute: ApiExpertReviewsRouteWithChildren,
+  ApiExpertSessionRoute: ApiExpertSessionRoute,
+  ApiExpertSignupRoute: ApiExpertSignupRoute,
+  ApiExpertTestimonialsRoute: ApiExpertTestimonialsRouteWithChildren,
+  ApiExpertVideoUrlRoute: ApiExpertVideoUrlRoute,
+  ApiNotificationsDispatchRoute: ApiNotificationsDispatchRoute,
+  ApiPayTokenRoute: ApiPayTokenRoute,
+  ApiPublicAuthorAuditRoute: ApiPublicAuthorAuditRoute,
+  ApiPublicCaseStudiesRoute: ApiPublicCaseStudiesRoute,
+  ApiPublicExpertPortfolioRoute: ApiPublicExpertPortfolioRoute,
+  ApiPublicExpertReviewsRoute: ApiPublicExpertReviewsRoute,
+  ApiPublicExpertTestimonialsRoute: ApiPublicExpertTestimonialsRoute,
+  ApiPublicExpertsRoute: ApiPublicExpertsRoute,
   ApiPublicGrowthAuditRoute: ApiPublicGrowthAuditRoute,
   ApiPublicInquiryRoute: ApiPublicInquiryRoute,
   ApiPublicNewsletterRoute: ApiPublicNewsletterRoute,
   ApiPublicPortfolioRoute: ApiPublicPortfolioRoute,
+  ApiPublicQuoteRoute: ApiPublicQuoteRoute,
   ApiPublicResourceRequestRoute: ApiPublicResourceRequestRoute,
+  ApiPublicTeamRoute: ApiPublicTeamRoute,
+  ApiPublicTestimonialsRoute: ApiPublicTestimonialsRoute,
+  ApiPublicVisitRoute: ApiPublicVisitRoute,
+  ApiPublicVoiceMessageRoute: ApiPublicVoiceMessageRoute,
+  ApiScoutVerifyEmailsRoute: ApiScoutVerifyEmailsRoute,
+  AuthorAuditAuthorBookRoute: AuthorAuditAuthorBookRoute,
+  InsightsAnswersSlugRoute: InsightsAnswersSlugRoute,
+  InsightsGuidesSlugRoute: InsightsGuidesSlugRoute,
+  ApiAdminScoutAudienceLeadsIdRoute: ApiAdminScoutAudienceLeadsIdRoute,
+  ApiAdminScoutAuthorsIdRoute: ApiAdminScoutAuthorsIdRouteWithChildren,
+  ApiPaymentsFlutterwaveWebhookRoute: ApiPaymentsFlutterwaveWebhookRoute,
+  ApiPaymentsNowpaymentsIpnRoute: ApiPaymentsNowpaymentsIpnRoute,
+  ApiPaymentsPaystackWebhookRoute: ApiPaymentsPaystackWebhookRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

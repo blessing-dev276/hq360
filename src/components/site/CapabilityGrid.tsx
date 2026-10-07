@@ -18,7 +18,7 @@ export function CapabilityGrid({ limit }: { limit?: number }) {
             >
               <div className="flex items-start justify-between">
                 <span className="size-11 text-foreground/70">
-                  <OrbitGraphic animate={false} />
+                  <OrbitGraphic />
                 </span>
                 <ArrowUpRight
                   className="size-5 text-muted-foreground transition-colors group-hover:text-brand"

@@ -4,6 +4,6 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 // each engagement's written scope; commercial terms live on Terms.
 export const Route = createFileRoute("/guarantee")({
   beforeLoad: () => {
-    throw redirect({ to: "/about" });
+    throw redirect({ statusCode: 301, to: "/about" });
   },
 });

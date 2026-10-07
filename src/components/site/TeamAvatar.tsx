@@ -1,29 +1,36 @@
-import blessing from "@/assets/team-blessing.jpg.asset.json";
-import zainab from "@/assets/team-zainab.jpg.asset.json";
-import emmanuel from "@/assets/team-emmanuel.jpg.asset.json";
-import richard from "@/assets/team-richard.jpg.asset.json";
-import ebenezer from "@/assets/team-ebenezer.jpg.asset.json";
-import racheal from "@/assets/team-racheal.jpg.asset.json";
+import blessingPhoto from "@/assets/team-blessing.webp";
+import zainab from "@/assets/team-zainab.webp";
+import emmanuel from "@/assets/team-emmanuel.webp";
+import richard from "@/assets/team-richard.webp";
+import ebenezer from "@/assets/team-ebenezer.webp";
+import racheal from "@/assets/team-racheal.webp";
 
-const PHOTOS: Record<string, string> = {
-  blessing: blessing.url,
-  zainab: zainab.url,
-  emmanuel: emmanuel.url,
-  richard: richard.url,
-  ebenezer: ebenezer.url,
-  racheal: racheal.url,
+/** Bundled fallback portraits, keyed by first name lowercased. Exported so
+ * other team layouts (e.g. the homepage showcase) can render the image
+ * directly without TeamAvatar's own fixed sizing. */
+export const PHOTOS: Record<string, string> = {
+  blessing: blessingPhoto,
+  zainab,
+  emmanuel,
+  richard,
+  ebenezer,
+  racheal,
 };
 
 export function TeamAvatar({
   name,
   initials,
   photo,
+  imageUrl,
 }: {
   name: string;
   initials: string;
-  photo?: string;
+  /** key into the bundled PHOTOS map (fallback roster) */
+  photo?: string | undefined;
+  /** explicit portrait URL (admin-managed members); wins over `photo` */
+  imageUrl?: string | undefined;
 }) {
-  const src = photo ? PHOTOS[photo] : undefined;
+  const src = imageUrl || (photo ? PHOTOS[photo] : undefined);
 
   if (!src) {
     return (

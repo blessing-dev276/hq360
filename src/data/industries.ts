@@ -10,7 +10,10 @@
 import type { CapabilitySlug } from "./capabilities";
 
 export type IndustryCategory =
-  "Personal Brands & Experts" | "Local & Home Services" | "Sales & Professional Teams";
+  | "Personal Brands & Experts"
+  | "Local & Home Services"
+  | "Sales & Professional Teams"
+  | "Commerce & Product Brands";
 
 export type Industry = {
   /** URL segment, e.g. "real-estate". */
@@ -178,14 +181,14 @@ export const INDUSTRIES: Industry[] = [
     seo: {
       title: "Author & Publisher Growth System | HQ360",
       description:
-        "HQ360 builds a connected growth system for authors and publishers: brand, book funnels, SEO, video, social, advertising, automation and a reader app that turns discovery into repeat sales.",
+        "HQ360 connects brand, book funnels, SEO, advertising and automation into one growth system for authors and publishers, built to turn discovery into repeat sales.",
     },
   },
 
   /* --------------------------------------------------------------- Creators */
   {
     slug: "creators",
-    path: "/creators",
+    path: "/ugc-creators",
     name: "Content & UGC Creators",
     shortName: "Content Creators",
     category: "Personal Brands & Experts",
@@ -1440,7 +1443,7 @@ export const INDUSTRIES: Industry[] = [
   /* --------------------------------------------------------- Local business */
   {
     slug: "local-business",
-    path: "/local-business",
+    path: "/local-businesses",
     name: "Local Businesses",
     shortName: "Local Business",
     category: "Local & Home Services",
@@ -1558,6 +1561,161 @@ export const INDUSTRIES: Industry[] = [
         "HQ360 builds Google Business Profile, local ads, offer funnels, review generation and reactivation that turn nearby searches into regulars.",
     },
   },
+
+  /* ------------------------------------------------------- E-commerce & DTC */
+  {
+    slug: "ecommerce",
+    path: "/ecommerce",
+    name: "E-commerce & DTC Brands",
+    shortName: "E-commerce & DTC",
+    category: "Commerce & Product Brands",
+    eyebrow: "For e-commerce, DTC and product brands on Shopify, WooCommerce and beyond",
+    headline: "Turn more product interest into purchases — and purchases into repeat customers.",
+    subheadline:
+      "HQ360 connects brand, storefront, SEO, acquisition, automation and retention into one growth system for e-commerce and DTC brands. Not just a new store design — the system around the whole customer journey.",
+    description:
+      "A connected growth system for e-commerce and DTC brands: brand and product creative, Shopify and WooCommerce storefronts, CRO, e-commerce SEO, paid acquisition, cart recovery, retention email and analytics.",
+    outcome: "A store that keeps finding buyers, converting them, and bringing them back.",
+    outcomes: [
+      "Product pages that make the value obvious and the decision easy",
+      "A mobile store people can actually browse and check out on",
+      "Discovery from search and shopping, not only paid traffic",
+      "Recovered revenue from browse, cart and checkout drop-off",
+      "A post-purchase path that earns the second and third order",
+      "One team owning the whole journey, not five disconnected tools",
+    ],
+    painPoints: [
+      {
+        title: "Traffic comes, sales don't follow",
+        body: "Ads and posts bring visitors, but the product pages, navigation and mobile checkout lose them before the order.",
+      },
+      {
+        title: "Great product, average presentation",
+        body: "The product is genuinely good, but the brand, photography and page layout make it look like everyone else's.",
+      },
+      {
+        title: "Invisible when people are searching",
+        body: "No product or collection SEO, no Merchant Center feed, so discovery depends entirely on paid traffic you rent.",
+      },
+      {
+        title: "Revenue leaks and nothing catches it",
+        body: "People browse, add to cart, start checkout and leave — with no browse, cart or checkout follow-up to bring them back.",
+      },
+      {
+        title: "First-time buyers stay first-time",
+        body: "No welcome flow, no post-purchase sequence, no win-back. Every order is acquired from scratch at full cost.",
+      },
+    ],
+    holdingBack: [
+      "Product pages that list features, not value",
+      "A checkout journey that leaks on mobile",
+      "No e-commerce SEO or product feed",
+      "No browse, cart or checkout recovery",
+      "No welcome, post-purchase or win-back flows",
+      "Analytics that can't show where the money leaks",
+    ],
+    howWeHelp: [
+      "We start with a Store Growth Audit across ten areas — brand, storefront, product pages, mobile, SEO, acquisition, conversion, cart and checkout, automation, retention and analytics — and name the one bottleneck costing the most right now.",
+      "Then we build only what moves it: usually storefront and product-page CRO first, e-commerce SEO and a cleaned-up product feed for discovery, and Klaviyo or Omnisend flows to recover browse, cart and checkout abandonment.",
+      "Retention email, win-back and new-product campaigns turn the first order into a relationship, and GA4 plus funnel analytics keep showing where to improve next — so acquisition isn't paid for twice.",
+    ],
+    recommendedCapabilities: [
+      "websites-funnels",
+      "lead-generation",
+      "crm-automation",
+      "visibility-reputation",
+    ],
+    services: [
+      "Shopify and WooCommerce store design and redesign",
+      "Product and collection page CRO",
+      "Mobile commerce optimisation",
+      "E-commerce and product SEO with Merchant Center feed",
+      "Meta, Google Shopping and TikTok acquisition",
+      "Browse, cart and checkout recovery (Klaviyo / Omnisend)",
+      "Post-purchase, win-back and replenishment email",
+      "GA4, funnel and CRO analytics",
+    ],
+    growthSystem: [
+      {
+        step: "01",
+        title: "Position — brand & creative",
+        body: "Positioning, product messaging and commercial creative so the product looks worth buying before a visitor reads a word.",
+      },
+      {
+        step: "02",
+        title: "Convert — store & CRO",
+        body: "Shopify or WooCommerce storefront, collection and product pages, and mobile checkout tuned to turn visits into orders.",
+      },
+      {
+        step: "03",
+        title: "Get discovered — e-commerce SEO",
+        body: "Product and collection keyword work, technical and structured data, and a clean Merchant Center feed for Shopping.",
+      },
+      {
+        step: "04",
+        title: "Acquire — digital marketing",
+        body: "Meta, Google Shopping and TikTok campaigns to product and campaign pages — after checking platform and category eligibility.",
+      },
+      {
+        step: "05",
+        title: "Recover & nurture — CRM & automation",
+        body: "Welcome, browse-abandonment, cart and checkout recovery flows that bring drop-off back without spammy messaging.",
+      },
+      {
+        step: "06",
+        title: "Retain — email & customer marketing",
+        body: "Post-purchase education, review requests, cross-sell, win-back and new-product campaigns that earn repeat orders.",
+      },
+      {
+        step: "07",
+        title: "Scale — analytics & optimisation",
+        body: "GA4, funnel and creative analysis plus CRO testing on product pages, offers and bundles to improve the whole system.",
+      },
+    ],
+    faqs: [
+      {
+        q: "Can HQ360 redesign my existing store, or improve it without a full rebuild?",
+        a: "Both. Often the highest-return work is targeted — rebuilding product and collection pages, fixing mobile checkout friction and adding recovery flows — without touching the rest of the store. The audit tells us which.",
+      },
+      {
+        q: "Do you work with Shopify and WooCommerce?",
+        a: "Yes, both. If you're on another platform, tell us what it is and we'll say honestly whether we can support it well or would recommend a migration.",
+      },
+      {
+        q: "Can you set up abandoned-cart and email marketing for my store?",
+        a: "Yes. We build browse, cart and checkout recovery plus welcome, post-purchase and win-back flows, usually in Klaviyo or Omnisend, integrated with your store.",
+      },
+      {
+        q: "Do you provide e-commerce SEO?",
+        a: "Yes — product and collection keyword research, technical SEO, product structured data, internal linking, and product-feed optimisation for Google Shopping. No guaranteed rankings; anyone promising those isn't being straight with you.",
+      },
+      {
+        q: "Can you help with Meta or Google Ads?",
+        a: "Yes, where the product category and platform policies allow. Some categories have advertising restrictions, so we check eligibility before recommending a channel or promising spend.",
+      },
+      {
+        q: "Do you guarantee sales, ROAS or a revenue increase?",
+        a: "No. We set realistic targets from your data, tell you what it would take, and report against them. Guaranteed revenue or ROAS claims in e-commerce are a red flag.",
+      },
+      {
+        q: "Can you work with stores outside the USA?",
+        a: "Yes. The team works remotely across time zones and a large share of clients are in the USA, but the work isn't US-only.",
+      },
+      {
+        q: "Do I need every stage of the growth system?",
+        a: "No. Most brands start with one or two — usually storefront CRO and cart recovery. We identify the biggest current bottleneck and begin there.",
+      },
+    ],
+    cta: {
+      label: "Build my e-commerce growth system",
+      sub: "Starts with a free Store Growth Audit across brand, storefront, product pages, SEO, acquisition, automation, retention and analytics.",
+    },
+    seo: {
+      title: "E-commerce & DTC Growth Services | HQ360",
+      description:
+        "HQ360 connects e-commerce branding, storefront design, SEO, acquisition, automation, retention and optimization into one growth system for product brands.",
+    },
+  },
 ];
 
 export const INDUSTRY_CATEGORIES: {
@@ -1575,6 +1733,10 @@ export const INDUSTRY_CATEGORIES: {
   {
     category: "Sales & Professional Teams",
     blurb: "When a pipeline and disciplined follow-up decide the quarter.",
+  },
+  {
+    category: "Commerce & Product Brands",
+    blurb: "When a product has to be found, understood, bought and bought again.",
   },
 ];
 

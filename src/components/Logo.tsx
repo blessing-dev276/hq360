@@ -10,8 +10,8 @@ type LogoProps = {
   size?: number;
 };
 
-const MARK_SRC = "/logo-abstract.png";
-const TEXT_SRC = "/logo-text.png";
+const MARK_SRC = "/logo-abstract.webp";
+const TEXT_SRC = "/logo-text.webp";
 
 /**
  * HQ360 logo. Uses the supplied brand artwork:
@@ -28,6 +28,8 @@ export function Logo({ variant = "gradient", markOnly = false, className, size =
       <img
         src={src}
         alt="HQ360"
+        width={markOnly ? 192 : 384}
+        height={192}
         style={{ height: size, width: "auto" }}
         className={cn("block w-auto object-contain", mono && "brightness-0 invert")}
         loading="eager"

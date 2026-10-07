@@ -1,3 +1,4 @@
+import { useId } from "react";
 import { cn } from "@/lib/utils";
 
 /**
@@ -15,16 +16,18 @@ export function OrbitGraphic({
   animate?: boolean;
   label?: string;
 }) {
+  const accentId = useId();
+  const accent = `url(#${accentId})`;
   return (
     <svg
       viewBox="0 0 200 200"
-      className={cn("h-full w-full", className)}
+      className={cn("hq-orbit-graphic h-full w-full", className)}
       role={label ? "img" : "presentation"}
       aria-label={label}
       aria-hidden={label ? undefined : true}
     >
       <defs>
-        <linearGradient id="hq-orbit-accent" x1="0" y1="0" x2="1" y2="1">
+        <linearGradient id={accentId} x1="0" y1="0" x2="1" y2="1">
           <stop offset="0%" stopColor="var(--brand)" />
           <stop offset="100%" stopColor="var(--brand-strong)" />
         </linearGradient>
@@ -43,6 +46,7 @@ export function OrbitGraphic({
           strokeDasharray="2 8"
           strokeLinecap="round"
         />
+        <circle cx="100" cy="8" r="3" fill={accent} />
       </g>
 
       {/* Mid ring with an accent arc + orbiting node */}
@@ -59,11 +63,11 @@ export function OrbitGraphic({
         <path
           d="M100 34 A66 66 0 0 1 158 74"
           fill="none"
-          stroke="url(#hq-orbit-accent)"
+          stroke={accent}
           strokeWidth="3"
           strokeLinecap="round"
         />
-        <circle cx="100" cy="34" r="4.5" fill="url(#hq-orbit-accent)" />
+        <circle cx="100" cy="34" r="4.5" fill={accent} />
       </g>
 
       {/* Inner ring */}
@@ -81,7 +85,7 @@ export function OrbitGraphic({
       </g>
 
       {/* Central spark / asterisk */}
-      <g stroke="url(#hq-orbit-accent)" strokeWidth="4" strokeLinecap="round">
+      <g stroke={accent} strokeWidth="4" strokeLinecap="round">
         <line x1="100" y1="86" x2="100" y2="114" />
         <line x1="87.9" y1="93" x2="112.1" y2="107" />
         <line x1="87.9" y1="107" x2="112.1" y2="93" />

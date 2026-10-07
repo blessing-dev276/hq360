@@ -1,298 +1,569 @@
+import { contextForPath, inquiryHref, readInquiryContext } from "@/lib/inquiry-context";
 import { Link, useRouterState } from "@tanstack/react-router";
 import { useEffect, useId, useRef, useState } from "react";
-import { ChevronDown, Menu, X } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { ArrowRight, ArrowUpRight, ChevronDown, LogOut, Menu, X } from "lucide-react";
 import { Logo } from "@/components/Logo";
-import { CAPABILITY_MENU, CTAS, INDUSTRY_MENU, PRIMARY_NAV } from "@/config/brand";
+import { ABOUT_MENU, CAPABILITY_MENU, CTAS, INDUSTRY_MENU, PRIMARY_NAV } from "@/config/brand";
+import "./SiteHeader.css";
+import { FREE_TOOLS } from "@/data/free-tools";
 
-type MenuKey = "industries" | "capabilities";
+type MenuKey = "industries" | "capabilities" | "about" | "resources";
+type NavItem = { label: string; to: string };
+
+const RESOURCE_LINKS: NavItem[] = [
+  { label: "Insights", to: "/insights" },
+  { label: "Testimonials & Reviews", to: "/testimonials" },
+];
+
+const INDUSTRY_GROUPS = [{ label: "Find your audience", items: INDUSTRY_MENU }];
 
 export function SiteHeader() {
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
+  const search = useRouterState({ select: (state) => state.location.search });
+  const contactTo = inquiryHref({ ...contextForPath(pathname), ...readInquiryContext(search) });
+  const isAdmin = pathname === "/admin";
+  const darkTone = true;
+  const [adminAuthed, setAdminAuthed] = useState(false);
   const [openMenu, setOpenMenu] = useState<MenuKey | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const navRef = useRef<HTMLDivElement>(null);
+  const headerRef = useRef<HTMLElement>(null);
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  const mobileCloseRef = useRef<HTMLButtonElement>(null);
+  const triggersRef = useRef<Partial<Record<MenuKey, HTMLButtonElement | null>>>({});
+  const hoverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const focusPanelRef = useRef<"first" | "last" | null>(null);
   const menuId = useId();
 
-  // Close everything on route change.
+  async function signOutAdmin() {
+    await fetch("/api/admin/session", { method: "DELETE", credentials: "same-origin" });
+    setAdminAuthed(false);
+    window.location.assign("/admin");
+  }
+
   useEffect(() => {
+    if (!isAdmin) {
+      setAdminAuthed(false);
+      return;
+    }
+
+    const controller = new AbortController();
+    const syncSession = () => {
+      void fetch("/api/admin/session", {
+        credentials: "same-origin",
+        signal: controller.signal,
+      })
+        .then((response) => response.json())
+        .then((result: { authed?: boolean }) => setAdminAuthed(result.authed === true))
+        .catch(() => setAdminAuthed(false));
+    };
+    syncSession();
+    window.addEventListener("hq360-admin-auth", syncSession);
+    return () => {
+      controller.abort();
+      window.removeEventListener("hq360-admin-auth", syncSession);
+    };
+  }, [isAdmin]);
+
+  function clearHoverTimer() {
+    if (hoverTimerRef.current !== null) {
+      clearTimeout(hoverTimerRef.current);
+      hoverTimerRef.current = null;
+    }
+  }
+
+  function closeDesktopMenu(restoreFocus = false) {
+    clearHoverTimer();
+    if (restoreFocus && openMenu) triggersRef.current[openMenu]?.focus();
+    setOpenMenu(null);
+  }
+
+  useEffect(() => {
+    clearHoverTimer();
     setOpenMenu(null);
     setMobileOpen(false);
   }, [pathname]);
 
-  // Lock scroll while the mobile panel is open.
   useEffect(() => {
-    document.body.style.overflow = mobileOpen ? "hidden" : "";
+    if (!mobileOpen || !dialogRef.current) return;
+    const dialog = dialogRef.current;
+    const previousOverflow = document.body.style.overflow;
+    dialog.showModal();
+    mobileCloseRef.current?.focus();
+    document.body.style.overflow = "hidden";
     return () => {
-      document.body.style.overflow = "";
+      dialog.close();
+      document.body.style.overflow = previousOverflow;
     };
   }, [mobileOpen]);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 8);
-    onScroll();
+    // Only update React when crossing the threshold; batch scroll work per frame.
+    let frame = 0;
+    let wasScrolled = window.scrollY > 24;
+    setScrolled(wasScrolled);
+    const onScroll = () => {
+      if (frame) return;
+      frame = window.requestAnimationFrame(() => {
+        frame = 0;
+        const next = window.scrollY > 24;
+        if (next !== wasScrolled) {
+          wasScrolled = next;
+          setScrolled(next);
+        }
+      });
+    };
+    const desktop = window.matchMedia("(min-width: 1024px)");
+    const onViewportChange = () => {
+      clearHoverTimer();
+      setMobileOpen(false);
+      setOpenMenu(null);
+    };
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    desktop.addEventListener("change", onViewportChange);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      desktop.removeEventListener("change", onViewportChange);
+      window.cancelAnimationFrame(frame);
+      clearHoverTimer();
+    };
   }, []);
 
   useEffect(() => {
     if (!openMenu) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpenMenu(null);
+    if (focusPanelRef.current) {
+      const links = headerRef.current?.querySelectorAll<HTMLAnchorElement>(
+        ".hq-mega-menu a[href], .hq-simple-menu a[href]",
+      );
+      const index = focusPanelRef.current === "last" ? (links?.length ?? 1) - 1 : 0;
+      links?.[index]?.focus();
+      focusPanelRef.current = null;
+    }
+    const onOutsidePress = (event: PointerEvent) => {
+      if (!headerRef.current?.contains(event.target as Node)) {
+        clearHoverTimer();
+        setOpenMenu(null);
+      }
     };
-    const onClick = (e: MouseEvent) => {
-      if (navRef.current && !navRef.current.contains(e.target as Node)) setOpenMenu(null);
-    };
-    document.addEventListener("keydown", onKey);
-    document.addEventListener("mousedown", onClick);
-    return () => {
-      document.removeEventListener("keydown", onKey);
-      document.removeEventListener("mousedown", onClick);
-    };
+    document.addEventListener("pointerdown", onOutsidePress);
+    return () => document.removeEventListener("pointerdown", onOutsidePress);
   }, [openMenu]);
 
   return (
     <header
-      className={cn(
-        "sticky top-0 z-50 w-full border-b transition-colors duration-200",
-        scrolled || openMenu
-          ? "border-border bg-background/92 backdrop-blur supports-[backdrop-filter]:bg-background/80"
-          : "border-transparent bg-background",
-      )}
+      ref={headerRef}
+      className="hq-header"
+      data-tone={darkTone ? "dark" : undefined}
+      data-scrolled={scrolled || undefined}
+      data-menu-open={Boolean(openMenu) || undefined}
+      onKeyDown={(event) => {
+        if (event.key === "Escape" && openMenu) {
+          event.preventDefault();
+          closeDesktopMenu(true);
+        }
+      }}
+      onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget as Node)) {
+          closeDesktopMenu();
+        }
+      }}
+      onPointerEnter={clearHoverTimer}
+      onPointerLeave={(event) => {
+        if (event.pointerType !== "mouse") return;
+        clearHoverTimer();
+        // A menu being read with the keyboard must remain available.
+        if (headerRef.current?.querySelector(".hq-mega-menu :focus, .hq-simple-menu :focus"))
+          return;
+        hoverTimerRef.current = setTimeout(() => setOpenMenu(null), 180);
+      }}
     >
-      <div ref={navRef} className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
-        <div className="flex h-16 items-center justify-between gap-4 lg:h-[4.5rem]">
-          <Link to="/" aria-label="HQ360 home" className="shrink-0">
-            <Logo size={30} />
-          </Link>
+      <div className="hq-header-surface" aria-hidden="true" />
+      <div className="hq-header-inner">
+        <Link to="/" preload="intent" aria-label="HQ360 home" className="hq-header-logo">
+          <Logo size={48} variant={darkTone ? "mono" : "gradient"} />
+        </Link>
 
-          <nav aria-label="Primary" className="hidden lg:flex lg:items-center lg:gap-1">
-            {PRIMARY_NAV.map((item) =>
-              item.menu ? (
-                <div key={item.label} className="relative">
+        <nav aria-label="Primary" className="hq-desktop-nav">
+          <ul className="hq-nav-list">
+            {PRIMARY_NAV.map((item) => {
+              if (!item.menu) {
+                return (
+                  <li key={item.label}>
+                    <Link
+                      to={item.to as string}
+                      preload="intent"
+                      className="hq-nav-link"
+                      activeOptions={{ exact: item.to === "/" }}
+                      activeProps={{ "aria-current": "page" }}
+                      onPointerEnter={() => closeDesktopMenu()}
+                    >
+                      {item.label}
+                    </Link>
+                  </li>
+                );
+              }
+              const key = item.menu;
+              return (
+                <li key={key}>
                   <button
+                    ref={(element) => {
+                      triggersRef.current[key] = element;
+                    }}
+                    id={`${menuId}-${key}-trigger`}
                     type="button"
-                    aria-expanded={openMenu === item.menu}
-                    aria-controls={`${menuId}-${item.menu}`}
-                    onClick={() =>
-                      setOpenMenu((cur) => (cur === item.menu ? null : (item.menu as MenuKey)))
-                    }
-                    className={cn(
-                      "inline-flex items-center gap-1 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                      openMenu === item.menu
-                        ? "text-foreground"
-                        : "text-muted-foreground hover:text-foreground",
-                    )}
+                    className="hq-nav-link hq-nav-trigger"
+                    aria-expanded={openMenu === key}
+                    aria-controls={`${menuId}-${key}`}
+                    onPointerEnter={(event) => {
+                      clearHoverTimer();
+                      if (event.pointerType === "mouse") {
+                        hoverTimerRef.current = setTimeout(() => setOpenMenu(key), 110);
+                      }
+                    }}
+                    onClick={() => {
+                      clearHoverTimer();
+                      setOpenMenu((current) => (current === key ? null : key));
+                    }}
+                    onKeyDown={(event) => {
+                      if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
+                      event.preventDefault();
+                      if (openMenu === key) {
+                        const links = headerRef.current?.querySelectorAll<HTMLAnchorElement>(
+                          ".hq-mega-menu a[href], .hq-simple-menu a[href]",
+                        );
+                        links?.[event.key === "ArrowUp" ? links.length - 1 : 0]?.focus();
+                      } else {
+                        focusPanelRef.current = event.key === "ArrowUp" ? "last" : "first";
+                        setOpenMenu(key);
+                      }
+                    }}
                   >
                     {item.label}
-                    <ChevronDown
-                      className={cn(
-                        "size-4 transition-transform",
-                        openMenu === item.menu && "rotate-180",
-                      )}
-                      aria-hidden="true"
-                    />
+                    <ChevronDown size={13} aria-hidden="true" />
                   </button>
-                </div>
-              ) : (
-                <Link
-                  key={item.label}
-                  to={item.to as string}
-                  activeOptions={{ exact: item.to === "/" }}
-                  activeProps={{ className: "text-foreground" }}
-                  className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-                >
-                  {item.label}
-                </Link>
-              ),
-            )}
-          </nav>
-
-          <div className="hidden lg:block">
-            <Link
-              to={CTAS.primary.to}
-              className="inline-flex items-center rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-editorial transition-transform hover:-translate-y-0.5 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
-            >
-              {CTAS.primary.label}
-            </Link>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => setMobileOpen((v) => !v)}
-            aria-expanded={mobileOpen}
-            aria-controls={`${menuId}-mobile`}
-            aria-label={mobileOpen ? "Close menu" : "Open menu"}
-            className="inline-flex items-center justify-center rounded-md border border-border p-2 text-foreground lg:hidden"
-          >
-            {mobileOpen ? (
-              <X className="size-5" aria-hidden="true" />
-            ) : (
-              <Menu className="size-5" aria-hidden="true" />
-            )}
-          </button>
-        </div>
-
-        {/* Desktop mega menu */}
-        {openMenu ? (
-          <div
-            id={`${menuId}-${openMenu}`}
-            className="absolute inset-x-0 top-full hidden border-b border-border bg-background/98 backdrop-blur lg:block"
-          >
-            <div className="mx-auto max-w-7xl px-5 py-8 sm:px-6 lg:px-8">
-              {openMenu === "industries" ? (
-                <div className="grid gap-8 lg:grid-cols-[1.4fr_1fr]">
-                  <div>
-                    <p className="text-xs font-semibold tracking-[0.18em] text-muted-foreground uppercase">
-                      Built around your industry
-                    </p>
-                    <ul className="mt-4 grid grid-cols-2 gap-x-6 gap-y-1">
-                      {INDUSTRY_MENU.map((it) => (
-                        <li key={it.to}>
-                          <Link
-                            to={it.to}
-                            className="block rounded-md px-3 py-2 text-sm font-medium text-foreground hover:bg-secondary hover:text-brand"
-                          >
-                            {it.label}
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                  <div className="rounded-2xl border border-border bg-secondary/60 p-6">
-                    <p className="font-display text-lg">Don't see yours?</p>
-                    <p className="mt-2 text-sm text-muted-foreground">
-                      The system adapts to most industries. See the full list or start a
-                      conversation.
-                    </p>
-                    <div className="mt-4 flex flex-col gap-2 text-sm font-semibold">
-                      <Link to="/industries" className="text-brand hover:underline">
-                        View all industries &rarr;
-                      </Link>
-                      <Link to={CTAS.primary.to} className="text-foreground hover:underline">
-                        Start a project &rarr;
-                      </Link>
+                  {openMenu === key && key === "about" && (
+                    <div
+                      id={`${menuId}-${key}`}
+                      className="hq-mega-menu hq-about-menu"
+                      aria-labelledby={`${menuId}-${key}-trigger`}
+                    >
+                      <div className="hq-about-layout">
+                        <aside className="hq-menu-feature">
+                          <span className="hq-nav-eyebrow">Inside HQ360</span>
+                          <p>
+                            One team.
+                            <br />
+                            Every angle.
+                          </p>
+                          <span className="hq-menu-caption">
+                            Meet the people and principles behind connected growth.
+                          </span>
+                        </aside>
+                        <ul className="hq-about-links">
+                          {ABOUT_MENU.map((link, index) => (
+                            <li key={link.to}>
+                              <Link to={link.to} className="hq-menu-card">
+                                <span className="hq-menu-card-number">
+                                  {String(index + 1).padStart(2, "0")}
+                                </span>
+                                <span>
+                                  <strong>{link.label}</strong>
+                                  <small>{link.blurb}</small>
+                                </span>
+                                <ArrowUpRight size={16} aria-hidden="true" />
+                              </Link>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
                     </div>
-                  </div>
-                </div>
-              ) : (
-                <div>
-                  <p className="text-xs font-semibold tracking-[0.18em] text-muted-foreground uppercase">
-                    What we do
-                  </p>
-                  <ul className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                    {CAPABILITY_MENU.map((it) => (
-                      <li key={it.to}>
-                        <Link
-                          to={it.to}
-                          className="block rounded-xl border border-transparent px-4 py-3 hover:border-border hover:bg-secondary/60"
-                        >
-                          <span className="block text-sm font-semibold text-foreground">
-                            {it.label}
+                  )}
+                  {openMenu === key && key === "resources" && (
+                    <div
+                      id={`${menuId}-${key}`}
+                      className="hq-mega-menu hq-resources-menu"
+                      aria-labelledby={`${menuId}-${key}-trigger`}
+                    >
+                      <div className="hq-resources-layout">
+                        <aside className="hq-resources-intro">
+                          <span className="hq-nav-eyebrow">Ideas into action</span>
+                          <p>
+                            Find your
+                            <br />
+                            next move.
+                          </p>
+                          <span className="hq-resources-caption">
+                            Useful perspectives and practical tools to help you move forward.
                           </span>
-                          <span className="mt-1 block text-xs leading-snug text-muted-foreground">
-                            {it.blurb}
+                          <ul className="hq-capability-menu-list">
+                            {RESOURCE_LINKS.map((link) => (
+                              <li key={link.label}>
+                                <Link to={link.to} className="hq-capability-menu-link">
+                                  {link.label}
+                                  <ArrowUpRight size={15} />
+                                </Link>
+                              </li>
+                            ))}
+                          </ul>
+                        </aside>
+                        <div>
+                          <div className="hq-resources-heading">
+                            <strong>Free Tools</strong>
+                            <Link to="/tools">View all →</Link>
+                          </div>
+                          <ul className="hq-resources-grid">
+                            {FREE_TOOLS.map((tool, index) => (
+                              <li key={tool.slug}>
+                                <Link
+                                  to="/tools/$tool"
+                                  params={{ tool: tool.slug }}
+                                  className="hq-resource-card"
+                                >
+                                  <span className="hq-resource-number">
+                                    {String(index + 1).padStart(2, "0")}
+                                  </span>
+                                  <span>
+                                    <strong>{tool.name}</strong>
+                                    <small>{tool.description}</small>
+                                  </span>
+                                  <ArrowUpRight size={15} aria-hidden="true" />
+                                </Link>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  {openMenu === key && key !== "about" && key !== "resources" && (
+                    <div
+                      id={`${menuId}-${key}`}
+                      className="hq-mega-menu"
+                      aria-labelledby={`${menuId}-${key}-trigger`}
+                      onPointerEnter={clearHoverTimer}
+                    >
+                      <div className={`hq-mega-inner hq-${key}-layout`}>
+                        <aside className="hq-menu-feature">
+                          <span className="hq-nav-eyebrow">
+                            {key === "industries" ? "Who we help" : "What we do"}
                           </span>
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                  <div className="mt-4 text-sm font-semibold">
-                    <Link to="/capabilities" className="text-brand hover:underline">
-                      All services &rarr;
-                    </Link>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        ) : null}
+                          <p>
+                            {key === "industries"
+                              ? "Your world.\nOur perspective."
+                              : "Your project.\nThe right support."}
+                          </p>
+                          <span className="hq-menu-caption">
+                            {key === "industries"
+                              ? "Practical starting points for different business needs."
+                              : "Websites, apps, automation, writing and translation."}
+                          </span>
+                          <Link
+                            to={key === "industries" ? "/industries" : "/services"}
+                            preload="intent"
+                            className="hq-nav-text-link"
+                          >
+                            {key === "industries" ? "Explore audiences" : "Explore services"}
+                            <ArrowRight size={16} aria-hidden="true" />
+                          </Link>
+                        </aside>
+                        {key === "industries" ? (
+                          <div className="hq-industry-menu-groups">
+                            {INDUSTRY_GROUPS.map((group) => (
+                              <div key={group.label}>
+                                <p className="hq-nav-eyebrow">{group.label}</p>
+                                <ul>
+                                  {group.items.map((link) => (
+                                    <li key={link.to}>
+                                      <Link
+                                        to={link.to}
+                                        preload="intent"
+                                        className="hq-industry-link"
+                                      >
+                                        <span>{link.label}</span>
+                                        <ArrowUpRight size={14} aria-hidden="true" />
+                                      </Link>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <ul className="hq-services-grid">
+                            {CAPABILITY_MENU.map((link, index) => (
+                              <li key={link.to}>
+                                <Link to={link.to} preload="intent" className="hq-menu-card">
+                                  <span className="hq-menu-card-number" aria-hidden="true">
+                                    {String(index + 1).padStart(2, "0")}
+                                  </span>
+                                  <span>
+                                    <strong>{link.label}</strong>
+                                    <small>{link.blurb}</small>
+                                  </span>
+                                  <ArrowUpRight size={15} aria-hidden="true" />
+                                </Link>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        </nav>
+
+        <Link to="/expert-signup" preload="intent" className="hq-header-join">
+          Become an Expert
+        </Link>
+        {isAdmin && adminAuthed ? (
+          <button type="button" className="hq-header-cta" onClick={signOutAdmin}>
+            Sign out
+            <LogOut size={16} aria-hidden="true" />
+          </button>
+        ) : (
+          <Link to={contactTo} preload="intent" className="hq-header-cta">
+            {CTAS.primary.label}
+            <ArrowUpRight size={16} aria-hidden="true" />
+          </Link>
+        )}
+        <button
+          type="button"
+          onClick={() => {
+            closeDesktopMenu();
+            setMobileOpen(true);
+          }}
+          aria-expanded={mobileOpen}
+          aria-controls={`${menuId}-mobile`}
+          aria-label="Open menu"
+          className="hq-mobile-toggle"
+        >
+          <span>Menu</span>
+          <Menu size={19} aria-hidden="true" />
+        </button>
       </div>
 
-      {/* Mobile panel */}
-      {mobileOpen ? (
-        <div
-          id={`${menuId}-mobile`}
-          className="fixed inset-x-0 top-16 bottom-0 z-50 overflow-y-auto border-t border-border bg-background lg:hidden"
-        >
-          <div className="px-5 py-6 sm:px-6">
-            <MobileGroup
-              title="Industries"
-              items={INDUSTRY_MENU}
-              extra={{ label: "All industries", to: "/industries" }}
-            />
-            <MobileGroup
-              title="Services"
-              items={CAPABILITY_MENU.map((c) => ({ label: c.label, to: c.to }))}
-              extra={{ label: "All services", to: "/capabilities" }}
-            />
-            <div className="mt-2 flex flex-col border-t border-border pt-2">
-              {PRIMARY_NAV.filter((n) => n.to).map((n) => (
-                <Link
-                  key={n.label}
-                  to={n.to as string}
-                  className="border-b border-border/60 py-3.5 text-base font-medium text-foreground"
-                >
-                  {n.label}
-                </Link>
-              ))}
-            </div>
-            <Link
-              to={CTAS.primary.to}
-              className="mt-6 inline-flex w-full items-center justify-center rounded-full bg-primary px-5 py-3.5 text-sm font-semibold text-primary-foreground"
-            >
-              {CTAS.primary.label}
-            </Link>
-          </div>
+      <dialog
+        ref={dialogRef}
+        id={`${menuId}-mobile`}
+        aria-label="Site navigation"
+        className="hq-mobile-dialog"
+        onCancel={() => setMobileOpen(false)}
+        onClose={() => setMobileOpen(false)}
+      >
+        <div className="hq-mobile-top">
+          <Link
+            to="/"
+            preload="intent"
+            aria-label="HQ360 home"
+            className="hq-header-logo"
+            onClick={() => setMobileOpen(false)}
+          >
+            <Logo size={48} />
+          </Link>
+          <button
+            ref={mobileCloseRef}
+            type="button"
+            onClick={() => setMobileOpen(false)}
+            aria-label="Close menu"
+            className="hq-mobile-toggle"
+          >
+            <span>Close</span>
+            <X size={19} aria-hidden="true" />
+          </button>
         </div>
-      ) : null}
+        <nav
+          aria-label="Mobile navigation"
+          className="hq-mobile-content"
+          onClick={(event) => {
+            if ((event.target as HTMLElement).closest("a[href]")) setMobileOpen(false);
+          }}
+        >
+          <span className="hq-nav-eyebrow">Find your next move</span>
+          <MobileGroup title="Services" extra={{ label: "Explore services", to: "/services" }}>
+            <MobileLinks items={CAPABILITY_MENU} />
+          </MobileGroup>
+          <MobileGroup
+            title="Who We Help"
+            extra={{ label: "Explore audiences", to: "/industries" }}
+          >
+            <MobileLinks items={INDUSTRY_MENU} />
+          </MobileGroup>
+          <ul className="hq-mobile-primary-links">
+            {PRIMARY_NAV.filter((item) => item.to).map((item) => (
+              <li key={item.label}>
+                <Link to={item.to as string} preload="intent">
+                  {item.label}
+                  <ArrowUpRight size={21} aria-hidden="true" />
+                </Link>
+              </li>
+            ))}
+            <li>
+              <Link to="/expert-signup" preload="intent">
+                Become an Expert
+                <ArrowUpRight size={21} aria-hidden="true" />
+              </Link>
+            </li>
+          </ul>
+          {isAdmin && adminAuthed ? (
+            <button type="button" className="hq-mobile-project-link" onClick={signOutAdmin}>
+              Sign out
+              <LogOut size={20} aria-hidden="true" />
+            </button>
+          ) : (
+            <Link to={contactTo} preload="intent" className="hq-mobile-project-link">
+              {CTAS.primary.label}
+              <ArrowUpRight size={20} aria-hidden="true" />
+            </Link>
+          )}
+          <p className="hq-mobile-signoff">Websites. Apps. Systems. Content.</p>
+        </nav>
+      </dialog>
     </header>
+  );
+}
+
+function MobileLinks({ items }: { items: NavItem[] }) {
+  return (
+    <ul className="hq-mobile-submenu-links">
+      {items.map((item) => (
+        <li key={item.to}>
+          <Link to={item.to} preload="intent">
+            {item.label}
+            <ArrowUpRight size={14} aria-hidden="true" />
+          </Link>
+        </li>
+      ))}
+    </ul>
   );
 }
 
 function MobileGroup({
   title,
-  items,
   extra,
+  children,
 }: {
   title: string;
-  items: { label: string; to: string }[];
-  extra?: { label: string; to: string };
+  extra?: NavItem;
+  children: React.ReactNode;
 }) {
-  const [open, setOpen] = useState(false);
   return (
-    <div className="border-b border-border/60">
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        aria-expanded={open}
-        className="flex w-full items-center justify-between py-3.5 text-base font-medium text-foreground"
-      >
+    <details className="hq-mobile-group">
+      <summary>
         {title}
-        <ChevronDown
-          className={cn("size-4 transition-transform", open && "rotate-180")}
-          aria-hidden="true"
-        />
-      </button>
-      {open ? (
-        <ul className="pb-3">
-          {items.map((it) => (
-            <li key={it.to}>
-              <Link to={it.to} className="block py-2.5 pl-3 text-sm text-muted-foreground">
-                {it.label}
-              </Link>
-            </li>
-          ))}
-          {extra ? (
-            <li>
-              <Link to={extra.to} className="block py-2.5 pl-3 text-sm font-semibold text-brand">
-                {extra.label}
-              </Link>
-            </li>
-          ) : null}
-        </ul>
-      ) : null}
-    </div>
+        <ChevronDown size={22} aria-hidden="true" />
+      </summary>
+      <div className="hq-mobile-group-content">
+        {children}
+        {extra ? (
+          <Link to={extra.to} preload="intent" className="hq-nav-text-link">
+            {extra.label}
+            <ArrowRight size={16} aria-hidden="true" />
+          </Link>
+        ) : null}
+      </div>
+    </details>
   );
 }

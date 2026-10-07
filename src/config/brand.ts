@@ -1,11 +1,10 @@
+import { AUDIENCES, CORE_SERVICES } from "@/data/agency";
 /**
  * HQ360 brand configuration.
  *
  * Single source of truth for brand identity, navigation and social links.
  * HQ360 is the only public-facing brand. "House of Synergy" is retained only as
  * company history on the About page.
- *
- * PLACEHOLDER: `email` and `domain` are not yet confirmed. Replace before launch.
  */
 
 const ENV_SITE_URL =
@@ -18,16 +17,22 @@ export const BRAND = {
   legalName: "HQ360",
   formerlyKnownAs: "House of Synergy",
   /** Public site URL, used for canonical + Open Graph absolute URLs. */
-  siteUrl: ENV_SITE_URL || "https://hq360.lovable.app",
-  /** PLACEHOLDER contact address. */
-  email: "hello@hq360.co",
-  tagline: "Everything your brand needs to grow.",
+  // Production domain. Override per-environment with SITE_URL / VITE_SITE_URL.
+  siteUrl: (ENV_SITE_URL || "https://www.hq360.space")
+    .replace(/^https?:\/\/(?:www\.)?hq360\.space(?=\/|$)/, "https://www.hq360.space")
+    .replace(/\/$/, ""),
+  email: "ceo@hq360.space",
+  /** Display format. */
+  whatsapp: "+1 (361) 466-0223",
+  /** wa.me deep link — digits only, no "+". */
+  whatsappHref: "https://wa.me/13614660223",
+  tagline: "Websites, apps, systems and content.",
   /** One-paragraph positioning, reused in meta descriptions and the footer. */
   positioning:
-    "HQ360 is a multi-industry growth agency. We surround a business with the strategy, creative, technology and marketing it needs to get seen, earn trust and turn attention into customers.",
+    "HQ360 builds websites, mobile apps and automation systems, and provides writing, translation and digital marketing for businesses.",
   /** Short descriptor for schema.org and OG site name. */
-  descriptor: "Multi-industry growth agency",
-  serviceArea: "Working with ambitious businesses and personal brands worldwide.",
+  descriptor: "Digital services and content agency",
+  serviceArea: "Working with businesses, creators, authors and agency teams.",
 } as const;
 
 export const CTAS = {
@@ -41,104 +46,69 @@ export const CTAS = {
  * Industry links shown in the header mega menu. The full list lives in
  * `src/data/industries.ts`; this is the curated shortlist plus a catch-all.
  */
-export const INDUSTRY_MENU: { label: string; to: string }[] = [
-  { label: "Authors & Publishers", to: "/authors" },
-  { label: "Real Estate", to: "/real-estate" },
-  { label: "Content Creators", to: "/creators" },
-  { label: "Coaches & Consultants", to: "/coaches" },
-  { label: "Home Services", to: "/home-services" },
-  { label: "Med Spas & Beauty", to: "/med-spas" },
-  { label: "Law & Professional Services", to: "/law-firms" },
-  { label: "Agencies", to: "/agencies" },
-];
+export const INDUSTRY_MENU = AUDIENCES.map((audience) => ({
+  label: audience.name,
+  to: `/${audience.slug}`,
+}));
 
-export const CAPABILITY_MENU: { label: string; to: string; blurb: string }[] = [
-  {
-    label: "Brand & Creative",
-    to: "/capabilities/brand-creative",
-    blurb: "Identity, design and creative direction that make a brand recognisable.",
-  },
-  {
-    label: "Website & Funnel",
-    to: "/capabilities/websites-funnels",
-    blurb: "Sites and landing pages built to turn attention into action.",
-  },
-  {
-    label: "Digital marketing",
-    to: "/capabilities/crm-automation",
-    blurb: "Pipelines and follow-up that work without manual chasing.",
-  },
-  {
-    label: "Social Media Marketing",
-    to: "/capabilities/lead-generation",
-    blurb: "Consistent, qualified demand from advertising and outreach.",
-  },
-  {
-    label: "Ai Video & Video Editing",
-    to: "/capabilities/content-social",
-    blurb: "Visibility that keeps a brand in front of the right audience.",
-  },
-  {
-    label: "SEO",
-    to: "/capabilities/visibility-reputation",
-    blurb: "Search presence, reviews and press that build credibility.",
-  },
-  {
-    label: "Mobile App Development",
-    to: "/capabilities/mobile-app-development",
-    blurb: "Mobile products designed around the journeys your customers use most.",
-  },
-  {
-    label: "Game Development",
-    to: "/capabilities/game-development",
-    blurb: "Interactive experiences designed to be played, shared and remembered.",
-  },
-];
+export const CAPABILITY_MENU = CORE_SERVICES.map((offer) => ({
+  label: offer.name,
+  to: `/services/${offer.slug}`,
+  blurb: offer.description,
+}));
 
 export const PRIMARY_NAV: {
   label: string;
   to?: string;
-  menu?: "industries" | "capabilities";
+  menu?: "industries" | "capabilities" | "about" | "resources";
 }[] = [
-  { label: "Industries", menu: "industries" },
   { label: "Services", menu: "capabilities" },
-  { label: "Work", to: "/work" },
+  { label: "Who We Help", menu: "industries" },
+  { label: "Our Work", to: "/work" },
+  { label: "Pricing", to: "/pricing" },
+  { label: "Experts", to: "/experts" },
   { label: "About", to: "/about" },
-  { label: "Insights", to: "/insights" },
 ];
 
-export const FOOTER_NAV: { heading: string; links: { label: string; to: string }[] }[] = [
+/** The About nav dropdown: the agency story, and the people behind it. */
+export const ABOUT_MENU: { label: string; to: string; blurb: string }[] = [
   {
-    heading: "Industries",
+    label: "Our Agency",
+    to: "/about",
+    blurb: "Why HQ360 exists and how a single connected team builds growth.",
+  },
+  {
+    label: "Meet the Team",
+    to: "/about",
+    blurb: "The people on your account, and what each of them owns.",
+  },
+  {
+    label: "Our Experts",
+    to: "/experts",
+    blurb: "The HQ360 team and approved independent experts, with a profile for each.",
+  },
+  {
+    label: "Become an Expert",
+    to: "/expert-signup",
+    blurb: "Apply to join the expert network and publish your own profile.",
+  },
+];
+
+export const FOOTER_NAV = [
+  { heading: "Services", links: CAPABILITY_MENU },
+  { heading: "Who We Help", links: INDUSTRY_MENU },
+  {
+    heading: "Explore",
     links: [
       { label: "Authors & Publishers", to: "/authors" },
-      { label: "Real Estate", to: "/real-estate" },
-      { label: "Content Creators", to: "/creators" },
-      { label: "Coaches & Consultants", to: "/coaches" },
-      { label: "Home Services", to: "/home-services" },
-      { label: "All industries", to: "/industries" },
-    ],
-  },
-  {
-    heading: "Services",
-    links: [
-      { label: "Brand & Creative", to: "/capabilities/brand-creative" },
-      { label: "Website & Funnel", to: "/capabilities/websites-funnels" },
-      { label: "Digital marketing", to: "/capabilities/crm-automation" },
-      { label: "Social Media Marketing", to: "/capabilities/lead-generation" },
-      { label: "Ai Video & Video Editing", to: "/capabilities/content-social" },
-      { label: "SEO", to: "/capabilities/visibility-reputation" },
-      { label: "Mobile App Development", to: "/capabilities/mobile-app-development" },
-      { label: "Game Development", to: "/capabilities/game-development" },
-    ],
-  },
-  {
-    heading: "Company",
-    links: [
-      { label: "About", to: "/about" },
-      { label: "Work", to: "/work" },
-      { label: "Insights", to: "/insights" },
+      { label: "Our Work", to: "/work" },
       { label: "Pricing", to: "/pricing" },
+      { label: "Resources", to: "/resources" },
+      { label: "Tools", to: "/tools" },
+      { label: "Free Visibility Check", to: "/tools/author-visibility-audit" },
+      { label: "Our Experts", to: "/experts" },
+      { label: "Become an Expert", to: "/expert-signup" },
+      { label: "About", to: "/about" },
       { label: "Start a Project", to: "/contact" },
     ],
   },
@@ -153,5 +123,8 @@ export const FOOTER_NAV: { heading: string; links: { label: string; to: string }
 
 /** Only real, verified profiles are listed. Add more as they go live. */
 export const SOCIALS: { label: string; href: string }[] = [
-  { label: "Instagram", href: "https://www.instagram.com/hq3_60/" },
+  { label: "WhatsApp", href: BRAND.whatsappHref },
+  { label: "Instagram", href: "https://www.instagram.com/official_hq360/" },
+  { label: "Twitter", href: "https://twitter.com/official_hq360" },
+  { label: "TikTok", href: "https://www.tiktok.com/@official_hq360" },
 ];

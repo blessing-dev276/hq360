@@ -1,22 +1,24 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Container, Eyebrow, Section, SectionHeader } from "@/components/site/Primitives";
-import { TeamAvatar } from "@/components/site/TeamAvatar";
-import { ProcessTimeline } from "@/components/site/ProcessTimeline";
-import { GrowthFrameworkStrip } from "@/components/site/GrowthFrameworkStrip";
-import { CtaBand } from "@/components/site/CtaBand";
-import { Reveal } from "@/components/site/Reveal";
-import { PRINCIPLES } from "@/data/process";
-import { TEAM } from "@/data/team";
-import { BRAND, CTAS } from "@/config/brand";
+import teamGroup1 from "@/assets/team-group-hero.webp";
+import teamGroup2 from "@/assets/team-group-2.webp";
+import teamGroup3 from "@/assets/team-group-3.webp";
+import teamGroup4 from "@/assets/team-group-4.webp";
+import { AGENCY_PROCESS } from "@/data/agency";
+import { BRAND } from "@/config/brand";
+import { useExpertDirectory } from "@/lib/experts";
 import { buildSeo, breadcrumbSchema } from "@/lib/seo";
+import { Reveal } from "@/components/site/Reveal";
+import { CtaBand } from "@/components/site/CtaBand";
+import { Eyebrow, Grain, Num, PersonCard, Pill } from "@/components/site/hqd/Hqd";
+import { ServiceCards } from "@/components/site/hqd/ServiceCards";
 
 export const Route = createFileRoute("/about")({
   head: () =>
     buildSeo(
       {
-        title: "About HQ360 | Multi-Industry Growth Agency",
+        title: "About HQ360 | Digital Services & Content",
         description:
-          "Why HQ360 exists, why fragmented marketing systems fail, and how a single multidisciplinary team builds growth that connects.",
+          "Meet the HQ360 team working on websites, apps, automation and written content.",
         path: "/about",
       },
       breadcrumbSchema([
@@ -27,109 +29,158 @@ export const Route = createFileRoute("/about")({
   component: AboutPage,
 });
 
+const TEAM_GROUP_PHOTOS = [teamGroup1, teamGroup2, teamGroup3, teamGroup4];
+
 function AboutPage() {
+  const { team } = useExpertDirectory();
+
   return (
     <>
-      <Section>
-        <SectionHeader
-          as="h1"
-          eyebrow="About"
-          title="Growth that connects, from one team"
-          intro="HQ360 exists because most businesses are told to solve growth by hiring more specialists — and end up with five vendors, five dashboards and nobody accountable for the result."
-        />
-        <div className="mt-10 grid max-w-4xl gap-6 text-lg leading-relaxed text-muted-foreground">
-          <p>
-            When brand, website, advertising, CRM and content are split across separate teams, each
-            one optimises for its own metric. Leads arrive that the follow-up was never designed
-            for. A redesign breaks the tracking the ads depended on. A brand refresh lands months
-            after the campaign that needed it. Everyone did their job. The system still leaks.
-          </p>
-          <p>
-            We built HQ360 to close those seams. One plan, one set of shared metrics, and one team
-            responsible for the whole path from spend to signed customer — across strategy,
-            creative, technology and marketing.
-          </p>
-          <p>
-            {BRAND.name} grew out of {BRAND.formerlyKnownAs}, which did this work for authors and
-            personal brands. That practice is now our Authors &amp; Publishers vertical, and the
-            same approach runs across real estate, home services, coaching, professional services,
-            creators and local business.
-          </p>
-        </div>
-      </Section>
-
-      <Section tone="carbon">
-        <SectionHeader
-          tone="light"
-          eyebrow="The approach"
-          title="One system, six connected stages"
-          intro="We work the whole loop, not a slice of it."
-        />
-        <div className="mt-12">
-          <GrowthFrameworkStrip tone="light" />
-        </div>
-      </Section>
-
-      <Section tone="raised">
-        <SectionHeader eyebrow="Principles" title="What we do not bend on" />
-        <ul className="mt-10 grid gap-5 sm:grid-cols-2">
-          {PRINCIPLES.map((p) => (
-            <li key={p.title} className="rounded-2xl border border-border bg-card p-6">
-              <h3 className="font-display text-lg">{p.title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{p.body}</p>
-            </li>
-          ))}
-        </ul>
-      </Section>
-
-      <Section>
-        <SectionHeader
-          eyebrow="The team"
-          title="The people on your account"
-          intro="A small multidisciplinary team. Every engagement has a named lead who stays with it."
-        />
-        <ul className="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-          {TEAM.map((m, i) => (
-            <li key={m.name}>
-              <Reveal delay={i * 30}>
-                <div className="rounded-2xl border border-border bg-card p-6 text-center">
-                  <TeamAvatar name={m.name} initials={m.initials} photo={m.photo} />
-                  <h3 className="mt-5 font-display text-lg">{m.name}</h3>
-                  <p className="mt-1 text-sm text-muted-foreground">{m.role}</p>
-                </div>
-              </Reveal>
-            </li>
-          ))}
-        </ul>
-        <p className="mt-8 text-xs tracking-wide text-muted-foreground/80 uppercase">
-          Team role titles generalised for the rebrand — confirm with each person before publishing.
-        </p>
-      </Section>
-
-      <Section tone="raised">
-        <SectionHeader eyebrow="How we run it" title="The same six steps, every engagement" />
-        <ProcessTimeline />
-      </Section>
-
-      <Section>
-        <Container className="px-0">
-          <div className="rounded-3xl border border-border bg-card p-8 sm:p-10">
-            <Eyebrow>Where we work</Eyebrow>
-            <h2 className="mt-3 font-display text-2xl sm:text-3xl">Worldwide, US-friendly</h2>
-            <p className="mt-4 max-w-2xl leading-relaxed text-muted-foreground">
-              The team works remotely across time zones. A large share of our clients are in the
-              United States, and calls are scheduled to your working hours. We do not operate
-              physical offices, and we will never claim one we do not have.
-            </p>
+      <section className="hqd-page-hero">
+        <div className="hqd-page-panel">
+          <span className="hqd-hero-glow" aria-hidden="true" />
+          <div className="hqd-page-photo hqd-page-photo--wide" aria-hidden="true">
+            {TEAM_GROUP_PHOTOS.map((src, index) => (
+              <img
+                key={src}
+                src={src}
+                alt=""
+                decoding="async"
+                {...(index === 0
+                  ? { fetchPriority: "high" as const }
+                  : { loading: "lazy" as const })}
+              />
+            ))}
           </div>
-        </Container>
-      </Section>
+          <span className="hqd-hero-shade" aria-hidden="true" />
+          <Grain />
+          <div className="hqd-page-inner">
+            <div>
+              <p className="hqd-hero-kicker">Websites · Apps · Systems · Content</p>
+              <h1 className="hqd-page-title">About</h1>
+            </div>
+            <div className="hqd-hero-aside">
+              <p className="hqd-lede">The team behind the work.</p>
+              <p>
+                Founded by Blessing Daniel, HQ360 is one connected team for your website, the
+                systems behind it and the words on it.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="hqd-section">
+        <div className="hqd-wrap">
+          <Reveal className="hqd-split">
+            <div>
+              <Eyebrow>Who we are</Eyebrow>
+              <h2 className="hqd-h2">
+                Built with purpose.
+                <br />
+                <span className="hqd-orange-text">Delivered as one team.</span>
+              </h2>
+            </div>
+            <div className="hqd-split-aside">
+              <p className="hqd-lede">
+                Shaping websites, systems and stories through strategy, craft and collaboration.
+              </p>
+              <p className="hqd-body">{BRAND.positioning}</p>
+              <p className="hqd-body">
+                We work with businesses, creators, authors and other agencies. Formerly{" "}
+                {BRAND.formerlyKnownAs}, we bring the required work into an agreed scope, with clear
+                review points and handover.
+              </p>
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
+      <section className="hqd-section" style={{ paddingTop: 0 }}>
+        <div className="hqd-wrap">
+          <Reveal className="hqd-split">
+            <div>
+              <Eyebrow>Services</Eyebrow>
+              <h2 className="hqd-h2">
+                What we can
+                <br />
+                help you with
+              </h2>
+            </div>
+            <div className="hqd-split-aside">
+              <p className="hqd-lede">
+                From strategy to visuals to code — tailored services that help your brand grow with
+                clarity.
+              </p>
+              <Pill to="/contact" tone="orange">
+                Get in Touch
+              </Pill>
+            </div>
+          </Reveal>
+          <ServiceCards />
+        </div>
+      </section>
+
+      <section id="team" className="hqd-section" style={{ paddingTop: 0, scrollMarginTop: "5rem" }}>
+        <div className="hqd-wrap">
+          <Reveal className="hqd-split">
+            <div>
+              <Eyebrow>Our team</Eyebrow>
+              <h2 className="hqd-h2">
+                The people
+                <br />
+                behind HQ360
+              </h2>
+            </div>
+            <div className="hqd-split-aside">
+              <p className="hqd-body">
+                Meet a few of the people who shape and deliver HQ360 projects.
+              </p>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "0.75rem" }}>
+                <Pill to="/experts" tone="orange">
+                  Meet the full team
+                </Pill>
+                <Pill to="/expert-signup" tone="ghost">
+                  Become an Expert
+                </Pill>
+              </div>
+            </div>
+          </Reveal>
+          <div className="hqd-people">
+            {team.slice(0, 3).map((person, index) => (
+              <Reveal key={person.slug} delay={(index % 4) * 70}>
+                <PersonCard person={person} />
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="hqd-section" style={{ paddingTop: 0 }}>
+        <div className="hqd-wrap">
+          <Reveal className="hqd-arc-head">
+            <Eyebrow>How we work</Eyebrow>
+            <h2 className="hqd-h2">
+              Clear steps, from hello
+              <br />
+              to handover
+            </h2>
+          </Reveal>
+          <ol className="hqd-steps">
+            {AGENCY_PROCESS.map(([title, body], index) => (
+              <li key={title} className="hqd-step">
+                <Num n={index + 1} />
+                <strong>{title}</strong>
+                <p>{body}</p>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </section>
 
       <CtaBand
-        title="See what we would build for you"
-        body="Start a project and we will map a first phase for your specific situation."
-        primary={CTAS.primary}
-        secondary={CTAS.work}
+        title="Ready to build what’s next?"
+        body="Tell us what you need, and we’ll agree the scope and next steps."
       />
     </>
   );

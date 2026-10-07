@@ -132,25 +132,20 @@ Build the logo as a reusable SVG component so colors can be swapped from a centr
 
 There should be no Ai words or hypens in text and no Animation excpet the bazing Logo
 
-This project was built with [Lovable](https://lovable.dev).
-
-**Live app**: https://hq360.lovable.app
-
-## Build with Lovable
-
-Continue developing this project in the [Lovable editor](https://lovable.dev/projects/304d40f6-011a-44b5-88a3-50abdec31077).
-
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: every change made in Lovable is committed straight to this repository.
-- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
-
 ## Development
 
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
+Uses [bun](https://bun.sh).
 
 ```sh
 git clone <this-repository-url>
-cd <repository-name>
-npm i
-npm run dev
+cd hq360
+bun install
+bun dev            # http://localhost:8080
 ```
+
+`bun run build` produces a nitro bundle in `.output/` (Cloudflare preset by
+default — change it in `vite.config.ts` for another host). Deployed builds need
+the Supabase env vars from `.env.example` set in the host environment.
+
+Scout source architecture, crawl controls, scheduling, identity review, migration steps,
+and future-source onboarding are documented in [docs/scout-sources.md](docs/scout-sources.md).

@@ -11,6 +11,7 @@ export type CapabilitySlug =
   | "lead-generation"
   | "content-social"
   | "visibility-reputation"
+  | "writing-translation"
   | "social-media-marketing"
   | "mobile-app-development"
   | "game-development";
@@ -35,12 +36,12 @@ export type Capability = {
 export const CAPABILITIES: Capability[] = [
   {
     slug: "brand-creative",
-    path: "/capabilities/brand-creative",
+    path: "/services/brand-creative",
     label: "Brand & Creative",
     name: "Brand & Creative",
     tagline: "Look like the business you are trying to become.",
     summary:
-      "Identity, design and creative direction that make a brand recognisable on sight and consistent everywhere it shows up.",
+      "Brand identity, design and creative direction for businesses, founders and experts. We connect positioning, logos, visual guidelines and campaign assets so the brand stays consistent across its website, social channels and sales material.",
     outcomes: [
       "A brand people recognise before they read the name",
       "Every touchpoint pulling in the same direction",
@@ -98,7 +99,7 @@ export const CAPABILITIES: Capability[] = [
   },
   {
     slug: "websites-funnels",
-    path: "/capabilities/websites-funnels",
+    path: "/services/website-development",
     label: "Website & Funnel",
     name: "Website & Funnel",
     tagline: "Turn your online presence into a sales asset built to convert attention into action.",
@@ -161,12 +162,12 @@ export const CAPABILITIES: Capability[] = [
   },
   {
     slug: "crm-automation",
-    path: "/capabilities/crm-automation",
-    label: "Digital marketing",
-    name: "Digital marketing",
+    path: "/services/automation-crm",
+    label: "CRM Automation",
+    name: "CRM Automation",
     tagline: "Turn new leads into booked conversations without manually chasing every enquiry.",
     summary:
-      "CRM setup, pipelines and follow-up automation so no lead goes cold while your team is busy doing the work.",
+      "Digital marketing operations for teams handling enquiries and sales. We set up CRM systems, sales pipelines and email or SMS follow-up to connect new leads with booking, nurture and reactivation workflows.",
     outcomes: [
       "Every lead answered fast, day or night",
       "One place to see where each deal stands",
@@ -221,19 +222,19 @@ export const CAPABILITIES: Capability[] = [
       },
     ],
     seo: {
-      title: "CRM & Automation | HQ360",
+      title: "CRM Automation | HQ360",
       description:
         "CRM setup, pipelines and SMS and email automation that answer every lead fast and follow up until they book, without manual chasing.",
     },
   },
   {
     slug: "lead-generation",
-    path: "/capabilities/lead-generation",
+    path: "/services/lead-generation",
     label: "Social Media Marketing",
     name: "Social Media Marketing",
     tagline: "Build a predictable flow of qualified conversations with people ready to buy.",
     summary:
-      "Paid advertising, outreach systems and nurture that put a consistent number of the right enquiries in front of your team.",
+      "Social media marketing and lead generation for businesses seeking new enquiries. We connect paid advertising, audience and offer strategy, outreach and nurture with the landing pages and follow-up needed to handle responses.",
     outcomes: [
       "A steady pipeline instead of feast and famine",
       "Enquiries that match who you actually want to work with",
@@ -284,20 +285,20 @@ export const CAPABILITIES: Capability[] = [
       },
     ],
     seo: {
-      title: "Lead Generation & Growth | HQ360",
+      title: "Social Media Marketing & Lead Generation | HQ360",
       description:
         "Paid advertising, outreach and nurture systems that build a predictable flow of qualified enquiries and booked appointments.",
     },
   },
   {
     slug: "content-social",
-    path: "/capabilities/content-social",
+    path: "/services/content-social",
     label: "Ai Video & Video Editing",
     name: "Ai Video & Video Editing",
     tagline:
       "Build consistent visibility that keeps your brand in front of the people most likely to buy.",
     summary:
-      "Content strategy, short-form video and social production that turn attention into familiarity and familiarity into trust.",
+      "Content strategy, short-form video and editing for businesses and personal brands. We plan themes and publishing calendars, produce social content and repurpose material into formats that support the brand and its campaigns.",
     outcomes: [
       "A publishing rhythm you can actually sustain",
       "Content built for how each platform distributes it",
@@ -348,19 +349,19 @@ export const CAPABILITIES: Capability[] = [
       },
     ],
     seo: {
-      title: "Content & Social | HQ360",
+      title: "AI Video, Video Editing & Content | HQ360",
       description:
         "Content strategy, short-form video, creator campaigns and social production that build consistent visibility with the right audience.",
     },
   },
   {
     slug: "visibility-reputation",
-    path: "/capabilities/visibility-reputation",
+    path: "/services/visibility-reputation",
     label: "SEO",
     name: "SEO",
     tagline: "Be easy to find and easy to trust the moment someone checks.",
     summary:
-      "Search presence, reviews, Google Business Profile and press so the story people find when they look you up is the right one.",
+      "SEO and reputation support for businesses that need to be found in search. The work covers website search optimisation, Google Business Profile, review workflows and press outreach, based on the business and the audience it serves.",
     outcomes: [
       "Showing up when your customers are searching",
       "A review profile that supports the sale instead of undermining it",
@@ -411,7 +412,7 @@ export const CAPABILITIES: Capability[] = [
       },
     ],
     seo: {
-      title: "Visibility & Reputation | HQ360",
+      title: "SEO, Local Search & Reputation | HQ360",
       description:
         "SEO, local search, Google Business Profile, review generation and PR so a business is easy to find and easy to trust.",
     },
@@ -420,8 +421,66 @@ export const CAPABILITIES: Capability[] = [
 
 CAPABILITIES.push(
   {
+    slug: "writing-translation",
+    path: "/services/writing-editing",
+    label: "Writing & Translation",
+    name: "Writing & Translation",
+    tagline: "Make every message clear, credible and ready for the audience it needs to reach.",
+    summary:
+      "Writing and translation for businesses, founders and brands that need clear, accurate communication across their website, campaigns, documents and customer touchpoints.",
+    outcomes: [
+      "Clear copy that makes the next step easy to understand",
+      "A consistent brand voice across customer-facing material",
+      "Translations that preserve meaning, tone and intent",
+      "Polished content ready to publish or send",
+    ],
+    services: [
+      {
+        title: "Website & landing-page copy",
+        body: "Clear, conversion-focused copy for the pages where customers decide whether to enquire, book or buy.",
+      },
+      {
+        title: "Marketing & sales copy",
+        body: "Campaign messaging, emails, brochures and sales material that make the offer easy to act on.",
+      },
+      {
+        title: "Content writing",
+        body: "Articles, scripts, social captions and thought-leadership content shaped around your audience and goals.",
+      },
+      {
+        title: "Translation & localisation",
+        body: "Accurate translation adapted for the language, market and cultural context your audience expects.",
+      },
+      {
+        title: "Editing & proofreading",
+        body: "A careful final pass for clarity, structure, tone, grammar and consistency before publication.",
+      },
+    ],
+    deliverables: [
+      "Messaging and voice guide",
+      "Ready-to-publish copy or translations",
+      "Edited source documents",
+      "Content calendar or campaign copy pack",
+    ],
+    faqs: [
+      {
+        q: "Can you match our existing tone of voice?",
+        a: "Yes. We review your current material and audience before writing, then create work that sounds recognisably like your brand.",
+      },
+      {
+        q: "Do you translate existing marketing material?",
+        a: "Yes. We can translate and localise existing pages, campaigns and documents while keeping the message and call to action intact.",
+      },
+    ],
+    seo: {
+      title: "Writing & Translation | HQ360",
+      description:
+        "Writing, editing, translation and localisation for websites, campaigns, sales material and customer communications.",
+    },
+  },
+  {
     slug: "mobile-app-development",
-    path: "/capabilities/mobile-app-development",
+    path: "/services/mobile-app-development",
     label: "Mobile App Development",
     name: "Mobile App Development",
     tagline: "Put your best customer journeys in the palm of their hand.",
@@ -456,12 +515,12 @@ CAPABILITIES.push(
     seo: {
       title: "Mobile App Development | HQ360",
       description:
-        "Mobile product strategy, design and development for focused customer experiences.",
+        "HQ360 builds mobile products end to end: product strategy, UX and UI design, development and launch support focused on the tasks customers need to complete most.",
     },
   },
   {
     slug: "game-development",
-    path: "/capabilities/game-development",
+    path: "/services/game-development",
     label: "Game Development",
     name: "Game Development",
     tagline: "Build interactive experiences people want to play and share.",
@@ -490,10 +549,23 @@ CAPABILITIES.push(
     faqs: [],
     seo: {
       title: "Game Development | HQ360",
-      description: "Game concepts, design and development for engaging interactive experiences.",
+      description:
+        "HQ360 designs and builds interactive games — core loops, playable systems and levels — from concept through testing and launch, built to ship and to be played.",
     },
   },
 );
+
+// Keep the public service catalogue in the intended presentation order.
+const writingTranslationIndex = CAPABILITIES.findIndex(
+  (capability) => capability.slug === "writing-translation",
+);
+const crmAutomationIndex = CAPABILITIES.findIndex(
+  (capability) => capability.slug === "crm-automation",
+);
+if (writingTranslationIndex !== -1 && crmAutomationIndex !== -1) {
+  const [writingTranslation] = CAPABILITIES.splice(writingTranslationIndex, 1);
+  CAPABILITIES.splice(crmAutomationIndex + 1, 0, writingTranslation!);
+}
 
 export function getCapability(slug: string): Capability | undefined {
   return CAPABILITIES.find((c) => c.slug === slug);

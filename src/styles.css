@@ -1,6 +1,7 @@
 @import "tailwindcss" source(none);
 @source "../src";
 @import "tw-animate-css";
+@import "./fonts.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -117,6 +118,19 @@
     0 2px 6px oklch(0.216 0.008 247 / 7%), 0 32px 64px -34px oklch(0.216 0.008 247 / 42%);
   --gradient-brand: linear-gradient(96deg, var(--brand) 8%, var(--brand-strong) 92%);
 
+  /* Motion system — UI interactions stay in the 150–500ms band. */
+  --motion-fast: 160ms;
+  --motion-base: 260ms;
+  --motion-slow: 440ms;
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-emphasized: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* Skeleton / shimmer system (shape-matched loaders reference these). */
+  --skeleton-base: oklch(0.93 0.004 90);
+  --skeleton-highlight: oklch(0.968 0.003 95);
+  --skeleton-radius: 0.5rem;
+  --skeleton-duration: 1.8s;
+
   --sidebar: var(--surface-raised);
   --sidebar-foreground: var(--ink);
   --sidebar-primary: var(--ink);
@@ -145,6 +159,9 @@
   --border: oklch(1 0 0 / 12%);
   --input: oklch(1 0 0 / 16%);
   --ring: var(--brand);
+
+  --skeleton-base: oklch(0.27 0.008 247);
+  --skeleton-highlight: oklch(0.32 0.008 247);
 }
 
 @layer base {
@@ -246,12 +263,12 @@
 }
 
 .hq-spin-slow {
-  animation: hq-orbit 42s linear infinite;
+  animation: hq-orbit 24s linear infinite;
   transform-origin: center;
 }
 
 .hq-spin-slower {
-  animation: hq-orbit-reverse 68s linear infinite;
+  animation: hq-orbit-reverse 40s linear infinite;
   transform-origin: center;
 }
 

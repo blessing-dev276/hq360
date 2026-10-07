@@ -3,7 +3,7 @@
 // Wire a real provider by setting env vars (see .env.example):
 //   EMAIL_PROVIDER=resend
 //   RESEND_API_KEY=...
-//   EMAIL_FROM="HQ360 <hello@hq360.co>"
+//   EMAIL_FROM="HQ360 <ceo@hq360.space>"
 //
 // With no provider configured, calls are logged and report `sent: false`, so
 // the rest of a flow (DB write, on-page download) still completes.
@@ -15,12 +15,20 @@ export type EmailMessage = {
   text: string;
   html?: string;
   replyTo?: string;
+  /** File bytes encoded as base64 for Resend. */
+  attachments?: { filename: string; content: string; content_type: string }[];
 };
 
 export type EmailResult = { sent: boolean; id?: string; error?: string };
 
+export const DEFAULT_CONTACT_EMAIL = "ceo@hq360.space";
+
+export function leadInboxAddress(): string {
+  return process.env.LEAD_EMAIL || process.env.EMAIL_TO || DEFAULT_CONTACT_EMAIL;
+}
+
 function fromAddress(): string {
-  return process.env.EMAIL_FROM || "HQ360 <onboarding@resend.dev>";
+  return process.env.EMAIL_FROM || `HQ360 <${DEFAULT_CONTACT_EMAIL}>`;
 }
 
 async function sendViaResend(msg: EmailMessage): Promise<EmailResult> {
@@ -41,6 +49,7 @@ async function sendViaResend(msg: EmailMessage): Promise<EmailResult> {
         text: msg.text,
         html: msg.html ?? `<p>${escapeHtml(msg.text).replace(/\n/g, "<br>")}</p>`,
         ...(msg.replyTo ? { reply_to: msg.replyTo } : {}),
+        ...(msg.attachments?.length ? { attachments: msg.attachments } : {}),
       }),
     });
 
@@ -75,4 +84,18 @@ export async function sendEmail(msg: EmailMessage): Promise<EmailResult> {
 
   console.log(`[email] no provider configured — would send "${msg.subject}" to ${msg.to}`);
   return { sent: false, error: "EMAIL_PROVIDER not configured" };
+}
+
+export async function sendLeadEmail(input: {
+  subject: string;
+  text: string;
+  replyTo?: string;
+}): Promise<EmailResult> {
+  const recipient = leadInboxAddress();
+  return sendEmail({
+    to: recipient,
+    subject: input.subject,
+    text: input.text,
+    ...(input.replyTo ? { replyTo: input.replyTo } : {}),
+  });
 }

@@ -1,14 +1,21 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AdminApp } from "@/components/admin/AdminApp";
-import academyCss from "@/components/academy/academy.css?url";
+import { AdminGate } from "@/components/admin/AdminGate";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
     meta: [
-      { title: "Admin | HQ360" },
+      { title: "Admin — Workspace & Payments | HQ360" },
       { name: "robots", content: "noindex, nofollow" },
     ],
-    links: [{ rel: "stylesheet", href: academyCss }],
   }),
-  component: AdminApp,
+  component: AdminPage,
 });
+
+function AdminPage() {
+  return (
+    <AdminGate>
+      <AdminApp />
+    </AdminGate>
+  );
+}

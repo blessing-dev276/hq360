@@ -1,5 +1,4 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { CASE_STUDIES, getCaseStudy, type CaseStudy } from "@/data/work";
 import { getCapability } from "@/data/capabilities";
 import {
   Container,
@@ -9,21 +8,26 @@ import {
   SectionHeader,
 } from "@/components/site/Primitives";
 import { CtaBand } from "@/components/site/CtaBand";
-import { buildSeo, breadcrumbSchema } from "@/lib/seo";
+import { buildSeo, breadcrumbSchema, truncateDescription } from "@/lib/seo";
 import { CTAS } from "@/config/brand";
+import { loadCaseStudies } from "@/lib/case-studies.functions";
 
 export const Route = createFileRoute("/work/$slug")({
-  loader: ({ params }): { study: CaseStudy } => {
-    const study = getCaseStudy(params.slug);
-    if (!study) throw notFound();
-    return { study };
+  loader: async ({ params }) => {
+    const result = await loadCaseStudies({ data: { slug: params.slug } });
+    const study = result.studies[0];
+    if (!study) {
+      if (!result.available) throw new Error("Project temporarily unavailable. Please try again.");
+      throw notFound();
+    }
+    return { study, studies: result.studies };
   },
   head: ({ loaderData }) =>
-    loaderData
+    loaderData?.study
       ? buildSeo(
           {
             title: `${loaderData.study.title} | HQ360 Work`,
-            description: loaderData.study.summary,
+            description: truncateDescription(loaderData.study.summary),
             path: `/work/${loaderData.study.slug}`,
             type: "article",
             noindex: loaderData.study.status === "sample",
@@ -35,21 +39,21 @@ export const Route = createFileRoute("/work/$slug")({
           ]),
         )
       : buildSeo({
-          title: "Project not found | HQ360",
-          description: "This project could not be found.",
-          path: "/work",
+          title: "Project unavailable | HQ360",
+          description: "This project could not be loaded.",
           noindex: true,
+          path: "/work",
         }),
   component: WorkDetail,
 });
 
 function WorkDetail() {
-  const { study } = Route.useLoaderData();
-  const others = CASE_STUDIES.filter((c) => c.slug !== study.slug).slice(0, 2);
+  const { study, studies } = Route.useLoaderData();
+  const others = studies.filter((c) => c.slug !== study.slug).slice(0, 2);
 
   return (
     <>
-      <Section>
+      <Section tone="hero">
         <Container size="narrow" className="px-0">
           <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground">
             <Link to="/work" className="hover:text-brand">
@@ -93,34 +97,38 @@ function WorkDetail() {
       </Section>
 
       {study.media && study.media.length > 0 ? (
-        <Section tone="raised" className="pt-0 lg:pt-0">
+        <Section tone="raised">
           <ul className="grid gap-6 md:grid-cols-2">
-            {study.media.map((m, i) => (
-              <li
-                key={m.src}
-                className={
-                  "overflow-hidden rounded-2xl border border-border bg-card" +
-                  (i === 0 ? " md:col-span-2" : "")
-                }
-              >
-                {m.src.endsWith(".mp4") ? (
-                  <video
-                    src={m.src}
-                    controls
-                    playsInline
-                    preload="metadata"
-                    className="aspect-video w-full bg-charcoal"
-                  >
-                    Your browser does not support embedded video.
-                  </video>
-                ) : (
-                  <img src={m.src} alt={m.alt} loading="lazy" className="w-full object-cover" />
-                )}
-                {m.caption ? (
-                  <p className="px-5 py-3 text-sm text-muted-foreground">{m.caption}</p>
-                ) : null}
-              </li>
-            ))}
+            {study.media.map((m, i) => {
+              const isVideo =
+                (m as { type?: string }).type === "video" || /\.(mp4|webm|mov)$/i.test(m.src);
+              return (
+                <li
+                  key={m.src}
+                  className={
+                    "overflow-hidden rounded-2xl border border-border bg-card" +
+                    (i === 0 ? " md:col-span-2" : "")
+                  }
+                >
+                  {isVideo ? (
+                    <video
+                      src={m.src}
+                      controls
+                      playsInline
+                      preload="metadata"
+                      className="aspect-video w-full bg-charcoal"
+                    >
+                      Your browser does not support embedded video.
+                    </video>
+                  ) : (
+                    <img src={m.src} alt={m.alt} loading="lazy" className="w-full object-cover" />
+                  )}
+                  {m.caption ? (
+                    <p className="px-5 py-3 text-sm text-muted-foreground">{m.caption}</p>
+                  ) : null}
+                </li>
+              );
+            })}
           </ul>
         </Section>
       ) : null}

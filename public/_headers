@@ -1,0 +1,21 @@
+# Hashed /assets/* caching is emitted by Nitro. These files have stable names,
+# so cache them briefly and revalidate rather than marking them immutable.
+/favicon.png
+  Cache-Control: public, max-age=86400, must-revalidate
+/favicon.svg
+  Cache-Control: public, max-age=86400, must-revalidate
+/logo-text.png
+  Cache-Control: public, max-age=86400, must-revalidate
+/logo-abstract.png
+  Cache-Control: public, max-age=86400, must-revalidate
+/resources/*
+  Cache-Control: public, max-age=3600, must-revalidate
+/robots.txt
+  Cache-Control: public, max-age=3600, must-revalidate
+
+/logo-text.webp
+  Cache-Control: public, max-age=86400, must-revalidate
+/logo-abstract.webp
+  Cache-Control: public, max-age=86400, must-revalidate
+/fonts/*
+  Cache-Control: public, max-age=86400, must-revalidate

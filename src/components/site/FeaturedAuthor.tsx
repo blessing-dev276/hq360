@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { Container, Eyebrow } from "@/components/site/Primitives";
-import featuredAuthor from "@/assets/featured-author-sanman.jpg.asset.json";
+import featuredAuthor from "@/assets/featured-author-sanman.jpg";
 
 export function FeaturedAuthor() {
   return (
@@ -9,7 +9,7 @@ export function FeaturedAuthor() {
         <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:items-center">
           <div className="overflow-hidden rounded-3xl border border-white/12 shadow-editorial">
             <img
-              src={featuredAuthor.url}
+              src={featuredAuthor}
               alt="Sanman Thapa holding From the Window: The City of What Ifs at his signing table"
               loading="lazy"
               className="aspect-[4/5] w-full object-cover"

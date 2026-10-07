@@ -1,78 +1,92 @@
+import { trackConversion } from "@/lib/google-analytics";
 import { useState, type FormEvent } from "react";
-import { z } from "zod";
 import { cn } from "@/lib/utils";
-import { CAPABILITIES } from "@/data/capabilities";
-import { INDUSTRIES } from "@/data/industries";
+import { AUDIENCES, CORE_SERVICES } from "@/data/agency";
+import { inquirySourcePath } from "@/lib/inquiry-context";
 
-const HELP_OPTIONS = CAPABILITIES.map((c) => c.name);
+const HELP_OPTIONS = CORE_SERVICES.map((c) => c.name);
 const BUDGETS = ["Not sure yet", "Under $5k", "$5k – $15k", "$15k – $50k", "$50k+"];
 const TIMELINES = ["As soon as possible", "Within 1–3 months", "In 3–6 months", "Just exploring"];
 
-const schema = z.object({
-  name: z.string().min(2, "Enter your name"),
-  email: z.string().email("Enter a valid email"),
-  company: z.string().optional(),
-  website: z.string().optional(),
-  industry: z.string().optional(),
-  helpWith: z.array(z.string()).min(1, "Pick at least one area"),
-  primaryGoal: z.string().optional(),
-  budgetRange: z.string().optional(),
-  timeline: z.string().optional(),
-  message: z.string().optional(),
-});
+type Candidate = {
+  name: string;
+  email: string;
+  company: string;
+  website: string;
+  industry: string;
+  helpWith: string[];
+  primaryGoal: string;
+  budgetRange: string;
+  timeline: string;
+  message: string;
+};
 
-type Errors = Partial<Record<keyof z.infer<typeof schema>, string>> & { form?: string };
+// Hand-written checks (same messages as before) instead of zod: this form is
+// on most marketing pages, and zod would ship to every visitor. The API
+// validates the full payload again on the server.
+const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+function validate(c: Candidate): Partial<Record<keyof Candidate, string>> {
+  const errors: Partial<Record<keyof Candidate, string>> = {};
+  if (c.name.length < 2 || c.name.length > 160) errors.name = "Enter your name";
+  if (!EMAIL.test(c.email) || c.email.length > 320) errors.email = "Enter a valid email";
+  if (c.helpWith.length < 1) errors.helpWith = "Pick at least one area";
+  return errors;
+}
+
+type Errors = Partial<Record<keyof Candidate, string>> & { form?: string };
 
 export function ProjectInquiryForm({
   defaultIndustry,
   sourceIndustry,
+  sourceService = "",
+  sourcePath,
+  defaultServices = [],
   className,
   compact = false,
   helpOptions = HELP_OPTIONS,
 }: {
   /** Prefill the industry select (Industry.shortName). */
-  defaultIndustry?: string;
+  defaultIndustry?: string | undefined;
   /** The industry landing page this form was rendered on. */
-  sourceIndustry?: string;
+  sourceIndustry?: string | undefined;
+  sourceService?: string | undefined;
+  sourcePath?: string | undefined;
+  defaultServices?: string[];
   className?: string;
   compact?: boolean;
   /** Optional vertical-specific service choices. */
   helpOptions?: string[];
 }) {
-  const [helpWith, setHelpWith] = useState<string[]>([]);
+  const [helpWith, setHelpWith] = useState<string[]>(defaultServices);
   const [errors, setErrors] = useState<Errors>({});
   const [state, setState] = useState<"idle" | "sending" | "done">("idle");
   const [honey, setHoney] = useState("");
-
-  function toggleHelp(v: string) {
-    setHelpWith((cur) => (cur.includes(v) ? cur.filter((x) => x !== v) : [...cur, v]));
-  }
+  const [emailed, setEmailed] = useState(false);
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (state === "sending") return;
 
     const fd = new FormData(e.currentTarget);
-    const candidate = {
+    const candidate: Candidate = {
       name: String(fd.get("name") ?? "").trim(),
       email: String(fd.get("email") ?? "").trim(),
       company: String(fd.get("company") ?? "").trim(),
       website: String(fd.get("website") ?? "").trim(),
       industry: String(fd.get("industry") ?? "").trim(),
-      helpWith,
+      helpWith: helpWith.length ? helpWith : ["Help me choose"],
       primaryGoal: String(fd.get("primaryGoal") ?? "").trim(),
       budgetRange: String(fd.get("budgetRange") ?? "").trim(),
       timeline: String(fd.get("timeline") ?? "").trim(),
       message: String(fd.get("message") ?? "").trim(),
     };
 
-    const parsed = schema.safeParse(candidate);
-    if (!parsed.success) {
-      const next: Errors = {};
-      for (const issue of parsed.error.issues) {
-        next[issue.path[0] as keyof Errors] = issue.message;
-      }
-      setErrors(next);
+    const found = validate(candidate);
+    const firstInvalid = Object.keys(found)[0];
+    if (firstInvalid) {
+      setErrors(found);
+      const field = e.currentTarget.elements.namedItem(firstInvalid);
+      if (field instanceof HTMLElement) field.focus();
       return;
     }
     setErrors({});
@@ -83,14 +97,19 @@ export function ProjectInquiryForm({
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
-          ...parsed.data,
+          ...candidate,
           sourceIndustry: sourceIndustry ?? "",
-          sourcePath: typeof window !== "undefined" ? window.location.pathname : "",
+          sourcePath: inquirySourcePath(
+            sourcePath ?? (typeof window !== "undefined" ? window.location.pathname : ""),
+            sourceService,
+          ),
           company_url: honey,
         }),
       });
-      const body = (await res.json().catch(() => ({}))) as { ok?: boolean };
+      const body = (await res.json().catch(() => ({}))) as { ok?: boolean; emailed?: boolean };
       if (res.ok && body.ok) {
+        setEmailed(body.emailed === true);
+        if (!honey) trackConversion("project_inquiry_submitted");
         setState("done");
       } else {
         setState("idle");
@@ -118,14 +137,16 @@ export function ProjectInquiryForm({
             fill="none"
             stroke="currentColor"
             strokeWidth="2.5"
+            aria-hidden="true"
           >
             <path d="m5 13 4 4L19 7" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </div>
         <h3 className="mt-5 font-display text-2xl">Thanks — that's in.</h3>
         <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-muted-foreground">
-          We read every enquiry ourselves and reply within one working day, usually with a first
-          view of what we would do and whether we are the right fit.
+          {emailed
+            ? "Your enquiry has been emailed to HQ360. We will reply within one working day."
+            : "Your enquiry has been saved. Email notification is delayed; for urgent requests, contact ceo@hq360.space."}
         </p>
       </div>
     );
@@ -143,110 +164,118 @@ export function ProjectInquiryForm({
       <div className="grid gap-5">
         <div className={cn("grid gap-5", !compact && "sm:grid-cols-2")}>
           <Field label="Full name" error={errors.name}>
-            <input name="name" type="text" autoComplete="name" className={inputCls} />
+            <input
+              name="name"
+              required
+              maxLength={160}
+              type="text"
+              autoComplete="name"
+              className={inputCls}
+            />
           </Field>
           <Field label="Email" error={errors.email}>
-            <input name="email" type="email" autoComplete="email" className={inputCls} />
-          </Field>
-        </div>
-
-        <div className={cn("grid gap-5", !compact && "sm:grid-cols-2")}>
-          <Field label="Company" hint="Optional">
-            <input name="company" type="text" autoComplete="organization" className={inputCls} />
-          </Field>
-          <Field label="Website" hint="Optional">
             <input
-              name="website"
-              type="text"
-              inputMode="url"
-              placeholder="yourbusiness.com"
+              name="email"
+              required
+              maxLength={320}
+              type="email"
+              autoComplete="email"
               className={inputCls}
             />
           </Field>
         </div>
 
-        <Field label="Industry">
+        <Field label="Business type" hint="Optional">
           <select name="industry" defaultValue={defaultIndustry ?? ""} className={inputCls}>
-            <option value="">Select an industry</option>
-            {INDUSTRIES.map((i) => (
-              <option key={i.slug} value={i.shortName}>
-                {i.shortName}
-              </option>
+            <option value="">Choose your business type</option>
+            {[
+              ...new Set([
+                ...AUDIENCES.map((a) => a.name),
+                ...(defaultIndustry ? [defaultIndustry] : []),
+              ]),
+            ].map((name) => (
+              <option key={name}>{name}</option>
             ))}
-            <option value="Other">Other</option>
+            <option>Other</option>
           </select>
         </Field>
-
         <fieldset>
-          <legend className="text-sm font-medium text-foreground">
-            What do you need help with?
-          </legend>
-          {errors.helpWith ? (
-            <p className="mt-1 text-xs text-destructive">{errors.helpWith}</p>
-          ) : null}
-          <div className="mt-3 grid gap-2 sm:grid-cols-2">
-            {helpOptions.map((opt) => (
+          <legend className="text-sm font-medium">What do you need help with?</legend>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Select all that apply, or leave this blank and we’ll help you choose.
+          </p>
+          <div className="mt-3 grid gap-2">
+            {[...new Set([...helpOptions, ...defaultServices])].map((option) => (
               <label
-                key={opt}
-                className={cn(
-                  "flex cursor-pointer items-center gap-2.5 rounded-xl border px-3.5 py-2.5 text-sm transition-colors",
-                  helpWith.includes(opt)
-                    ? "border-brand bg-brand-soft text-foreground"
-                    : "border-border bg-background hover:border-foreground/30",
-                )}
+                key={option}
+                className="flex min-h-11 items-center gap-3 rounded-lg border border-border px-3 py-2 text-sm"
               >
                 <input
                   type="checkbox"
-                  checked={helpWith.includes(opt)}
-                  onChange={() => toggleHelp(opt)}
-                  className="size-4 accent-[var(--brand)]"
+                  checked={helpWith.includes(option)}
+                  onChange={(event) =>
+                    setHelpWith((current) =>
+                      event.target.checked
+                        ? [...current, option]
+                        : current.filter((value) => value !== option),
+                    )
+                  }
+                  className="size-4 accent-brand"
                 />
-                {opt}
+                {option}
               </label>
             ))}
           </div>
         </fieldset>
-
-        <Field label="Primary goal" hint="Optional">
-          <input
-            name="primaryGoal"
-            type="text"
-            placeholder="e.g. Book 20 qualified calls a month"
-            className={inputCls}
+        <Field label="Tell us a little about your idea" hint="Optional">
+          <textarea
+            name="message"
+            rows={3}
+            maxLength={4000}
+            placeholder="What would you like to achieve?"
+            className={cn(inputCls, "resize-y")}
           />
         </Field>
+        <details className="rounded-xl border border-border p-4 text-foreground">
+          <summary className="cursor-pointer text-sm font-medium">
+            Add project details{" "}
+            <span className="font-normal text-muted-foreground">(optional)</span>
+          </summary>
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            <Field label="Website">
+              <input
+                name="website"
+                maxLength={300}
+                placeholder="yourbusiness.com"
+                className={inputCls}
+              />
+            </Field>
+            <Field label="Budget">
+              <select name="budgetRange" className={inputCls}>
+                <option value="">Not decided yet</option>
+                {BUDGETS.map((v) => (
+                  <option key={v}>{v}</option>
+                ))}
+              </select>
+            </Field>
+            <Field label="Timeline">
+              <select name="timeline" className={inputCls}>
+                <option value="">Choose timing</option>
+                {TIMELINES.map((v) => (
+                  <option key={v}>{v}</option>
+                ))}
+              </select>
+            </Field>
+          </div>
+        </details>
 
-        <div className={cn("grid gap-5", !compact && "sm:grid-cols-2")}>
-          <Field label="Approximate budget">
-            <select name="budgetRange" defaultValue="" className={inputCls}>
-              <option value="">Select a range</option>
-              {BUDGETS.map((b) => (
-                <option key={b} value={b}>
-                  {b}
-                </option>
-              ))}
-            </select>
-          </Field>
-          <Field label="Timeline">
-            <select name="timeline" defaultValue="" className={inputCls}>
-              <option value="">Select a timeline</option>
-              {TIMELINES.map((t) => (
-                <option key={t} value={t}>
-                  {t}
-                </option>
-              ))}
-            </select>
-          </Field>
-        </div>
-
-        <Field label="Anything else" hint="Optional">
-          <textarea name="message" rows={4} className={cn(inputCls, "resize-y")} />
-        </Field>
-
-        {/* Honeypot */}
+        {/* Honeypot — deliberately not named "company"/"url"/"website" etc,
+            since those are exactly what autofill/password-manager
+            extensions target even on a hidden field with
+            autocomplete="off". */}
         <input
           type="text"
-          name="company_url"
+          name="hp"
           tabIndex={-1}
           autoComplete="off"
           value={honey}
@@ -297,7 +326,11 @@ function Field({
         {hint ? <span className="text-xs text-muted-foreground">{hint}</span> : null}
       </span>
       <span className="mt-1.5 block">{children}</span>
-      {error ? <span className="mt-1 block text-xs text-destructive">{error}</span> : null}
+      {error ? (
+        <span role="alert" className="mt-1 block text-xs text-destructive">
+          {error}
+        </span>
+      ) : null}
     </label>
   );
 }

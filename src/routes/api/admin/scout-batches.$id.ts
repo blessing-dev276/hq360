@@ -1,0 +1,83 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { authorPresence, presenceFor, resolveScoutAccess } from "@/lib/scout/owner.server";
+import { asScoutDb } from "@/lib/scout/db";
+
+function json(body: unknown, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { "content-type": "application/json" },
+  });
+}
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+export const Route = createFileRoute("/api/admin/scout-batches/$id")({
+  server: {
+    handlers: {
+      DELETE: async ({ request, params }) => {
+        const access = await resolveScoutAccess(request);
+        if (!access) return json({ ok: false, error: "unauthorized" }, 401);
+        if (request.headers.get("origin") !== new URL(request.url).origin)
+          return json({ ok: false, error: "Invalid origin" }, 403);
+        if (!UUID.test(params.id)) return json({ ok: false, error: "invalid" }, 400);
+        try {
+          const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+          const { data, error } = await asScoutDb(supabaseAdmin).rpc("scout_discard_empty_batch", {
+            p_id: params.id,
+            p_owner: access.owner,
+          });
+          if (error) throw error;
+          return json({ ok: true, removed: data === true });
+        } catch {
+          return json(
+            { ok: false, error: "Could not discard the empty batch. Please retry." },
+            503,
+          );
+        }
+      },
+      GET: async ({ request, params }) => {
+        const access = await resolveScoutAccess(request);
+        if (!access) return json({ ok: false, error: "unauthorized" }, 401);
+        if (!UUID.test(params.id)) return json({ ok: false, error: "invalid" }, 400);
+        try {
+          const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+          const db = asScoutDb(supabaseAdmin);
+
+          const { data: batch } = await db
+            .from("scout_batches")
+            .select("*")
+            .eq("id", params.id)
+            .eq("owner", access.owner)
+            .maybeSingle();
+          if (!batch) return json({ ok: false, error: "not_found" }, 404);
+
+          const { data: books, error } = await db
+            .from("scout_discovered_books")
+            .select(
+              "*, scout_batch_books!inner(batch_id), scout_authors(*), scout_review_counts(platform, review_count, rating, verified), scout_prospects(id, status)",
+            )
+            .eq("scout_batch_books.batch_id", params.id)
+            // Only this workspace's own prospect status for each book.
+            .eq("scout_prospects.owner", access.owner)
+            .order("discovered_at", { ascending: false });
+          if (error) return json({ ok: false, error: "storage" }, 500);
+
+          // Who else (other experts / HQ360) generated or scouted these authors.
+          const rows = (books ?? []) as { scout_author_id: string }[];
+          const presence = await authorPresence(
+            db,
+            rows.map((b) => b.scout_author_id),
+          );
+          const items = rows.map((b) => ({
+            ...b,
+            presence: presenceFor(presence, b.scout_author_id, access.owner),
+          }));
+          return json({ ok: true, batch, items });
+        } catch (err) {
+          console.error("[admin/scout-batches.$id] GET", err instanceof Error ? err.message : err);
+          return json({ ok: false, error: "unavailable" }, 503);
+        }
+      },
+    },
+  },
+});

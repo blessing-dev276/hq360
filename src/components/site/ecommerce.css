@@ -1,0 +1,639 @@
+/*
+ * E-commerce & DTC vertical — bespoke sections layered onto the shared
+ * IndustryPage. Rendered inside `.ind`, so it inherits `.ind` tokens
+ * (--line, --ease-emph, --r, --r-lg, --base) and the global brand palette.
+ */
+
+.ind .ec-stages,
+.ind .ec-fly,
+.ind .ec-audit {
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.ind .ec-pp,
+.ind .ec-niche {
+  background: var(--carbon);
+  color: oklch(0.96 0.003 95);
+}
+
+.ind :where(.ec-stages, .ec-pp, .ec-fly, .ec-niche, .ec-audit) h2 {
+  font-size: clamp(1.7rem, 3.6vw, 2.7rem);
+  line-height: 1.06;
+}
+
+.ind :where(.ec-stages, .ec-pp, .ec-fly, .ec-niche, .ec-audit) h3 {
+  font-size: 1.15rem;
+}
+
+/* ------------------------------------------- seven connected stages */
+
+.ec-stages-layout {
+  margin-top: clamp(2.5rem, 5vw, 4rem);
+  display: grid;
+  gap: clamp(1.5rem, 4vw, 3rem);
+  grid-template-columns: minmax(0, 17rem) minmax(0, 1fr);
+  align-items: start;
+}
+
+.ec-stage-rail {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.ec-stage-rail::before {
+  content: "";
+  position: absolute;
+  left: 1.35rem;
+  top: 1.2rem;
+  bottom: 1.2rem;
+  width: 2px;
+  background: var(--line);
+}
+
+.ec-stage-rail::after {
+  content: "";
+  position: absolute;
+  left: 1.35rem;
+  top: 1.2rem;
+  width: 2px;
+  height: calc(var(--progress, 15%) - 2.4rem);
+  background: var(--brand);
+  transition: height var(--base) var(--ease-emph);
+}
+
+.ec-stage-rail button {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto auto;
+  column-gap: 0.85rem;
+  align-items: center;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid transparent;
+  border-radius: var(--r);
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background var(--fast) var(--ease),
+    border-color var(--fast) var(--ease);
+}
+
+.ec-stage-rail button:hover {
+  background: color-mix(in oklch, var(--ink) 4%, transparent);
+}
+
+.ec-stage-rail button.active {
+  background: var(--surface-raised, var(--card));
+  border-color: var(--line);
+}
+
+.ec-stage-num {
+  grid-row: 1 / 3;
+  display: grid;
+  place-items: center;
+  width: 1.7rem;
+  height: 1.7rem;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--ink-muted);
+  background: var(--surface);
+}
+
+.ec-stage-rail button.active .ec-stage-num {
+  border-color: var(--brand);
+  color: var(--brand);
+}
+
+.ec-stage-verb {
+  font-family: var(--font-display);
+  font-size: 0.98rem;
+  letter-spacing: -0.02em;
+}
+
+.ec-stage-cat {
+  font-size: 0.75rem;
+  color: var(--ink-muted);
+}
+
+.ec-stage-panel {
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--card);
+  padding: clamp(1.5rem, 3.5vw, 2.4rem);
+}
+
+.ec-stage-panel-kicker {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--brand);
+}
+
+.ec-stage-panel h3 {
+  margin: 0.6rem 0 0;
+  font-size: clamp(1.3rem, 2.6vw, 1.8rem) !important;
+  letter-spacing: -0.025em;
+}
+
+.ec-stage-outcome {
+  margin: 0.85rem 0 0;
+  max-width: 46ch;
+  color: var(--ink-muted);
+  line-height: 1.6;
+}
+
+.ec-stage-groups {
+  margin-top: 1.75rem;
+  display: grid;
+  gap: 1.25rem 2rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.ec-stage-groups > div > p {
+  margin: 0 0 0.6rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+.ec-stage-groups ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.ec-stage-groups li {
+  display: flex;
+  gap: 0.5rem;
+  font-size: 0.86rem;
+  line-height: 1.45;
+  color: var(--ink-muted);
+}
+
+.ec-stage-groups li svg {
+  flex-shrink: 0;
+  width: 0.95rem;
+  height: 0.95rem;
+  margin-top: 0.15rem;
+  color: var(--brand);
+}
+
+.ec-stage-flowto {
+  margin: 1.75rem 0 0;
+  padding-top: 1.1rem;
+  border-top: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--ink);
+}
+
+.ec-stage-flowto svg {
+  width: 1rem;
+  height: 1rem;
+  color: var(--brand);
+}
+
+/* ---------------------------------------------- product page system */
+
+.ec-pp-flow {
+  list-style: none;
+  margin: clamp(2.5rem, 5vw, 3.5rem) 0 0;
+  padding: 0;
+  max-width: 46rem;
+}
+
+.ec-pp-flow li {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 1.1rem;
+  padding: 1.1rem 0;
+}
+
+.ec-pp-flow li + li {
+  border-top: 1px solid var(--line-dark);
+}
+
+.ec-pp-num {
+  display: grid;
+  place-items: center;
+  width: 2.1rem;
+  height: 2.1rem;
+  border-radius: 999px;
+  border: 1px solid var(--line-dark);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: oklch(0.8 0.02 250);
+}
+
+.ec-pp-flow h3 {
+  margin: 0.2rem 0 0;
+  color: oklch(0.97 0.003 95);
+}
+
+.ec-pp-flow p {
+  margin: 0.35rem 0 0;
+  color: oklch(0.78 0.01 250);
+  line-height: 1.55;
+  font-size: 0.9rem;
+}
+
+.ec-pp-arrow {
+  position: absolute;
+  left: 0.8rem;
+  bottom: -0.75rem;
+  width: 1rem;
+  height: 1rem;
+  color: var(--brand);
+  background: var(--carbon);
+  z-index: 1;
+}
+
+/* ------------------------------------------------------ 360 flywheel */
+
+.ec-fly-layout {
+  margin-top: clamp(2.5rem, 5vw, 4rem);
+  display: grid;
+  gap: clamp(2rem, 5vw, 4rem);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 22rem);
+  align-items: center;
+}
+
+.ec-fly-wheel {
+  position: relative;
+}
+
+.ec-fly-nodes {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.ec-fly-nodes li {
+  position: relative;
+}
+
+.ec-fly-nodes button {
+  width: 100%;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 0.4rem 0.85rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  background: var(--card);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color var(--fast) var(--ease),
+    transform var(--fast) var(--ease),
+    background var(--fast) var(--ease);
+}
+
+.ec-fly-nodes button:hover {
+  transform: translateX(3px);
+}
+
+.ec-fly-nodes button.active {
+  border-color: var(--brand);
+  background: color-mix(in oklch, var(--brand) 8%, var(--card));
+}
+
+.ec-fly-node-num {
+  grid-row: 1 / 3;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--ink-muted);
+}
+
+.ec-fly-node-phase {
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  letter-spacing: -0.02em;
+}
+
+.ec-fly-node-detail {
+  grid-column: 2 / 3;
+  font-size: 0.76rem;
+  color: var(--ink-muted);
+}
+
+.ec-fly-step,
+.ec-fly-loop {
+  grid-row: 1 / 3;
+  width: 1rem;
+  height: 1rem;
+  color: var(--brand);
+}
+
+.ec-fly-ring,
+.ec-fly-core {
+  display: none;
+}
+
+.ec-fly-detail {
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--card);
+  padding: clamp(1.5rem, 3.5vw, 2.2rem);
+}
+
+.ec-fly-detail-kicker {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  color: var(--brand);
+}
+
+.ec-fly-detail h3 {
+  margin: 0.5rem 0 0;
+  font-size: clamp(1.3rem, 2.6vw, 1.7rem) !important;
+}
+
+.ec-fly-detail p {
+  margin: 0.6rem 0 0;
+  color: var(--ink-muted);
+  line-height: 1.6;
+}
+
+.ec-fly-detail-note {
+  font-size: 0.85rem;
+}
+
+/* Desktop: arrange the eight phases around a circle. */
+@media (min-width: 1000px) {
+  .ec-fly-wheel {
+    aspect-ratio: 1;
+    max-width: 34rem;
+    margin-inline: auto;
+    display: grid;
+    place-items: center;
+  }
+
+  .ec-fly-ring {
+    display: block;
+    position: absolute;
+    inset: 12%;
+    border: 1px dashed color-mix(in oklch, var(--ink) 22%, transparent);
+    border-radius: 999px;
+    animation: ec-spin 60s linear infinite;
+  }
+
+  .ec-fly-core {
+    display: grid;
+    place-items: center;
+    gap: 0.15rem;
+    width: 8.5rem;
+    height: 8.5rem;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    text-align: center;
+  }
+
+  .ec-fly-core svg {
+    width: 1.1rem;
+    height: 1.1rem;
+    color: var(--brand);
+  }
+
+  .ec-fly-core strong {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    letter-spacing: -0.03em;
+  }
+
+  .ec-fly-core span {
+    font-size: 0.62rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+  }
+
+  .ec-fly-nodes {
+    position: absolute;
+    inset: 0;
+    display: block;
+  }
+
+  .ec-fly-nodes li {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 12.5rem;
+    transform: translate(-50%, -50%) rotate(calc(var(--i) * (360deg / var(--count))))
+      translateY(-15.5rem) rotate(calc(var(--i) * (-360deg / var(--count))));
+  }
+
+  .ec-fly-nodes button {
+    padding: 0.6rem 0.75rem;
+    grid-template-columns: auto 1fr;
+  }
+
+  .ec-fly-nodes button:hover {
+    transform: none;
+  }
+
+  .ec-fly-step,
+  .ec-fly-loop {
+    display: none;
+  }
+
+  .ec-fly-node-detail {
+    grid-column: 1 / 3;
+  }
+}
+
+@keyframes ec-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ---------------------------------------------------------- sub-niches */
+
+.ec-niche-grid {
+  list-style: none;
+  margin: clamp(2.5rem, 5vw, 3.5rem) 0 0;
+  padding: 0;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+}
+
+.ec-niche-grid li {
+  padding: 1.4rem;
+  border: 1px solid var(--line-dark);
+  border-radius: var(--r);
+  background: color-mix(in oklch, white 4%, transparent);
+  transition: border-color var(--fast) var(--ease);
+}
+
+.ec-niche-grid li:hover {
+  border-color: color-mix(in oklch, var(--brand) 45%, transparent);
+}
+
+.ec-niche-grid h3 {
+  margin: 0;
+  color: oklch(0.97 0.003 95);
+}
+
+.ec-niche-grid p {
+  margin: 0.5rem 0 0;
+  font-size: 0.88rem;
+  line-height: 1.55;
+  color: oklch(0.78 0.01 250);
+}
+
+/* ------------------------------------------------- store growth audit */
+
+.ec-audit-layout {
+  display: grid;
+  gap: clamp(2rem, 5vw, 4rem);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 24rem);
+  align-items: start;
+}
+
+.ec-audit-sub {
+  margin: 1rem 0 1.75rem;
+  max-width: 48ch;
+  color: var(--ink-muted);
+  line-height: 1.65;
+}
+
+.ec-audit-compliance {
+  margin: 1.75rem 0 0;
+  max-width: 52ch;
+  font-size: 0.78rem;
+  line-height: 1.55;
+  color: var(--ink-muted);
+}
+
+.ec-audit-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.ec-audit-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.7rem 0.9rem;
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  background: var(--card);
+  font-size: 0.9rem;
+}
+
+.ec-audit-list li span {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--brand);
+}
+
+.ec-audit-platforms {
+  margin-top: 1.5rem;
+  padding: 1.25rem;
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  background: var(--surface-raised, var(--card));
+}
+
+.ec-audit-platforms > p {
+  margin: 0 0 0.75rem;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+
+.ec-audit-platforms ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.6rem;
+}
+
+.ec-audit-platforms li {
+  font-size: 0.85rem;
+  color: var(--ink-muted);
+}
+
+.ec-audit-platforms strong {
+  display: block;
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+}
+
+/* ------------------------------------------------------ responsive */
+
+@media (max-width: 900px) {
+  .ec-stages-layout,
+  .ec-fly-layout,
+  .ec-audit-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ec-stage-groups {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ec-stage-rail {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .ec-stage-rail::before,
+  .ec-stage-rail::after {
+    display: none;
+  }
+
+  .ec-stage-rail button {
+    flex: 1 1 8rem;
+    grid-template-rows: auto;
+    grid-template-columns: auto 1fr;
+  }
+
+  .ec-stage-rail .ec-stage-cat {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ec-fly-ring {
+    animation: none !important;
+  }
+
+  .ec-stage-rail::after,
+  .ec-fly-nodes button {
+    transition: none !important;
+  }
+}

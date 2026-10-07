@@ -34,10 +34,14 @@ export const Route = createFileRoute("/api/admin/upload")({
           return json({ ok: false, error: "unauthorized" }, 401);
 
         let file: File | null = null;
+        let bucket: "portfolio" | "team" | "work" | "testimonials" | "audit-evidence" = "portfolio";
         try {
           const form = await request.formData();
           const f = form.get("file");
           if (f instanceof File) file = f;
+          const b = form.get("bucket");
+          if (b === "team" || b === "work" || b === "testimonials" || b === "audit-evidence")
+            bucket = b;
         } catch {
           return json({ ok: false, error: "invalid" }, 400);
         }
@@ -53,13 +57,13 @@ export const Route = createFileRoute("/api/admin/upload")({
           const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
           const bytes = new Uint8Array(await file.arrayBuffer());
           const { error } = await supabaseAdmin.storage
-            .from("portfolio")
+            .from(bucket)
             .upload(path, bytes, { contentType: file.type, upsert: false });
           if (error) {
             console.error("[admin/upload] storage", error.message);
             return json({ ok: false, error: "storage" }, 500);
           }
-          const { data } = supabaseAdmin.storage.from("portfolio").getPublicUrl(path);
+          const { data } = supabaseAdmin.storage.from(bucket).getPublicUrl(path);
           return json({ ok: true, url: data.publicUrl, mediaType });
         } catch (err) {
           console.error("[admin/upload]", err instanceof Error ? err.message : err);

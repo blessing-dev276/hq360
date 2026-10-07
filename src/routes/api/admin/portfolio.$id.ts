@@ -14,7 +14,7 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 const patchSchema = z.object({
   title: z.string().min(1).max(200).optional(),
-  description: z.string().max(2000).nullable().optional(),
+  description: z.string().max(600).nullable().optional(),
   mediaType: z.enum(["image", "video"]).optional(),
   mediaUrl: z.string().min(1).max(2000).optional(),
   thumbnailUrl: z.string().max(2000).nullable().optional(),

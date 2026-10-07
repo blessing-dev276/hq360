@@ -1,9 +1,12 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
-
-// Legacy route — free resources are folded into Insights. The resource-request
-// API endpoint remains available for any existing links to the PDFs.
+import { createFileRoute } from "@tanstack/react-router";
+import { InsightsHub } from "./insights.index";
+import { buildSeo } from "@/lib/seo";
 export const Route = createFileRoute("/resources")({
-  beforeLoad: () => {
-    throw redirect({ to: "/insights" });
-  },
+  head: () =>
+    buildSeo({
+      title: "Resources | HQ360",
+      description: "Explore guides, articles, answers, glossary and downloadable resources.",
+      path: "/resources",
+    }),
+  component: InsightsHub,
 });

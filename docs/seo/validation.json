@@ -1,0 +1,152 @@
+{
+  "auditDate": "2026-09-10",
+  "deployment": "not deployed",
+  "liveBotProbes": [
+    {
+      "agent": "Googlebot",
+      "status": 200,
+      "server": "Vercel",
+      "xRobotsTag": null
+    },
+    {
+      "agent": "bingbot",
+      "status": 200,
+      "server": "Vercel",
+      "xRobotsTag": null
+    },
+    {
+      "agent": "OAI-SearchBot",
+      "status": 200,
+      "server": "Vercel",
+      "xRobotsTag": null
+    },
+    {
+      "agent": "GPTBot",
+      "status": 200,
+      "server": "Vercel",
+      "xRobotsTag": null
+    },
+    {
+      "agent": "ChatGPT-User",
+      "status": 200,
+      "server": "Vercel",
+      "xRobotsTag": null
+    }
+  ],
+  "externalLinks": [
+    {
+      "url": "https://www.instagram.com/official_hq360/",
+      "status": 200,
+      "final": "https://www.instagram.com/official_hq360/"
+    },
+    {
+      "url": "https://twitter.com/official_hq360",
+      "status": 200,
+      "final": "https://x.com/official_hq360"
+    },
+    {
+      "url": "https://www.tiktok.com/@official_hq360",
+      "status": 200,
+      "final": "https://www.tiktok.com/@official_hq360"
+    }
+  ],
+  "browserChecks": [
+    {
+      "width": 390,
+      "path": "/",
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "width": 390,
+      "path": "/capabilities/visibility-reputation",
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "width": 390,
+      "path": "/faqs",
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "width": 390,
+      "path": "/work/sanman-thapa-book-launch",
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "width": 390,
+      "path": "/contact",
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "width": 1440,
+      "path": "/",
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "width": 1440,
+      "path": "/capabilities/visibility-reputation",
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "width": 1440,
+      "path": "/faqs",
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "width": 1440,
+      "path": "/work/sanman-thapa-book-launch",
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "width": 1440,
+      "path": "/contact",
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "noJS": true,
+      "faqVisible": true,
+      "revealOpacity": "1"
+    }
+  ],
+  "lighthouse": {
+    "liveBaseline": {
+      "version": "13.4.1",
+      "scores": {
+        "performance": 0.52,
+        "accessibility": 0.95,
+        "seo": 1
+      },
+      "metrics": {
+        "first-contentful-paint": 4193.7419999999975,
+        "largest-contentful-paint": 6576.181499999995,
+        "cumulative-layout-shift": 0.1700580939941535,
+        "total-blocking-time": 0,
+        "speed-index": 12251.489711892413
+      }
+    },
+    "localProductionBundle": {
+      "version": "13.4.1",
+      "scores": {
+        "performance": 0.69,
+        "accessibility": 1,
+        "seo": 1
+      },
+      "metrics": {
+        "first-contentful-paint": 2730.03925,
+        "largest-contentful-paint": 4828.2942,
+        "cumulative-layout-shift": 0,
+        "total-blocking-time": 82.99999999999955,
+        "speed-index": 10955.505130102005
+      }
+    }
+  }
+}

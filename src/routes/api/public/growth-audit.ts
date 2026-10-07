@@ -8,7 +8,12 @@ const schema = z.object({
   industry: z.string().max(120).optional().or(z.literal("")),
   auditFocus: z.string().max(160).optional().or(z.literal("")),
   sourcePath: z.string().max(300).optional().or(z.literal("")),
-  company_url: z.string().max(0).optional(), // honeypot
+  // Honeypot — real visitors never fill this (it's hidden), but a
+  // password-manager/autofill extension can stuff it despite
+  // autocomplete="off". Don't cap the length here: that would reject the
+  // whole request with a validation error instead of the silent-accept
+  // path below, which is what actually happens to bots.
+  company_url: z.string().optional(),
 });
 
 function json(body: unknown, status = 200) {
@@ -33,6 +38,23 @@ export const Route = createFileRoute("/api/public/growth-audit")({
 
         try {
           const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+          // See the matching comment in author-audit.ts: a dropped
+          // connection can make a successful submission look failed to the
+          // visitor, who then resubmits. Treat an identical submission in
+          // the last 5 minutes as the same request rather than a new lead.
+          const dedupeWindow = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+          let dedupeQuery = supabaseAdmin
+            .from("growth_audit_requests")
+            .select("id")
+            .eq("email", parsed.email)
+            .gte("created_at", dedupeWindow);
+          dedupeQuery = parsed.website
+            ? dedupeQuery.eq("website", parsed.website)
+            : dedupeQuery.is("website", null);
+          const { data: recent } = await dedupeQuery.limit(1).maybeSingle();
+          if (recent) return json({ ok: true, id: (recent as { id: string }).id });
+
           const { data, error } = await supabaseAdmin
             .from("growth_audit_requests")
             .insert({
@@ -73,6 +95,46 @@ export const Route = createFileRoute("/api/public/growth-audit")({
           } catch (err) {
             console.error(
               "[growth-audit] forward failed",
+              err instanceof Error ? err.message : err,
+            );
+          }
+
+          try {
+            const { sendLeadEmail } = await import("@/lib/email.server");
+            const result = await sendLeadEmail({
+              subject: `New HQ360 growth audit request from ${parsed.name || parsed.email}`,
+              replyTo: parsed.email,
+              text: [
+                "New HQ360 growth audit request",
+                "",
+                `Name: ${parsed.name || "N/A"}`,
+                `Email: ${parsed.email}`,
+                `Website: ${parsed.website || "N/A"}`,
+                `Industry: ${parsed.industry || "N/A"}`,
+                `Audit focus: ${parsed.auditFocus || "N/A"}`,
+                `Source path: ${parsed.sourcePath || "N/A"}`,
+                "",
+                "Submitted details:",
+                JSON.stringify(
+                  {
+                    email: parsed.email,
+                    name: parsed.name || null,
+                    website: parsed.website || null,
+                    industry: parsed.industry || null,
+                    auditFocus: parsed.auditFocus || null,
+                    sourcePath: parsed.sourcePath || null,
+                  },
+                  null,
+                  2,
+                ),
+              ].join("\n"),
+            });
+            if (!result.sent) {
+              console.warn("[growth-audit] direct email not sent", result.error);
+            }
+          } catch (err) {
+            console.error(
+              "[growth-audit] direct email failed",
               err instanceof Error ? err.message : err,
             );
           }

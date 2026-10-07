@@ -1,0 +1,268 @@
+/* HQ360 quote document. Matches the invoice email/page: warm page, white
+   card, orange stripe. Light on purpose so it prints and exports cleanly. */
+.qd {
+  --qd-orange: #ff5a00;
+  --qd-ink: #111416;
+  --qd-muted: #5f6368;
+  --qd-line: #ececec;
+  padding: 28px 20px 24px;
+  background: #f4f2ef;
+  color: var(--qd-ink);
+  color-scheme: light;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+.qd-card {
+  max-width: 880px;
+  margin: 0 auto;
+  overflow: hidden;
+  border: 1px solid var(--qd-line);
+  border-radius: 22px;
+  background: #fff;
+  box-shadow: 0 18px 40px -28px rgb(17 20 22 / 0.35);
+}
+.qd-stripe {
+  height: 6px;
+  background: var(--qd-orange);
+}
+.qd-inner {
+  padding: 30px 36px 32px;
+}
+.qd-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.qd-logo {
+  display: block;
+  width: 118px;
+  height: auto;
+}
+.qd-ref {
+  text-align: right;
+  color: var(--qd-muted);
+  font-size: 12px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+.qd-ref strong {
+  display: block;
+  color: var(--qd-ink);
+  font-size: 15px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.qd-hero {
+  margin-top: 28px;
+}
+.qd-for {
+  margin: 0 0 6px;
+  color: var(--qd-orange);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+.qd-hero h1 {
+  margin: 0;
+  font-size: 30px;
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+.qd-intro {
+  max-width: 640px;
+  margin: 12px 0 0;
+  color: var(--qd-muted);
+  font-size: 15px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+.qd-packages {
+  display: grid;
+  gap: 14px;
+  margin-top: 28px;
+  align-items: stretch;
+}
+.qd-pkg {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 22px 20px 20px;
+  border: 1px solid var(--qd-line);
+  border-radius: 18px;
+  background: #fbfaf8;
+}
+.qd-pkg.is-recommended {
+  border: 2px solid var(--qd-orange);
+  background: #fff7f2;
+}
+.qd-badge {
+  position: absolute;
+  top: -11px;
+  left: 18px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--qd-orange);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+}
+.qd-pkg h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+}
+.qd-price {
+  margin: 10px 0 0;
+  font-size: 30px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.qd-delivery {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 8px 0 0;
+  color: var(--qd-muted);
+  font-size: 13px;
+}
+.qd-pkg ul {
+  display: grid;
+  gap: 9px;
+  margin: 16px 0 0;
+  padding: 16px 0 0;
+  border-top: 1px solid var(--qd-line);
+  list-style: none;
+}
+.qd-pkg li {
+  display: flex;
+  gap: 8px;
+  font-size: 14px;
+  line-height: 1.45;
+}
+.qd-pkg li svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--qd-orange);
+}
+.qd-notes {
+  margin-top: 24px;
+  padding: 18px 20px;
+  border-radius: 16px;
+  background: #faf8f5;
+}
+.qd-notes h3 {
+  margin: 0 0 6px;
+  color: var(--qd-muted);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+}
+.qd-notes p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+.qd-foot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px 36px;
+  margin-top: 26px;
+  padding-top: 20px;
+  border-top: 1px solid var(--qd-line);
+}
+.qd-foot span {
+  display: block;
+  color: var(--qd-muted);
+  font-size: 11px;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+}
+.qd-foot strong {
+  display: block;
+  margin-top: 3px;
+  font-size: 14px;
+}
+.qd-site {
+  margin: 16px 0 0;
+  color: #8a8f94;
+  font-size: 12px;
+  text-align: center;
+}
+@media (max-width: 640px) {
+  .qd {
+    padding: 16px 12px;
+  }
+  .qd-inner {
+    padding: 22px 18px 24px;
+  }
+  .qd-hero h1 {
+    font-size: 24px;
+  }
+  .qd-packages {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Buyer page toolbar */
+.qd-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 20px 20px 0;
+}
+.qd-actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 16px;
+  border: 1px solid #e3dfd9;
+  border-radius: 999px;
+  background: #fff;
+  color: #111416;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.qd-actions button:hover:not(:disabled) {
+  border-color: #ff5a00;
+}
+.qd-actions button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+.qd .buyer-skel,
+.qd {
+  --hq-skel-base: #efece8;
+  --hq-skel-highlight: rgb(255 255 255 / 0.75);
+}
+
+.qd-was {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 10px 0 -4px;
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+}
+.qd-was s {
+  opacity: 0.5;
+  text-decoration-thickness: 2px;
+  text-decoration-color: #ff5a00;
+}
+.qd-save {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgb(255 90 0 / 0.14);
+  color: #e14e00;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}

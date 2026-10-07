@@ -11,7 +11,7 @@ function json(body: unknown, status = 200) {
 
 const createSchema = z.object({
   title: z.string().min(1).max(200),
-  description: z.string().max(2000).optional().or(z.literal("")),
+  description: z.string().max(600).optional().or(z.literal("")),
   mediaType: z.enum(["image", "video"]),
   mediaUrl: z.string().min(1).max(2000),
   thumbnailUrl: z.string().max(2000).optional().or(z.literal("")),

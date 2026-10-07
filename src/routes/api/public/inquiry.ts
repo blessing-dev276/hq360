@@ -15,7 +15,9 @@ const schema = z.object({
   sourcePath: z.string().max(300).optional().or(z.literal("")),
   sourceIndustry: z.string().max(120).optional().or(z.literal("")),
   /** Honeypot — must be empty. */
-  company_url: z.string().max(0).optional(),
+  // Honeypot — see the comment in growth-audit.ts's schema for why this
+  // isn't length-capped.
+  company_url: z.string().optional(),
 });
 
 function json(body: unknown, status = 200) {
@@ -79,6 +81,7 @@ export const Route = createFileRoute("/api/public/inquiry")({
               industry: parsed.industry || parsed.sourceIndustry || undefined,
               sourcePath: parsed.sourcePath || undefined,
               fields: {
+                sourceIndustry: parsed.sourceIndustry || undefined,
                 helpWith: parsed.helpWith ?? [],
                 primaryGoal: parsed.primaryGoal || undefined,
                 budgetRange: parsed.budgetRange || undefined,
@@ -97,7 +100,42 @@ export const Route = createFileRoute("/api/public/inquiry")({
             console.error("[inquiry] forward failed", err instanceof Error ? err.message : err);
           }
 
-          return json({ ok: true, id: data.id, forwarded });
+          let emailed = false;
+          try {
+            const { sendLeadEmail } = await import("@/lib/email.server");
+            const result = await sendLeadEmail({
+              subject: `New HQ360 inquiry from ${parsed.name}`,
+              replyTo: parsed.email,
+              text: [
+                "New HQ360 inquiry",
+                "",
+                `Name: ${parsed.name}`,
+                `Email: ${parsed.email}`,
+                `Company: ${parsed.company || "N/A"}`,
+                `Website: ${parsed.website || "N/A"}`,
+                `Industry: ${parsed.industry || parsed.sourceIndustry || "N/A"}`,
+                `Need help with: ${parsed.helpWith?.join(", ") || "N/A"}`,
+                `Primary goal: ${parsed.primaryGoal || "N/A"}`,
+                `Budget: ${parsed.budgetRange || "N/A"}`,
+                `Timeline: ${parsed.timeline || "N/A"}`,
+                `Source path: ${parsed.sourcePath || "N/A"}`,
+                "",
+                "Message:",
+                parsed.message || "N/A",
+              ].join("\n"),
+            });
+            emailed = result.sent;
+            if (!result.sent) {
+              console.warn("[inquiry] direct email not sent", result.error);
+            }
+          } catch (err) {
+            console.error(
+              "[inquiry] direct email failed",
+              err instanceof Error ? err.message : err,
+            );
+          }
+
+          return json({ ok: true, id: data.id, forwarded, emailed });
         } catch (err) {
           console.error("[inquiry] handler error", err instanceof Error ? err.message : err);
           return json({ ok: false, error: "unavailable" }, 503);

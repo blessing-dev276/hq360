@@ -1,14 +1,23 @@
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
+import { loadClarity } from "@/lib/clarity";
+import { loadGoogleAnalytics } from "@/lib/google-analytics";
 
 const KEY = "hq360-cookie-consent";
+
+function loadAnalytics() {
+  loadClarity();
+  loadGoogleAnalytics();
+}
 
 export function CookieBanner() {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
     try {
-      if (!window.localStorage.getItem(KEY)) setVisible(true);
+      const consent = window.localStorage.getItem(KEY);
+      if (!consent) setVisible(true);
+      else if (consent === "accepted") loadAnalytics();
     } catch {
       /* storage blocked — do not show */
     }
@@ -20,6 +29,7 @@ export function CookieBanner() {
     } catch {
       /* ignore */
     }
+    if (value === "accepted") loadAnalytics();
     setVisible(false);
   }
 

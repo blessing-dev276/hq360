@@ -1,0 +1,92 @@
+{
+  "audit_id": "d3a737dc-72b9-468d-90b3-5c4aac687d09",
+  "author": "Van Quattro",
+  "book": "EVE",
+  "source": "EVE-audit-edit-list.pdf",
+  "sections": [
+    {
+      "id": "f7215276-e764-4f11-ac4e-ae1f10225dfc",
+      "key": "amazon_audit",
+      "expected": {
+        "content": "What We Found: An exact current Amazon product page for Van Quattro's EVE was not verified from the public search results available in this research session. Amazon category placement, ASIN, review count, rating count, rank, product description, A+ content and Author Central linkage therefore remain unknown. This does not establish that EVE is absent from Amazon.\n\nEvidence: Targeted searches for Van Quattro, EVE and ISBN 9798224737536 did not return an exact verified Amazon book product page in the accessible results, while the ISBN and publication metadata were independently verified elsewhere. Retrieved 2026-10-05.\n\nSource Urls: https://www.mightyape.com.au/ma/buy/mighty-ape-eve-38872297/\n\nhttps://diebuchsuche.at/buch-isbn-9798224737536.html"
+      },
+      "patch": {
+        "content": "An exact Amazon product page for EVE was not verified in the reviewed search results. Verify the listing using ISBN 9798224737536 before assessing categories, reviews, ranking, product copy, A+ content or Author Central links.\n\nEvidence: Targeted searches for Van Quattro, EVE and ISBN 9798224737536 did not return an exact verified Amazon book product page in the accessible results, while the ISBN and publication metadata were independently verified elsewhere. Retrieved 2026-10-05.\n\nSource Urls: https://www.mightyape.com.au/ma/buy/mighty-ape-eve-38872297/\n\nhttps://diebuchsuche.at/buch-isbn-9798224737536.html"
+      }
+    },
+    {
+      "id": "ad9291e6-be31-408a-996a-76a09e59db3c",
+      "key": "competitive_landscape",
+      "expected": {
+        "enabled": true
+      },
+      "patch": {
+        "enabled": false
+      }
+    },
+    {
+      "id": "58ee9614-adc3-485a-8166-c28c9c5c0f35",
+      "key": "email_newsletter_audit",
+      "expected": {
+        "enabled": true
+      },
+      "patch": {
+        "enabled": false
+      }
+    },
+    {
+      "id": "93e578e2-3632-4ed4-828a-807a76d1be43",
+      "key": "executive_summary",
+      "expected": {
+        "content": "What We Found: EVE is a 448-page paperback novel by Van Quattro, released April 30, 2024 under ISBN 9798224737536. Public retailer copy describes the story as following a young abused orphan girl through the Great Depression, racism and violence with support from another orphan and a police officer. Quattro brings unusually strong pre-existing authority from decades of acting, theater, directing and autobiographical storytelling. Goodreads currently surfaces both 'Eve' and 'EVE' records associated with Van Quattro, with different edition counts and different contributor roles for Sara Lovett, creating a concrete metadata issue worth resolving. Public research also shows a fragmented discovery environment: Van Quattro searches strongly surface his acting and theater career, while EVE has a highly ambiguous one-word title. The strongest supported opportunities are Goodreads metadata consolidation, Amazon listing verification, historical-fiction and Great Depression discovery positioning, selective Listopia research, and media positioning that connects Quattro's established storytelling career to the novel.\n\nEvidence: Mighty Ape verifies Van Quattro as author, ISBN 9798224737536, paperback binding, 448 pages and April 30, 2024 release date. Goodreads indexed data surfaces both 'Eve' and 'EVE' records with different edition counts. Dallas Observer, Dallas Solo Fest, Amazon Music, Prime Video and BroadwayWorld document Quattro's established acting, theater, writing and directing history. Retrieved 2026-10-05.\n\nSource Urls: https://www.mightyape.com.au/ma/buy/mighty-ape-eve-38872297/\n\nhttps://www.goodreads.com/author/show/16266623.Sara_Lovett\n\nhttps://www.dallasobserver.com/uncategorized/100-dallas-creatives-no-41-emerging-veteran-actor-van-quattro-7091501/\n\nhttps://www.dallassolofest.com/standing-eight-count-by-van-quattro.html\n\nhttps://music.amazon.com.au/podcasts/90a99db4-0854-4772-8d2f-94c961e45fbd/episodes/66160b0c-7351-4e94-be48-aae757d7d816/the-good-the-bad-and-the-sequel-actor-van-quattro-fight-club-silent-night-deadly-night-5\n\nhttps://www.broadwayworld.com/people/news/Van-Quattro/"
+      },
+      "patch": {
+        "content": "EVE by Van Quattro follows an abused orphan through the Great Depression, racism and violence. Its two biggest visibility problems are inconsistent Goodreads edition and contributor metadata, and fragmented discovery caused by an ambiguous title and an author search presence dominated by acting and theater. The biggest opportunity is to connect Quattro’s established storytelling reputation to a clear, consistent book identity that reaches historical-fiction readers.\n\nEvidence: Mighty Ape verifies Van Quattro as author, ISBN 9798224737536, paperback binding, 448 pages and April 30, 2024 release date. Goodreads indexed data surfaces both 'Eve' and 'EVE' records with different edition counts. Dallas Observer, Dallas Solo Fest, Amazon Music, Prime Video and BroadwayWorld document Quattro's established acting, theater, writing and directing history. Retrieved 2026-10-05.\n\nSource Urls: https://www.mightyape.com.au/ma/buy/mighty-ape-eve-38872297/\n\nhttps://www.goodreads.com/author/show/16266623.Sara_Lovett\n\nhttps://www.dallasobserver.com/uncategorized/100-dallas-creatives-no-41-emerging-veteran-actor-van-quattro-7091501/\n\nhttps://www.dallassolofest.com/standing-eight-count-by-van-quattro.html\n\nhttps://music.amazon.com.au/podcasts/90a99db4-0854-4772-8d2f-94c961e45fbd/episodes/66160b0c-7351-4e94-be48-aae757d7d816/the-good-the-bad-and-the-sequel-actor-van-quattro-fight-club-silent-night-deadly-night-5\n\nhttps://www.broadwayworld.com/people/news/Van-Quattro/"
+      }
+    },
+    {
+      "id": "10935dc0-b8f9-4381-9c5d-ec76fab5ca30",
+      "key": "goodreads_audit",
+      "expected": {
+        "content": "What We Found: Goodreads indexed data confirms EVE representation and Van Quattro's Goodreads Author status. The surfaced data shows 'Eve' by Van Quattro with Sara Lovett as editor, 0.00 average rating, 0 ratings and three editions, plus a separate 'EVE' by Van Quattro with Sara Lovett identified as translator, 0.00 average rating, 0 ratings and two editions. The evidence supports a metadata consistency concern but does not by itself prove that the records are erroneous duplicates.\n\nEvidence: Goodreads indexed author/work data at https://www.goodreads.com/author/show/16266623.Sara_Lovett, retrieved 2026-10-05.\n\nSource Urls: https://www.goodreads.com/author/show/16266623.Sara_Lovett"
+      },
+      "patch": {
+        "content": "Goodreads indexed data shows Van Quattro as a Goodreads Author and surfaces two EVE records: 'Eve' credits Sara Lovett as editor with three editions, while 'EVE' credits her as translator with two editions; both show zero ratings. Verify the edition relationships and contributor roles, then correct any confirmed metadata inconsistencies.\n\nEvidence: Goodreads indexed author/work data at https://www.goodreads.com/author/show/16266623.Sara_Lovett, retrieved 2026-10-05.\n\nSource Urls: https://www.goodreads.com/author/show/16266623.Sara_Lovett"
+      }
+    },
+    {
+      "id": "0065d714-04c8-4dcf-990b-b6b95d82a57d",
+      "key": "hq360_opportunities",
+      "expected": {
+        "enabled": true,
+        "title": "Hq360 Opportunities"
+      },
+      "patch": {
+        "enabled": false,
+        "title": "HQ360 Opportunities"
+      }
+    },
+    {
+      "id": "e1d3e54b-b93e-42bd-9b4b-f8c6373aafdc",
+      "key": "website_audit",
+      "expected": {
+        "content": "What We Found: No current official Van Quattro author website was verified from the public search results reviewed. Search results instead surfaced retailer pages, Goodreads, LinkedIn, theater organizations, press coverage, film/television records and interviews. This is not evidence that an official website does not exist.\n\nEvidence: Targeted public searches for 'Van Quattro author website' and related combinations surfaced LinkedIn, Goodreads, media and retailer pages but no source that could be confidently identified as his current official author site. Retrieved 2026-10-05.\n\nSource Urls: https://www.linkedin.com/in/van-quattro-116149115\n\nhttps://www.dallasobserver.com/uncategorized/100-dallas-creatives-no-41-emerging-veteran-actor-van-quattro-7091501/\n\nhttps://www.dallassolofest.com/standing-eight-count-by-van-quattro.html"
+      },
+      "patch": {
+        "content": "The reviewed search results surfaced retailer pages, Goodreads, LinkedIn, theater organizations, press coverage and interviews, but no verified official author website. Confirm the current author URL before recommending changes to the reader journey.\n\nEvidence: Targeted public searches for 'Van Quattro author website' and related combinations surfaced LinkedIn, Goodreads, media and retailer pages but no source that could be confidently identified as his current official author site. Retrieved 2026-10-05.\n\nSource Urls: https://www.linkedin.com/in/van-quattro-116149115\n\nhttps://www.dallasobserver.com/uncategorized/100-dallas-creatives-no-41-emerging-veteran-actor-van-quattro-7091501/\n\nhttps://www.dallassolofest.com/standing-eight-count-by-van-quattro.html"
+      }
+    }
+  ],
+  "listopia": [
+    {
+      "id": "d27ade8a-0528-4f37-afb3-cc1a5ef64446",
+      "expected": {
+        "review_status": "approved"
+      },
+      "patch": {
+        "review_status": "rejected",
+        "reviewer_notes": "Excluded from the client report per the EVE edit list: this list is not recommended for pursuit."
+      }
+    }
+  ]
+}

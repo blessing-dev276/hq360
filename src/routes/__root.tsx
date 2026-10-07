@@ -1,22 +1,25 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { PANEL_THEME_SCRIPT } from "@/components/admin/PanelThemeToggle";
 import {
   Outlet,
   Link,
   createRootRouteWithContext,
-  useRouter,
-  useRouterState,
   HeadContent,
   Scripts,
+  useRouterState,
 } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
+import { type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
-import { reportLovableError } from "../lib/lovable-error-reporting";
+import loadingCss from "../components/site/loading/route-loading.css?url";
+import { PageLoadError, RouteProgress } from "@/components/site/loading/RouteLoading";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { SiteFooter } from "@/components/site/SiteFooter";
 import { CookieBanner } from "@/components/site/CookieBanner";
+import { VisitTracker } from "@/components/site/VisitTracker";
+import { DeferredWidgets } from "@/components/site/DeferredWidgets";
 import { BRAND } from "@/config/brand";
-import { organizationSchema } from "@/lib/seo";
+import { organizationSchema, serializeJsonLd } from "@/lib/seo";
 
 function NotFoundComponent() {
   return (
@@ -40,44 +43,6 @@ function NotFoundComponent() {
   );
 }
 
-function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
-  console.error(error);
-  const router = useRouter();
-  useEffect(() => {
-    reportLovableError(error, { boundary: "tanstack_root_error_component" });
-  }, [error]);
-
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="max-w-md text-center">
-        <h1 className="text-xl font-semibold tracking-tight text-foreground">
-          This page didn't load
-        </h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Something went wrong on our end. You can try refreshing or head back home.
-        </p>
-        <div className="mt-6 flex flex-wrap justify-center gap-2">
-          <button
-            onClick={() => {
-              router.invalidate();
-              reset();
-            }}
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-          >
-            Try again
-          </button>
-          <a
-            href="/"
-            className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
-          >
-            Go home
-          </a>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   head: () => ({
     meta: [
@@ -93,20 +58,33 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     ],
     links: [
       { rel: "stylesheet", href: appCss },
-      { rel: "preconnect", href: "https://fonts.googleapis.com" },
-      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
+      { rel: "stylesheet", href: loadingCss },
       {
-        rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap",
+        rel: "preload",
+        href: "/fonts/inter-latin.woff2",
+        as: "font",
+        type: "font/woff2",
+        crossOrigin: "anonymous",
       },
-      { rel: "icon", href: "/favicon.png", type: "image/png" },
+      {
+        rel: "preload",
+        href: "/fonts/space-grotesk-latin.woff2",
+        as: "font",
+        type: "font/woff2",
+        crossOrigin: "anonymous",
+      },
+      { rel: "icon", href: "/favicon.png", type: "image/png", sizes: "64x64" },
+      { rel: "apple-touch-icon", href: "/apple-touch-icon.png", sizes: "180x180" },
     ],
-    scripts: [{ type: "application/ld+json", children: JSON.stringify(organizationSchema()) }],
+    scripts: [
+      { type: "application/ld+json", children: serializeJsonLd(organizationSchema()) },
+      { children: PANEL_THEME_SCRIPT },
+    ],
   }),
   shellComponent: RootShell,
   component: RootComponent,
   notFoundComponent: NotFoundComponent,
-  errorComponent: ErrorComponent,
+  errorComponent: PageLoadError,
 });
 
 function RootShell({ children }: { children: ReactNode }) {
@@ -125,24 +103,43 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
-  // The Author Scout Academy has its own top bar, so it skips the site chrome.
-  const bare = useRouterState({ select: (s) => s.location.pathname.startsWith("/academy") });
+  // Admin, Scout, the expert dashboard, private audit links and checkout
+  // all have their own dedicated shell and manage their own theming --
+  // they never get the public SiteHeader/SiteFooter/CookieBanner/etc, and
+  // admin-workspace.css / expert-signup.tsx apply hqd's dark palette to
+  // themselves directly rather than relying on this wrapper.
+  const privateAudit = useRouterState({
+    select: (state) =>
+      state.location.pathname === "/expert" ||
+      ["/author-audit", "/admin", "/scout", "/pay/", "/quote/"].some((path) =>
+        state.location.pathname.startsWith(path),
+      ),
+  });
 
   return (
     <QueryClientProvider client={queryClient}>
+      <RouteProgress />
       <a
         href="#main"
         className="sr-only focus:not-sr-only focus:absolute focus:top-3 focus:left-3 focus:z-[60] focus:rounded-md focus:bg-card focus:px-4 focus:py-2"
       >
         Skip to content
       </a>
-      {bare ? null : <SiteHeader />}
-      <main id="main">
-        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-        <Outlet />
-      </main>
-      {bare ? null : <SiteFooter />}
-      {bare ? null : <CookieBanner />}
+      <div className={privateAudit ? undefined : "hqd dark hqd-site"}>
+        {!privateAudit && <SiteHeader />}
+        <main id="main">
+          {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+          <Outlet />
+        </main>
+        {!privateAudit && (
+          <>
+            <SiteFooter />
+            <CookieBanner />
+            <VisitTracker />
+            <DeferredWidgets />
+          </>
+        )}
+      </div>
     </QueryClientProvider>
   );
 }

@@ -10,7 +10,7 @@ export function useReveal<T extends HTMLElement = HTMLDivElement>(options?: {
   once?: boolean;
 }) {
   const ref = useRef<T | null>(null);
-  const [visible, setVisible] = useState(false);
+  const [visible, setVisible] = useState(true);
 
   useEffect(() => {
     const el = ref.current;
@@ -20,6 +20,10 @@ export function useReveal<T extends HTMLElement = HTMLDivElement>(options?: {
       setVisible(true);
       return;
     }
+
+    // Enhance only below-fold content after hydration; SSR stays readable.
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (el.getBoundingClientRect().top > window.innerHeight) setVisible(false);
 
     const obs = new IntersectionObserver(
       (entries) => {

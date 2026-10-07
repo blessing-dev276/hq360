@@ -2,7 +2,7 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { getInsight, INSIGHTS, type Insight } from "@/data/insights";
 import { Container, Eyebrow, Section, SectionHeader } from "@/components/site/Primitives";
 import { CtaBand } from "@/components/site/CtaBand";
-import { buildSeo, breadcrumbSchema } from "@/lib/seo";
+import { buildSeo, breadcrumbSchema, truncateDescription } from "@/lib/seo";
 import { CTAS } from "@/config/brand";
 
 export const Route = createFileRoute("/insights/$slug")({
@@ -16,7 +16,7 @@ export const Route = createFileRoute("/insights/$slug")({
       ? buildSeo(
           {
             title: `${loaderData.post.title} | HQ360 Insights`,
-            description: loaderData.post.excerpt,
+            description: truncateDescription(loaderData.post.excerpt),
             path: `/insights/${loaderData.post.slug}`,
             type: "article",
           },
@@ -41,7 +41,7 @@ function InsightPost() {
 
   return (
     <>
-      <Section>
+      <Section tone="hero">
         <Container size="narrow" className="px-0">
           <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground">
             <Link to="/insights" className="hover:text-brand">
@@ -50,13 +50,18 @@ function InsightPost() {
             <span aria-hidden="true"> / </span>
             <span className="text-foreground">{post.category}</span>
           </nav>
-          <article className="mt-8">
+          <header className="mt-8">
             <Eyebrow>{post.category}</Eyebrow>
             <h1 className="mt-4 text-3xl leading-tight text-balance sm:text-4xl">{post.title}</h1>
             <p className="mt-4 text-sm text-muted-foreground">
               {post.date} &middot; {post.readTime}
             </p>
-            <div className="rule-brand mt-8" />
+          </header>
+        </Container>
+      </Section>
+      <Section>
+        <Container size="narrow" className="px-0">
+          <article>
             <div className="mt-8 space-y-6 text-lg leading-relaxed text-muted-foreground">
               {post.body.map((paragraph) => (
                 <p key={paragraph.slice(0, 40)}>{paragraph}</p>

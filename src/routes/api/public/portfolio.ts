@@ -3,14 +3,18 @@ import { createFileRoute } from "@tanstack/react-router";
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { "content-type": "application/json", "cache-control": "public, max-age=60" },
+    headers: {
+      "content-type": "application/json",
+      "cache-control":
+        status === 200 ? "public, max-age=0, s-maxage=10, stale-while-revalidate=59" : "no-store",
+    },
   });
 }
 
 /**
  * Public read of published portfolio items, filtered by industry and/or
- * capability. Returns an empty list (not an error) when nothing matches or the
- * backend is unavailable, so callers can render nothing gracefully.
+ * capability. Empty collections are valid; temporary backend failures are not
+ * cached and allow the UI to offer a retry without silently losing the section.
  */
 export const Route = createFileRoute("/api/public/portfolio")({
   server: {
@@ -37,10 +41,10 @@ export const Route = createFileRoute("/api/public/portfolio")({
             .order("created_at", { ascending: false })
             .limit(60);
 
-          if (error) return json({ ok: true, items: [] });
+          if (error) return json({ ok: false }, 503);
           return json({ ok: true, items: data ?? [] });
         } catch {
-          return json({ ok: true, items: [] });
+          return json({ ok: false }, 503);
         }
       },
     },

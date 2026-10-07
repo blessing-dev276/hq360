@@ -1,0 +1,931 @@
+/*
+ * Authors & Publishers — a single 8-stage author journey, not a service list.
+ * Editorial / manuscript motifs: chapter numbers, page rules, annotation
+ * marks. Orange is an accent only. Motion stays in the 150–500ms band for
+ * interaction and is fully removed under prefers-reduced-motion.
+ */
+
+.aj {
+  --fast: var(--motion-fast, 160ms);
+  --base: var(--motion-base, 260ms);
+  --ease: var(--ease-standard, cubic-bezier(0.4, 0, 0.2, 1));
+  --ease-emph: var(--ease-emphasized, cubic-bezier(0.22, 1, 0.36, 1));
+  background: var(--background);
+  color: var(--foreground);
+  overflow-x: clip;
+}
+
+.aj section {
+  padding-block: clamp(4rem, 8vw, 7.5rem);
+}
+
+.aj h1,
+.aj h2,
+.aj h3 {
+  font-family: var(--font-display);
+  letter-spacing: -0.026em;
+}
+
+.aj em {
+  font-style: normal;
+  color: var(--brand);
+}
+
+.aj-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+.aj-eyebrow.light {
+  color: oklch(0.75 0.01 80);
+}
+
+.aj-eyebrow > span {
+  width: 1.6rem;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--brand);
+}
+
+.aj-head {
+  max-width: 62ch;
+  margin-bottom: clamp(2.5rem, 5vw, 4rem);
+}
+
+.aj-head h2 {
+  margin: 0.75rem 0 0;
+  font-size: clamp(1.8rem, 3.6vw, 2.75rem);
+  line-height: 1.08;
+}
+
+.aj-head.light h2 {
+  color: oklch(0.97 0.006 95);
+}
+
+.aj-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.9rem 1.4rem;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  font-weight: 600;
+  font-size: 0.92rem;
+  line-height: 1;
+  cursor: pointer;
+  text-decoration: none;
+  transition:
+    transform var(--fast) var(--ease),
+    background-color var(--base) var(--ease),
+    border-color var(--base) var(--ease);
+}
+
+.aj-btn svg {
+  width: 1.05em;
+  height: 1.05em;
+  transition: transform var(--base) var(--ease-emph);
+}
+
+.aj-btn:hover {
+  transform: translateY(-2px);
+}
+
+.aj-btn:hover svg {
+  transform: translate(3px, -3px);
+}
+
+.aj-btn-primary,
+.aj-btn-dark {
+  background: var(--foreground);
+  color: var(--background);
+}
+
+.aj-btn-ghost {
+  border-color: var(--border);
+  color: var(--foreground);
+  background: transparent;
+}
+
+.aj-btn-ghost:hover {
+  border-color: var(--brand);
+  color: var(--brand);
+}
+
+.aj-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+/* ===================================================== 1 · HERO ======= */
+
+.aj-hero {
+  padding-top: clamp(3rem, 7vw, 6rem);
+  padding-bottom: clamp(2.5rem, 5vw, 4rem);
+  background:
+    radial-gradient(
+      120% 90% at 85% -10%,
+      color-mix(in oklch, var(--brand-soft) 80%, transparent),
+      transparent 55%
+    ),
+    var(--background);
+}
+
+.aj-hero-layout {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: clamp(2rem, 5vw, 4rem);
+  align-items: center;
+}
+
+.aj-hero-copy h1 {
+  margin: 1rem 0 0;
+  font-size: clamp(2.4rem, 5.6vw, 4.2rem);
+  line-height: 1.02;
+  letter-spacing: -0.035em;
+}
+
+.aj-hero-lede {
+  margin: 1.5rem 0 0;
+  max-width: 52ch;
+  font-size: 1.05rem;
+  line-height: 1.65;
+  color: var(--muted-foreground);
+}
+
+.aj-hero-copy .aj-actions {
+  margin-top: 2rem;
+}
+
+.aj-orbit-wrap {
+  display: grid;
+  place-items: center;
+  gap: 2rem;
+}
+
+.aj-orbit {
+  position: relative;
+  aspect-ratio: 1;
+  width: min(100%, 26rem);
+}
+
+.aj-orbit-ring {
+  position: absolute;
+  inset: 4%;
+  border: 1px dashed color-mix(in oklch, var(--brand) 35%, transparent);
+  border-radius: 999px;
+  animation: aj-spin 60s linear infinite;
+}
+
+@keyframes aj-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.aj-orbit-core {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 34%;
+  height: 34%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: var(--foreground);
+  color: var(--background);
+  text-align: center;
+  gap: 0.1rem;
+}
+
+.aj-orbit-core strong {
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+}
+
+.aj-orbit-core span {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+.aj-orbit-node {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--card);
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--foreground);
+  cursor: pointer;
+  transition:
+    border-color var(--base) var(--ease),
+    color var(--base) var(--ease),
+    transform var(--base) var(--ease);
+}
+
+.aj-orbit-node em {
+  font-family: var(--font-mono);
+  font-style: normal;
+  font-size: 0.62rem;
+  color: var(--muted-foreground);
+}
+
+.aj-orbit-node:hover,
+.aj-orbit-node:focus-visible {
+  border-color: var(--brand);
+  color: var(--brand);
+  transform: scale(1.06);
+}
+
+/* Eight nodes placed around the ring by angle. */
+.aj-orbit-node.node-1 {
+  top: -4%;
+  left: 50%;
+  translate: -50% -50%;
+}
+.aj-orbit-node.node-2 {
+  top: 15%;
+  right: -6%;
+  translate: 0 -50%;
+}
+.aj-orbit-node.node-3 {
+  top: 50%;
+  right: -10%;
+  translate: 0 -50%;
+}
+.aj-orbit-node.node-4 {
+  bottom: 15%;
+  right: -6%;
+  translate: 0 50%;
+}
+.aj-orbit-node.node-5 {
+  bottom: -4%;
+  left: 50%;
+  translate: -50% 50%;
+}
+.aj-orbit-node.node-6 {
+  bottom: 15%;
+  left: -6%;
+  translate: 0 50%;
+}
+.aj-orbit-node.node-7 {
+  top: 50%;
+  left: -10%;
+  translate: 0 -50%;
+}
+.aj-orbit-node.node-8 {
+  top: 15%;
+  left: -6%;
+  translate: 0 -50%;
+}
+
+.aj-orbit-caption {
+  min-height: 2.6em;
+  max-width: 24rem;
+  text-align: center;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+}
+
+.aj-orbit-caption strong {
+  color: var(--foreground);
+}
+
+.aj-scroll-cue {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: clamp(2.5rem, 5vw, 4rem);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+  text-decoration: none;
+}
+
+.aj-scroll-cue svg {
+  width: 1em;
+  height: 1em;
+  animation: aj-bob 1.8s ease-in-out infinite;
+}
+
+@keyframes aj-bob {
+  50% {
+    transform: translateY(3px);
+  }
+}
+
+/* =============================================== 2 · WHERE ARE YOU ==== */
+
+.aj-where {
+  border-block: 1px solid var(--border);
+}
+
+.aj-where-layout {
+  display: grid;
+  grid-template-columns: 1fr 1.1fr;
+  gap: clamp(1.5rem, 4vw, 3rem);
+  align-items: start;
+}
+
+.aj-where-rail {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.aj-where-rail button {
+  text-align: left;
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  background: var(--card);
+  font-family: var(--font-display);
+  font-size: 1.02rem;
+  color: var(--foreground);
+  cursor: pointer;
+  transition:
+    border-color var(--base) var(--ease),
+    background-color var(--base) var(--ease);
+}
+
+.aj-where-rail button.active {
+  border-color: var(--brand);
+  background: var(--brand-soft);
+  color: color-mix(in oklch, var(--brand) 55%, var(--foreground) 45%);
+}
+
+.aj-where-panel {
+  padding: clamp(1.5rem, 3vw, 2.25rem);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  background: var(--secondary);
+}
+
+.aj-where-kicker {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--brand);
+}
+
+.aj-where-panel h3 {
+  margin: 0.5rem 0 0;
+  font-size: 1.4rem;
+}
+
+.aj-where-path {
+  margin: 1.25rem 0 1.75rem;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  counter-reset: step;
+}
+
+.aj-where-path li {
+  counter-increment: step;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.75rem 0.4rem 0.55rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--card);
+  font-size: 0.8rem;
+}
+
+.aj-where-path li::before {
+  content: counter(step);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.15rem;
+  height: 1.15rem;
+  border-radius: 999px;
+  background: var(--brand);
+  color: oklch(1 0 0);
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+}
+
+/* =================================================== 3+4 · JOURNEY ==== */
+
+.aj-journey {
+  background: var(--secondary);
+}
+
+.aj-chapters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  padding: 0;
+  margin: 0 0 0.6rem;
+  list-style: none;
+  position: sticky;
+  top: 0.75rem;
+  z-index: 5;
+}
+
+.aj-chapters button {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--card);
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+  cursor: pointer;
+  transition:
+    border-color var(--base) var(--ease),
+    color var(--base) var(--ease),
+    background-color var(--base) var(--ease);
+}
+
+.aj-chapters em {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.1rem;
+  height: 1.1rem;
+  font-style: normal;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+}
+
+.aj-chapters em svg {
+  width: 0.8em;
+  height: 0.8em;
+  color: var(--brand);
+}
+
+.aj-chapters li[data-state="active"] button {
+  border-color: var(--brand);
+  background: var(--foreground);
+  color: var(--background);
+}
+
+.aj-chapters li[data-state="done"] button {
+  color: var(--foreground);
+}
+
+.aj-chapters-track {
+  height: 2px;
+  margin-bottom: clamp(2.5rem, 5vw, 4rem);
+  background: var(--border);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.aj-chapters-track span {
+  display: block;
+  height: 100%;
+  background: var(--brand);
+  transition: width var(--slow, 460ms) var(--ease-emph);
+}
+
+.aj-chapter {
+  padding: clamp(1.75rem, 4vw, 3rem);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-2xl);
+  background: var(--card);
+}
+
+.aj-chapter-kicker {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--brand);
+}
+
+.aj-chapter-kicker span {
+  color: var(--muted-foreground);
+}
+
+.aj-chapter h3 {
+  margin: 0.6rem 0 0;
+  font-size: clamp(1.5rem, 2.6vw, 2.1rem);
+  line-height: 1.15;
+  max-width: 30ch;
+}
+
+.aj-chapter-body {
+  margin: 1rem 0 0;
+  max-width: 58ch;
+  font-size: 1.02rem;
+  line-height: 1.6;
+  color: var(--muted-foreground);
+}
+
+.aj-chapter-groups {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  gap: 1.5rem;
+  margin-top: 2rem;
+  padding-top: 1.75rem;
+  border-top: 1px solid var(--border);
+}
+
+.aj-group-name {
+  margin: 0 0 0.6rem;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--foreground);
+}
+
+.aj-chapter-groups ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.aj-chapter-groups li {
+  position: relative;
+}
+
+.aj-service-toggle {
+  all: unset;
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  width: 100%;
+  padding-left: 1.1rem;
+  font-size: 0.9rem;
+  line-height: 1.45;
+  color: var(--muted-foreground);
+  cursor: pointer;
+  transition: color var(--base) var(--ease);
+}
+
+.aj-service-toggle::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.55em;
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 999px;
+  background: var(--brand);
+}
+
+.aj-service-toggle:hover,
+.aj-service-toggle[aria-expanded="true"] {
+  color: var(--foreground);
+}
+
+.aj-service-toggle:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+.aj-service-tag {
+  flex-shrink: 0;
+  padding: 0.05rem 0.45rem;
+  border-radius: 999px;
+  background: var(--brand-soft, var(--secondary));
+  color: var(--brand);
+  font-style: normal;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.aj-service-blurb {
+  margin: 0.35rem 0 0 1.1rem;
+  padding: 0.6rem 0.85rem;
+  border-radius: var(--radius-lg);
+  background: var(--secondary);
+  color: var(--foreground);
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.aj-audience-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 1.5rem;
+}
+
+.aj-audience-filter button {
+  padding: 0.4rem 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--card);
+  color: var(--muted-foreground);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    border-color var(--base) var(--ease),
+    background-color var(--base) var(--ease),
+    color var(--base) var(--ease);
+}
+
+.aj-audience-filter button.active {
+  border-color: transparent;
+  background: var(--foreground);
+  color: var(--background);
+}
+
+.aj-chapter-outcome {
+  margin: 1.75rem 0 0;
+  padding: 1rem 1.25rem;
+  border-radius: var(--radius-lg);
+  background: var(--brand-soft);
+  font-size: 0.95rem;
+  color: color-mix(in oklch, var(--brand) 55%, var(--foreground) 45%);
+}
+
+.aj-chapter-outcome span {
+  display: block;
+  margin-bottom: 0.2rem;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.75;
+}
+
+.aj-chapter-transition {
+  margin: 1.5rem 0 0;
+  padding-top: 1.25rem;
+  border-top: 1px dashed var(--border);
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  color: var(--foreground);
+}
+
+/* ===================================================== growth plan ==== */
+
+.aj-plan {
+  background: var(--foreground);
+  color: var(--background);
+}
+
+.aj-plan-layout {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: clamp(2rem, 4vw, 3.5rem);
+  align-items: start;
+}
+
+.aj-plan-q {
+  margin: 1.75rem 0 0.9rem;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: oklch(0.75 0.01 80);
+}
+
+.aj-plan-q:first-child {
+  margin-top: 0;
+}
+
+.aj-plan-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.aj-plan-options button {
+  padding: 0.6rem 1rem;
+  border: 1px solid oklch(1 0 0 / 16%);
+  border-radius: 999px;
+  background: oklch(1 0 0 / 4%);
+  color: oklch(0.96 0.006 95);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition:
+    border-color var(--base) var(--ease),
+    background-color var(--base) var(--ease);
+}
+
+.aj-plan-options button.active {
+  border-color: var(--brand);
+  background: var(--brand);
+  color: oklch(1 0 0);
+}
+
+.aj-plan-result {
+  padding: clamp(1.5rem, 3vw, 2.25rem);
+  border-radius: var(--radius-2xl);
+  background: oklch(1 0 0 / 5%);
+  border: 1px solid oklch(1 0 0 / 12%);
+  min-height: 16rem;
+}
+
+.aj-plan-kicker {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--brand);
+}
+
+.aj-plan-result h3 {
+  margin: 0.5rem 0 0;
+  font-size: 1.5rem;
+  color: oklch(0.97 0.006 95);
+}
+
+.aj-plan-stack {
+  margin: 1.25rem 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.aj-plan-stack li {
+  padding: 0.6rem 0.9rem;
+  border-radius: var(--radius-lg);
+  background: oklch(1 0 0 / 6%);
+  font-size: 0.9rem;
+  color: oklch(0.9 0.006 95);
+}
+
+.aj-plan-note {
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: oklch(0.72 0.01 80);
+  margin-bottom: 1.5rem;
+}
+
+.aj-plan-placeholder {
+  color: oklch(0.75 0.01 80);
+  font-size: 0.95rem;
+}
+
+/* ======================================================== final CTA === */
+
+.aj-final {
+  background: var(--carbon);
+  color: oklch(0.96 0.006 95);
+}
+
+.aj-final-top {
+  max-width: 46rem;
+}
+
+.aj-final-top h2 {
+  margin: 0.75rem 0 0;
+  font-size: clamp(2rem, 4vw, 3rem);
+  color: oklch(0.97 0.006 95);
+}
+
+.aj-final-lede {
+  margin: 1.25rem 0 0;
+  font-size: 1.05rem;
+  line-height: 1.6;
+  color: oklch(0.78 0.01 80);
+}
+
+.aj-final-layout {
+  display: grid;
+  grid-template-columns: 1fr 1.1fr;
+  gap: clamp(2rem, 4vw, 3.5rem);
+  margin-top: clamp(2.5rem, 5vw, 4rem);
+  align-items: start;
+}
+
+.aj-final-points {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.aj-final-points li {
+  padding-left: 1.4rem;
+  position: relative;
+  font-size: 0.92rem;
+  color: oklch(0.85 0.008 90);
+}
+
+.aj-final-points li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.5em;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 999px;
+  background: var(--brand);
+}
+
+.aj-final-faq {
+  margin-top: 2.5rem;
+}
+
+.aj-final-faq-title {
+  margin: 0 0 1rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: oklch(0.72 0.01 80);
+}
+
+/* ===================================================== reveal + a11y === */
+
+.aj-reveal[data-inview] {
+  animation: aj-rise 560ms var(--ease-emph) both;
+}
+
+@keyframes aj-rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+}
+
+.aj-reveal:not([data-inview]) {
+  opacity: 0;
+  transform: translateY(18px);
+}
+
+/* =========================================================== mobile === */
+
+@media (max-width: 1024px) {
+  .aj-hero-layout,
+  .aj-where-layout,
+  .aj-plan-layout,
+  .aj-final-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .aj-orbit {
+    width: min(100%, 20rem);
+  }
+
+  .aj-chapters {
+    position: static;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    padding-bottom: 0.4rem;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .aj-chapters button {
+    flex: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .aj-orbit-node {
+    font-size: 0.64rem;
+    padding: 0.32rem 0.55rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aj *,
+  .aj *::before,
+  .aj *::after {
+    animation: none !important;
+    transition-duration: 0.001ms !important;
+  }
+
+  .aj-reveal:not([data-inview]) {
+    opacity: 1;
+    transform: none;
+  }
+}

@@ -1,0 +1,349 @@
+/* Buyer-facing invoice page. Mirrors the invoice email
+   (src/lib/payments/invoice-email.ts): warm off-white page, white card with an
+   orange top stripe, HQ360 logo, amount-due panel, details table, one pay
+   button. Light-only on purpose so it matches what the client saw in email. */
+.buyer-invoice-page {
+  --inv-orange: #ff5a00;
+  --inv-ink: #111416;
+  --inv-muted: #5f6368;
+  --inv-line: #ececec;
+  min-height: 100vh;
+  padding: 32px 16px 40px;
+  background: #f4f2ef;
+  color: var(--inv-ink);
+  color-scheme: light;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+.buyer-invoice-shell {
+  max-width: 600px;
+  margin: 0 auto;
+}
+.buyer-test {
+  margin-bottom: 12px;
+  padding: 10px 16px;
+  border: 1px solid #ffd8a8;
+  border-radius: 12px;
+  background: #fff4e5;
+  color: #8a4b00;
+  font-size: 13px;
+  text-align: center;
+}
+.buyer-invoice-card {
+  overflow: hidden;
+  border: 1px solid var(--inv-line);
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 0 18px 40px -28px rgb(17 20 22 / 0.35);
+}
+.buyer-stripe {
+  height: 6px;
+  background: var(--inv-orange);
+}
+.buyer-card-inner {
+  padding: 28px 36px 30px;
+}
+.buyer-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.buyer-head img {
+  display: block;
+  width: 120px;
+  height: auto;
+}
+.buyer-number {
+  text-align: right;
+  color: var(--inv-muted);
+  font-size: 12px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+.buyer-number strong {
+  display: block;
+  color: var(--inv-ink);
+  font-size: 15px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.buyer-greeting {
+  margin-top: 24px;
+}
+.buyer-greeting h1 {
+  margin: 0 0 6px;
+  font-size: 16px;
+  font-weight: 400;
+}
+.buyer-greeting p {
+  margin: 0;
+  color: var(--inv-muted);
+  font-size: 15px;
+  line-height: 1.6;
+}
+.buyer-total {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 24px;
+  padding: 22px 24px;
+  border: 1px solid #ffe0cc;
+  border-radius: 16px;
+  background: #fff7f2;
+}
+.buyer-total.paid {
+  border-color: #c9ecd6;
+  background: #f1fbf5;
+}
+.buyer-total-label {
+  margin: 0;
+  color: var(--inv-orange);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+.buyer-total.paid .buyer-total-label {
+  color: #15803d;
+}
+.buyer-total-amount {
+  margin: 6px 0 0;
+  font-size: 34px;
+  font-weight: 800;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+.buyer-total-sub {
+  margin: 8px 0 0;
+  color: var(--inv-muted);
+  font-size: 14px;
+}
+.buyer-status {
+  flex-shrink: 0;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.buyer-status.pending {
+  background: #fff;
+  color: #8a4b00;
+  box-shadow: inset 0 0 0 1px #ffd8a8;
+}
+.buyer-status.paid {
+  background: #fff;
+  color: #15803d;
+  box-shadow: inset 0 0 0 1px #b7e4c7;
+}
+.buyer-status.refunded,
+.buyer-status.cancelled {
+  background: #fff;
+  color: #b42318;
+  box-shadow: inset 0 0 0 1px #f4c7c3;
+}
+.buyer-details {
+  margin: 24px 0 0;
+}
+.buyer-for-label {
+  color: var(--inv-muted);
+  font-size: 12px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+.buyer-for {
+  margin: 6px 0 0;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--inv-line);
+  font-size: 15px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.buyer-details > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--inv-line);
+  font-size: 14px;
+}
+.buyer-details dt {
+  color: var(--inv-muted);
+}
+.buyer-details dd {
+  margin: 0;
+  font-weight: 600;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+.buyer-actions {
+  margin-top: 30px;
+  text-align: center;
+}
+.buyer-pay {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 15px 40px;
+  border-radius: 999px;
+  background: var(--inv-orange);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  text-decoration: none;
+  transition:
+    background 150ms ease,
+    transform 150ms ease;
+}
+.buyer-pay:hover {
+  background: #e65100;
+  transform: translateY(-1px);
+}
+.buyer-pay:focus-visible,
+.buyer-link:focus-visible {
+  outline: 2px solid var(--inv-orange);
+  outline-offset: 3px;
+}
+.buyer-note {
+  margin: 14px auto 0;
+  max-width: 420px;
+  color: var(--inv-muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+.buyer-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 14px;
+  border: 0;
+  background: none;
+  color: var(--inv-orange);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.buyer-link:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+.buyer-message {
+  margin-top: 20px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.buyer-message.info {
+  background: #fff7f2;
+  color: #8a4b00;
+}
+.buyer-message.error {
+  background: #fdecea;
+  color: #b42318;
+}
+.buyer-paid {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 30px;
+  color: #15803d;
+  font-size: 15px;
+  font-weight: 600;
+}
+.buyer-closing {
+  margin-top: 28px;
+  padding-top: 20px;
+  border-top: 1px solid var(--inv-line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--inv-muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+.buyer-closing a {
+  color: var(--inv-orange);
+}
+.buyer-closing span {
+  display: block;
+}
+.buyer-closing span svg {
+  display: inline-block;
+  margin-right: 6px;
+  vertical-align: -2px;
+}
+.buyer-empty {
+  padding: 48px 36px;
+  text-align: center;
+}
+.buyer-empty h1 {
+  margin: 0 0 8px;
+  font-size: 20px;
+}
+.buyer-empty p {
+  margin: 0;
+  color: var(--inv-muted);
+  font-size: 14px;
+}
+.buyer-foot {
+  margin-top: 20px;
+  color: #8a8f94;
+  font-size: 12px;
+  line-height: 1.6;
+  text-align: center;
+}
+.buyer-foot a {
+  color: #8a8f94;
+}
+@media (max-width: 520px) {
+  .buyer-card-inner {
+    padding: 24px 20px 26px;
+  }
+  .buyer-total {
+    flex-direction: column;
+  }
+  .buyer-closing {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .buyer-pay {
+    display: flex;
+    width: 100%;
+  }
+}
+@media print {
+  .buyer-invoice-page {
+    padding: 0;
+    background: #fff;
+  }
+  .buyer-invoice-card {
+    border: 0;
+    box-shadow: none;
+  }
+  .buyer-actions,
+  .buyer-closing button,
+  .buyer-message {
+    display: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .buyer-pay {
+    transition: none;
+  }
+}
+.buyer-details > .buyer-for-row {
+  display: block;
+  padding: 0;
+  border-bottom: 0;
+}
+.buyer-details .buyer-for {
+  text-align: left;
+  font-weight: 400;
+}

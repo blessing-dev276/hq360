@@ -31,7 +31,7 @@ export function NewsletterSignup({ variant = "light" }: { variant?: "light" | "d
   if (state === "done") {
     return (
       <p role="status" className={cn("text-sm", dark ? "text-brand" : "text-brand")}>
-        You are on the list. The next letter goes out at the start of the month.
+        You are on the list. Look out for practical notes from HQ360.
       </p>
     );
   }

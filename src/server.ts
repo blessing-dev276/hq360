@@ -1,3 +1,4 @@
+import "./lib/load-env.server";
 import "./lib/error-capture";
 
 import { consumeLastCapturedError } from "./lib/error-capture";
@@ -44,17 +45,49 @@ function isH3SwallowedErrorBody(body: string): boolean {
   }
 }
 
+function withCachePolicy(request: Request, response: Response): Response {
+  const pathname = new URL(request.url).pathname;
+  const privateResponse =
+    !["GET", "HEAD"].includes(request.method) ||
+    pathname === "/admin" ||
+    pathname.startsWith("/author-audit") ||
+    pathname.startsWith("/api/private-audit") ||
+    pathname.startsWith("/api/admin/") ||
+    response.headers.has("set-cookie") ||
+    response.status >= 400;
+  const isDocument = response.headers.get("content-type")?.includes("text/html");
+  const excludeFromIndex =
+    pathname === "/admin" ||
+    pathname.startsWith("/author-audit") ||
+    pathname.startsWith("/api/") ||
+    response.status >= 400;
+  if (!privateResponse && !isDocument && !excludeFromIndex) return response;
+  const headers = new Headers(response.headers);
+  if (excludeFromIndex) headers.set("x-robots-tag", "noindex");
+  // Documents revalidate so a new deploy never points at stale route chunks.
+  // Form actions, sessions and failures must never enter a shared cache.
+  headers.set("cache-control", privateResponse ? "private, no-store" : "no-cache");
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+}
+
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
-      return await normalizeCatastrophicSsrResponse(response);
+      return withCachePolicy(request, await normalizeCatastrophicSsrResponse(response));
     } catch (error) {
       console.error(error);
       return new Response(renderErrorPage(), {
         status: 500,
-        headers: { "content-type": "text/html; charset=utf-8" },
+        headers: {
+          "content-type": "text/html; charset=utf-8",
+          "cache-control": "private, no-store",
+        },
       });
     }
   },

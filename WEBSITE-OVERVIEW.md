@@ -19,7 +19,7 @@ reputation — run as one connected system rather than five separate vendors.
   in `src/config/brand.ts` (`formerlyKnownAs`).
 - **Primary business goal:** prospecting. Each industry has its own direct URL
   (`/real-estate`, `/plumbers`, …) so a prospect can be sent a page built for their niche.
-- **Built with:** Lovable. Live: https://hq360.lovable.app. Do not rewrite pushed git history.
+- **Deploy:** nitro build (`.output/`), Cloudflare preset by default. Do not rewrite pushed git history.
 
 ---
 
@@ -135,8 +135,8 @@ ConnectedPlatforms, PlatformLogos, CompareSlider, and `src/data/site.ts`.
   `RESEND_API_KEY`, `EMAIL_FROM`. No-op if unset. `resource-delivery.server.ts` uses it.
 - **Industry attribution:** industry pages submit `industry` + `sourceIndustry` + `sourcePath`,
   so a lead from `/real-estate` is tagged "Real Estate" for routing.
-- **Env vars:** documented in `.env.example`. Local dev lacks `SUPABASE_SERVICE_ROLE_KEY`
-  (Lovable Cloud injects it), so form POSTs return 503 locally — expected.
+- **Env vars:** documented in `.env.example`. `load-env.server.ts` reads `.env` into
+  process.env for local dev; deployed builds need them set in the host environment.
 
 ---
 
@@ -166,4 +166,4 @@ Organization JSON-LD is site-wide in `__root.tsx`. Each industry page emits Prof
   deploy environment.
 - Add a proper OG image (`buildSeo` currently falls back to `/favicon.png`).
 - Consider a sitemap route and `robots.txt` update for the new URLs.
-- Replace README.md (still the original Lovable prompt).
+- Add an OG image and a sitemap route.

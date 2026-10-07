@@ -2,7 +2,12 @@ import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { canFindContacts, canSeeAuthor, resolveScoutAccess } from "@/lib/scout/owner.server";
 import { asScoutDb } from "@/lib/scout/db";
-import { checkEmailRun, createEmailRun, emailDb } from "@/lib/scout/email-budget.server";
+import {
+  checkEmailRun,
+  createEmailRun,
+  emailDb,
+  finishEmailRun,
+} from "@/lib/scout/email-budget.server";
 import { PerplexityError } from "@/lib/perplexity/agent.server";
 const json = (body: unknown, status = 200) =>
   Response.json(body, { status, headers: { "Cache-Control": "no-store" } });
@@ -12,7 +17,18 @@ export async function emailRunsHandler(request: Request) {
   if (!(await canFindContacts(access))) return json({ message: "Scouting access required." }, 403);
   try {
     if (request.method === "GET") {
-      const id = z.string().uuid().parse(new URL(request.url).searchParams.get("id"));
+      const queryId = new URL(request.url).searchParams.get("id");
+      if (!queryId) {
+        const { data: runs, error } = await emailDb()
+          .from("scout_email_runs")
+          .select("id,status,created_at,budget_usd,accounted_usd")
+          .eq("owner", access.owner)
+          .order("created_at", { ascending: false })
+          .limit(20);
+        if (error) throw error;
+        return json({ runs });
+      }
+      const id = z.string().uuid().parse(queryId);
       const run = await checkEmailRun(id, access.owner);
       const { data: results, error } = await emailDb()
         .from("scout_email_run_results")
@@ -34,15 +50,25 @@ export async function emailRunsHandler(request: Request) {
     if (request.headers.get("origin") !== new URL(request.url).origin)
       return json({ message: "Invalid origin." }, 403);
     const body = z
-      .object({
-        budgetUsd: z.number().min(0.1).max(25),
-        targets: z
-          .array(z.object({ authorId: z.string().uuid(), bookId: z.string().uuid() }).strict())
-          .min(1)
-          .max(500),
-      })
-      .strict()
+      .discriminatedUnion("action", [
+        z.object({ action: z.literal("stop"), id: z.string().uuid() }).strict(),
+        z.object({ action: z.literal("complete"), id: z.string().uuid() }).strict(),
+        z
+          .object({
+            action: z.literal("create"),
+            budgetUsd: z.number().min(0.1).max(25),
+            targets: z
+              .array(z.object({ authorId: z.string().uuid(), bookId: z.string().uuid() }).strict())
+              .min(1)
+              .max(500),
+          })
+          .strict(),
+      ])
       .parse(await request.json());
+    if (body.action === "stop" || body.action === "complete") {
+      await finishEmailRun(body.id, access.owner, body.action === "stop" ? "stopped" : "completed");
+      return json({ ok: true });
+    }
     for (const target of body.targets)
       if (!(await canSeeAuthor(asScoutDb(emailDb()), access.owner, target.authorId)))
         return json({ message: "Author not found." }, 404);

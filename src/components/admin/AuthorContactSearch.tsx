@@ -72,6 +72,7 @@ export function useEmailSearch() {
   const [revision, setRevision] = useState(0);
   const [runError, setRunError] = useState("");
   const creating = useRef(false);
+  const runIdRef = useRef("");
   const set = (id: string, value: EmailSearch) =>
     setState((current) => ({ ...current, [id]: value }));
 
@@ -90,11 +91,12 @@ export function useEmailSearch() {
         const response = await fetch("/api/admin/scout-email-runs", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ targets, budgetUsd }),
+          body: JSON.stringify({ action: "create", targets, budgetUsd }),
         });
         const data = await response.json();
         if (!response.ok) throw new Error(data.message || "Could not start search run.");
         runId = data.run.id;
+        runIdRef.current = runId;
         setLastRunId(runId);
       } catch (error) {
         setRunError(error instanceof Error ? error.message : "Could not start search run.");
@@ -126,6 +128,12 @@ export function useEmailSearch() {
         return next;
       });
       setRun(null);
+      if (!stopRef.current)
+        void fetch("/api/admin/scout-email-runs", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "complete", id: runId }),
+        });
       creating.current = false;
       setRevision((r) => r + 1);
     },
@@ -143,7 +151,15 @@ export function useEmailSearch() {
       : [],
     findOne,
     findAll,
-    stop: () => (stopRef.current = true),
+    stop: () => {
+      stopRef.current = true;
+      if (runIdRef.current)
+        void fetch("/api/admin/scout-email-runs", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "stop", id: runIdRef.current }),
+        });
+    },
   };
 }
 

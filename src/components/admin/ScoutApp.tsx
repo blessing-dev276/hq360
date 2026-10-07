@@ -29,7 +29,6 @@ import { GlassLoading } from "@/components/ui/glass-loading";
 import { ScoutBatchPicker } from "./ScoutBatchPicker";
 import { useQueryClient } from "@tanstack/react-query";
 import { canonicalUrl } from "@/lib/scout/normalize";
-import { emailSearchEstimate } from "@/lib/scout/email-cost";
 
 type Book = {
   id: string;
@@ -470,7 +469,7 @@ function AuthorScout({
     if (
       !n ||
       !window.confirm(
-        `Search again for the ${n} author${n === 1 ? "" : "s"} with no email found, using the improved search?\n\nEstimated Perplexity cost: about ${emailSearchEstimate(n).typical} (planning range up to ${emailSearchEstimate(n).max}; actual charges vary).`,
+        `Search again for ${n} author${n === 1 ? "" : "s"} with no verified email? The $${emailBudget.toFixed(2)} batch budget stops starting additional paid searches at the threshold. Requests already in progress can still finish.`,
       )
     )
       return;
@@ -481,7 +480,7 @@ function AuthorScout({
     if (
       !n ||
       !window.confirm(
-        `Find emails for ${n} author${n === 1 ? "" : "s"}?\n\nEstimated Perplexity cost: about ${emailSearchEstimate(n).typical} (planning range up to ${emailSearchEstimate(n).max}; actual charges vary). Authors whose own website lists an email cost nothing, and authors already searched are skipped.`,
+        `Find emails for ${n} author${n === 1 ? "" : "s"}? The $${emailBudget.toFixed(2)} batch budget stops starting additional paid searches at the threshold. Saved and free source checks are reused. Requests already in progress can still finish.`,
       )
     )
       return;
@@ -1487,18 +1486,7 @@ function AuthorScout({
                   {emails.runError && <p role="alert">{emails.runError}</p>}
                 </div>
               )}
-              {canFindEmail && emails.lastRunId && (
-                <EmailRunReport id={emails.lastRunId} revision={emails.revision} />
-              )}
-              {canFindEmail && emailTargets.length > 0 && !emails.run && (
-                <p className="text-xs text-muted-foreground">
-                  Email search est. Perplexity cost{" "}
-                  <span className="font-medium text-foreground">
-                    ~{emailSearchEstimate(emailTargets.length).typical}
-                  </span>{" "}
-                  · extended searches may cost more; this is not a spending cap
-                </p>
-              )}
+              {canFindEmail && <EmailRunReport id={emails.lastRunId} revision={emails.revision} />}
               <button
                 onClick={exportCsv}
                 disabled={!visible.length || detailLoading}

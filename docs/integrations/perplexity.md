@@ -96,3 +96,24 @@ Resend prohibits first-contact outreach to scraped addresses under its
 Resend transactional flows separate. Smartlead is a potential campaign provider;
 authenticated sender domains, bounce handling, unsubscribe handling and sender
 reputation still matter. No provider can guarantee inbox placement.
+
+## Email search budgets and source history
+
+Scouting author email runs save the unique authors, outcomes and inspected source
+URLs. Stage results are cached for seven days and reused across workspaces so a
+repeat batch does not pay to ask the same queries again. Each new pass reserves
+$0.10 before calling Perplexity, then replaces that reserve with the provider's
+reported USD `usage.cost.total_cost`, including web tools. If no provider cost is
+returned, the reserve remains. The app stops starting new paid passes when the
+batch threshold is reached; already-running requests can finish and may exceed it.
+Configure a Perplexity account spending limit for a provider-enforced cap.
+
+The admin Scouting screen has saved-run reports. Coverage counts unique authors
+whose verified contact role is `author`; representatives and unverified results
+are shown separately. This is evidence that an address was published near
+matching author/book evidence, not a mailbox delivery or reachability check.
+The stopped $1 pilot processed 13 of 50 selected authors before its threshold:
+7 verified direct emails, 1 verified representative-only contact, and 5 with
+no verified public contact. Provider-reported cost was about $0.48, with $0.20
+in pending reservations for two interrupted requests. This small, budget-limited
+sample does not establish the 45/50 target. A further pilot needs a larger budget.

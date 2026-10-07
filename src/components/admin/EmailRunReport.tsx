@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { emailCoverage, type ContactEvidence } from "@/lib/scout/email-report";
 type Report = {
-  run: { budget_usd: number; accounted_usd: number; targets: unknown[] };
+  run: { budget_usd: number; accounted_usd: number; targets: unknown[]; status?: string };
   actualUsd: number;
   unsettled: number;
   results: {
@@ -11,12 +11,40 @@ type Report = {
     checked_sources: number;
   }[];
 };
-export function EmailRunReport({ id, revision }: { id: string; revision: number }) {
+type RunChoice = {
+  id: string;
+  status: string;
+  created_at: string;
+  budget_usd: number;
+  accounted_usd: number;
+};
+export function EmailRunReport({ id, revision }: { id: string | null; revision: number }) {
+  const [runs, setRuns] = useState<RunChoice[]>([]);
+  const [selected, setSelected] = useState("");
+  const reportId = id || selected;
   const [report, setReport] = useState<Report | null>(null);
   const [error, setError] = useState("");
   useEffect(() => {
     const controller = new AbortController();
-    void fetch(`/api/admin/scout-email-runs?id=${encodeURIComponent(id)}`, {
+    if (!id) {
+      void fetch("/api/admin/scout-email-runs", { signal: controller.signal })
+        .then(async (response) => {
+          const data = await response.json();
+          if (!response.ok) throw new Error(data.message);
+          setRuns(data.runs ?? []);
+          setSelected((current) => current || data.runs?.[0]?.id || "");
+        })
+        .catch((e) => {
+          if (!controller.signal.aborted) setError(e.message);
+        });
+      return () => controller.abort();
+    }
+    setSelected(id);
+  }, [id]);
+  useEffect(() => {
+    const controller = new AbortController();
+    if (!reportId) return;
+    void fetch(`/api/admin/scout-email-runs?id=${encodeURIComponent(reportId)}`, {
       signal: controller.signal,
     })
       .then(async (response) => {
@@ -29,14 +57,37 @@ export function EmailRunReport({ id, revision }: { id: string; revision: number 
         if (!controller.signal.aborted) setError(e.message);
       });
     return () => controller.abort();
-  }, [id, revision]);
+  }, [reportId, revision]);
   if (error) return <p role="alert">{error}</p>;
+  if (!reportId) return <p>No email search runs have been saved yet.</p>;
   if (!report) return <p>Loading email search report…</p>;
   const coverage = emailCoverage(report.results, report.run.targets.length);
   return (
     <div className="my-3 space-y-2 rounded-xl border border-border p-4 text-sm" aria-live="polite">
+      {runs.length > 0 && (
+        <label className="block">
+          Saved email search runs
+          <select
+            aria-label="Saved email search runs"
+            className="ml-2 rounded border bg-background p-2"
+            value={reportId}
+            onChange={(e) => {
+              setSelected(e.target.value);
+              setReport(null);
+            }}
+          >
+            {runs.map((r) => (
+              <option key={r.id} value={r.id}>
+                {new Date(r.created_at).toLocaleString()} · {r.status} · $
+                {Number(r.accounted_usd).toFixed(2)}
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
       <p className="font-semibold">
-        Direct author emails: {coverage.direct}/{coverage.total} ({coverage.percent}%) · target 90%
+        Run {report.run.status ?? "running"} · Direct author emails: {coverage.direct}/
+        {coverage.total} ({coverage.percent}%) · target 90%
       </p>
       <p>
         {coverage.representative} representative-only · {coverage.unverified} unverified candidates
@@ -59,7 +110,7 @@ export function EmailRunReport({ id, revision }: { id: string; revision: number 
           const url = URL.createObjectURL(new Blob([content], { type: "application/json" }));
           const a = document.createElement("a");
           a.href = url;
-          a.download = `email-search-${id}.json`;
+          a.download = `email-search-${reportId}.json`;
           a.click();
           URL.revokeObjectURL(url);
         }}

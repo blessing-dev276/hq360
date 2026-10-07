@@ -101,3 +101,14 @@ export async function recordEmailResult(
   });
   if (error) throw new PerplexityError("Could not save batch result.", 503);
 }
+
+export async function finishEmailRun(id: string, owner: string, status: "completed" | "stopped") {
+  const { data, error } = await emailDb()
+    .from("scout_email_runs")
+    .update({ status, finished_at: new Date().toISOString() })
+    .eq("id", id)
+    .eq("owner", owner)
+    .select("id")
+    .maybeSingle();
+  if (error || !data) throw new PerplexityError("Could not update email run status.", 503);
+}

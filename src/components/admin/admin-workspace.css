@@ -2099,3 +2099,7 @@ html[data-panel-theme="light"] .admin-wordmark img {
   border: 1px solid var(--border);
   background: var(--card-2);
 }
+html[data-panel-theme="light"] .admin-topbar {
+  background: rgb(255 255 255 / 0.92);
+  box-shadow: 0 1px 0 rgb(17 20 22 / 0.04);
+}

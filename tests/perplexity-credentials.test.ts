@@ -27,7 +27,7 @@ test("expert searches use only their own credential and never the server key", a
   );
   expect(requested).toEqual(["expert-a", "expert-b"]);
 });
-test("request credentials stay out of the prompt/body and Google is the default model", async () => {
+test("request credentials stay out of the prompt/body and Luna is the default model", async () => {
   const fetcher = (async (_url, init) => {
     expect(new Headers(init?.headers).get("Authorization")).toBe(`Bearer ${key}`);
     expect(String(init?.body)).not.toContain(key);

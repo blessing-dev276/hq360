@@ -1,3 +1,4 @@
+import { AuthorOutreach, OutreachSettings } from "./AuthorOutreach";
 import { EmailCheckBadge } from "./EmailCheckBadge";
 import {
   AuthorContactSearch,
@@ -201,6 +202,17 @@ function BookCard({
           }}
         />
       )}
+      {canFindEmail &&
+        book.scout_authors &&
+        !book.localOnly &&
+        emailSearch.status === "found" &&
+        emailSearch.emails.length > 0 && (
+          <AuthorOutreach
+            authorId={book.scout_authors.id}
+            bookId={book.id}
+            emails={emailSearch.emails}
+          />
+        )}
       {book.scout_authors && (
         <div className="mt-4 space-y-2 text-sm">
           <p>{book.scout_authors.bio}</p>
@@ -308,6 +320,7 @@ export function ScoutApp({ canFindEmail = false }: { canFindEmail?: boolean }) {
           </select>
         </label>
       </div>
+      {canFindEmail && <OutreachSettings />}
       {audienceId === "authors" ? (
         <AuthorScout
           onBusyChange={setLocked}
@@ -451,7 +464,7 @@ function AuthorScout({
     if (
       !n ||
       !window.confirm(
-        `Search again for the ${n} author${n === 1 ? "" : "s"} with no email found, using the improved search?\n\nEstimated Perplexity cost: about ${emailSearchEstimate(n).typical} (at most ${emailSearchEstimate(n).max}).`,
+        `Search again for the ${n} author${n === 1 ? "" : "s"} with no email found, using the improved search?\n\nEstimated Perplexity cost: about ${emailSearchEstimate(n).typical} (planning range up to ${emailSearchEstimate(n).max}; actual charges vary).`,
       )
     )
       return;
@@ -462,7 +475,7 @@ function AuthorScout({
     if (
       !n ||
       !window.confirm(
-        `Find emails for ${n} author${n === 1 ? "" : "s"}?\n\nEstimated Perplexity cost: about ${emailSearchEstimate(n).typical} (at most ${emailSearchEstimate(n).max}). Authors whose own website lists an email cost nothing, and authors already searched are skipped.`,
+        `Find emails for ${n} author${n === 1 ? "" : "s"}?\n\nEstimated Perplexity cost: about ${emailSearchEstimate(n).typical} (planning range up to ${emailSearchEstimate(n).max}; actual charges vary). Authors whose own website lists an email cost nothing, and authors already searched are skipped.`,
       )
     )
       return;
@@ -1407,7 +1420,7 @@ function AuthorScout({
                   <span className="font-medium text-foreground">
                     ~{emailSearchEstimate(emailTargets.length).typical}
                   </span>{" "}
-                  · max {emailSearchEstimate(emailTargets.length).max}
+                  · extended searches may cost more; this is not a spending cap
                 </p>
               )}
               <button

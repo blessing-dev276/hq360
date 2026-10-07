@@ -93,6 +93,7 @@ import { Route as ApiAdminScoutDiscoverCountRouteImport } from './routes/api/adm
 import { Route as ApiAdminScoutExportRouteImport } from './routes/api/admin/scout-export'
 import { Route as ApiAdminScoutIdentityRouteImport } from './routes/api/admin/scout-identity'
 import { Route as ApiAdminScoutManualIngestRouteImport } from './routes/api/admin/scout-manual-ingest'
+import { Route as ApiAdminScoutOutreachRouteImport } from './routes/api/admin/scout-outreach'
 import { Route as ApiAdminScoutProspectsRouteImport } from './routes/api/admin/scout-prospects'
 import { Route as ApiAdminScoutReadersFavoriteRouteImport } from './routes/api/admin/scout-readers-favorite'
 import { Route as ApiAdminScoutReedsyGenresRouteImport } from './routes/api/admin/scout-reedsy-genres'
@@ -619,6 +620,11 @@ const ApiAdminScoutManualIngestRoute =
     path: '/api/admin/scout-manual-ingest',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiAdminScoutOutreachRoute = ApiAdminScoutOutreachRouteImport.update({
+  id: '/api/admin/scout-outreach',
+  path: '/api/admin/scout-outreach',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAdminScoutProspectsRoute = ApiAdminScoutProspectsRouteImport.update({
   id: '/api/admin/scout-prospects',
   path: '/api/admin/scout-prospects',
@@ -1229,6 +1235,7 @@ export interface FileRoutesByFullPath {
   '/api/admin/scout-export': typeof ApiAdminScoutExportRoute
   '/api/admin/scout-identity': typeof ApiAdminScoutIdentityRoute
   '/api/admin/scout-manual-ingest': typeof ApiAdminScoutManualIngestRoute
+  '/api/admin/scout-outreach': typeof ApiAdminScoutOutreachRoute
   '/api/admin/scout-prospects': typeof ApiAdminScoutProspectsRouteWithChildren
   '/api/admin/scout-readers-favorite': typeof ApiAdminScoutReadersFavoriteRoute
   '/api/admin/scout-reedsy-genres': typeof ApiAdminScoutReedsyGenresRoute
@@ -1411,6 +1418,7 @@ export interface FileRoutesByTo {
   '/api/admin/scout-export': typeof ApiAdminScoutExportRoute
   '/api/admin/scout-identity': typeof ApiAdminScoutIdentityRoute
   '/api/admin/scout-manual-ingest': typeof ApiAdminScoutManualIngestRoute
+  '/api/admin/scout-outreach': typeof ApiAdminScoutOutreachRoute
   '/api/admin/scout-prospects': typeof ApiAdminScoutProspectsRouteWithChildren
   '/api/admin/scout-readers-favorite': typeof ApiAdminScoutReadersFavoriteRoute
   '/api/admin/scout-reedsy-genres': typeof ApiAdminScoutReedsyGenresRoute
@@ -1594,6 +1602,7 @@ export interface FileRoutesById {
   '/api/admin/scout-export': typeof ApiAdminScoutExportRoute
   '/api/admin/scout-identity': typeof ApiAdminScoutIdentityRoute
   '/api/admin/scout-manual-ingest': typeof ApiAdminScoutManualIngestRoute
+  '/api/admin/scout-outreach': typeof ApiAdminScoutOutreachRoute
   '/api/admin/scout-prospects': typeof ApiAdminScoutProspectsRouteWithChildren
   '/api/admin/scout-readers-favorite': typeof ApiAdminScoutReadersFavoriteRoute
   '/api/admin/scout-reedsy-genres': typeof ApiAdminScoutReedsyGenresRoute
@@ -1778,6 +1787,7 @@ export interface FileRouteTypes {
     | '/api/admin/scout-export'
     | '/api/admin/scout-identity'
     | '/api/admin/scout-manual-ingest'
+    | '/api/admin/scout-outreach'
     | '/api/admin/scout-prospects'
     | '/api/admin/scout-readers-favorite'
     | '/api/admin/scout-reedsy-genres'
@@ -1960,6 +1970,7 @@ export interface FileRouteTypes {
     | '/api/admin/scout-export'
     | '/api/admin/scout-identity'
     | '/api/admin/scout-manual-ingest'
+    | '/api/admin/scout-outreach'
     | '/api/admin/scout-prospects'
     | '/api/admin/scout-readers-favorite'
     | '/api/admin/scout-reedsy-genres'
@@ -2142,6 +2153,7 @@ export interface FileRouteTypes {
     | '/api/admin/scout-export'
     | '/api/admin/scout-identity'
     | '/api/admin/scout-manual-ingest'
+    | '/api/admin/scout-outreach'
     | '/api/admin/scout-prospects'
     | '/api/admin/scout-readers-favorite'
     | '/api/admin/scout-reedsy-genres'
@@ -2325,6 +2337,7 @@ export interface RootRouteChildren {
   ApiAdminScoutExportRoute: typeof ApiAdminScoutExportRoute
   ApiAdminScoutIdentityRoute: typeof ApiAdminScoutIdentityRoute
   ApiAdminScoutManualIngestRoute: typeof ApiAdminScoutManualIngestRoute
+  ApiAdminScoutOutreachRoute: typeof ApiAdminScoutOutreachRoute
   ApiAdminScoutProspectsRoute: typeof ApiAdminScoutProspectsRouteWithChildren
   ApiAdminScoutReadersFavoriteRoute: typeof ApiAdminScoutReadersFavoriteRoute
   ApiAdminScoutReedsyGenresRoute: typeof ApiAdminScoutReedsyGenresRoute
@@ -2966,6 +2979,13 @@ declare module '@tanstack/react-router' {
       path: '/api/admin/scout-manual-ingest'
       fullPath: '/api/admin/scout-manual-ingest'
       preLoaderRoute: typeof ApiAdminScoutManualIngestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/scout-outreach': {
+      id: '/api/admin/scout-outreach'
+      path: '/api/admin/scout-outreach'
+      fullPath: '/api/admin/scout-outreach'
+      preLoaderRoute: typeof ApiAdminScoutOutreachRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/admin/scout-prospects': {
@@ -4081,6 +4101,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAdminScoutExportRoute: ApiAdminScoutExportRoute,
   ApiAdminScoutIdentityRoute: ApiAdminScoutIdentityRoute,
   ApiAdminScoutManualIngestRoute: ApiAdminScoutManualIngestRoute,
+  ApiAdminScoutOutreachRoute: ApiAdminScoutOutreachRoute,
   ApiAdminScoutProspectsRoute: ApiAdminScoutProspectsRouteWithChildren,
   ApiAdminScoutReadersFavoriteRoute: ApiAdminScoutReadersFavoriteRoute,
   ApiAdminScoutReedsyGenresRoute: ApiAdminScoutReedsyGenresRoute,

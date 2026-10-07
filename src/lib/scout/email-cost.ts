@@ -1,9 +1,9 @@
-/** Perplexity Agent API cost per author email search with perplexity/sonar:
- *  web search $0.0025 each · sonar input/output ~$1/M tokens.
- *  A typical search runs ~3 web searches and ~11k input tokens; the worst case
- *  hits the 8-step cap (~8 searches, ~25k input tokens). Re-check against the
- *  Perplexity billing breakdown after a real batch. */
-export const EMAIL_SEARCH_COST = { typical: 0.019, max: 0.046 };
+/** Planning estimates, not a price quote or enforced spend limit. Luna's
+ * standard token rates are $0.10/M input and $0.50/M output. Tool charges
+ * are separate and depend on actual calls. Three adaptive four-step passes
+ * can cost more than a single pass. Validate against provider billing.
+ */
+export const EMAIL_SEARCH_COST = { typical: 0.015, max: 0.06 };
 
 export function emailSearchEstimate(authors: number) {
   const usd = (n: number) => (n < 0.01 ? "<$0.01" : `$${n.toFixed(2)}`);

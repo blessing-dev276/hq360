@@ -73,8 +73,7 @@ export function PerplexitySettings() {
           >
             Perplexity Console
           </a>
-          , then paste the key below. Email research uses Google Gemini 3.1 Flash Lite through
-          Perplexity.
+          , then paste the key below. Email research uses GPT-6 Luna through Perplexity.
         </p>
         <form
           onSubmit={(event) => {

@@ -54,6 +54,7 @@ export type AgentRequest = {
   instructions: string;
   model?: string;
   max_steps?: number;
+  tools?: { type: "web_search" | "fetch_url" }[];
   response_format?: {
     type: "json_schema";
     json_schema: { name: string; schema: Record<string, unknown> };
@@ -83,7 +84,7 @@ export function parseAgentResponse(raw: unknown) {
       .filter((item) => item.type === "url_citation" && item.url),
   };
 }
-export const EMAIL_RESEARCH_MODEL = "google/gemini-3.1-flash-lite";
+export const EMAIL_RESEARCH_MODEL = "openai/gpt-6-luna";
 export async function runAgent(
   request: AgentRequest,
   fetcher: typeof fetch = fetch,

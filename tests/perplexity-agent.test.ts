@@ -98,8 +98,13 @@ test("accepts public Gmail with retrieved evidence and rejects guessed, uncited 
       ],
     }),
   });
-  const result = await findAuthorContacts({ author: "Test Author", book: "Test Book" }, agent);
-  expect(result.contacts).toEqual([contact]);
+  const result = await findAuthorContacts(
+    { author: "Test Author", book: "Test Book" },
+    agent,
+    (async () => new Response("", { status: 404 })) as typeof fetch,
+    { allowSharedSearch: false },
+  );
+  expect(result.contacts).toEqual([{ ...contact, verified: true }]);
   const mismatch = await findAuthorContacts(
     { author: "Test Author", book: "Test Book" },
     async () => ({
@@ -110,6 +115,8 @@ test("accepts public Gmail with retrieved evidence and rejects guessed, uncited 
         contacts: [contact],
       }),
     }),
+    (async () => new Response("", { status: 404 })) as typeof fetch,
+    { allowSharedSearch: false },
   );
   expect(mismatch.contacts).toHaveLength(0);
 });

@@ -25,8 +25,8 @@ it. Hosted deployments need their own environment setting and redeployment.
 Never add a `VITE_` copy or commit a key. Rotate keys exposed in chat or logs.
 
 No dependency was added. Native fetch calls `POST https://api.perplexity.ai/v1/agent`
-with Bearer authentication, `google/gemini-3.1-flash-lite`, `web_search` and
-`fetch_url`, a five-step limit, structured output, and a 90-second timeout.
+with Bearer authentication, `openai/gpt-6-luna`, `web_search` and
+`fetch_url`, up to three adaptive four-step passes, structured output, and a 90-second timeout per pass.
 Cached results and free website extraction run before paid research. Expert
 searches do not use the admin's paid SerpAPI fallback. Provider usage is billed
 to the key owner; these limits reduce costs but do not impose a dollar budget.
@@ -84,3 +84,29 @@ validation is `src/lib/scout/perplexity-contact.server.ts`.
 - [SDK overview](https://docs.perplexity.ai/docs/sdk/overview)
 - [Pricing](https://docs.perplexity.ai/docs/getting-started/pricing)
 - [Rate limits](https://docs.perplexity.ai/docs/admin/rate-limits-usage-tiers)
+
+## Personalized outreach
+
+Scouting → Personalized message settings saves the writing prompt for the current
+workspace. Author cards with saved contacts offer **Write personalized message**.
+Drafts use `openai/gpt-6-luna` with no web tools and the same expert-owned credential
+selection as research. The server loads the author/book itself, verifies workspace
+access and validates the chosen saved recipient. Draft text is editable before use; Save edits preserves changes. Existing drafts
+reload without another AI charge. **Open in email app** fills the recipient,
+subject and body in the default mail application. The user sends there. Copy
+message is the fallback for apps with mailto length limits. No outreach messages
+are sent by the server, and no new email-provider subscription is needed.
+Prompts and drafts are stored in service-role-only tables from migration
+`20261008100000_scout_outreach.sql`.
+
+Search broadens from official pages to public social/author profiles, then
+interviews, event pages, press kits and representatives. It stops at a verified
+direct author address. A source check verifies publication, not mailbox
+existence or permission to send. A 45/50 match rate has not been measured or
+promised. Model/tool limits do not impose a dollar budget.
+
+Resend prohibits first-contact outreach to scraped addresses under its
+[acceptable use policy](https://resend.com/legal/acceptable-use). Keep existing
+Resend transactional flows separate. Smartlead is a potential campaign provider;
+authenticated sender domains, bounce handling, unsubscribe handling and sender
+reputation still matter. No provider can guarantee inbox placement.

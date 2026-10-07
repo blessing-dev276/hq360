@@ -1,3 +1,4 @@
+import { EmailCheckBadge } from "./EmailCheckBadge";
 import {
   AuthorContactSearch,
   EmailSearchProgress,
@@ -18,6 +19,7 @@ import {
   Download,
   ExternalLink,
   Loader2,
+  Mail,
   Search,
   ShieldCheck,
 } from "lucide-react";
@@ -51,6 +53,8 @@ type Book = {
     website_url?: string | null;
     contact_email?: string | null;
     contact_verification_status?: string | null;
+    email_check_status?: string | null;
+    email_check?: { reasons?: string[] } | null;
     contact_form_url?: string | null;
     contact_emails?: string[] | null;
     contact_search_status?: string | null;
@@ -187,7 +191,15 @@ function BookCard({
         </p>
       )}
       {canFindEmail && book.scout_authors && !book.localOnly && (
-        <AuthorContactSearch search={emailSearch} onFind={onFindEmail} />
+        <AuthorContactSearch
+          search={emailSearch}
+          onFind={onFindEmail}
+          primaryEmail={book.scout_authors?.contact_email}
+          primaryCheck={{
+            status: book.scout_authors?.email_check_status,
+            details: book.scout_authors?.email_check,
+          }}
+        />
       )}
       {book.scout_authors && (
         <div className="mt-4 space-y-2 text-sm">
@@ -198,11 +210,17 @@ function BookCard({
           </p>
           {book.scout_authors.contact_email &&
             !(canFindEmail && emailSearch.status === "found") && (
-              <p className="break-all">
-                Contact: {book.scout_authors.contact_email} ·{" "}
-                {book.scout_authors.contact_verification_status === "verified"
-                  ? "Verified"
-                  : "Unverified"}
+              <p className="flex flex-wrap items-center gap-2 break-all">
+                <span>
+                  Contact: {book.scout_authors.contact_email} ·{" "}
+                  {book.scout_authors.contact_verification_status === "verified"
+                    ? "Confirmed by staff"
+                    : "Not confirmed by staff"}
+                </span>
+                <EmailCheckBadge
+                  status={book.scout_authors.email_check_status}
+                  details={book.scout_authors.email_check}
+                />
               </p>
             )}
           <div className="flex flex-wrap gap-4">
@@ -1261,36 +1279,33 @@ function AuthorScout({
               <span aria-hidden="true">/</span>
               <span aria-current="page">{selected.genre || selected.label}</span>
             </nav>
-            <div className="flex flex-wrap items-end justify-between gap-4">
-              <div>
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div className="min-w-0">
                 <p className="text-xs uppercase tracking-widest text-brand">Batch details</p>
                 <h2 className="mt-2 text-xl font-semibold">{selected.label}</h2>
                 <p className="mt-1 text-sm text-muted-foreground">
                   {visible.length} of {books.length} books
                 </p>
               </div>
-              <div className="flex flex-wrap items-end gap-3">
+              <div className="flex flex-wrap items-center gap-2">
                 {canFindEmail && (
-                  <div className="grid gap-1">
-                    <button
-                      type="button"
-                      disabled={Boolean(emails.run) || detailLoading || !emailTargets.length}
-                      onClick={findAllEmails}
-                      className="rounded-xl border border-brand/50 px-4 py-3 text-sm font-semibold text-brand disabled:opacity-50"
-                    >
-                      {emails.run
-                        ? "Finding emails…"
-                        : emailTargets.length
-                          ? `Find all emails (${emailTargets.length})`
-                          : "All emails searched"}
-                    </button>
-                    {emailTargets.length > 0 && !emails.run && (
-                      <small className="text-xs text-muted-foreground">
-                        Est. Perplexity cost ~{emailSearchEstimate(emailTargets.length).typical}{" "}
-                        (max {emailSearchEstimate(emailTargets.length).max})
-                      </small>
+                  <button
+                    type="button"
+                    disabled={Boolean(emails.run) || detailLoading || !emailTargets.length}
+                    onClick={findAllEmails}
+                    className="inline-flex h-11 items-center gap-2 rounded-xl border border-brand/50 px-4 text-sm font-semibold text-brand hover:bg-brand/10 disabled:opacity-50"
+                  >
+                    {emails.run ? (
+                      <Loader2 className="size-4 animate-spin" />
+                    ) : (
+                      <Mail className="size-4" />
                     )}
-                  </div>
+                    {emails.run
+                      ? "Finding emails…"
+                      : emailTargets.length
+                        ? `Find all emails (${emailTargets.length})`
+                        : "All emails searched"}
+                  </button>
                 )}
                 <button
                   type="button"
@@ -1298,40 +1313,52 @@ function AuthorScout({
                     Boolean(busy) || detailLoading || !books.some((b) => !b.scout_prospects.length)
                   }
                   onClick={() => void scoutWholeBatch()}
-                  className="rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground disabled:opacity-50"
+                  className="inline-flex h-11 items-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground disabled:opacity-50"
                 >
+                  <Bookmark className="size-4" />
                   {busy === "batch-scout"
                     ? "Marking…"
                     : books.length && books.every((b) => b.scout_prospects.length)
                       ? "Whole batch scouted"
                       : "Mark whole batch scouted"}
                 </button>
-                <label className="text-sm">
-                  Book reviews
-                  <select
-                    aria-label="Book reviews"
-                    className={field}
-                    value={reviewFilter}
-                    onChange={(event) => setReviewFilter(event.target.value)}
-                  >
-                    <option value="all">All review scores</option>
-                    {[5, 4, 3, 2, 1].map((value) => (
-                      <option key={value} value={value}>
-                        {value} / 5
-                      </option>
-                    ))}
-                    <option value="unknown">Score unavailable</option>
-                  </select>
-                </label>
-                <button
-                  onClick={exportCsv}
-                  disabled={!visible.length || detailLoading}
-                  className="inline-flex items-center gap-2 rounded-xl border px-4 py-3 text-sm disabled:opacity-50"
-                >
-                  <Download className="size-4" />
-                  Export CSV
-                </button>
               </div>
+            </div>
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border bg-card/60 px-4 py-3">
+              <label className="flex items-center gap-2 text-sm text-muted-foreground">
+                Reviews
+                <select
+                  aria-label="Book reviews"
+                  className="h-9 rounded-lg border border-border bg-background px-3 text-sm text-foreground"
+                  value={reviewFilter}
+                  onChange={(event) => setReviewFilter(event.target.value)}
+                >
+                  <option value="all">All review scores</option>
+                  {[5, 4, 3, 2, 1].map((value) => (
+                    <option key={value} value={value}>
+                      {value} / 5
+                    </option>
+                  ))}
+                  <option value="unknown">Score unavailable</option>
+                </select>
+              </label>
+              {canFindEmail && emailTargets.length > 0 && !emails.run && (
+                <p className="text-xs text-muted-foreground">
+                  Email search est. Perplexity cost{" "}
+                  <span className="font-medium text-foreground">
+                    ~{emailSearchEstimate(emailTargets.length).typical}
+                  </span>{" "}
+                  · max {emailSearchEstimate(emailTargets.length).max}
+                </p>
+              )}
+              <button
+                onClick={exportCsv}
+                disabled={!visible.length || detailLoading}
+                className="inline-flex h-9 items-center gap-2 rounded-lg border border-border px-3 text-sm hover:bg-secondary disabled:opacity-50"
+              >
+                <Download className="size-4" />
+                Export CSV
+              </button>
             </div>
             {emails.run && (
               <EmailSearchProgress

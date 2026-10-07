@@ -52,7 +52,7 @@ const responseSchema = z.object({
 export type AgentRequest = {
   input: string;
   instructions: string;
-  preset?: "low" | "medium";
+  model?: string;
   max_steps?: number;
   response_format?: {
     type: "json_schema";
@@ -99,7 +99,7 @@ export async function runAgent(request: AgentRequest, fetcher: typeof fetch = fe
         signal,
         headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
         body: JSON.stringify({
-          preset: "low",
+          model: process.env.PERPLEXITY_MODEL?.trim() || "google/gemini-3.1-flash-lite",
           max_steps: 5,
           max_output_tokens: 3000,
           tools: [{ type: "web_search" }, { type: "fetch_url" }],

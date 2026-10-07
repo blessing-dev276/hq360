@@ -2,7 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { canSeeAuthor, resolveScoutAccess } from "@/lib/scout/owner.server";
 import { asScoutDb, type ScoutAuthor } from "@/lib/scout/db";
-import { ContactResearchError, findAuthorContacts } from "@/lib/scout/gemini-contact.server";
+import { findAuthorContacts } from "@/lib/scout/perplexity-contact.server";
+import { PerplexityError } from "@/lib/perplexity/agent.server";
 
 function json(body: unknown, status = 200, retryAfter?: string) {
   return new Response(JSON.stringify(body), {
@@ -70,11 +71,11 @@ export const Route = createFileRoute("/api/admin/scout-authors/$id/find-contact"
           const first = result.contacts.find((contact) => contact.role === "author");
           const { error: noteError } = await db.from("scout_research_notes").insert({
             scout_author_id: author.id,
-            note: `Google contact research for ${book.title}: ${result.summary}\n${result.contacts.map((c) => `${c.role}: ${c.email} — ${c.source_url}\n${c.evidence}`).join("\n")}\nUnverified candidates; review identity before outreach.`,
+            note: `Perplexity contact research for ${book.title}: ${result.summary}\n${result.contacts.map((c) => `${c.role}: ${c.email} — ${c.source_url}\n${c.evidence}`).join("\n")}\nUnverified candidates; review identity before outreach.`,
             source_url: result.contacts[0]?.source_url ?? null,
             verification_status: "unverified",
             retrieved_at: new Date().toISOString(),
-            added_by: "gemini_search",
+            added_by: "perplexity_agent",
           });
           if (noteError)
             return json(
@@ -108,7 +109,7 @@ export const Route = createFileRoute("/api/admin/scout-authors/$id/find-contact"
             sources: result.sources.map(({ url, title }) => ({ url, title })),
           });
         } catch (error) {
-          if (error instanceof ContactResearchError)
+          if (error instanceof PerplexityError)
             return json({ ok: false, message: error.message }, error.status, error.retryAfter);
           if (error instanceof z.ZodError || error instanceof SyntaxError)
             return json({ ok: false, message: "Invalid contact research request." }, 400);

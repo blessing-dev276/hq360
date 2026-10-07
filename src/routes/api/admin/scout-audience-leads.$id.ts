@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { canSeeAudienceLead, resolveScoutAccess } from "@/lib/scout/owner.server";
+import { canFindContacts, canSeeAudienceLead, resolveScoutAccess } from "@/lib/scout/owner.server";
 import { asScoutDb } from "@/lib/scout/db";
 import {
   publicResultUrl,
@@ -21,8 +21,8 @@ export const Route = createFileRoute("/api/admin/scout-audience-leads/$id")({
           .safeParse(await request.json().catch(() => null));
         if (!z.string().uuid().safeParse(params.id).success || !parsed.success)
           return json({ ok: false, message: "Invalid request." }, 400);
-        if (access.role !== "admin" && parsed.data.action !== "shortlist")
-          return json({ ok: false, message: "Only admins can find or verify emails." }, 403);
+        if (parsed.data.action !== "shortlist" && !(await canFindContacts(access)))
+          return json({ ok: false, message: "You don't have access to Find Author Contact." }, 403);
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
         const db = asScoutDb(supabaseAdmin);
         const { data: lead, error } = await db

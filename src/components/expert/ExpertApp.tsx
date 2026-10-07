@@ -231,7 +231,7 @@ export function ExpertApp() {
               <ExpertReviews />
             </>
           ) : current.id === "scout" ? (
-            <ScoutApp />
+            <ScoutApp canFindEmail={permissions.includes("contacts")} />
           ) : current.id === "audit" ? (
             <>
               <ExpertAuditLink />

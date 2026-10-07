@@ -16,6 +16,13 @@ export async function resolveScoutAccess(request: Request): Promise<ScoutAccess 
   return { ...access, owner: access.role === "admin" ? TEAM_OWNER : access.expertId };
 }
 
+/** Admins, plus experts the admin granted "Find Author Contact" (`contacts`). */
+export async function canFindContacts(access: ScoutAccess) {
+  if (access.role === "admin") return true;
+  const { expertHasFeature } = await import("@/lib/expert-auth.server");
+  return expertHasFeature(access.expertId, "contacts");
+}
+
 type Db = ReturnType<typeof asScoutDb>;
 
 export async function ownsBatch(db: Db, owner: string, batchId: string) {

@@ -4,6 +4,11 @@ export const EXPERT_FEATURES = [
   { key: "scout", label: "Scouting", hint: "Discover authors and find contact details." },
   { key: "audit", label: "Audit", hint: "Research and build author growth reports." },
   { key: "invoices", label: "Invoices", hint: "Request invoices for their own clients." },
+  {
+    key: "contacts",
+    label: "Find Author Contact",
+    hint: "Find and verify author emails inside Scouting (needs Scouting).",
+  },
 ] as const;
 export type ExpertFeature = (typeof EXPERT_FEATURES)[number]["key"];
 

@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
-import { canSeeAuthor, resolveScoutAccess } from "@/lib/scout/owner.server";
+import { canSeeAuthor, resolveScoutAccess, canFindContacts } from "@/lib/scout/owner.server";
 import { asScoutDb, type ScoutAuthor } from "@/lib/scout/db";
 import { findAuthorContacts } from "@/lib/scout/perplexity-contact.server";
 import { PerplexityError } from "@/lib/perplexity/agent.server";
@@ -21,11 +21,8 @@ export const Route = createFileRoute("/api/admin/scout-authors/$id/find-contact"
       POST: async ({ request, params }) => {
         const access = await resolveScoutAccess(request);
         if (!access) return json({ ok: false, error: "unauthorized" }, 401);
-        if (access.role !== "admin")
-          return json(
-            { ok: false, message: "Only admins can research or manage contact emails." },
-            403,
-          );
+        if (!(await canFindContacts(access)))
+          return json({ ok: false, message: "You don't have access to Find Author Contact." }, 403);
         if (request.headers.get("origin") !== new URL(request.url).origin)
           return json({ ok: false, message: "Invalid request origin." }, 403);
         if (!z.string().uuid().safeParse(params.id).success)

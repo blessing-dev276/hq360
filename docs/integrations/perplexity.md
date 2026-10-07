@@ -85,20 +85,6 @@ validation is `src/lib/scout/perplexity-contact.server.ts`.
 - [Pricing](https://docs.perplexity.ai/docs/getting-started/pricing)
 - [Rate limits](https://docs.perplexity.ai/docs/admin/rate-limits-usage-tiers)
 
-## Personalized outreach
-
-Scouting → Personalized message settings saves the writing prompt for the current
-workspace. Author cards with saved contacts offer **Write personalized message**.
-Drafts use `openai/gpt-6-luna` with no web tools and the same expert-owned credential
-selection as research. The server loads the author/book itself, verifies workspace
-access and validates the chosen saved recipient. Draft text is editable before use; Save edits preserves changes. Existing drafts
-reload without another AI charge. **Open in email app** fills the recipient,
-subject and body in the default mail application. The user sends there. Copy
-message is the fallback for apps with mailto length limits. No outreach messages
-are sent by the server, and no new email-provider subscription is needed.
-Prompts and drafts are stored in service-role-only tables from migration
-`20261008100000_scout_outreach.sql`.
-
 Search broadens from official pages to public social/author profiles, then
 interviews, event pages, press kits and representatives. It stops at a verified
 direct author address. A source check verifies publication, not mailbox

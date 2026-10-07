@@ -1,4 +1,3 @@
-import { AuthorOutreach, OutreachSettings } from "./AuthorOutreach";
 import { EmailCheckBadge } from "./EmailCheckBadge";
 import {
   AuthorContactSearch,
@@ -202,17 +201,6 @@ function BookCard({
           }}
         />
       )}
-      {canFindEmail &&
-        book.scout_authors &&
-        !book.localOnly &&
-        emailSearch.status === "found" &&
-        emailSearch.emails.length > 0 && (
-          <AuthorOutreach
-            authorId={book.scout_authors.id}
-            bookId={book.id}
-            emails={emailSearch.emails}
-          />
-        )}
       {book.scout_authors && (
         <div className="mt-4 space-y-2 text-sm">
           <p>{book.scout_authors.bio}</p>
@@ -320,7 +308,6 @@ export function ScoutApp({ canFindEmail = false }: { canFindEmail?: boolean }) {
           </select>
         </label>
       </div>
-      {canFindEmail && <OutreachSettings />}
       {audienceId === "authors" ? (
         <AuthorScout
           onBusyChange={setLocked}

@@ -15,6 +15,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { GlassLoading } from "@/components/ui/glass-loading";
+import { ScoutBatchPicker } from "./ScoutBatchPicker";
 import { useQueryClient } from "@tanstack/react-query";
 import { canonicalUrl } from "@/lib/scout/normalize";
 
@@ -683,10 +684,6 @@ function AuthorScout({
       reviewFilter === "all" ||
       (reviewFilter === "unknown" ? score(book) == null : score(book) === Number(reviewFilter)),
   );
-  const visibleBatches = batches.filter(
-    (batch) =>
-      batch.item_count > 0 && (batchSource === "all" || batch.sources.includes(batchSource)),
-  );
   function exportCsv() {
     const rows = [
       [
@@ -1083,55 +1080,23 @@ function AuthorScout({
                 Open a search to see its authors and book details.
               </p>
             </div>
-            <label className="text-sm">
-              Filter batches
-              <select
-                aria-label="Filter batches"
-                className={field}
-                value={batchSource}
-                disabled={Boolean(busy)}
-                onChange={(event) => {
-                  setBatchSource(event.target.value);
-                  setSelected(null);
-                  setBooks([]);
-                }}
-              >
-                <option value="all">All review sources</option>
-                <option value="reedsy_discovery">Reedsy Discovery</option>
-                <option value="readers_favorite">Readers’ Favorite</option>
-                {Object.entries(ARC_SOURCES).map(([slug, spec]) => (
-                  <option key={slug} value={slug} disabled={activeCount > 0}>
-                    {spec.name}
-                  </option>
-                ))}
-              </select>
-            </label>
           </div>
           {loading && batches.length === 0 ? (
             <GlassLoading label="Loading your batches…" variant="list" rows={4} />
           ) : (
-            <label className="block text-sm font-medium">
-              Choose a batch
-              <select
-                aria-label="Choose a batch"
-                className={field}
-                value={selected?.id ?? ""}
-                disabled={Boolean(busy) || !visibleBatches.length}
-                onChange={(event) => {
-                  setSelected(batches.find((batch) => batch.id === event.target.value) ?? null);
-                }}
-              >
-                <option value="">
-                  {visibleBatches.length ? "Select a saved search" : "No batches for this source"}
-                </option>
-                {visibleBatches.map((batch) => (
-                  <option key={batch.id} value={batch.id}>
-                    {batch.label} · {formatDiscoveredAt(batch.created_at)} · {batch.item_count}{" "}
-                    books
-                  </option>
-                ))}
-              </select>
-            </label>
+            <ScoutBatchPicker
+              batches={batches}
+              source={batchSource}
+              onSourceChange={(value) => {
+                setBatchSource(value);
+                setSelected(null);
+                setBooks([]);
+              }}
+              selectedId={selected?.id ?? null}
+              onSelect={(batch) => setSelected(batches.find((b) => b.id === batch.id) ?? null)}
+              disabled={Boolean(busy)}
+              lockArcSources={activeCount > 0}
+            />
           )}
         </section>
         {selected && (

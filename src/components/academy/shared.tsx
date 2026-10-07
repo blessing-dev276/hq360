@@ -51,7 +51,7 @@ export async function api<T = Record<string, unknown>>(
   const res = await fetch(url, {
     method: init?.method ?? "GET",
     headers: { "content-type": "application/json", ...(await authHeaders()) },
-    body: init?.body === undefined ? undefined : JSON.stringify(init.body),
+    ...(init?.body === undefined ? {} : { body: JSON.stringify(init.body) }),
   });
   const body = (await res.json().catch(() => ({}))) as T & { ok?: boolean; message?: string };
   return { status: res.status, body };

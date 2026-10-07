@@ -46,7 +46,18 @@ export const Route = createFileRoute("/api/admin/scout-authors/$id/find-contact"
             .maybeSingle();
           if (authorError) return json({ ok: false, message: "Could not load author." }, 503);
           if (!authorRow) return json({ ok: false, error: "not_found" }, 404);
-          const author = authorRow as ScoutAuthor;
+          const author = authorRow as ScoutAuthor & {
+            contact_emails?: string[] | null;
+            contact_search_status?: "found" | "not_found" | null;
+          };
+          // Each author is searched once; repeat requests return the saved result.
+          if (author.contact_search_status)
+            return json({
+              ok: true,
+              status: author.contact_search_status,
+              emails: author.contact_emails ?? [],
+              cached: true,
+            });
           let query = db
             .from("scout_discovered_books")
             .select("id,title")
@@ -68,46 +79,45 @@ export const Route = createFileRoute("/api/admin/scout-authors/$id/find-contact"
             book: book.title,
             website: author.website_url,
           });
-          const first = result.contacts.find((contact) => contact.role === "author");
-          const { error: noteError } = await db.from("scout_research_notes").insert({
+          // Author's own address first, then agent/publisher/publicist.
+          const emails = [
+            ...result.contacts.filter((c) => c.role === "author"),
+            ...result.contacts.filter((c) => c.role !== "author"),
+          ].map((c) => c.email.toLowerCase());
+          const status = emails.length ? "found" : "not_found";
+          await db.from("scout_research_notes").insert({
             scout_author_id: author.id,
-            note: `Perplexity contact research for ${book.title}: ${result.summary}\n${result.contacts.map((c) => `${c.role}: ${c.email} — ${c.source_url}\n${c.evidence}`).join("\n")}\nUnverified candidates; review identity before outreach.`,
+            note: `Contact research for ${book.title}: ${status === "found" ? emails.join(", ") : "no public email found"}\n${result.contacts.map((c) => `${c.role}: ${c.email} — ${c.source_url}`).join("\n")}`,
             source_url: result.contacts[0]?.source_url ?? null,
             verification_status: "unverified",
             retrieved_at: new Date().toISOString(),
             added_by: "perplexity_agent",
           });
-          if (noteError)
+          const { error: saveError } = await db
+            .from("scout_authors")
+            .update({
+              contact_emails: emails,
+              contact_search_status: status,
+              contact_searched_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            } as never)
+            .eq("id", author.id);
+          if (saveError)
             return json(
-              { ok: false, message: "Research completed but could not be saved. Please retry." },
+              { ok: false, message: "Search finished but could not be saved. Please retry." },
               503,
             );
-          if (first) {
-            // Never overwrite a staff-verified contact, including concurrent confirmation.
-            const { error } = await db
+          // Fill the main contact email unless staff already verified one.
+          if (emails[0])
+            await db
               .from("scout_authors")
               .update({
-                contact_email: first.email,
+                contact_email: emails[0],
                 contact_verification_status: "unverified",
-                updated_at: new Date().toISOString(),
               })
               .eq("id", author.id)
               .neq("contact_verification_status", "verified");
-            if (error)
-              return json(
-                { ok: false, message: "Contact found but could not be saved. Please retry." },
-                503,
-              );
-          }
-          return json({
-            ok: true,
-            found: result.contacts.length > 0,
-            message: result.summary,
-            contacts: result.contacts,
-            candidateUrl: result.contacts[0]?.source_url ?? null,
-            contactEmail: first?.email ?? null,
-            sources: result.sources.map(({ url, title }) => ({ url, title })),
-          });
+          return json({ ok: true, status, emails });
         } catch (error) {
           if (error instanceof PerplexityError)
             return json({ ok: false, message: error.message }, error.status, error.retryAfter);

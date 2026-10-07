@@ -1,4 +1,10 @@
-import { AuthorContactSearch } from "./AuthorContactSearch";
+import {
+  AuthorContactSearch,
+  EmailSearchProgress,
+  savedSearch,
+  useEmailSearch,
+  type EmailSearch,
+} from "./AuthorContactSearch";
 import { ArcScout } from "./ArcScout";
 import { PresenceNote, type Presence } from "./PresenceNote";
 import { ARC_SOURCES, isArcSource } from "@/lib/scout/arc-sources";
@@ -45,6 +51,8 @@ type Book = {
     contact_email?: string | null;
     contact_verification_status?: string | null;
     contact_form_url?: string | null;
+    contact_emails?: string[] | null;
+    contact_search_status?: string | null;
     publishing_type?: string | null;
     author_profile_url?: string | null;
     social_links?: string[];
@@ -127,9 +135,13 @@ function BookCard({
   busy,
   onSave,
   canFindEmail,
+  emailSearch,
+  onFindEmail,
 }: {
   book: Book;
   canFindEmail: boolean;
+  emailSearch: EmailSearch;
+  onFindEmail: () => void;
   busy: string;
   onSave: (book: Book) => void;
 }) {
@@ -174,7 +186,7 @@ function BookCard({
         </p>
       )}
       {canFindEmail && book.scout_authors && !book.localOnly && (
-        <AuthorContactSearch authorId={book.scout_authors.id} bookId={book.id} />
+        <AuthorContactSearch search={emailSearch} onFind={onFindEmail} />
       )}
       {book.scout_authors && (
         <div className="mt-4 space-y-2 text-sm">
@@ -183,14 +195,15 @@ function BookCard({
             Country: {book.scout_authors.country || "Unknown"} · Publishing:{" "}
             {book.scout_authors.publishing_type || "Unknown"}
           </p>
-          {book.scout_authors.contact_email && (
-            <p className="break-all">
-              Contact: {book.scout_authors.contact_email} ·{" "}
-              {book.scout_authors.contact_verification_status === "verified"
-                ? "Verified"
-                : "Unverified"}
-            </p>
-          )}
+          {book.scout_authors.contact_email &&
+            !(canFindEmail && emailSearch.status === "found") && (
+              <p className="break-all">
+                Contact: {book.scout_authors.contact_email} ·{" "}
+                {book.scout_authors.contact_verification_status === "verified"
+                  ? "Verified"
+                  : "Unverified"}
+              </p>
+            )}
           <div className="flex flex-wrap gap-4">
             <PublicLink url={book.scout_authors.website_url ?? null}>Website</PublicLink>
             <PublicLink url={book.scout_authors.contact_form_url ?? null}>Contact form</PublicLink>
@@ -366,6 +379,34 @@ function AuthorScout({
     onBatchPageChange?.(batchPage);
   }, [batchPage, onBatchPageChange]);
   const [books, setBooks] = useState<Book[]>([]);
+  const emails = useEmailSearch();
+  const emailSearchFor = (book: Book) =>
+    (book.scout_authors && emails.state[book.scout_authors.id]) || savedSearch(book.scout_authors);
+  // One search per author (an author can have several books); skip any
+  // already searched, so a bulk run never pays twice for the same person.
+  const emailTargets = (() => {
+    const seen = new Set<string>();
+    const targets: { authorId: string; bookId: string }[] = [];
+    for (const book of books) {
+      const id = book.scout_authors?.id;
+      if (!id || book.localOnly || seen.has(id)) continue;
+      seen.add(id);
+      const status = emailSearchFor(book).status;
+      if (status === "idle" || status === "error") targets.push({ authorId: id, bookId: book.id });
+    }
+    return targets;
+  })();
+  function findAllEmails() {
+    const n = emailTargets.length;
+    if (
+      !n ||
+      !window.confirm(
+        `Find emails for ${n} author${n === 1 ? "" : "s"}? Authors already searched are skipped. This runs ${n} search${n === 1 ? "" : "es"}, 4 at a time.`,
+      )
+    )
+      return;
+    void emails.findAll(emailTargets);
+  }
   const [loading, setLoading] = useState(true);
   const [detailLoading, setDetailLoading] = useState(false);
   const [busy, setBusy] = useState("");
@@ -1228,6 +1269,20 @@ function AuthorScout({
                 </p>
               </div>
               <div className="flex flex-wrap items-end gap-3">
+                {canFindEmail && (
+                  <button
+                    type="button"
+                    disabled={Boolean(emails.run) || detailLoading || !emailTargets.length}
+                    onClick={findAllEmails}
+                    className="rounded-xl border border-brand/50 px-4 py-3 text-sm font-semibold text-brand disabled:opacity-50"
+                  >
+                    {emails.run
+                      ? "Finding emails…"
+                      : emailTargets.length
+                        ? `Find all emails (${emailTargets.length})`
+                        : "All emails searched"}
+                  </button>
+                )}
                 <button
                   type="button"
                   disabled={
@@ -1269,6 +1324,13 @@ function AuthorScout({
                 </button>
               </div>
             </div>
+            {emails.run && (
+              <EmailSearchProgress
+                run={emails.run}
+                results={emails.runResults}
+                onStop={emails.stop}
+              />
+            )}
             {detailError && (
               <p role="alert" className="text-sm text-destructive">
                 {detailError}{" "}
@@ -1304,6 +1366,10 @@ function AuthorScout({
                     busy={busy}
                     onSave={save}
                     canFindEmail={canFindEmail}
+                    emailSearch={emailSearchFor(book)}
+                    onFindEmail={() =>
+                      book.scout_authors && void emails.findOne(book.scout_authors.id, book.id)
+                    }
                   />
                 ))}
               </div>

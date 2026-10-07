@@ -131,6 +131,7 @@ import { Route as ApiPublicTeamRouteImport } from './routes/api/public/team'
 import { Route as ApiPublicTestimonialsRouteImport } from './routes/api/public/testimonials'
 import { Route as ApiPublicVisitRouteImport } from './routes/api/public/visit'
 import { Route as ApiPublicVoiceMessageRouteImport } from './routes/api/public/voice-message'
+import { Route as ApiScoutVerifyEmailsRouteImport } from './routes/api/scout/verify-emails'
 import { Route as AuthorAuditAuthorBookRouteImport } from './routes/author-audit.$author.$book'
 import { Route as InsightsAnswersSlugRouteImport } from './routes/insights.answers.$slug'
 import { Route as InsightsGuidesSlugRouteImport } from './routes/insights.guides.$slug'
@@ -811,6 +812,11 @@ const ApiPublicVoiceMessageRoute = ApiPublicVoiceMessageRouteImport.update({
   path: '/api/public/voice-message',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiScoutVerifyEmailsRoute = ApiScoutVerifyEmailsRouteImport.update({
+  id: '/api/scout/verify-emails',
+  path: '/api/scout/verify-emails',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthorAuditAuthorBookRoute = AuthorAuditAuthorBookRouteImport.update({
   id: '/author-audit/$author/$book',
   path: '/author-audit/$author/$book',
@@ -1230,6 +1236,7 @@ export interface FileRoutesByFullPath {
   '/api/public/testimonials': typeof ApiPublicTestimonialsRoute
   '/api/public/visit': typeof ApiPublicVisitRoute
   '/api/public/voice-message': typeof ApiPublicVoiceMessageRoute
+  '/api/scout/verify-emails': typeof ApiScoutVerifyEmailsRoute
   '/author-audit/$author/$book': typeof AuthorAuditAuthorBookRoute
   '/insights/answers/$slug': typeof InsightsAnswersSlugRoute
   '/insights/guides/$slug': typeof InsightsGuidesSlugRoute
@@ -1406,6 +1413,7 @@ export interface FileRoutesByTo {
   '/api/public/testimonials': typeof ApiPublicTestimonialsRoute
   '/api/public/visit': typeof ApiPublicVisitRoute
   '/api/public/voice-message': typeof ApiPublicVoiceMessageRoute
+  '/api/scout/verify-emails': typeof ApiScoutVerifyEmailsRoute
   '/author-audit/$author/$book': typeof AuthorAuditAuthorBookRoute
   '/insights/answers/$slug': typeof InsightsAnswersSlugRoute
   '/insights/guides/$slug': typeof InsightsGuidesSlugRoute
@@ -1583,6 +1591,7 @@ export interface FileRoutesById {
   '/api/public/testimonials': typeof ApiPublicTestimonialsRoute
   '/api/public/visit': typeof ApiPublicVisitRoute
   '/api/public/voice-message': typeof ApiPublicVoiceMessageRoute
+  '/api/scout/verify-emails': typeof ApiScoutVerifyEmailsRoute
   '/author-audit/$author/$book': typeof AuthorAuditAuthorBookRoute
   '/insights/answers/$slug': typeof InsightsAnswersSlugRoute
   '/insights/guides/$slug': typeof InsightsGuidesSlugRoute
@@ -1761,6 +1770,7 @@ export interface FileRouteTypes {
     | '/api/public/testimonials'
     | '/api/public/visit'
     | '/api/public/voice-message'
+    | '/api/scout/verify-emails'
     | '/author-audit/$author/$book'
     | '/insights/answers/$slug'
     | '/insights/guides/$slug'
@@ -1937,6 +1947,7 @@ export interface FileRouteTypes {
     | '/api/public/testimonials'
     | '/api/public/visit'
     | '/api/public/voice-message'
+    | '/api/scout/verify-emails'
     | '/author-audit/$author/$book'
     | '/insights/answers/$slug'
     | '/insights/guides/$slug'
@@ -2113,6 +2124,7 @@ export interface FileRouteTypes {
     | '/api/public/testimonials'
     | '/api/public/visit'
     | '/api/public/voice-message'
+    | '/api/scout/verify-emails'
     | '/author-audit/$author/$book'
     | '/insights/answers/$slug'
     | '/insights/guides/$slug'
@@ -2290,6 +2302,7 @@ export interface RootRouteChildren {
   ApiPublicTestimonialsRoute: typeof ApiPublicTestimonialsRoute
   ApiPublicVisitRoute: typeof ApiPublicVisitRoute
   ApiPublicVoiceMessageRoute: typeof ApiPublicVoiceMessageRoute
+  ApiScoutVerifyEmailsRoute: typeof ApiScoutVerifyEmailsRoute
   AuthorAuditAuthorBookRoute: typeof AuthorAuditAuthorBookRoute
   InsightsAnswersSlugRoute: typeof InsightsAnswersSlugRoute
   InsightsGuidesSlugRoute: typeof InsightsGuidesSlugRoute
@@ -3156,6 +3169,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicVoiceMessageRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/scout/verify-emails': {
+      id: '/api/scout/verify-emails'
+      path: '/api/scout/verify-emails'
+      fullPath: '/api/scout/verify-emails'
+      preLoaderRoute: typeof ApiScoutVerifyEmailsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/author-audit/$author/$book': {
       id: '/author-audit/$author/$book'
       path: '/author-audit/$author/$book'
@@ -3987,6 +4007,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicTestimonialsRoute: ApiPublicTestimonialsRoute,
   ApiPublicVisitRoute: ApiPublicVisitRoute,
   ApiPublicVoiceMessageRoute: ApiPublicVoiceMessageRoute,
+  ApiScoutVerifyEmailsRoute: ApiScoutVerifyEmailsRoute,
   AuthorAuditAuthorBookRoute: AuthorAuditAuthorBookRoute,
   InsightsAnswersSlugRoute: InsightsAnswersSlugRoute,
   InsightsGuidesSlugRoute: InsightsGuidesSlugRoute,

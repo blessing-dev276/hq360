@@ -1,3 +1,4 @@
+import { EmailCheckBadge, type EmailCheck } from "./EmailCheckBadge";
 import { useCallback, useRef, useState } from "react";
 import { Copy, Loader2, MailCheck, MailX, Search, Square } from "lucide-react";
 
@@ -151,9 +152,14 @@ export function EmailSearchProgress({
 export function AuthorContactSearch({
   search,
   onFind,
+  primaryEmail,
+  primaryCheck,
 }: {
   search: EmailSearch;
   onFind: () => void;
+  /** The author's main contact email; its automatic check badge is shown. */
+  primaryEmail?: string | null | undefined;
+  primaryCheck?: EmailCheck | undefined;
 }) {
   const [copied, setCopied] = useState("");
   return (
@@ -177,7 +183,12 @@ export function AuthorContactSearch({
               }
               className="flex w-full items-center justify-between gap-2 break-all rounded-lg bg-secondary/50 px-3 py-2 text-left font-medium"
             >
-              {email}
+              <span className="flex flex-wrap items-center gap-2">
+                {email}
+                {primaryEmail?.toLowerCase() === email.toLowerCase() && primaryCheck && (
+                  <EmailCheckBadge {...primaryCheck} />
+                )}
+              </span>
               <span className="flex shrink-0 items-center gap-1 text-xs text-muted-foreground">
                 <Copy className="size-3" /> {copied === email ? "Copied" : "Copy"}
               </span>

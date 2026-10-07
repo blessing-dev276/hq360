@@ -1,3 +1,4 @@
+import { EmailCheckBadge } from "./EmailCheckBadge";
 import { useEffect, useRef, useState } from "react";
 import { Download, ExternalLink, Search } from "lucide-react";
 import { GlassLoading } from "@/components/ui/glass-loading";
@@ -621,8 +622,14 @@ export function AudienceScout({
                   </div>
                   {lead.contact_email && (
                     <div className="space-y-2 text-sm">
-                      <p className="break-all">
-                        {lead.contact_email} · {lead.contact_status}
+                      <p className="flex flex-wrap items-center gap-2 break-all">
+                        <span>
+                          {lead.contact_email} · {lead.contact_status}
+                        </span>
+                        <EmailCheckBadge
+                          status={lead.email_check_status}
+                          details={lead.email_check}
+                        />
                       </p>
                       <Link url={lead.contact_source_url}>Email evidence</Link>
                       {canFindEmail && lead.contact_status !== "verified" && (

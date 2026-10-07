@@ -35,6 +35,9 @@ export type ScoutAudience = (typeof SCOUT_AUDIENCES)[number];
 export type AudienceSource = "maps" | "web";
 export type AudienceLead = {
   id: string;
+  /** Free automatic email check (see email-check.server.ts). */
+  email_check_status?: string | null;
+  email_check?: { reasons?: string[] } | null;
   name: string;
   source: AudienceSource;
   source_key: string;

@@ -221,7 +221,11 @@ function QuoteEditor({ initial, onBack }: { initial: Quote; onBack: () => void }
         project_title: quote.project_title,
         intro: quote.intro,
         currency: quote.currency,
-        packages: quote.packages.map((p) => ({ ...p, price: Number(p.price) || 0 })),
+        packages: quote.packages.map((p) => ({
+          ...p,
+          price: Number(p.price) || 0,
+          original_price: Number(p.original_price) || null,
+        })),
         notes: quote.notes,
         valid_until: quote.valid_until || null,
       });
@@ -448,6 +452,20 @@ function QuoteEditor({ initial, onBack }: { initial: Quote; onBack: () => void }
                       value={pkg.price || ""}
                       placeholder="0"
                       onChange={(e) => setPkg(i, { price: Number(e.target.value) })}
+                    />
+                  </label>
+                  <label>
+                    Was (optional, shown slashed)
+                    <input
+                      type="number"
+                      min={0}
+                      step="any"
+                      inputMode="decimal"
+                      value={pkg.original_price || ""}
+                      placeholder="e.g. 900"
+                      onChange={(e) =>
+                        setPkg(i, { original_price: Number(e.target.value) || null })
+                      }
                     />
                   </label>
                   <label>

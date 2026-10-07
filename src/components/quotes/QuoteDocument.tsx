@@ -1,6 +1,6 @@
 import { forwardRef } from "react";
 import { Check, Clock } from "lucide-react";
-import { formatPrice, longDate, quoteReference, type Quote } from "@/lib/quotes";
+import { discountPercent, formatPrice, longDate, quoteReference, type Quote } from "@/lib/quotes";
 import "./quote.css";
 
 /** The branded HQ360 quote. Used for the editor preview, the public link and
@@ -39,6 +39,12 @@ export const QuoteDocument = forwardRef<HTMLDivElement, { quote: Quote }>(functi
                 <article key={i} className={`qd-pkg${pkg.recommended ? " is-recommended" : ""}`}>
                   {pkg.recommended && <span className="qd-badge">Recommended</span>}
                   <h2>{pkg.name}</h2>
+                  {discountPercent(pkg) !== null && (
+                    <p className="qd-was">
+                      <s>{formatPrice(pkg.original_price!, quote.currency)}</s>
+                      <span className="qd-save">Save {discountPercent(pkg)}%</span>
+                    </p>
+                  )}
                   <p className="qd-price">{formatPrice(pkg.price, quote.currency)}</p>
                   {pkg.delivery && (
                     <p className="qd-delivery">

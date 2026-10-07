@@ -7,6 +7,8 @@ export type QuotePackage = {
   name: string;
   /** Major units (e.g. 650 = $650). */
   price: number;
+  /** Optional "was" price shown slashed; only used when higher than `price`. */
+  original_price?: number | null;
   delivery: string;
   features: string[];
   recommended: boolean;
@@ -36,6 +38,13 @@ export function formatPrice(amount: number, currency: QuoteCurrency) {
     currency,
     maximumFractionDigits: Number.isInteger(amount) ? 0 : 2,
   }).format(amount || 0);
+}
+
+/** Percent saved when a slashed "was" price is set, else null. */
+export function discountPercent(pkg: Pick<QuotePackage, "price" | "original_price">) {
+  const was = pkg.original_price ?? 0;
+  if (!was || was <= pkg.price) return null;
+  return Math.round(((was - pkg.price) / was) * 100);
 }
 
 export function longDate(value: string | null | undefined) {

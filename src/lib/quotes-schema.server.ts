@@ -14,6 +14,7 @@ export const quoteInput = z.object({
       z.object({
         name: text(80).min(1, "Give every package a name"),
         price: z.number().min(0).max(100_000_000),
+        original_price: z.number().min(0).max(100_000_000).nullish(),
         delivery: text(80),
         features: z
           .array(text(200))

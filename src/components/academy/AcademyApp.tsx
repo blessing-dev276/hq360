@@ -140,7 +140,8 @@ function SignIn() {
   const [sent, setSent] = useState(false);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
-  const redirectTo = typeof window !== "undefined" ? `${window.location.origin}/academy` : undefined;
+  const redirectTo =
+    typeof window !== "undefined" ? `${window.location.origin}/academy` : undefined;
 
   async function submit(e: FormEvent) {
     e.preventDefault();
@@ -195,7 +196,10 @@ function SignIn() {
           className="asa-btn asa-btn-ghost"
           style={{ width: "100%" }}
           onClick={() =>
-            void supabase.auth.signInWithOAuth({ provider: "google", options: { redirectTo } })
+            void supabase.auth.signInWithOAuth({
+              provider: "google",
+              options: redirectTo ? { redirectTo } : {},
+            })
           }
         >
           Continue with Google

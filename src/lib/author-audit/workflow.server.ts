@@ -1,3 +1,4 @@
+import { approvalPatch } from "./approval";
 import { evidenceUploadTarget } from "./evidence-upload";
 import { z } from "zod";
 import { randomUUID, randomBytes } from "node:crypto";
@@ -21,7 +22,7 @@ const uuid = z.string().uuid();
 const review = z.enum(["pending", "approved", "needs_changes", "rejected"]);
 const manual = z.enum(["pending", "verified", "not_applicable"]);
 const notes = z.string().max(6000);
-const schemas = {
+export const auditEditSchemas = {
   finding: findingInput.extend({
     manual_status: manual,
     reviewer_notes: notes,
@@ -60,13 +61,22 @@ const schemas = {
     listopia_id: uuid.nullable().default(null),
     task_id: uuid.nullable(),
     category: z.string().max(100),
-    caption: z.string().max(1000),
+    caption: z
+      .string()
+      .max(1000)
+      .nullish()
+      .transform((v) => v ?? ""),
     proves: z.string().max(3000),
-    source: safeUrl.or(z.literal("")),
+    source: safeUrl
+      .or(z.literal(""))
+      .nullish()
+      .transform((v) => v ?? ""),
     asset_date: z
       .string()
       .regex(/^\d{4}-\d{2}-\d{2}$/)
-      .or(z.literal("")),
+      .or(z.literal(""))
+      .nullish()
+      .transform((v) => v ?? ""),
     review_status: review,
     display_kind: z.enum(["before", "current", "recommended"]),
     sort_order: z.number().int().min(0).max(500),
@@ -657,6 +667,47 @@ export async function workflowPost(request: Request, id: string) {
       if (r.error) throw new Error("Import could not be saved. It may already have been imported.");
       return privateJson({ ok: true, validation: await autoValidate(id, actor.id) });
     }
+    if (action === "review") {
+      if (!actor.review) return privateJson({ error: "A reviewer must approve this item" }, 403);
+      const entity = z
+        .enum(["finding", "section", "listopia", "action", "asset"])
+        .parse(body.entity);
+      const target = uuid.parse(body.id);
+      const status = z.enum(["approved", "rejected"]).parse(body.status);
+      const records = {
+        finding: state.findings,
+        section: state.sections,
+        listopia: state.listopia,
+        action: state.actions,
+        asset: state.assets,
+      };
+      const record = records[entity].find((item) => item.id === target);
+      if (!record)
+        return privateJson(
+          { error: "This item is no longer in the audit. Refresh and try again." },
+          404,
+        );
+      const patch = approvalPatch(entity, record as unknown as Record<string, unknown>, status);
+      const result = await db
+        .from(tables[entity])
+        .update(patch)
+        .eq("audit_id", id)
+        .eq("id", target)
+        .select("id")
+        .single();
+      assertOk(result);
+      if (entity === "asset" && "task_id" in record && record.task_id && status === "approved") {
+        assertOk(
+          await db
+            .from("audit_review_tasks")
+            .update({ status: "approved" })
+            .eq("audit_id", id)
+            .eq("id", record.task_id),
+        );
+      }
+      await activity(id, actor.id, `${entity}_${status}`, target);
+      return privateJson({ ok: true });
+    }
     if (action === "save" || action === "delete" || action === "duplicate") {
       const entity = z
         .enum(["finding", "section", "listopia", "task", "action", "asset"])
@@ -686,7 +737,7 @@ export async function workflowPost(request: Request, id: string) {
         };
         body.id = undefined;
       }
-      const patch = schemas[entity].strip().parse(body.values) as Record<string, unknown>;
+      const patch = auditEditSchemas[entity].strip().parse(body.values) as Record<string, unknown>;
       if (
         entity === "section" &&
         body.id &&

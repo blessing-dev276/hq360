@@ -61,3 +61,27 @@ under Review. Section configuration, assignments and activity history are reache
 through Settings & history. Manual research imports and prompt customization are
 collapsed, as are the detailed preview/version/QA controls on Publish. The existing
 server validation, permissions and publication operations remain authoritative.
+
+## Distribution, author depth and approval fixes — October 7, 2026
+
+AI research now runs 27 targeted searches (plus an optional focus), including
+individual print/ebook/audiobook retailers, subscription and library catalogues,
+author biography, book publication history, and separate author/book award
+searches. The source bundle balances searches rather than truncating later
+queries; it retains up to 80 sources. Generation instructions require format,
+edition, territory and availability distinctions, and exact award attribution.
+Search snippets remain leads, not proof of live stock or award verification.
+These requirements are appended to AI runs even when a saved prompt is older.
+Existing reports require another research/review cycle to gain new findings.
+
+Approve/Reject now sends only the record ID and review decision, using the saved
+record on the server instead of resubmitting all content through editor validation.
+Nullable screenshot dates/captions/sources are accepted by the editor. Incomplete
+screenshot approval identifies missing caption, proof, source or capture date.
+The publication completeness checks remain in place.
+
+Validation: targeted unit/database checks plus
+`RUN_AUDIT_LIVE_TEST=1 bun scripts/test-audit-approvals.ts` exercise approval and
+rejection persistence for all five reviewable entity types against isolated live
+fixtures. This script removes its own fixtures and does not publish or message
+clients.

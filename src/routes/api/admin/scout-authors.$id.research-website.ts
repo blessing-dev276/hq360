@@ -20,6 +20,11 @@ export const Route = createFileRoute("/api/admin/scout-authors/$id/research-webs
       POST: async ({ request, params }) => {
         const access = await resolveScoutAccess(request);
         if (!access) return json({ ok: false, error: "unauthorized" }, 401);
+        if (access.role !== "admin")
+          return json(
+            { ok: false, message: "Only admins can research or manage contact emails." },
+            403,
+          );
         if (!UUID.test(params.id)) return json({ ok: false, error: "invalid" }, 400);
         let body: z.infer<typeof bodySchema>;
         try {

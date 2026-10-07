@@ -504,11 +504,10 @@ export function ResearchAuditWorkspace({
             disabled={!!busy}
             onClick={() =>
               void act({
-                action: "save",
+                action: "review",
                 entity,
                 id: value.id,
-                approve: true,
-                values: { ...value, review_status: "approved" },
+                status: "approved",
               })
             }
           >
@@ -519,10 +518,10 @@ export function ResearchAuditWorkspace({
             disabled={!!busy}
             onClick={() =>
               void act({
-                action: "save",
+                action: "review",
                 entity,
                 id: value.id,
-                values: { ...value, review_status: "rejected" },
+                status: "rejected",
               })
             }
           >
@@ -850,9 +849,10 @@ export function ResearchAuditWorkspace({
             <div>
               <h2 className="text-xl font-semibold">AI web research</h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                Searches the web for this author and book (Amazon, Goodreads, Listopia, website,
-                socials, press) and turns the results into cited findings. Every finding is
-                validated automatically: cited, with a recommendation, or it's dropped.
+                Searches book retailers, ebook and audiobook platforms, library catalogues, author
+                background, book history, awards, Goodreads, websites and press and turns the
+                results into cited findings. Every finding is validated automatically: cited, with a
+                recommendation, or it's dropped.
               </p>
             </div>
             <label className="block text-sm">

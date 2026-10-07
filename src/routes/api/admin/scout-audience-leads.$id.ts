@@ -21,6 +21,8 @@ export const Route = createFileRoute("/api/admin/scout-audience-leads/$id")({
           .safeParse(await request.json().catch(() => null));
         if (!z.string().uuid().safeParse(params.id).success || !parsed.success)
           return json({ ok: false, message: "Invalid request." }, 400);
+        if (access.role !== "admin" && parsed.data.action !== "shortlist")
+          return json({ ok: false, message: "Only admins can find or verify emails." }, 403);
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
         const db = asScoutDb(supabaseAdmin);
         const { data: lead, error } = await db

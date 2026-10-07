@@ -322,7 +322,7 @@ export function AdminApp({ initialTab = "overview" }: { initialTab?: Tab }) {
         </header>
         <div className="admin-page">
           {tab === "scout" ? (
-            <ScoutApp />
+            <ScoutApp canFindEmail />
           ) : tab === "overview" ? (
             <AdminDashboard onNavigate={navigate} />
           ) : tab === "projects" ? (

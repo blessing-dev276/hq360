@@ -82,7 +82,7 @@ describe("AI web research", () => {
         }),
       },
     );
-    expect(queries).toHaveLength(13);
+    expect(queries).toHaveLength(researchQueries("Test Author", "Test Book", "reviews").length);
     expect(queries.some((query) => query.includes("reviews"))).toBe(true);
     expect(result.sources).toHaveLength(1);
     expect(result.sources[0]?.url).toBe(source.url);
@@ -107,7 +107,11 @@ describe("AI web research", () => {
       expect(valid.droppedFindings).toBe(0);
       expect(prompt).toContain(source.url);
       expect(prompt).toContain("reviews");
-      expect(researchQueries("Test Author", "Test Book")).toHaveLength(12);
+      expect(prompt).toContain("awards separately");
+      expect(prompt).toContain("availability unverified");
+      expect(
+        researchQueries("Test Author", "Test Book").some((q) => q.includes("site:kobo.com")),
+      ).toBe(true);
       const normalizedCitation = await generateWebResearch(state, "", {
         collect,
         generate: async () => validDraft(`${source.url}/`),
@@ -150,4 +154,39 @@ describe("AI web research", () => {
       else process.env.ANTHROPIC_API_KEY = previousAi;
     }
   });
+});
+
+test("retailer, biography and awards coverage survives a full source bundle", async () => {
+  const queries = researchQueries("Test Author", "Test Book");
+  for (const domain of [
+    "barnesandnoble.com",
+    "kobo.com",
+    "books.apple.com",
+    "audible.com",
+    "worldcat.org",
+    "overdrive.com",
+  ])
+    expect(queries.some((q) => q.includes(`site:${domain}`))).toBe(true);
+  expect(queries.some((q) => q.includes("biography"))).toBe(true);
+  expect(queries.filter((q) => q.includes("winner finalist shortlist"))).toHaveLength(2);
+  const unavailable = async () => ({
+    provider: "google_books" as const,
+    sourceType: "book_metadata",
+    status: "unavailable" as const,
+    retrievedAt: source.retrievedAt,
+    data: {},
+  });
+  const result = await collectWebResearch(
+    { author: "Test Author", book: "Test Book" },
+    async ({ q }) => ({
+      organic_results: Array.from({ length: 5 }, (_, i) => ({
+        title: q,
+        link: `https://example.com/${queries.indexOf(q)}/${i}`,
+        snippet: `Evidence for ${q}`,
+      })),
+    }),
+    { google: unavailable, openLibrary: unavailable },
+  );
+  expect(result.sources.length).toBeLessThanOrEqual(80);
+  for (const query of queries) expect(result.sources.some((s) => s.query === query)).toBe(true);
 });

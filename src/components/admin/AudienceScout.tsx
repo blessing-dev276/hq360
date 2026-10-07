@@ -56,8 +56,10 @@ function csvCell(value: unknown) {
 export function AudienceScout({
   audience,
   onBusyChange,
+  canFindEmail = false,
 }: {
   audience: ScoutAudience;
+  canFindEmail?: boolean;
   onBusyChange: (busy: boolean) => void;
 }) {
   const [source, setSource] = useState<AudienceSource>(audience.source);
@@ -532,13 +534,15 @@ export function AudienceScout({
                 <Download className="mr-2 inline size-4" />
                 Export CSV
               </button>
-              <button
-                className={button}
-                disabled={Boolean(busy) || detailLoading || !leads.length}
-                onClick={() => void findEmails()}
-              >
-                Find emails for entire batch
-              </button>
+              {canFindEmail && (
+                <button
+                  className={button}
+                  disabled={Boolean(busy) || detailLoading || !leads.length}
+                  onClick={() => void findEmails()}
+                >
+                  Find emails for entire batch
+                </button>
+              )}
             </div>
           </div>
           <p className="text-xs text-muted-foreground">
@@ -621,7 +625,7 @@ export function AudienceScout({
                         {lead.contact_email} · {lead.contact_status}
                       </p>
                       <Link url={lead.contact_source_url}>Email evidence</Link>
-                      {lead.contact_status !== "verified" && (
+                      {canFindEmail && lead.contact_status !== "verified" && (
                         <button
                           disabled={Boolean(busy)}
                           className={button}
@@ -632,17 +636,19 @@ export function AudienceScout({
                       )}
                     </div>
                   )}
-                  <button
-                    disabled={Boolean(busy) || Boolean(lead.contact_email)}
-                    className={button}
-                    onClick={() => void act(lead, "find-email")}
-                  >
-                    {busy === lead.id
-                      ? "Working…"
-                      : lead.contact_email
-                        ? "Email saved"
-                        : "Find email"}
-                  </button>
+                  {canFindEmail && (
+                    <button
+                      disabled={Boolean(busy) || Boolean(lead.contact_email)}
+                      className={button}
+                      onClick={() => void act(lead, "find-email")}
+                    >
+                      {busy === lead.id
+                        ? "Working…"
+                        : lead.contact_email
+                          ? "Email saved"
+                          : "Find email"}
+                    </button>
+                  )}
                   {messages[lead.id] && (
                     <p role="status" className="text-xs text-muted-foreground">
                       {messages[lead.id]}

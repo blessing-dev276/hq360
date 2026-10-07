@@ -1,3 +1,4 @@
+import { AuthorContactSearch } from "./AuthorContactSearch";
 import { ArcScout } from "./ArcScout";
 import { PresenceNote, type Presence } from "./PresenceNote";
 import { ARC_SOURCES, isArcSource } from "@/lib/scout/arc-sources";
@@ -123,8 +124,10 @@ function BookCard({
   book,
   busy,
   onSave,
+  canFindEmail,
 }: {
   book: Book;
+  canFindEmail: boolean;
   busy: string;
   onSave: (book: Book) => void;
 }) {
@@ -167,6 +170,9 @@ function BookCard({
         <p className="mt-1 text-xs text-muted-foreground">
           Found {formatDiscoveredAt(book.discovered_at)}
         </p>
+      )}
+      {canFindEmail && book.scout_authors && !book.localOnly && (
+        <AuthorContactSearch authorId={book.scout_authors.id} bookId={book.id} />
       )}
       {book.scout_authors && (
         <div className="mt-4 space-y-2 text-sm">
@@ -242,7 +248,7 @@ const RF_DEFAULT = "/book-reviews/book-reviews-genre-fiction-thriller-general.ht
 const field =
   "mt-2 w-full rounded-xl border border-border bg-background px-4 py-3 text-sm disabled:opacity-50";
 
-export function ScoutApp() {
+export function ScoutApp({ canFindEmail = false }: { canFindEmail?: boolean }) {
   const [audienceId, setAudienceId] = useState("authors");
   const [locked, setLocked] = useState(false);
   const audience = SCOUT_AUDIENCES.find((item) => item.id === audienceId)!;
@@ -268,14 +274,25 @@ export function ScoutApp() {
         </label>
       </div>
       {audienceId === "authors" ? (
-        <AuthorScout onBusyChange={setLocked} />
+        <AuthorScout onBusyChange={setLocked} canFindEmail={canFindEmail} />
       ) : (
-        <AudienceScout key={audienceId} audience={audience} onBusyChange={setLocked} />
+        <AudienceScout
+          key={audienceId}
+          audience={audience}
+          onBusyChange={setLocked}
+          canFindEmail={canFindEmail}
+        />
       )}
     </div>
   );
 }
-function AuthorScout({ onBusyChange }: { onBusyChange: (busy: boolean) => void }) {
+function AuthorScout({
+  onBusyChange,
+  canFindEmail,
+}: {
+  onBusyChange: (busy: boolean) => void;
+  canFindEmail: boolean;
+}) {
   const queryClient = useQueryClient();
   const [view, setView] = useState<"scouting" | "batches">("scouting");
   const [genreLoading, setGenreLoading] = useState(true);
@@ -1110,7 +1127,13 @@ function AuthorScout({ onBusyChange }: { onBusyChange: (busy: boolean) => void }
             ) : (
               <div className="grid gap-4 md:grid-cols-2">
                 {visible.map((book) => (
-                  <BookCard key={book.id} book={book} busy={busy} onSave={save} />
+                  <BookCard
+                    key={book.id}
+                    book={book}
+                    busy={busy}
+                    onSave={save}
+                    canFindEmail={canFindEmail}
+                  />
                 ))}
               </div>
             )}

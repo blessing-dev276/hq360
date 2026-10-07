@@ -1,4 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { PANEL_THEME_SCRIPT } from "@/components/admin/PanelThemeToggle";
 import {
   Outlet,
   Link,
@@ -75,7 +76,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "icon", href: "/favicon.png", type: "image/png", sizes: "64x64" },
       { rel: "apple-touch-icon", href: "/apple-touch-icon.png", sizes: "180x180" },
     ],
-    scripts: [{ type: "application/ld+json", children: serializeJsonLd(organizationSchema()) }],
+    scripts: [
+      { type: "application/ld+json", children: serializeJsonLd(organizationSchema()) },
+      { children: PANEL_THEME_SCRIPT },
+    ],
   }),
   shellComponent: RootShell,
   component: RootComponent,

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { NotificationBell } from "@/components/admin/NotificationBell";
+import { PanelThemeToggle } from "@/components/admin/PanelThemeToggle";
 import {
   BriefcaseBusiness,
   CreditCard,
@@ -194,6 +195,7 @@ export function ExpertApp() {
             <p>{current.description}</p>
           </div>
           <div className="admin-account">
+            <PanelThemeToggle />
             <NotificationBell
               endpoint="/api/expert/notifications"
               onNavigate={(value) => {

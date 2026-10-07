@@ -790,15 +790,46 @@ function AuthorScout({
   }
   if (isArcSource(source) && view === "scouting")
     return (
-      <main className="mx-auto max-w-6xl space-y-6 px-4 py-8 sm:px-6">
-        <h1 className="font-display text-3xl">Author scouting</h1>
-        <button
-          type="button"
-          className="rounded-xl border px-5 py-3"
-          onClick={() => setView("batches")}
-        >
-          Batches
-        </button>
+      <main className="scout-studio mx-auto max-w-6xl space-y-6 px-4 py-8 sm:px-6">
+        <header className="scout-hero" hidden={false}>
+          <div>
+            <p className="scout-kicker">HQ360 · Research desk</p>
+            <h1 className="scout-title">
+              Author <em>scouting</em>
+            </h1>
+            <p className="scout-lede">
+              Discover authors through the reviews their books earn. Every search becomes a batch
+              you can study, qualify and export.
+            </p>
+          </div>
+          <ol className="scout-method" aria-label="How scouting works">
+            <li>
+              <span>01</span>
+              <strong>Discover</strong>
+              <small>Pick a review source and category</small>
+            </li>
+            <li>
+              <span>02</span>
+              <strong>Qualify</strong>
+              <small>Review authors, scores and contacts</small>
+            </li>
+            <li>
+              <span>03</span>
+              <strong>Export</strong>
+              <small>Save prospects or download a CSV</small>
+            </li>
+          </ol>
+        </header>
+        <nav aria-label="Scouting sections" className="scout-tabs" hidden={false}>
+          <button type="button" aria-pressed onClick={() => setView("scouting")}>
+            <Search className="size-4" aria-hidden="true" />
+            Scouting
+          </button>
+          <button type="button" aria-pressed={false} onClick={() => setView("batches")}>
+            <Bookmark className="size-4" aria-hidden="true" />
+            Batches
+          </button>
+        </nav>
         <label className="block text-sm font-medium">
           Review source
           <select
@@ -835,41 +866,53 @@ function AuthorScout({
       </main>
     );
   return (
-    <main className="mx-auto max-w-6xl space-y-7 px-4 py-8 sm:px-6">
-      <header
-        className="rounded-3xl border border-border bg-secondary/40 p-6 sm:p-8"
-        hidden={batchPage}
-      >
-        <p className="text-xs font-semibold uppercase tracking-widest text-brand">
-          HQ360 · Scouting workspace
-        </p>
-        <h1 className="mt-3 font-display text-3xl sm:text-4xl">Author scouting</h1>
-        <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
-          Discover authors through book reviews. Searches with results create a batch you can open,
-          review and export from HQ360.
-        </p>
+    <main className="scout-studio mx-auto max-w-6xl space-y-7 px-4 py-8 sm:px-6">
+      <header className="scout-hero" hidden={batchPage}>
+        <div>
+          <p className="scout-kicker">HQ360 · Research desk</p>
+          <h1 className="scout-title">
+            Author <em>scouting</em>
+          </h1>
+          <p className="scout-lede">
+            Discover authors through the reviews their books earn. Every search becomes a batch you
+            can study, qualify and export.
+          </p>
+        </div>
+        <ol className="scout-method" aria-label="How scouting works">
+          <li>
+            <span>01</span>
+            <strong>Discover</strong>
+            <small>Pick a review source and category</small>
+          </li>
+          <li>
+            <span>02</span>
+            <strong>Qualify</strong>
+            <small>Review authors, scores and contacts</small>
+          </li>
+          <li>
+            <span>03</span>
+            <strong>Export</strong>
+            <small>Save prospects or download a CSV</small>
+          </li>
+        </ol>
       </header>
-      <nav aria-label="Scouting sections" className="flex gap-2" hidden={batchPage}>
+      <nav aria-label="Scouting sections" className="scout-tabs" hidden={batchPage}>
         <button
           type="button"
           aria-pressed={view === "scouting"}
-          className="rounded-xl border px-5 py-3 aria-pressed:bg-secondary"
           onClick={() => setView("scouting")}
         >
+          <Search className="size-4" aria-hidden="true" />
           Scouting
         </button>
-        <button
-          type="button"
-          aria-pressed={view === "batches"}
-          className="rounded-xl border px-5 py-3 aria-pressed:bg-secondary"
-          onClick={() => setView("batches")}
-        >
+        <button type="button" aria-pressed={view === "batches"} onClick={() => setView("batches")}>
+          <Bookmark className="size-4" aria-hidden="true" />
           Batches
         </button>
       </nav>
       <form
         hidden={view !== "scouting"}
-        className="rounded-2xl border border-border bg-card p-5 sm:p-6"
+        className="scout-panel"
         onSubmit={(event) => {
           event.preventDefault();
           void search();

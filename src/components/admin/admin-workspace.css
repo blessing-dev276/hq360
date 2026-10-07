@@ -6,17 +6,19 @@
   --primary-foreground: #0a0a0b;
   --background: var(--hqd-bg, #0a0a0b);
   --card: #141415;
-  --card-2: rgb(255 255 255 / 0.04);
+  --surface-2: #161617;
+  --ink-rgb: 255 255 255;
+  --card-2: rgb(var(--ink-rgb) / 0.04);
   --foreground: var(--hqd-text, #f5f2ed);
   --muted-foreground: var(--hqd-muted, rgb(245 242 237 / 0.62));
   --dim: var(--hqd-dim, rgb(245 242 237 / 0.4));
-  --border: rgb(255 255 255 / 0.085);
-  --input: rgb(255 255 255 / 0.12);
-  --secondary: rgb(255 255 255 / 0.06);
-  --muted: rgb(255 255 255 / 0.06);
+  --border: rgb(var(--ink-rgb) / 0.085);
+  --input: rgb(var(--ink-rgb) / 0.12);
+  --secondary: rgb(var(--ink-rgb) / 0.06);
+  --muted: rgb(var(--ink-rgb) / 0.06);
   --brand-wash: rgb(255 90 0 / 0.14);
-  --glass: linear-gradient(150deg, rgb(255 255 255 / 0.06), rgb(255 255 255 / 0.018));
-  --glass-shadow: inset 0 1px 0 rgb(255 255 255 / 0.06), 0 14px 34px -18px rgb(0 0 0 / 0.65);
+  --glass: linear-gradient(150deg, rgb(var(--ink-rgb) / 0.06), rgb(var(--ink-rgb) / 0.018));
+  --glass-shadow: inset 0 1px 0 rgb(var(--ink-rgb) / 0.06), 0 14px 34px -18px rgb(0 0 0 / 0.65);
   --radius-card: 20px;
   display: flex;
   min-height: 100vh;
@@ -49,8 +51,8 @@
 .admin-sidebar {
   width: 236px;
   flex: 0 0 236px;
-  background: linear-gradient(180deg, rgb(255 255 255 / 0.035), rgb(255 255 255 / 0.01));
-  color: #aab3b8;
+  background: linear-gradient(180deg, rgb(var(--ink-rgb) / 0.035), rgb(var(--ink-rgb) / 0.01));
+  color: var(--muted-foreground);
   padding: 30px 16px 20px;
   display: flex;
   flex-direction: column;
@@ -63,7 +65,7 @@
 .admin-wordmark {
   display: flex;
   align-items: center;
-  color: #fff;
+  color: var(--foreground);
   padding: 0 12px 30px;
 }
 .admin-nav-label {
@@ -90,11 +92,11 @@
     color 0.2s;
 }
 .admin-nav-item:hover {
-  color: #fff;
-  background: rgb(255 255 255 / 0.05);
+  color: var(--foreground);
+  background: rgb(var(--ink-rgb) / 0.05);
 }
 .admin-nav-item.active {
-  color: #fff;
+  color: var(--foreground);
   background: linear-gradient(100deg, rgb(255 90 0 / 0.22), rgb(255 90 0 / 0.05));
   box-shadow: inset 0 0 0 1px rgb(255 122 47 / 0.28);
 }
@@ -233,14 +235,14 @@
   background: linear-gradient(145deg, #ff5a00, #c23d00 85%);
   border-color: rgb(255 160 100 / 0.35);
   box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.25),
+    inset 0 1px 0 rgb(var(--ink-rgb) / 0.25),
     0 18px 40px -16px rgb(255 90 0 / 0.55);
 }
 .admin-stat:first-child,
 .admin-stat:first-child > div,
 .admin-stat:first-child > small,
 .admin-stat:first-child svg {
-  color: rgb(255 255 255 / 0.92);
+  color: rgb(var(--ink-rgb) / 0.92);
 }
 .admin-stat > div {
   display: flex;
@@ -468,7 +470,7 @@
 }
 .admin-table th {
   padding: 13px 25px;
-  background: rgb(255 255 255 / 0.035);
+  background: rgb(var(--ink-rgb) / 0.035);
   text-transform: uppercase;
   letter-spacing: 0.08em;
   border-block: 1px solid var(--border);
@@ -700,7 +702,7 @@
   border: 1px solid var(--border);
   padding: 9px 14px;
   border-radius: 999px;
-  background: rgb(255 255 255 / 0.04);
+  background: rgb(var(--ink-rgb) / 0.04);
   color: var(--muted-foreground);
 }
 .admin-search input {
@@ -728,7 +730,7 @@
   display: inline-flex;
   gap: 4px;
   padding: 4px;
-  background: rgb(255 255 255 / 0.05);
+  background: rgb(var(--ink-rgb) / 0.05);
   border: 1px solid var(--border);
   border-radius: 999px;
 }
@@ -740,12 +742,12 @@
 }
 .admin-segmented button.active {
   background: linear-gradient(135deg, rgb(255 90 0 / 0.3), rgb(255 90 0 / 0.12));
-  color: #fff;
+  color: var(--foreground);
   box-shadow: inset 0 0 0 1px rgb(255 122 47 / 0.35);
 }
 .admin-dialog {
   color: var(--foreground);
-  background: #161617;
+  background: var(--surface-2);
   border-radius: var(--radius-card);
   max-height: 90dvh;
   overflow-y: auto;
@@ -1054,7 +1056,7 @@
 .admin-workspace input:not([type="checkbox"], [type="radio"], [type="range"], [type="file"]),
 .admin-workspace select,
 .admin-workspace textarea {
-  background-color: rgb(255 255 255 / 0.04);
+  background-color: rgb(var(--ink-rgb) / 0.04);
   border-color: var(--border);
   color: var(--foreground);
   transition:
@@ -1065,12 +1067,12 @@
 .admin-workspace select:focus,
 .admin-workspace textarea:focus {
   border-color: rgb(255 122 47 / 0.6);
-  background-color: rgb(255 255 255 / 0.06);
+  background-color: rgb(var(--ink-rgb) / 0.06);
   outline: none;
   box-shadow: 0 0 0 3px rgb(255 90 0 / 0.15);
 }
 .admin-workspace select option {
-  background: #161617;
+  background: var(--surface-2);
   color: var(--foreground);
 }
 .admin-workspace ::placeholder {
@@ -1097,7 +1099,7 @@
 .admin-dialog {
   display: grid;
   min-height: 0;
-  background: #161617;
+  background: var(--surface-2);
   color: var(--foreground);
   color-scheme: dark;
 }
@@ -1288,7 +1290,7 @@
   overflow-y: auto;
   border: 1px solid var(--border);
   border-radius: var(--radius-card);
-  background: #161617;
+  background: var(--surface-2);
   box-shadow: 0 24px 60px -20px rgb(0 0 0 / 0.8);
   text-align: left;
 }
@@ -1300,7 +1302,7 @@
   justify-content: space-between;
   padding: 16px 18px;
   border-bottom: 1px solid var(--border);
-  background: #161617;
+  background: var(--surface-2);
   font-size: 13px;
 }
 .admin-notify-empty {
@@ -1319,7 +1321,7 @@
   transition: background 0.15s;
 }
 .admin-notify-item:hover {
-  background: rgb(255 255 255 / 0.04);
+  background: rgb(var(--ink-rgb) / 0.04);
 }
 .admin-notify-item strong {
   display: block;
@@ -1612,7 +1614,7 @@
   padding: 7px 12px;
   border: 1px solid var(--border);
   border-radius: 999px;
-  background: rgb(255 255 255 / 0.03);
+  background: rgb(var(--ink-rgb) / 0.03);
   color: var(--muted-foreground);
   font-size: 12px;
   font-weight: 550;
@@ -1625,17 +1627,17 @@
   min-width: 20px;
   padding: 1px 6px;
   border-radius: 999px;
-  background: rgb(255 255 255 / 0.07);
+  background: rgb(var(--ink-rgb) / 0.07);
   font-size: 10px;
   text-align: center;
   font-variant-numeric: tabular-nums;
 }
 .scout-picker-tab:hover:not(:disabled) {
   color: var(--foreground);
-  border-color: rgb(255 255 255 / 0.18);
+  border-color: rgb(var(--ink-rgb) / 0.18);
 }
 .scout-picker-tab.active {
-  color: #fff;
+  color: var(--foreground);
   border-color: rgb(255 122 47 / 0.45);
   background: linear-gradient(135deg, rgb(255 90 0 / 0.28), rgb(255 90 0 / 0.1));
 }
@@ -1650,7 +1652,7 @@
   padding: 8px 14px;
   border: 1px solid var(--border);
   border-radius: 999px;
-  background: rgb(255 255 255 / 0.04);
+  background: rgb(var(--ink-rgb) / 0.04);
   color: var(--muted-foreground);
 }
 .admin-workspace .scout-picker-search input {
@@ -1689,7 +1691,7 @@
     transform 0.15s;
 }
 .scout-batch-card:hover:not(:disabled) {
-  border-color: rgb(255 255 255 / 0.18);
+  border-color: rgb(var(--ink-rgb) / 0.18);
   transform: translateY(-1px);
 }
 .scout-batch-card.active {
@@ -1813,11 +1815,287 @@
   padding: 7px 14px 7px 11px;
   border: 1px solid var(--border);
   border-radius: 999px;
-  background: rgb(255 255 255 / 0.04);
+  background: rgb(var(--ink-rgb) / 0.04);
   color: var(--foreground);
   font-weight: 550;
   transition: border-color 0.15s;
 }
 .scout-batch-back:hover {
   border-color: rgb(255 122 47 / 0.5);
+}
+
+/* ------------------------------------------------------------ light theme */
+/* <html data-panel-theme="light"> is set by PanelThemeToggle (follows the OS by default). */
+html[data-panel-theme="light"] .admin-workspace,
+html[data-panel-theme="light"] .admin-dialog {
+  --background: #f6f4f0;
+  --card: #ffffff;
+  --surface-2: #ffffff;
+  --ink-rgb: 17 20 22;
+  --card-2: rgb(17 20 22 / 0.03);
+  --foreground: #15181a;
+  --muted-foreground: rgb(21 24 26 / 0.62);
+  --dim: rgb(21 24 26 / 0.42);
+  --border: rgb(17 20 22 / 0.1);
+  --input: rgb(17 20 22 / 0.16);
+  --secondary: rgb(17 20 22 / 0.05);
+  --muted: rgb(17 20 22 / 0.05);
+  --brand-wash: rgb(255 90 0 / 0.1);
+  --glass: linear-gradient(150deg, #ffffff, #fbfaf8);
+  --glass-shadow: 0 1px 2px rgb(17 20 22 / 0.05), 0 12px 30px -20px rgb(17 20 22 / 0.25);
+  color-scheme: light;
+}
+html[data-panel-theme="light"] .admin-workspace {
+  background:
+    radial-gradient(52rem 26rem at 88% -8%, rgb(255 90 0 / 0.08), transparent 70%),
+    var(--background);
+}
+html[data-panel-theme="light"] .admin-wordmark img {
+  filter: none;
+}
+.panel-theme-toggle {
+  display: inline-grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--card-2);
+  color: var(--foreground);
+  transition: background 0.2s, transform 0.2s;
+}
+.panel-theme-toggle:hover {
+  background: var(--secondary);
+  transform: rotate(-12deg);
+}
+
+/* ======================================================= Scouting studio */
+.scout-studio {
+  --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+}
+.scout-hero {
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  gap: 28px;
+  padding: 34px 34px 30px;
+  border-radius: 24px;
+  border: 1px solid var(--border);
+  background:
+    radial-gradient(36rem 18rem at 100% 0%, rgb(255 90 0 / 0.16), transparent 70%),
+    var(--glass);
+  box-shadow: var(--glass-shadow);
+}
+.scout-hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgb(var(--ink-rgb) / 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(var(--ink-rgb) / 0.035) 1px, transparent 1px);
+  background-size: 28px 28px;
+  mask-image: linear-gradient(90deg, transparent 35%, #000);
+}
+@media (min-width: 900px) {
+  .scout-hero {
+    grid-template-columns: 1.15fr 1fr;
+    align-items: end;
+  }
+}
+.scout-kicker {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--brand);
+}
+.scout-title {
+  margin-top: 12px;
+  font-family: var(--font-display);
+  font-size: clamp(34px, 4.6vw, 52px);
+  font-weight: 700;
+  line-height: 0.98;
+  letter-spacing: -0.045em;
+}
+.scout-title em,
+.scout-studio h2 em {
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  color: var(--brand);
+}
+.scout-lede {
+  margin-top: 14px;
+  max-width: 34rem;
+  font-size: 14.5px;
+  line-height: 1.7;
+  color: var(--muted-foreground);
+}
+.scout-method {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.scout-method li {
+  display: grid;
+  gap: 4px;
+  padding: 14px;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  background: var(--card-2);
+}
+.scout-method span {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 13px;
+  color: var(--brand);
+}
+.scout-method strong {
+  font-family: var(--font-display);
+  font-size: 15px;
+}
+.scout-method small {
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: var(--muted-foreground);
+}
+@media (max-width: 560px) {
+  .scout-hero {
+    padding: 24px 20px;
+  }
+  .scout-method {
+    grid-template-columns: 1fr;
+  }
+}
+.scout-tabs {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--card-2);
+}
+.scout-tabs button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 18px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted-foreground);
+  transition: background 0.2s, color 0.2s;
+}
+.scout-tabs button[aria-pressed="true"] {
+  background: var(--foreground);
+  color: var(--background);
+}
+.scout-tabs button:not([aria-pressed="true"]):hover {
+  color: var(--foreground);
+}
+.scout-panel,
+.scout-studio section.rounded-2xl,
+.scout-studio section.rounded-3xl,
+.scout-studio div.rounded-2xl.border {
+  border-radius: 22px;
+  border: 1px solid var(--border);
+  background: var(--glass);
+  box-shadow: var(--glass-shadow);
+}
+.scout-panel {
+  padding: 26px;
+}
+.scout-studio h2 {
+  font-family: var(--font-display);
+  letter-spacing: -0.03em;
+}
+.scout-studio label {
+  color: var(--foreground);
+}
+.scout-studio select,
+.scout-studio input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+.scout-studio textarea {
+  border-radius: 12px;
+  border: 1px solid var(--input);
+  background: var(--card-2);
+  color: var(--foreground);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.scout-studio select:focus-visible,
+.scout-studio input:focus-visible,
+.scout-studio textarea:focus-visible {
+  outline: none;
+  border-color: var(--brand);
+  box-shadow: 0 0 0 4px rgb(255 90 0 / 0.16);
+}
+.scout-studio input[type="checkbox"],
+.scout-studio input[type="radio"] {
+  accent-color: var(--brand);
+}
+.scout-studio button.bg-primary {
+  border-radius: 999px;
+  box-shadow: 0 12px 26px -14px rgb(255 90 0 / 0.8);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.scout-studio button.bg-primary:not(:disabled):hover {
+  transform: translateY(-1px);
+  box-shadow: 0 16px 30px -14px rgb(255 90 0 / 0.9);
+}
+.scout-studio button.border:not(.bg-primary) {
+  border-color: var(--border);
+  border-radius: 999px;
+  transition: background 0.2s, border-color 0.2s;
+}
+.scout-studio button.border:not(.bg-primary):hover {
+  background: var(--secondary);
+  border-color: var(--input);
+}
+.scout-studio table {
+  border-collapse: separate;
+  border-spacing: 0;
+  font-variant-numeric: tabular-nums;
+}
+.scout-studio th {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+  border-bottom: 1px solid var(--border);
+}
+.scout-studio tbody tr {
+  transition: background 0.15s;
+}
+.scout-studio tbody tr:hover {
+  background: var(--card-2);
+}
+.scout-studio td {
+  border-bottom: 1px solid var(--border);
+}
+.scout-studio article.rounded-xl,
+.scout-studio article.rounded-2xl,
+.scout-studio li.rounded-xl,
+.scout-studio li.rounded-2xl {
+  border-color: var(--border);
+  background: var(--card-2);
+  transition: border-color 0.2s, transform 0.2s;
+}
+.scout-studio article.rounded-xl:hover,
+.scout-studio li.rounded-xl:hover {
+  border-color: var(--input);
+}
+.scout-studio [role="alert"] {
+  border-radius: 14px;
+}
+.scout-studio p[role="status"].bg-secondary {
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--card-2);
 }

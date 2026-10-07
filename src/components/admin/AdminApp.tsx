@@ -26,6 +26,7 @@ import { Logo } from "@/components/Logo";
 import { PaymentsAdmin } from "./PaymentsAdmin";
 import { AdminDashboard } from "./AdminDashboard";
 import { NotificationBell } from "./NotificationBell";
+import { PanelThemeToggle } from "./PanelThemeToggle";
 import { LeadsAdmin } from "./LeadsAdmin";
 import "./admin-workspace.css";
 
@@ -301,6 +302,7 @@ export function AdminApp({ initialTab = "overview" }: { initialTab?: Tab }) {
             <p>{current.description}</p>
           </div>
           <div className="admin-account">
+            <PanelThemeToggle />
             <NotificationBell
               endpoint="/api/admin/notifications"
               onNavigate={(value) => {

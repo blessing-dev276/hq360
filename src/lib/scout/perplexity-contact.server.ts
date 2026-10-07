@@ -95,7 +95,13 @@ export async function pageText(url: string, fetcher: typeof fetch) {
     const response = await fetcher(url, {
       signal: AbortSignal.timeout(10_000),
       redirect: "follow",
-      headers: { "User-Agent": "Mozilla/5.0 (compatible; HQ360-research/1.0)" },
+      // A plain browser identity: many author sites refuse bot user agents.
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36",
+        Accept: "text/html,application/xhtml+xml",
+        "Accept-Language": "en-US,en;q=0.9",
+      },
     });
     if (!response.ok) return "";
     const html = (await response.text()).slice(0, 1_500_000);
@@ -146,7 +152,7 @@ async function searchContactStage(
   // found no verified direct author email, so easy authors cost the least.
   const coverage = [
     `PASS 1 - identity and first-party sources. First confirm which author wrote the supplied book (use the title, publisher, genre, Amazon/Goodreads) so namesakes are excluded. Then search: "<author>" email; "<author>" contact; "<author>" author contact; "<author>" email address; "<author>" "<book>"; "<author>" "<book>" contact; "<author>" "@". When the official website is found, search site:<domain> contact, site:<domain> email, site:<domain> "@", and open its contact, about, about-me, media, press, speaking, booking, events, newsletter and privacy pages, plus the header, footer and mailto links.`,
-    `PASS 2 - the first pass found no verified direct author email. Search representatives and media: "<author>" publisher; "<author>" literary agent; "<author>" representation; "<author>" publicity; "<author>" media contact; "<author>" press; "<author>" speaking; "<author>" booking. Open publisher author and contact pages, literary agency and agent pages, publicist pages. Also check public Facebook About pages, Instagram/X/LinkedIn/YouTube bios, Goodreads and Amazon author pages.`,
+    `PASS 2 - the first pass found no verified direct author email. Search representatives and media: "<author>" publisher; "<author>" literary agent; "<author>" representation; "<author>" publicity; "<author>" media contact; "<author>" press; "<author>" speaking; "<author>" booking. Open publisher author and contact pages, literary agency and agent pages, publicist pages. Search "<author>" site:facebook.com email and "<author>" author facebook, and read the email shown in Facebook page Intro/About snippets. Also check public Facebook About pages, Instagram/X/LinkedIn/YouTube bios, Goodreads and Amazon author pages.`,
     `PASS 3 - earlier passes found no verified direct author email. Search: "<author>" newsletter; "<author>" Substack; "<author>" interview email; "<author>" filetype:pdf (press kits, media kits). Check podcast interviews, guest posts, conference/festival/library speaker bios, university or faculty pages, professional organizations and press releases. Try pen names only when a source links them to this book.`,
   ][stage]!;
   const response = await agent({
@@ -198,15 +204,20 @@ async function searchContactStage(
   // which we fetch ourselves. Unverified: the cited page blocks automated
   // reading, so it can't be re-checked. Dropped: we read the page and the
   // address isn't there (the model got it wrong).
-  for (const contact of parsed.identity_match ? parsed.contacts : []) {
+  for (const contact of parsed.contacts) {
     const email = contact.email.toLowerCase();
     if (seen.has(email) || !publicResultUrl(contact.source_url)) continue;
     // The email must appear next to evidence it's this author (not a namesake).
-    let verified = sources.some((source) => {
-      if (source.url !== contact.source_url) return false;
-      const text = `${source.title ?? ""} ${source.snippet ?? ""}`;
-      return emailOfAuthor(text, email, input.author, input.book);
-    });
+    // Any search snippet counts, not only the cited page's: Facebook and
+    // similar pages can't be fetched by us, but their snippets can show the email.
+    let verified = sources.some((source) =>
+      emailOfAuthor(
+        `${source.title ?? ""} ${source.snippet ?? ""}`,
+        email,
+        input.author,
+        input.book,
+      ),
+    );
     if (!verified) {
       if (!pages.has(contact.source_url))
         pages.set(contact.source_url, pageText(contact.source_url, fetcher));
@@ -216,7 +227,11 @@ async function searchContactStage(
       // Unreadable (e.g. Facebook): keep only if the AI's own excerpt shows it's the author.
       if (
         !verified &&
-        !(unreadable && emailOfAuthor(contact.evidence, email, input.author, input.book))
+        !(
+          parsed.identity_match &&
+          unreadable &&
+          emailOfAuthor(contact.evidence, email, input.author, input.book)
+        )
       )
         continue;
     }

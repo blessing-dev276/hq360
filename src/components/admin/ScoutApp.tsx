@@ -285,7 +285,13 @@ const RF_DEFAULT = "/book-reviews/book-reviews-genre-fiction-thriller-general.ht
 const field =
   "mt-2 w-full rounded-xl border border-border bg-background px-4 py-3 text-sm disabled:opacity-50";
 
-export function ScoutApp({ canFindEmail = false }: { canFindEmail?: boolean }) {
+export function ScoutApp({
+  canFindEmail = false,
+  maxAuthors = 100,
+}: {
+  canFindEmail?: boolean;
+  maxAuthors?: number;
+}) {
   const [audienceId, setAudienceId] = useState("authors");
   const [locked, setLocked] = useState(false);
   const [batchPage, setBatchPage] = useState(false);
@@ -316,6 +322,7 @@ export function ScoutApp({ canFindEmail = false }: { canFindEmail?: boolean }) {
           onBusyChange={setLocked}
           onBatchPageChange={setBatchPage}
           canFindEmail={canFindEmail}
+          maxAuthors={maxAuthors}
         />
       ) : (
         <AudienceScout
@@ -332,11 +339,13 @@ function AuthorScout({
   onBusyChange,
   onBatchPageChange,
   canFindEmail,
+  maxAuthors,
 }: {
   onBusyChange: (busy: boolean) => void;
   /** True while a single batch is open as its own page. */
   onBatchPageChange?: (open: boolean) => void;
   canFindEmail: boolean;
+  maxAuthors: number;
 }) {
   const queryClient = useQueryClient();
   const [view, setView] = useState<"scouting" | "batches">("scouting");
@@ -489,6 +498,9 @@ function AuthorScout({
   const [notice, setNotice] = useState("");
   const [batchSource, setBatchSource] = useState("all");
   const [reviewFilter, setReviewFilter] = useState("all");
+  const [emailFilter, setEmailFilter] = useState<"all" | "found" | "not_found" | "not_searched">(
+    "all",
+  );
 
   useEffect(() => {
     const controller = new AbortController();
@@ -614,6 +626,7 @@ function AuthorScout({
     if (shownBatchRef.current !== selected.id) {
       setBooks([]);
       setReviewFilter("all");
+      setEmailFilter("all");
     }
     shownBatchRef.current = selected.id;
     api<{ items: Book[] }>(`/api/admin/scout-batches/${selected.id}`, undefined, controller.signal)
@@ -755,8 +768,8 @@ function AuthorScout({
 
   function search() {
     const active = jobsRef.current.filter((job) => job.status !== "completed").length;
-    if (!Number.isInteger(limit) || limit < 1 || limit > 100 || active >= 3) {
-      setError("Choose 1–100 authors per batch and no more than 3 unfinished batches.");
+    if (!Number.isInteger(limit) || limit < 1 || limit > maxAuthors || active >= 3) {
+      setError(`Choose 1–${maxAuthors} authors per batch and no more than 3 unfinished batches.`);
       return;
     }
     const genre =
@@ -855,10 +868,18 @@ function AuthorScout({
     );
     return review?.rating ?? (review?.platform === "reedsy" ? review.review_count : null);
   };
+  const emailState = (book: Book) => {
+    const status = emailSearchFor(book).status;
+    if (status === "found" || book.scout_authors?.contact_email) return "found";
+    return status === "not_found" ? "not_found" : "not_searched";
+  };
   const visible = books.filter(
     (book) =>
-      reviewFilter === "all" ||
-      (reviewFilter === "unknown" ? score(book) == null : score(book) === Number(reviewFilter)),
+      (reviewFilter === "all" ||
+        (reviewFilter === "unknown"
+          ? score(book) == null
+          : score(book) === Number(reviewFilter))) &&
+      (emailFilter === "all" || emailState(book) === emailFilter),
   );
   function exportCsv() {
     const rows = [
@@ -1085,19 +1106,21 @@ function AuthorScout({
             </select>
           </label>
           <label className="text-sm font-medium">
-            Authors per batch (maximum 100)
+            Authors per batch (maximum {maxAuthors})
             <input
               aria-label="Authors to find"
               className={field}
               type="number"
               min={1}
-              max={100}
+              max={maxAuthors}
               step={1}
               required
               value={Number.isNaN(limit) ? "" : limit}
               onChange={(event) => {
                 const value = event.target.valueAsNumber;
-                setLimit(Number.isNaN(value) ? NaN : Math.min(100, Math.max(1, Math.trunc(value))));
+                setLimit(
+                  Number.isNaN(value) ? NaN : Math.min(maxAuthors, Math.max(1, Math.trunc(value))),
+                );
               }}
             />
           </label>
@@ -1394,6 +1417,22 @@ function AuthorScout({
                   <option value="unknown">Score unavailable</option>
                 </select>
               </label>
+              {canFindEmail && (
+                <label className="flex items-center gap-2 text-sm text-muted-foreground">
+                  Email
+                  <select
+                    aria-label="Author email"
+                    className="h-9 rounded-lg border border-border bg-background px-3 text-sm text-foreground"
+                    value={emailFilter}
+                    onChange={(event) => setEmailFilter(event.target.value as typeof emailFilter)}
+                  >
+                    <option value="all">All books</option>
+                    <option value="found">Email found</option>
+                    <option value="not_found">No email found</option>
+                    <option value="not_searched">Not searched yet</option>
+                  </select>
+                </label>
+              )}
               {canFindEmail && emailTotals.authors + emailTotals.none > 0 && (
                 <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
                   <span>
@@ -1497,7 +1536,7 @@ function AuthorScout({
             ) : detailError ? null : !visible.length ? (
               <p className="rounded-xl bg-secondary/40 p-6 text-sm">
                 {books.length
-                  ? "No books match this review filter."
+                  ? "No books match these filters."
                   : busy === "search"
                     ? "Collecting this batch’s results…"
                     : "This batch has no saved results."}

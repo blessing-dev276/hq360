@@ -96,7 +96,7 @@ export function parseAgentResponse(raw: unknown) {
       .filter((item) => item.type === "url_citation" && item.url),
   };
 }
-export const EMAIL_RESEARCH_MODEL = "google/gemini-3.1-flash-lite";
+export const EMAIL_RESEARCH_MODEL = "perplexity/sonar";
 export async function runAgent(
   request: AgentRequest,
   fetcher: typeof fetch = fetch,
@@ -108,8 +108,10 @@ export async function runAgent(
       "Set PERPLEXITY_API_KEY in the server environment to enable author contact research.",
       503,
     );
-  const signal = AbortSignal.timeout(90_000);
-  for (let attempt = 0; attempt < 2; attempt++) {
+  // Rate limits (sonar's are tight) are waited out: up to 2 retries of <= 30s,
+  // keeping a request inside the host function time limit.
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const signal = AbortSignal.timeout(90_000);
     let response: Response;
     try {
       response = await fetcher("https://api.perplexity.ai/v1/agent", {
@@ -139,7 +141,7 @@ export async function runAgent(
             ? Math.ceil((Date.parse(header) - Date.now()) / 1000)
             : 1;
       const delay = Number.isFinite(seconds) ? Math.max(1, seconds) : 1;
-      if (attempt === 0 && delay <= 5) {
+      if (attempt < 2 && delay <= 30) {
         await response.body?.cancel();
         await new Promise((resolve) => setTimeout(resolve, delay * 1000));
         continue;

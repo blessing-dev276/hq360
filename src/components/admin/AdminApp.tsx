@@ -337,7 +337,7 @@ export function AdminApp({ initialTab = "overview" }: { initialTab?: Tab }) {
         </header>
         <div className="admin-page" key={refreshKey}>
           {tab === "scout" ? (
-            <ScoutApp canFindEmail />
+            <ScoutApp canFindEmail maxAuthors={1000} />
           ) : tab === "overview" ? (
             <AdminDashboard onNavigate={navigate} />
           ) : tab === "projects" ? (

@@ -21,12 +21,12 @@ export function savedSearch(author: AuthorRef | null | undefined): EmailSearch {
   return { status: "idle", emails: [] };
 }
 
-async function searchOne(authorId: string, bookId: string): Promise<EmailSearch> {
+async function searchOne(authorId: string, bookId: string, retry = false): Promise<EmailSearch> {
   for (let attempt = 0; attempt < 2; attempt++) {
     const response = await fetch(`/api/admin/scout-authors/${authorId}/find-contact`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ bookId }),
+      body: JSON.stringify({ bookId, retry }),
     }).catch(() => null);
     if (!response) return { status: "error", emails: [], error: "Connection lost." };
     const result = await response.json().catch(() => ({}));
@@ -60,32 +60,35 @@ export function useEmailSearch() {
     set(authorId, await searchOne(authorId, bookId));
   }, []);
 
-  const findAll = useCallback(async (targets: { authorId: string; bookId: string }[]) => {
-    if (!targets.length) return;
-    stopRef.current = false;
-    setState((current) => {
-      const next = { ...current };
-      for (const t of targets) next[t.authorId] = { status: "queued", emails: [] };
-      return next;
-    });
-    setRun({ ids: targets.map((t) => t.authorId), startedAt: Date.now() });
-    const queue = [...targets];
-    const worker = async () => {
-      while (queue.length && !stopRef.current) {
-        const t = queue.shift()!;
-        set(t.authorId, { status: "searching", emails: [] });
-        set(t.authorId, await searchOne(t.authorId, t.bookId));
-      }
-    };
-    await Promise.all(Array.from({ length: Math.min(CONCURRENCY, targets.length) }, worker));
-    // Anything still queued after Stop goes back to idle.
-    setState((current) => {
-      const next = { ...current };
-      for (const t of targets) if (next[t.authorId]?.status === "queued") delete next[t.authorId];
-      return next;
-    });
-    setRun(null);
-  }, []);
+  const findAll = useCallback(
+    async (targets: { authorId: string; bookId: string }[], retry = false) => {
+      if (!targets.length) return;
+      stopRef.current = false;
+      setState((current) => {
+        const next = { ...current };
+        for (const t of targets) next[t.authorId] = { status: "queued", emails: [] };
+        return next;
+      });
+      setRun({ ids: targets.map((t) => t.authorId), startedAt: Date.now() });
+      const queue = [...targets];
+      const worker = async () => {
+        while (queue.length && !stopRef.current) {
+          const t = queue.shift()!;
+          set(t.authorId, { status: "searching", emails: [] });
+          set(t.authorId, await searchOne(t.authorId, t.bookId, retry));
+        }
+      };
+      await Promise.all(Array.from({ length: Math.min(CONCURRENCY, targets.length) }, worker));
+      // Anything still queued after Stop goes back to idle.
+      setState((current) => {
+        const next = { ...current };
+        for (const t of targets) if (next[t.authorId]?.status === "queued") delete next[t.authorId];
+        return next;
+      });
+      setRun(null);
+    },
+    [],
+  );
 
   return {
     state,

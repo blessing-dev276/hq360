@@ -435,6 +435,28 @@ function AuthorScout({
     t.total = seen.size;
     return t;
   })();
+  const notFoundTargets = (() => {
+    const seen = new Set<string>();
+    const out: { authorId: string; bookId: string }[] = [];
+    for (const book of books) {
+      const id = book.scout_authors?.id;
+      if (!id || seen.has(id)) continue;
+      seen.add(id);
+      if (emailSearchFor(book).status === "not_found") out.push({ authorId: id, bookId: book.id });
+    }
+    return out;
+  })();
+  function retryNotFound() {
+    const n = notFoundTargets.length;
+    if (
+      !n ||
+      !window.confirm(
+        `Search again for the ${n} author${n === 1 ? "" : "s"} with no email found, using the improved search?\n\nEstimated Perplexity cost: about ${emailSearchEstimate(n).typical} (at most ${emailSearchEstimate(n).max}).`,
+      )
+    )
+      return;
+    void emails.findAll(notFoundTargets, true);
+  }
   function findAllEmails() {
     const n = emailTargets.length;
     if (
@@ -1372,6 +1394,11 @@ function AuthorScout({
                     <b className="text-emerald-500">{emailTotals.verified}</b> verified
                   </span>
                   <span className="text-muted-foreground">{emailTotals.none} not found</span>
+                  {notFoundTargets.length > 0 && !emails.run && (
+                    <button type="button" onClick={retryNotFound} className="text-brand underline">
+                      Search not-found again
+                    </button>
+                  )}
                 </p>
               )}
               {canFindEmail && emailTargets.length > 0 && !emails.run && (

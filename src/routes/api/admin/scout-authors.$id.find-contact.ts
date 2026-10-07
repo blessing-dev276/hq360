@@ -30,7 +30,7 @@ export const Route = createFileRoute("/api/admin/scout-authors/$id/find-contact"
         try {
           const raw = await request.text();
           const body = z
-            .object({ bookId: z.string().uuid().optional() })
+            .object({ bookId: z.string().uuid().optional(), retry: z.boolean().optional() })
             .parse(raw ? JSON.parse(raw) : {});
           const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
           const db = asScoutDb(supabaseAdmin);
@@ -48,7 +48,11 @@ export const Route = createFileRoute("/api/admin/scout-authors/$id/find-contact"
             contact_search_status?: "found" | "not_found" | null;
           };
           // Each author is searched once; repeat requests return the saved result.
-          if (author.contact_search_status)
+          // retry re-runs only a "not found" result (e.g. after search improvements).
+          if (
+            author.contact_search_status &&
+            !(body.retry && author.contact_search_status === "not_found")
+          )
             return json({
               ok: true,
               status: author.contact_search_status,

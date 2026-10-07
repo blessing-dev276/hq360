@@ -25,6 +25,7 @@ import { GlassLoading } from "@/components/ui/glass-loading";
 import { ScoutBatchPicker } from "./ScoutBatchPicker";
 import { useQueryClient } from "@tanstack/react-query";
 import { canonicalUrl } from "@/lib/scout/normalize";
+import { emailSearchEstimate } from "@/lib/scout/email-cost";
 
 type Book = {
   id: string;
@@ -401,7 +402,7 @@ function AuthorScout({
     if (
       !n ||
       !window.confirm(
-        `Find emails for ${n} author${n === 1 ? "" : "s"}? Authors already searched are skipped. This runs ${n} search${n === 1 ? "" : "es"}, 4 at a time.`,
+        `Find emails for ${n} author${n === 1 ? "" : "s"}?\n\nEstimated Perplexity cost: about ${emailSearchEstimate(n).typical} (at most ${emailSearchEstimate(n).max}). Authors whose own website lists an email cost nothing, and authors already searched are skipped.`,
       )
     )
       return;
@@ -1270,18 +1271,26 @@ function AuthorScout({
               </div>
               <div className="flex flex-wrap items-end gap-3">
                 {canFindEmail && (
-                  <button
-                    type="button"
-                    disabled={Boolean(emails.run) || detailLoading || !emailTargets.length}
-                    onClick={findAllEmails}
-                    className="rounded-xl border border-brand/50 px-4 py-3 text-sm font-semibold text-brand disabled:opacity-50"
-                  >
-                    {emails.run
-                      ? "Finding emails…"
-                      : emailTargets.length
-                        ? `Find all emails (${emailTargets.length})`
-                        : "All emails searched"}
-                  </button>
+                  <div className="grid gap-1">
+                    <button
+                      type="button"
+                      disabled={Boolean(emails.run) || detailLoading || !emailTargets.length}
+                      onClick={findAllEmails}
+                      className="rounded-xl border border-brand/50 px-4 py-3 text-sm font-semibold text-brand disabled:opacity-50"
+                    >
+                      {emails.run
+                        ? "Finding emails…"
+                        : emailTargets.length
+                          ? `Find all emails (${emailTargets.length})`
+                          : "All emails searched"}
+                    </button>
+                    {emailTargets.length > 0 && !emails.run && (
+                      <small className="text-xs text-muted-foreground">
+                        Est. Perplexity cost ~{emailSearchEstimate(emailTargets.length).typical}{" "}
+                        (max {emailSearchEstimate(emailTargets.length).max})
+                      </small>
+                    )}
+                  </div>
                 )}
                 <button
                   type="button"

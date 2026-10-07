@@ -74,11 +74,25 @@ export const Route = createFileRoute("/api/admin/scout-authors/$id/find-contact"
               { ok: false, message: "Save a book for this author before finding contact details." },
               400,
             );
-          const result = await findAuthorContacts({
-            author: author.name,
-            book: book.title,
-            website: author.website_url,
-          });
+          // Free: the author's own website first. Only pay for a web search
+          // when the site has no published email.
+          const { emailsOnWebsite } = await import("@/lib/scout/website-contact.server");
+          const onSite = await emailsOnWebsite(author.website_url);
+          const result = onSite.length
+            ? {
+                summary: "",
+                contacts: onSite.map((email) => ({
+                  email,
+                  role: "author" as const,
+                  source_url: author.website_url!,
+                  evidence: "Published on the author's website",
+                })),
+              }
+            : await findAuthorContacts({
+                author: author.name,
+                book: book.title,
+                website: author.website_url,
+              });
           // Author's own address first, then agent/publisher/publicist.
           const emails = [
             ...result.contacts.filter((c) => c.role === "author"),

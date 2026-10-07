@@ -54,9 +54,14 @@ export function emailsIn(text: string) {
     .replace(/\s*(?:\[|\()\s*dot\s*(?:\]|\))\s*|\s+(?:dot|DOT)\s+/g, ".")
     .replace(/&#64;|&commat;/gi, "@");
   return new Set(
-    (plain.match(/[A-Z0-9._%+-]+@[A-Z0-9-]+(?:\.[A-Z0-9-]+)*\.[A-Z]{2,}/gi) ?? []).map((e) =>
-      e.toLowerCase(),
-    ),
+    (plain.match(/[A-Z0-9._%+-]+@[A-Z0-9-]+(?:\.[A-Z0-9-]+)*\.[A-Z]{2,}/gi) ?? [])
+      .map((e) => e.toLowerCase())
+      // Not addresses: retina image names (logo@2x.png) and tracking/placeholder hosts.
+      .filter(
+        (e) =>
+          !/\.(png|jpe?g|gif|webp|svg|avif|css|js)$/.test(e) &&
+          !/@(sentry|wixpress|example|domain|email)\./.test(e),
+      ),
   );
 }
 /** Cloudflare hides emails as data-cfemail="hex"; decode them. */
@@ -70,7 +75,7 @@ function cloudflareEmails(html: string) {
   });
 }
 /** The cited page's text (raw HTML, so mailto: links count), or "". */
-async function pageText(url: string, fetcher: typeof fetch) {
+export async function pageText(url: string, fetcher: typeof fetch) {
   if (!publicResultUrl(url)) return "";
   try {
     const response = await fetcher(url, {

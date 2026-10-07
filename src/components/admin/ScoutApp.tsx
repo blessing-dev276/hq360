@@ -415,6 +415,26 @@ function AuthorScout({
     }
     return targets;
   })();
+  // Batch email totals, one per author. "Verified" comes from the automatic
+  // email check (confirmed on a source page, or likely valid).
+  const emailTotals = (() => {
+    const seen = new Set<string>();
+    const t = { authors: 0, emails: 0, verified: 0, none: 0, total: 0 };
+    for (const book of books) {
+      const author = book.scout_authors;
+      if (!author || seen.has(author.id)) continue;
+      seen.add(author.id);
+      const r = emailSearchFor(book);
+      if (r.status === "found" || author.contact_email) {
+        t.authors++;
+        t.emails += Math.max(r.emails.length, 1);
+        if (["verified_source", "likely_valid"].includes(author.email_check_status ?? ""))
+          t.verified++;
+      } else if (r.status === "not_found") t.none++;
+    }
+    t.total = seen.size;
+    return t;
+  })();
   function findAllEmails() {
     const n = emailTargets.length;
     if (
@@ -1342,6 +1362,18 @@ function AuthorScout({
                   <option value="unknown">Score unavailable</option>
                 </select>
               </label>
+              {canFindEmail && emailTotals.authors + emailTotals.none > 0 && (
+                <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
+                  <span>
+                    <b className="text-emerald-500">{emailTotals.emails}</b> emails found ·{" "}
+                    {emailTotals.authors} of {emailTotals.total} authors
+                  </span>
+                  <span>
+                    <b className="text-emerald-500">{emailTotals.verified}</b> verified
+                  </span>
+                  <span className="text-muted-foreground">{emailTotals.none} not found</span>
+                </p>
+              )}
               {canFindEmail && emailTargets.length > 0 && !emails.run && (
                 <p className="text-xs text-muted-foreground">
                   Email search est. Perplexity cost{" "}

@@ -83,6 +83,7 @@ export const Route = createFileRoute("/api/admin/scout-authors/$id/find-contact"
                   role: "author" as const,
                   source_url: author.website_url!,
                   evidence: "Published on the author's website",
+                  verified: true,
                 })),
               }
             : await findAuthorContacts({

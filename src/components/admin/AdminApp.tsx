@@ -1,5 +1,6 @@
 import { PerplexitySettings } from "@/components/expert/PerplexitySettings";
 import { QuotesWorkspace } from "@/components/quotes/QuotesWorkspace";
+import { ProposalsWorkspace } from "@/components/proposals/ProposalsWorkspace";
 import { GlassLoading } from "@/components/ui/glass-loading";
 import { PanelRefreshButton } from "./PanelRefreshButton";
 import { ScoutApp } from "./ScoutApp";
@@ -25,6 +26,7 @@ import {
   UserCheck,
   Globe2,
   ReceiptText,
+  FileText,
 } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { PaymentsAdmin } from "./PaymentsAdmin";
@@ -160,7 +162,8 @@ type Tab =
   | "audits"
   | "experts"
   | "visitors"
-  | "quotes";
+  | "quotes"
+  | "proposals";
 type WorkView = "cases" | "gallery";
 const NAV = [
   {
@@ -213,6 +216,12 @@ const NAV = [
     description: "Branded pricing pages for buyers — share a link, PDF or image.",
   },
   {
+    id: "proposals",
+    label: "Proposals",
+    icon: FileText,
+    description: "Long-form client proposals — share a link, download a PDF or email the client.",
+  },
+  {
     id: "experts",
     label: "Experts",
     icon: UserCheck,
@@ -261,6 +270,7 @@ export function AdminApp({ initialTab = "overview" }: { initialTab?: Tab }) {
             "scout",
             "audits",
             "quotes",
+            "proposals",
             "experts",
             "visitors",
             "projects",
@@ -350,6 +360,8 @@ export function AdminApp({ initialTab = "overview" }: { initialTab?: Tab }) {
             <PaymentsAdmin />
           ) : tab === "quotes" ? (
             <QuotesWorkspace />
+          ) : tab === "proposals" ? (
+            <ProposalsWorkspace />
           ) : tab === "experts" ? (
             <ExpertsAdmin />
           ) : tab === "visitors" ? (

@@ -61,6 +61,7 @@ import { Route as InsightsIndexRouteImport } from './routes/insights.index'
 import { Route as InsightsSlugRouteImport } from './routes/insights.$slug'
 import { Route as InsightsGlossaryRouteImport } from './routes/insights.glossary'
 import { Route as PayTokenRouteImport } from './routes/pay.$token'
+import { Route as ProposalTokenRouteImport } from './routes/proposal.$token'
 import { Route as QuoteTokenRouteImport } from './routes/quote.$token'
 import { Route as ServicesIndexRouteImport } from './routes/services.index'
 import { Route as ServicesSlugRouteImport } from './routes/services.$slug'
@@ -92,6 +93,7 @@ import { Route as ApiAdminLeadsRouteImport } from './routes/api/admin/leads'
 import { Route as ApiAdminNotificationsRouteImport } from './routes/api/admin/notifications'
 import { Route as ApiAdminPerplexitySettingsRouteImport } from './routes/api/admin/perplexity-settings'
 import { Route as ApiAdminPortfolioRouteImport } from './routes/api/admin/portfolio'
+import { Route as ApiAdminProposalsRouteImport } from './routes/api/admin/proposals'
 import { Route as ApiAdminQuotesRouteImport } from './routes/api/admin/quotes'
 import { Route as ApiAdminScoutAmazonSearchRouteImport } from './routes/api/admin/scout-amazon-search'
 import { Route as ApiAdminScoutArcDiscoveryRouteImport } from './routes/api/admin/scout-arc-discovery'
@@ -140,6 +142,7 @@ import { Route as ApiPublicGrowthAuditRouteImport } from './routes/api/public/gr
 import { Route as ApiPublicInquiryRouteImport } from './routes/api/public/inquiry'
 import { Route as ApiPublicNewsletterRouteImport } from './routes/api/public/newsletter'
 import { Route as ApiPublicPortfolioRouteImport } from './routes/api/public/portfolio'
+import { Route as ApiPublicProposalRouteImport } from './routes/api/public/proposal'
 import { Route as ApiPublicQuoteRouteImport } from './routes/api/public/quote'
 import { Route as ApiPublicResourceRequestRouteImport } from './routes/api/public/resource-request'
 import { Route as ApiPublicTeamRouteImport } from './routes/api/public/team'
@@ -165,6 +168,7 @@ import { Route as ApiAdminInvoiceRequestsIdRouteImport } from './routes/api/admi
 import { Route as ApiAdminInvoicesIdRouteImport } from './routes/api/admin/invoices.$id'
 import { Route as ApiAdminPortfolioIdRouteImport } from './routes/api/admin/portfolio.$id'
 import { Route as ApiAdminPortfolioReorderRouteImport } from './routes/api/admin/portfolio.reorder'
+import { Route as ApiAdminProposalsIdRouteImport } from './routes/api/admin/proposals.$id'
 import { Route as ApiAdminQuotesIdRouteImport } from './routes/api/admin/quotes.$id'
 import { Route as ApiAdminScoutAudienceBatchesIdRouteImport } from './routes/api/admin/scout-audience-batches.$id'
 import { Route as ApiAdminScoutAudienceLeadsIdRouteImport } from './routes/api/admin/scout-audience-leads.$id'
@@ -467,6 +471,11 @@ const PayTokenRoute = PayTokenRouteImport.update({
   path: '/pay/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProposalTokenRoute = ProposalTokenRouteImport.update({
+  id: '/proposal/$token',
+  path: '/proposal/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const QuoteTokenRoute = QuoteTokenRouteImport.update({
   id: '/quote/$token',
   path: '/quote/$token',
@@ -624,6 +633,11 @@ const ApiAdminPerplexitySettingsRoute =
 const ApiAdminPortfolioRoute = ApiAdminPortfolioRouteImport.update({
   id: '/api/admin/portfolio',
   path: '/api/admin/portfolio',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminProposalsRoute = ApiAdminProposalsRouteImport.update({
+  id: '/api/admin/proposals',
+  path: '/api/admin/proposals',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiAdminQuotesRoute = ApiAdminQuotesRouteImport.update({
@@ -879,6 +893,11 @@ const ApiPublicPortfolioRoute = ApiPublicPortfolioRouteImport.update({
   path: '/api/public/portfolio',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicProposalRoute = ApiPublicProposalRouteImport.update({
+  id: '/api/public/proposal',
+  path: '/api/public/proposal',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicQuoteRoute = ApiPublicQuoteRouteImport.update({
   id: '/api/public/quote',
   path: '/api/public/quote',
@@ -1010,6 +1029,11 @@ const ApiAdminPortfolioReorderRoute =
     path: '/reorder',
     getParentRoute: () => ApiAdminPortfolioRoute,
   } as any)
+const ApiAdminProposalsIdRoute = ApiAdminProposalsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ApiAdminProposalsRoute,
+} as any)
 const ApiAdminQuotesIdRoute = ApiAdminQuotesIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -1290,6 +1314,7 @@ export interface FileRoutesByFullPath {
   '/insights/$slug': typeof InsightsSlugRoute
   '/insights/glossary': typeof InsightsGlossaryRoute
   '/pay/$token': typeof PayTokenRoute
+  '/proposal/$token': typeof ProposalTokenRoute
   '/quote/$token': typeof QuoteTokenRoute
   '/services/$slug': typeof ServicesSlugRoute
   '/tools/$tool': typeof ToolsToolRoute
@@ -1326,6 +1351,7 @@ export interface FileRoutesByFullPath {
   '/api/admin/notifications': typeof ApiAdminNotificationsRoute
   '/api/admin/perplexity-settings': typeof ApiAdminPerplexitySettingsRoute
   '/api/admin/portfolio': typeof ApiAdminPortfolioRouteWithChildren
+  '/api/admin/proposals': typeof ApiAdminProposalsRouteWithChildren
   '/api/admin/quotes': typeof ApiAdminQuotesRouteWithChildren
   '/api/admin/scout-amazon-search': typeof ApiAdminScoutAmazonSearchRoute
   '/api/admin/scout-arc-discovery': typeof ApiAdminScoutArcDiscoveryRoute
@@ -1374,6 +1400,7 @@ export interface FileRoutesByFullPath {
   '/api/public/inquiry': typeof ApiPublicInquiryRoute
   '/api/public/newsletter': typeof ApiPublicNewsletterRoute
   '/api/public/portfolio': typeof ApiPublicPortfolioRoute
+  '/api/public/proposal': typeof ApiPublicProposalRoute
   '/api/public/quote': typeof ApiPublicQuoteRoute
   '/api/public/resource-request': typeof ApiPublicResourceRequestRoute
   '/api/public/team': typeof ApiPublicTeamRoute
@@ -1399,6 +1426,7 @@ export interface FileRoutesByFullPath {
   '/api/admin/invoices/$id': typeof ApiAdminInvoicesIdRoute
   '/api/admin/portfolio/$id': typeof ApiAdminPortfolioIdRoute
   '/api/admin/portfolio/reorder': typeof ApiAdminPortfolioReorderRoute
+  '/api/admin/proposals/$id': typeof ApiAdminProposalsIdRoute
   '/api/admin/quotes/$id': typeof ApiAdminQuotesIdRoute
   '/api/admin/scout-audience-batches/$id': typeof ApiAdminScoutAudienceBatchesIdRoute
   '/api/admin/scout-audience-leads/$id': typeof ApiAdminScoutAudienceLeadsIdRoute
@@ -1488,6 +1516,7 @@ export interface FileRoutesByTo {
   '/insights/$slug': typeof InsightsSlugRoute
   '/insights/glossary': typeof InsightsGlossaryRoute
   '/pay/$token': typeof PayTokenRoute
+  '/proposal/$token': typeof ProposalTokenRoute
   '/quote/$token': typeof QuoteTokenRoute
   '/services/$slug': typeof ServicesSlugRoute
   '/tools/$tool': typeof ToolsToolRoute
@@ -1524,6 +1553,7 @@ export interface FileRoutesByTo {
   '/api/admin/notifications': typeof ApiAdminNotificationsRoute
   '/api/admin/perplexity-settings': typeof ApiAdminPerplexitySettingsRoute
   '/api/admin/portfolio': typeof ApiAdminPortfolioRouteWithChildren
+  '/api/admin/proposals': typeof ApiAdminProposalsRouteWithChildren
   '/api/admin/quotes': typeof ApiAdminQuotesRouteWithChildren
   '/api/admin/scout-amazon-search': typeof ApiAdminScoutAmazonSearchRoute
   '/api/admin/scout-arc-discovery': typeof ApiAdminScoutArcDiscoveryRoute
@@ -1572,6 +1602,7 @@ export interface FileRoutesByTo {
   '/api/public/inquiry': typeof ApiPublicInquiryRoute
   '/api/public/newsletter': typeof ApiPublicNewsletterRoute
   '/api/public/portfolio': typeof ApiPublicPortfolioRoute
+  '/api/public/proposal': typeof ApiPublicProposalRoute
   '/api/public/quote': typeof ApiPublicQuoteRoute
   '/api/public/resource-request': typeof ApiPublicResourceRequestRoute
   '/api/public/team': typeof ApiPublicTeamRoute
@@ -1597,6 +1628,7 @@ export interface FileRoutesByTo {
   '/api/admin/invoices/$id': typeof ApiAdminInvoicesIdRoute
   '/api/admin/portfolio/$id': typeof ApiAdminPortfolioIdRoute
   '/api/admin/portfolio/reorder': typeof ApiAdminPortfolioReorderRoute
+  '/api/admin/proposals/$id': typeof ApiAdminProposalsIdRoute
   '/api/admin/quotes/$id': typeof ApiAdminQuotesIdRoute
   '/api/admin/scout-audience-batches/$id': typeof ApiAdminScoutAudienceBatchesIdRoute
   '/api/admin/scout-audience-leads/$id': typeof ApiAdminScoutAudienceLeadsIdRoute
@@ -1687,6 +1719,7 @@ export interface FileRoutesById {
   '/insights/$slug': typeof InsightsSlugRoute
   '/insights/glossary': typeof InsightsGlossaryRoute
   '/pay/$token': typeof PayTokenRoute
+  '/proposal/$token': typeof ProposalTokenRoute
   '/quote/$token': typeof QuoteTokenRoute
   '/services/$slug': typeof ServicesSlugRoute
   '/tools/$tool': typeof ToolsToolRoute
@@ -1723,6 +1756,7 @@ export interface FileRoutesById {
   '/api/admin/notifications': typeof ApiAdminNotificationsRoute
   '/api/admin/perplexity-settings': typeof ApiAdminPerplexitySettingsRoute
   '/api/admin/portfolio': typeof ApiAdminPortfolioRouteWithChildren
+  '/api/admin/proposals': typeof ApiAdminProposalsRouteWithChildren
   '/api/admin/quotes': typeof ApiAdminQuotesRouteWithChildren
   '/api/admin/scout-amazon-search': typeof ApiAdminScoutAmazonSearchRoute
   '/api/admin/scout-arc-discovery': typeof ApiAdminScoutArcDiscoveryRoute
@@ -1771,6 +1805,7 @@ export interface FileRoutesById {
   '/api/public/inquiry': typeof ApiPublicInquiryRoute
   '/api/public/newsletter': typeof ApiPublicNewsletterRoute
   '/api/public/portfolio': typeof ApiPublicPortfolioRoute
+  '/api/public/proposal': typeof ApiPublicProposalRoute
   '/api/public/quote': typeof ApiPublicQuoteRoute
   '/api/public/resource-request': typeof ApiPublicResourceRequestRoute
   '/api/public/team': typeof ApiPublicTeamRoute
@@ -1796,6 +1831,7 @@ export interface FileRoutesById {
   '/api/admin/invoices/$id': typeof ApiAdminInvoicesIdRoute
   '/api/admin/portfolio/$id': typeof ApiAdminPortfolioIdRoute
   '/api/admin/portfolio/reorder': typeof ApiAdminPortfolioReorderRoute
+  '/api/admin/proposals/$id': typeof ApiAdminProposalsIdRoute
   '/api/admin/quotes/$id': typeof ApiAdminQuotesIdRoute
   '/api/admin/scout-audience-batches/$id': typeof ApiAdminScoutAudienceBatchesIdRoute
   '/api/admin/scout-audience-leads/$id': typeof ApiAdminScoutAudienceLeadsIdRoute
@@ -1887,6 +1923,7 @@ export interface FileRouteTypes {
     | '/insights/$slug'
     | '/insights/glossary'
     | '/pay/$token'
+    | '/proposal/$token'
     | '/quote/$token'
     | '/services/$slug'
     | '/tools/$tool'
@@ -1923,6 +1960,7 @@ export interface FileRouteTypes {
     | '/api/admin/notifications'
     | '/api/admin/perplexity-settings'
     | '/api/admin/portfolio'
+    | '/api/admin/proposals'
     | '/api/admin/quotes'
     | '/api/admin/scout-amazon-search'
     | '/api/admin/scout-arc-discovery'
@@ -1971,6 +2009,7 @@ export interface FileRouteTypes {
     | '/api/public/inquiry'
     | '/api/public/newsletter'
     | '/api/public/portfolio'
+    | '/api/public/proposal'
     | '/api/public/quote'
     | '/api/public/resource-request'
     | '/api/public/team'
@@ -1996,6 +2035,7 @@ export interface FileRouteTypes {
     | '/api/admin/invoices/$id'
     | '/api/admin/portfolio/$id'
     | '/api/admin/portfolio/reorder'
+    | '/api/admin/proposals/$id'
     | '/api/admin/quotes/$id'
     | '/api/admin/scout-audience-batches/$id'
     | '/api/admin/scout-audience-leads/$id'
@@ -2085,6 +2125,7 @@ export interface FileRouteTypes {
     | '/insights/$slug'
     | '/insights/glossary'
     | '/pay/$token'
+    | '/proposal/$token'
     | '/quote/$token'
     | '/services/$slug'
     | '/tools/$tool'
@@ -2121,6 +2162,7 @@ export interface FileRouteTypes {
     | '/api/admin/notifications'
     | '/api/admin/perplexity-settings'
     | '/api/admin/portfolio'
+    | '/api/admin/proposals'
     | '/api/admin/quotes'
     | '/api/admin/scout-amazon-search'
     | '/api/admin/scout-arc-discovery'
@@ -2169,6 +2211,7 @@ export interface FileRouteTypes {
     | '/api/public/inquiry'
     | '/api/public/newsletter'
     | '/api/public/portfolio'
+    | '/api/public/proposal'
     | '/api/public/quote'
     | '/api/public/resource-request'
     | '/api/public/team'
@@ -2194,6 +2237,7 @@ export interface FileRouteTypes {
     | '/api/admin/invoices/$id'
     | '/api/admin/portfolio/$id'
     | '/api/admin/portfolio/reorder'
+    | '/api/admin/proposals/$id'
     | '/api/admin/quotes/$id'
     | '/api/admin/scout-audience-batches/$id'
     | '/api/admin/scout-audience-leads/$id'
@@ -2283,6 +2327,7 @@ export interface FileRouteTypes {
     | '/insights/$slug'
     | '/insights/glossary'
     | '/pay/$token'
+    | '/proposal/$token'
     | '/quote/$token'
     | '/services/$slug'
     | '/tools/$tool'
@@ -2319,6 +2364,7 @@ export interface FileRouteTypes {
     | '/api/admin/notifications'
     | '/api/admin/perplexity-settings'
     | '/api/admin/portfolio'
+    | '/api/admin/proposals'
     | '/api/admin/quotes'
     | '/api/admin/scout-amazon-search'
     | '/api/admin/scout-arc-discovery'
@@ -2367,6 +2413,7 @@ export interface FileRouteTypes {
     | '/api/public/inquiry'
     | '/api/public/newsletter'
     | '/api/public/portfolio'
+    | '/api/public/proposal'
     | '/api/public/quote'
     | '/api/public/resource-request'
     | '/api/public/team'
@@ -2392,6 +2439,7 @@ export interface FileRouteTypes {
     | '/api/admin/invoices/$id'
     | '/api/admin/portfolio/$id'
     | '/api/admin/portfolio/reorder'
+    | '/api/admin/proposals/$id'
     | '/api/admin/quotes/$id'
     | '/api/admin/scout-audience-batches/$id'
     | '/api/admin/scout-audience-leads/$id'
@@ -2482,6 +2530,7 @@ export interface RootRouteChildren {
   InsightsSlugRoute: typeof InsightsSlugRoute
   InsightsGlossaryRoute: typeof InsightsGlossaryRoute
   PayTokenRoute: typeof PayTokenRoute
+  ProposalTokenRoute: typeof ProposalTokenRoute
   QuoteTokenRoute: typeof QuoteTokenRoute
   ServicesSlugRoute: typeof ServicesSlugRoute
   ToolsToolRoute: typeof ToolsToolRoute
@@ -2518,6 +2567,7 @@ export interface RootRouteChildren {
   ApiAdminNotificationsRoute: typeof ApiAdminNotificationsRoute
   ApiAdminPerplexitySettingsRoute: typeof ApiAdminPerplexitySettingsRoute
   ApiAdminPortfolioRoute: typeof ApiAdminPortfolioRouteWithChildren
+  ApiAdminProposalsRoute: typeof ApiAdminProposalsRouteWithChildren
   ApiAdminQuotesRoute: typeof ApiAdminQuotesRouteWithChildren
   ApiAdminScoutAmazonSearchRoute: typeof ApiAdminScoutAmazonSearchRoute
   ApiAdminScoutArcDiscoveryRoute: typeof ApiAdminScoutArcDiscoveryRoute
@@ -2565,6 +2615,7 @@ export interface RootRouteChildren {
   ApiPublicInquiryRoute: typeof ApiPublicInquiryRoute
   ApiPublicNewsletterRoute: typeof ApiPublicNewsletterRoute
   ApiPublicPortfolioRoute: typeof ApiPublicPortfolioRoute
+  ApiPublicProposalRoute: typeof ApiPublicProposalRoute
   ApiPublicQuoteRoute: typeof ApiPublicQuoteRoute
   ApiPublicResourceRequestRoute: typeof ApiPublicResourceRequestRoute
   ApiPublicTeamRoute: typeof ApiPublicTeamRoute
@@ -2950,6 +3001,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PayTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/proposal/$token': {
+      id: '/proposal/$token'
+      path: '/proposal/$token'
+      fullPath: '/proposal/$token'
+      preLoaderRoute: typeof ProposalTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/quote/$token': {
       id: '/quote/$token'
       path: '/quote/$token'
@@ -3165,6 +3223,13 @@ declare module '@tanstack/react-router' {
       path: '/api/admin/portfolio'
       fullPath: '/api/admin/portfolio'
       preLoaderRoute: typeof ApiAdminPortfolioRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/proposals': {
+      id: '/api/admin/proposals'
+      path: '/api/admin/proposals'
+      fullPath: '/api/admin/proposals'
+      preLoaderRoute: typeof ApiAdminProposalsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/admin/quotes': {
@@ -3503,6 +3568,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicPortfolioRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/proposal': {
+      id: '/api/public/proposal'
+      path: '/api/public/proposal'
+      fullPath: '/api/public/proposal'
+      preLoaderRoute: typeof ApiPublicProposalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/quote': {
       id: '/api/public/quote'
       path: '/api/public/quote'
@@ -3677,6 +3749,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/admin/portfolio/reorder'
       preLoaderRoute: typeof ApiAdminPortfolioReorderRouteImport
       parentRoute: typeof ApiAdminPortfolioRoute
+    }
+    '/api/admin/proposals/$id': {
+      id: '/api/admin/proposals/$id'
+      path: '/$id'
+      fullPath: '/api/admin/proposals/$id'
+      preLoaderRoute: typeof ApiAdminProposalsIdRouteImport
+      parentRoute: typeof ApiAdminProposalsRoute
     }
     '/api/admin/quotes/$id': {
       id: '/api/admin/quotes/$id'
@@ -4201,6 +4280,17 @@ const ApiAdminPortfolioRouteChildren: ApiAdminPortfolioRouteChildren = {
 const ApiAdminPortfolioRouteWithChildren =
   ApiAdminPortfolioRoute._addFileChildren(ApiAdminPortfolioRouteChildren)
 
+interface ApiAdminProposalsRouteChildren {
+  ApiAdminProposalsIdRoute: typeof ApiAdminProposalsIdRoute
+}
+
+const ApiAdminProposalsRouteChildren: ApiAdminProposalsRouteChildren = {
+  ApiAdminProposalsIdRoute: ApiAdminProposalsIdRoute,
+}
+
+const ApiAdminProposalsRouteWithChildren =
+  ApiAdminProposalsRoute._addFileChildren(ApiAdminProposalsRouteChildren)
+
 interface ApiAdminQuotesRouteChildren {
   ApiAdminQuotesIdRoute: typeof ApiAdminQuotesIdRoute
 }
@@ -4399,6 +4489,7 @@ const rootRouteChildren: RootRouteChildren = {
   InsightsSlugRoute: InsightsSlugRoute,
   InsightsGlossaryRoute: InsightsGlossaryRoute,
   PayTokenRoute: PayTokenRoute,
+  ProposalTokenRoute: ProposalTokenRoute,
   QuoteTokenRoute: QuoteTokenRoute,
   ServicesSlugRoute: ServicesSlugRoute,
   ToolsToolRoute: ToolsToolRoute,
@@ -4435,6 +4526,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAdminNotificationsRoute: ApiAdminNotificationsRoute,
   ApiAdminPerplexitySettingsRoute: ApiAdminPerplexitySettingsRoute,
   ApiAdminPortfolioRoute: ApiAdminPortfolioRouteWithChildren,
+  ApiAdminProposalsRoute: ApiAdminProposalsRouteWithChildren,
   ApiAdminQuotesRoute: ApiAdminQuotesRouteWithChildren,
   ApiAdminScoutAmazonSearchRoute: ApiAdminScoutAmazonSearchRoute,
   ApiAdminScoutArcDiscoveryRoute: ApiAdminScoutArcDiscoveryRoute,
@@ -4483,6 +4575,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicInquiryRoute: ApiPublicInquiryRoute,
   ApiPublicNewsletterRoute: ApiPublicNewsletterRoute,
   ApiPublicPortfolioRoute: ApiPublicPortfolioRoute,
+  ApiPublicProposalRoute: ApiPublicProposalRoute,
   ApiPublicQuoteRoute: ApiPublicQuoteRoute,
   ApiPublicResourceRequestRoute: ApiPublicResourceRequestRoute,
   ApiPublicTeamRoute: ApiPublicTeamRoute,

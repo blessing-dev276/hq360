@@ -45,6 +45,11 @@
     --asa-banner: #0b0c0d;
   }
 }
+@media (prefers-color-scheme: dark) {
+  .asa-logo {
+    filter: brightness(0) invert(1);
+  }
+}
 
 .asa h1,
 .asa h2,
@@ -82,9 +87,31 @@
   gap: 16px;
   min-height: 64px;
 }
+.asa-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  color: inherit;
+}
 .asa-logo {
-  height: 30px;
+  height: 40px;
   width: auto;
+  display: block;
+}
+.asa-brand-sub {
+  padding-left: 12px;
+  border-left: 1px solid var(--asa-line);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--asa-muted);
+  white-space: nowrap;
+}
+@media (max-width: 520px) {
+  .asa-brand-sub {
+    display: none;
+  }
 }
 .asa-tabs {
   display: flex;
@@ -114,7 +141,7 @@
 @media (max-width: 767px) {
   .asa-bar-inner {
     flex-wrap: wrap;
-    padding: 10px 0;
+    padding: 10px 16px;
     gap: 8px;
   }
   .asa-tabs {
@@ -284,7 +311,7 @@
 }
 @media (min-width: 900px) {
   .asa-cover {
-    grid-template-columns: 1fr 320px;
+    grid-template-columns: 1fr 360px;
     align-items: center;
     padding: 72px 0 56px;
   }
@@ -306,12 +333,160 @@
   color: var(--asa-orange);
   line-height: 1;
 }
-.asa-trainer img {
+.asa-trainer {
+  padding: 14px 14px 20px;
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--asa-orange) 35%, transparent),
+    0 24px 60px -24px color-mix(in srgb, var(--asa-orange) 45%, transparent);
+}
+.asa-trainer h3 {
+  margin: 16px 6px 4px;
+  font-size: 24px;
+}
+.asa-trainer p {
+  margin: 0 6px 10px;
+  font-size: 14px;
+}
+.asa-trainer a {
+  margin: 0 6px;
+  font-weight: 600;
+  text-decoration: none;
+}
+.asa-trainer-photo {
+  position: relative;
+  aspect-ratio: 4 / 4.6;
+  border-radius: 16px;
+  overflow: hidden;
+  background: linear-gradient(150deg, var(--asa-orange), var(--asa-orange-2));
+}
+.asa-trainer-photo img {
   width: 100%;
-  aspect-ratio: 4 / 4.2;
+  height: 100%;
   object-fit: cover;
-  border-radius: 14px;
-  background: var(--asa-soft);
+  display: block;
+}
+.asa-trainer-initials {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  font-family: "Fraunces", serif;
+  font-size: 88px;
+  color: #fff;
+}
+.asa-trainer-badge {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: #fff;
+  color: #14181a;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+/* Daily scorecard */
+.asa-score {
+  display: grid;
+  gap: 14px;
+  margin: 0 0 44px;
+}
+@media (min-width: 820px) {
+  .asa-score {
+    grid-template-columns: 1.6fr 1fr;
+  }
+}
+.asa-score-main {
+  position: relative;
+  overflow: hidden;
+  padding: 28px;
+  border-radius: 22px;
+  background: var(--asa-banner);
+  color: #fff;
+}
+.asa-score-main::after {
+  content: "";
+  position: absolute;
+  right: -80px;
+  top: -80px;
+  width: 260px;
+  height: 260px;
+  border-radius: 50%;
+  background: radial-gradient(
+    closest-side,
+    color-mix(in srgb, var(--asa-orange) 55%, transparent),
+    transparent
+  );
+  pointer-events: none;
+}
+.asa-score-main .asa-label {
+  color: var(--asa-orange-2);
+}
+.asa-score-big {
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+  margin: 10px 0 8px;
+}
+.asa-score-big b {
+  font-family: "Fraunces", serif;
+  font-size: clamp(76px, 12vw, 120px);
+  line-height: 0.85;
+  color: var(--asa-orange-2);
+}
+.asa-score-big span {
+  padding-bottom: 8px;
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+.asa-score-pace {
+  margin: 0 0 18px;
+  color: #c9ccd0;
+  font-size: 15px;
+}
+.asa-score-pace b {
+  color: #fff;
+}
+.asa-score-steps {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+  font-size: 12px;
+  color: #c9ccd0;
+}
+.asa-score-steps span {
+  display: grid;
+  gap: 6px;
+}
+.asa-score-steps i {
+  height: 8px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--asa-orange), var(--asa-orange-2));
+}
+.asa-score-side {
+  display: grid;
+  gap: 10px;
+}
+.asa-score-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px;
+  border-radius: 16px;
+  background: var(--asa-card);
+  border: 1px solid var(--asa-line);
+}
+.asa-score-item b {
+  min-width: 64px;
+  font-family: "Fraunces", serif;
+  font-size: 32px;
+  color: var(--asa-orange);
+  line-height: 1;
+}
+.asa-score.compact {
+  margin: 18px 0;
 }
 .asa-book {
   display: grid;

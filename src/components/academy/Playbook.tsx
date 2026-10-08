@@ -32,8 +32,14 @@ const LINES: [string, string][] = [
     "Eric Worre",
     "If I could show you a way to get your book seen by more readers without it being a strain on your resources, would you be open to taking a look?",
   ],
-  ["Alex Hormozi", "Let me do the first part for free, and you only decide after you see the results."],
-  ["Cialdini", "I already built something for you, so you might as well take a look before you decide."],
+  [
+    "Alex Hormozi",
+    "Let me do the first part for free, and you only decide after you see the results.",
+  ],
+  [
+    "Cialdini",
+    "I already built something for you, so you might as well take a look before you decide.",
+  ],
   [
     "Loss aversion",
     "Right now readers are searching for a story exactly like yours and finding someone else's book instead.",
@@ -53,13 +59,104 @@ const LINES: [string, string][] = [
   ["Grant Cardone", "Is it the money, or is it that you are not sure it would work?"],
 ];
 
-function Chapter({ id, n, title, children }: { id: string; n: number; title: string; children: React.ReactNode }) {
+function Chapter({
+  id,
+  n,
+  title,
+  children,
+}: {
+  id: string;
+  n: number;
+  title: string;
+  children: React.ReactNode;
+}) {
   return (
     <section id={id} className="asa-chapter">
       <div className="asa-label">Chapter {String(n).padStart(2, "0")}</div>
       <h2>{title}</h2>
       {children}
     </section>
+  );
+}
+
+/** The daily targets every scout works to; 50 authors scouted leads. */
+const DAILY_TARGET = 50;
+const DAILY_OTHER: [string, string][] = [
+  ["15", "personal first messages"],
+  ["10%", "reply rate target"],
+  ["2", "practice sessions"],
+];
+
+function DailyScorecard({ compact = false }: { compact?: boolean }) {
+  return (
+    <section className={`asa-score${compact ? " compact" : ""}`} aria-label="Your daily scorecard">
+      <div className="asa-score-main">
+        <div className="asa-label">Your daily scorecard</div>
+        <div className="asa-score-big">
+          <b>{DAILY_TARGET}</b>
+          <span>
+            authors
+            <br />
+            scouted per day
+          </span>
+        </div>
+        <p className="asa-score-pace">
+          That's about <b>7 an hour</b> over a 7-hour day, or <b>1 every 8 minutes</b>.
+        </p>
+        <div className="asa-score-steps" aria-hidden="true">
+          {[10, 20, 30, 40, 50].map((n) => (
+            <span key={n}>
+              <i />
+              {n}
+            </span>
+          ))}
+        </div>
+      </div>
+      <div className="asa-score-side">
+        {DAILY_OTHER.map(([n, t]) => (
+          <div key={t} className="asa-score-item">
+            <b>{n}</b>
+            <span>{t}</span>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function Trainer() {
+  const [missing, setMissing] = useState(false);
+  return (
+    <aside className="asa-card asa-trainer">
+      <div className="asa-trainer-photo">
+        {missing ? (
+          <span className="asa-trainer-initials" aria-hidden="true">
+            ES
+          </span>
+        ) : (
+          <img
+            ref={(img) => {
+              // An image that failed before hydration never fires onError.
+              if (img?.complete && img.naturalWidth === 0) setMissing(true);
+            }}
+            src="/trainer.jpg"
+            alt="Emmanuel Sunday, your trainer"
+            onError={() => setMissing(true)}
+          />
+        )}
+        <span className="asa-trainer-badge">Your trainer</span>
+      </div>
+      <h3>Emmanuel Sunday</h3>
+      <p className="asa-muted">Founder, HQ360. Author visibility, websites and book promotion.</p>
+      <a
+        href="https://hq360.space"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="asa-orange"
+      >
+        hq360.space ↗
+      </a>
+    </aside>
   );
 }
 
@@ -88,7 +185,9 @@ export function Playbook({ onPractice }: { onPractice: () => void }) {
   const [active, setActive] = useState("ch1");
 
   useEffect(() => {
-    const els = CHAPTERS.map(([id]) => document.getElementById(id)).filter(Boolean) as HTMLElement[];
+    const els = CHAPTERS.map(([id]) => document.getElementById(id)).filter(
+      Boolean,
+    ) as HTMLElement[];
     const io = new IntersectionObserver(
       (entries) => {
         const visible = entries.filter((e) => e.isIntersecting);
@@ -136,26 +235,10 @@ export function Playbook({ onPractice }: { onPractice: () => void }) {
             </button>
           </div>
         </div>
-        <aside className="asa-card asa-trainer">
-          <img src="/trainer.jpg" alt="Emmanuel Sunday" />
-          <div className="asa-label" style={{ marginTop: 14 }}>
-            Your trainer
-          </div>
-          <h3 style={{ margin: "4px 0", fontSize: 22 }}>Emmanuel Sunday</h3>
-          <p className="asa-muted" style={{ margin: "0 0 8px", fontSize: 14 }}>
-            Founder, HQ360. Author visibility, websites and book promotion.
-          </p>
-          <a
-            href="https://hq360.space"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="asa-orange"
-            style={{ fontWeight: 600 }}
-          >
-            hq360.space
-          </a>
-        </aside>
+        <Trainer />
       </div>
+
+      <DailyScorecard />
 
       <div className="asa-book">
         <nav className="asa-toc" aria-label="Chapters">
@@ -198,8 +281,8 @@ export function Playbook({ onPractice }: { onPractice: () => void }) {
               ))}
             </div>
             <p className="asa-muted" style={{ fontSize: 14 }}>
-              Most lost deals were lost at stage two because the scout did not know enough about
-              the book.
+              Most lost deals were lost at stage two because the scout did not know enough about the
+              book.
             </p>
           </Chapter>
 
@@ -238,7 +321,9 @@ export function Playbook({ onPractice }: { onPractice: () => void }) {
                 <tbody>
                   <tr>
                     <td>Goodreads</td>
-                    <td>Books with 4 star plus ratings but under 50 ratings; check list positions</td>
+                    <td>
+                      Books with 4 star plus ratings but under 50 ratings; check list positions
+                    </td>
                   </tr>
                   <tr>
                     <td>Amazon new releases</td>
@@ -250,7 +335,9 @@ export function Playbook({ onPractice }: { onPractice: () => void }) {
                   </tr>
                   <tr>
                     <td>LinkedIn</td>
-                    <td>Professionals using a book for authority; they understand return on investment</td>
+                    <td>
+                      Professionals using a book for authority; they understand return on investment
+                    </td>
                   </tr>
                 </tbody>
               </table>
@@ -264,8 +351,8 @@ export function Playbook({ onPractice }: { onPractice: () => void }) {
                 <b>Do they have a website?</b> No website is the clearest opening.
               </li>
               <li>
-                <b>Where is the book on Goodreads?</b> Find 3 to 5 matching lists and note the
-                page, or if it is missing, screenshot the top authors as competitors.
+                <b>Where is the book on Goodreads?</b> Find 3 to 5 matching lists and note the page,
+                or if it is missing, screenshot the top authors as competitors.
               </li>
               <li>
                 <b>What do readers say?</b> Rating, review count, two real quotes.
@@ -312,9 +399,9 @@ export function Playbook({ onPractice }: { onPractice: () => void }) {
                   Hi Kimberly, Your author profile introduces Austin Creek as your debut novel and
                   also highlights your teaching and workshop experience. That combination provides
                   more than one route for readers and programme organisers to discover your work.
-                  For your work, I would propose: Reader positioning: review the book
-                  description... Author platform: Clear novel and workshop enquiry paths... Reader
-                  development: build a focused promotion plan...
+                  For your work, I would propose: Reader positioning: review the book description...
+                  Author platform: Clear novel and workshop enquiry paths... Reader development:
+                  build a focused promotion plan...
                 </div>
                 <p style={{ fontSize: 14, marginTop: 10 }}>
                   <b>Why it fails:</b> sounds like a consultant's report, lists services not
@@ -353,8 +440,8 @@ export function Playbook({ onPractice }: { onPractice: () => void }) {
               </div>
               <div className="asa-card asa-tile">
                 <b>Day 14</b>
-                Close the loop kindly: "I will not keep filling your inbox. If the timing changes,
-                I would be glad to help."
+                Close the loop kindly: "I will not keep filling your inbox. If the timing changes, I
+                would be glad to help."
               </div>
             </div>
             <div className="asa-callout">
@@ -376,7 +463,9 @@ export function Playbook({ onPractice }: { onPractice: () => void }) {
                 <tbody>
                   <tr>
                     <td>Curious / open but unsure</td>
-                    <td>"I know nothing about these lists, but if you want to help me, thank you."</td>
+                    <td>
+                      "I know nothing about these lists, but if you want to help me, thank you."
+                    </td>
                     <td>
                       Teach why Goodreads matters, show the lists, name the competitors at the top,
                       show what they lose by staying invisible, then ask for the yes.
@@ -396,8 +485,8 @@ export function Playbook({ onPractice }: { onPractice: () => void }) {
                     <td>Human moment / life event</td>
                     <td>"My wife died in June. Still in mourning."</td>
                     <td>
-                      No pitch at all. Respond as a person, ask how they are, remove them from
-                      every sequence.
+                      No pitch at all. Respond as a person, ask how they are, remove them from every
+                      sequence.
                     </td>
                   </tr>
                   <tr>
@@ -415,9 +504,8 @@ export function Playbook({ onPractice }: { onPractice: () => void }) {
 
           <Chapter id="ch7" n={7} title="Handling rejection">
             <p>
-              A no is usually a no to the pitch, not to the goal. Agree with it, then open one
-              small door. Use one line per reply, never stack them, and only use claims that are
-              true.
+              A no is usually a no to the pitch, not to the goal. Agree with it, then open one small
+              door. Use one line per reply, never stack them, and only use claims that are true.
             </p>
             <div>
               {LINES.map(([src, line], i) => (
@@ -446,7 +534,11 @@ export function Playbook({ onPractice }: { onPractice: () => void }) {
                         height: `${h * 1.1}px`,
                         borderRadius: "6px 6px 0 0",
                         background:
-                          i < 2 ? "var(--asa-orange)" : i === 9 ? "var(--asa-bad)" : "var(--asa-line)",
+                          i < 2
+                            ? "var(--asa-orange)"
+                            : i === 9
+                              ? "var(--asa-bad)"
+                              : "var(--asa-line)",
                       }}
                     />
                     <div className="asa-muted" style={{ fontSize: 11, marginTop: 4 }}>
@@ -518,19 +610,7 @@ export function Playbook({ onPractice }: { onPractice: () => void }) {
           </Chapter>
 
           <Chapter id="ch10" n={10} title="Your daily scorecard">
-            <div className="asa-tiles">
-              {[
-                ["20", "authors researched"],
-                ["15", "personal first messages"],
-                ["10%", "reply rate target"],
-                ["2", "practice sessions"],
-              ].map(([n, t]) => (
-                <div key={t} className="asa-card asa-tile">
-                  <b>{n}</b>
-                  {t}
-                </div>
-              ))}
-            </div>
+            <DailyScorecard compact />
             <p>
               Log every reply as one of the five types from chapter six and note which line you
               used. Review every Friday.

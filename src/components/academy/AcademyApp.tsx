@@ -53,17 +53,9 @@ export function AcademyApp() {
     <div className="asa">
       <header className="asa-bar">
         <div className="asa-wrap asa-bar-inner">
-          <a href="/academy" aria-label="Author Scout Academy home">
-            <img
-              src="/logo.png"
-              alt="HQ360"
-              className="asa-logo"
-              onError={(e) => {
-                // Fall back to the site logo until /public/logo.png is uploaded.
-                if (!e.currentTarget.src.endsWith("/logo-text.png"))
-                  e.currentTarget.src = "/logo-text.png";
-              }}
-            />
+          <a href="/academy" aria-label="Author Scout Academy home" className="asa-brand">
+            <img src="/logo-text.webp" alt="HQ360" className="asa-logo" />
+            <span className="asa-brand-sub">Author Scout Academy</span>
           </a>
           {state === "ready" ? (
             <>
@@ -92,11 +84,7 @@ export function AcademyApp() {
                 Sign out
               </button>
             </>
-          ) : (
-            <span className="asa-serif" style={{ fontSize: 18 }}>
-              Author Scout Academy
-            </span>
-          )}
+          ) : null}
         </div>
       </header>
 

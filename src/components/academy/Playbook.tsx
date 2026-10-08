@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { api } from "./shared";
 import {
   APPROACH_STRATEGIES,
   ApproachStrategies,
@@ -153,38 +154,88 @@ function DailyScorecard({ compact = false }: { compact?: boolean }) {
   );
 }
 
+type TrainerInfo = {
+  name: string;
+  headline: string;
+  photo: string | null;
+  profileUrl: string | null;
+};
+const DEFAULT_TRAINER: TrainerInfo = {
+  name: "Emmanuel Sunday",
+  headline: "Founder, HQ360. Author visibility, websites and book promotion.",
+  photo: "/trainer.jpg",
+  profileUrl: null,
+};
+
+/** Experts the admin assigned as trainers; the default card if none. */
 function Trainer() {
+  const [trainers, setTrainers] = useState<TrainerInfo[]>([DEFAULT_TRAINER]);
   const [missing, setMissing] = useState(false);
+  useEffect(() => {
+    void api<{ trainers?: TrainerInfo[] }>("/api/academy/trainers").then(({ status, body }) => {
+      if (status === 200 && body.trainers?.length) {
+        setMissing(false);
+        setTrainers(body.trainers);
+      }
+    });
+  }, []);
+  const [main, ...others] = trainers;
+  const t = main!;
+  const initials = t.name
+    .split(/\s+/)
+    .map((w) => w[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
   return (
     <aside className="asa-card asa-trainer">
       <div className="asa-trainer-photo">
-        {missing ? (
+        {missing || !t.photo ? (
           <span className="asa-trainer-initials" aria-hidden="true">
-            ES
+            {initials}
           </span>
         ) : (
           <img
+            key={t.photo}
             ref={(img) => {
               // An image that failed before hydration never fires onError.
               if (img?.complete && img.naturalWidth === 0) setMissing(true);
             }}
-            src="/trainer.jpg"
-            alt="Emmanuel Sunday, your trainer"
+            src={t.photo}
+            alt={`${t.name}, your trainer`}
             onError={() => setMissing(true)}
           />
         )}
-        <span className="asa-trainer-badge">Your trainer</span>
+        <span className="asa-trainer-badge">
+          {trainers.length > 1 ? "Your trainers" : "Your trainer"}
+        </span>
       </div>
-      <h3>Emmanuel Sunday</h3>
-      <p className="asa-muted">Founder, HQ360. Author visibility, websites and book promotion.</p>
-      <a
-        href="https://hq360.space"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="asa-orange"
-      >
-        hq360.space ↗
-      </a>
+      <h3>{t.name}</h3>
+      {t.headline && <p className="asa-muted">{t.headline}</p>}
+      {t.profileUrl ? (
+        <a href={t.profileUrl} target="_blank" rel="noopener noreferrer" className="asa-orange">
+          View profile ↗
+        </a>
+      ) : (
+        <a
+          href="https://hq360.space"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="asa-orange"
+        >
+          hq360.space ↗
+        </a>
+      )}
+      {others.length > 0 && (
+        <div className="asa-trainer-others">
+          {others.map((o) => (
+            <span key={o.name} title={o.headline}>
+              {o.photo ? <img src={o.photo} alt="" /> : <i>{o.name.slice(0, 1)}</i>}
+              {o.name}
+            </span>
+          ))}
+        </div>
+      )}
     </aside>
   );
 }

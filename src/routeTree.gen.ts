@@ -79,6 +79,7 @@ import { Route as ApiAcademyPerplexityKeyRouteImport } from './routes/api/academ
 import { Route as ApiAcademyReplyRouteImport } from './routes/api/academy/reply'
 import { Route as ApiAcademySessionRouteImport } from './routes/api/academy/session'
 import { Route as ApiAcademySessionsRouteImport } from './routes/api/academy/sessions'
+import { Route as ApiAcademyTrainersRouteImport } from './routes/api/academy/trainers'
 import { Route as ApiAdminAuthorAuditLeadsRouteImport } from './routes/api/admin/author-audit-leads'
 import { Route as ApiAdminAuthorAuditsRouteImport } from './routes/api/admin/author-audits'
 import { Route as ApiAdminCaseStudiesRouteImport } from './routes/api/admin/case-studies'
@@ -198,6 +199,7 @@ import { Route as ApiAdminAuthorAuditsIdSynthesizeRouteImport } from './routes/a
 import { Route as ApiAdminAuthorAuditsIdSynthesizePlanRouteImport } from './routes/api/admin/author-audits.$id.synthesize-plan'
 import { Route as ApiAdminAuthorAuditsIdVerificationsRouteImport } from './routes/api/admin/author-audits.$id.verifications'
 import { Route as ApiAdminAuthorAuditsIdWorkflowRouteImport } from './routes/api/admin/author-audits.$id.workflow'
+import { Route as ApiAdminExpertsIdPerplexityKeyRouteImport } from './routes/api/admin/experts.$id.perplexity-key'
 import { Route as ApiAdminScoutAuthorsIdConfirmContactRouteImport } from './routes/api/admin/scout-authors.$id.confirm-contact'
 import { Route as ApiAdminScoutAuthorsIdFindContactRouteImport } from './routes/api/admin/scout-authors.$id.find-contact'
 import { Route as ApiAdminScoutAuthorsIdResearchWebsiteRouteImport } from './routes/api/admin/scout-authors.$id.research-website'
@@ -561,6 +563,11 @@ const ApiAcademySessionRoute = ApiAcademySessionRouteImport.update({
 const ApiAcademySessionsRoute = ApiAcademySessionsRouteImport.update({
   id: '/api/academy/sessions',
   path: '/api/academy/sessions',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAcademyTrainersRoute = ApiAcademyTrainersRouteImport.update({
+  id: '/api/academy/trainers',
+  path: '/api/academy/trainers',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiAdminAuthorAuditLeadsRoute =
@@ -1199,6 +1206,12 @@ const ApiAdminAuthorAuditsIdWorkflowRoute =
     path: '/workflow',
     getParentRoute: () => ApiAdminAuthorAuditsIdRoute,
   } as any)
+const ApiAdminExpertsIdPerplexityKeyRoute =
+  ApiAdminExpertsIdPerplexityKeyRouteImport.update({
+    id: '/perplexity-key',
+    path: '/perplexity-key',
+    getParentRoute: () => ApiAdminExpertsIdRoute,
+  } as any)
 const ApiAdminScoutAuthorsIdConfirmContactRoute =
   ApiAdminScoutAuthorsIdConfirmContactRouteImport.update({
     id: '/confirm-contact',
@@ -1343,6 +1356,7 @@ export interface FileRoutesByFullPath {
   '/api/academy/reply': typeof ApiAcademyReplyRoute
   '/api/academy/session': typeof ApiAcademySessionRoute
   '/api/academy/sessions': typeof ApiAcademySessionsRouteWithChildren
+  '/api/academy/trainers': typeof ApiAcademyTrainersRoute
   '/api/admin/author-audit-leads': typeof ApiAdminAuthorAuditLeadsRoute
   '/api/admin/author-audits': typeof ApiAdminAuthorAuditsRouteWithChildren
   '/api/admin/case-studies': typeof ApiAdminCaseStudiesRouteWithChildren
@@ -1428,7 +1442,7 @@ export interface FileRoutesByFullPath {
   '/api/admin/expert-portfolio/$id': typeof ApiAdminExpertPortfolioIdRoute
   '/api/admin/expert-reviews/$id': typeof ApiAdminExpertReviewsIdRoute
   '/api/admin/expert-testimonials/$id': typeof ApiAdminExpertTestimonialsIdRoute
-  '/api/admin/experts/$id': typeof ApiAdminExpertsIdRoute
+  '/api/admin/experts/$id': typeof ApiAdminExpertsIdRouteWithChildren
   '/api/admin/invoice-requests/$id': typeof ApiAdminInvoiceRequestsIdRoute
   '/api/admin/invoices/$id': typeof ApiAdminInvoicesIdRoute
   '/api/admin/portfolio/$id': typeof ApiAdminPortfolioIdRoute
@@ -1462,6 +1476,7 @@ export interface FileRoutesByFullPath {
   '/api/admin/author-audits/$id/synthesize-plan': typeof ApiAdminAuthorAuditsIdSynthesizePlanRoute
   '/api/admin/author-audits/$id/verifications': typeof ApiAdminAuthorAuditsIdVerificationsRoute
   '/api/admin/author-audits/$id/workflow': typeof ApiAdminAuthorAuditsIdWorkflowRoute
+  '/api/admin/experts/$id/perplexity-key': typeof ApiAdminExpertsIdPerplexityKeyRoute
   '/api/admin/scout-authors/$id/confirm-contact': typeof ApiAdminScoutAuthorsIdConfirmContactRoute
   '/api/admin/scout-authors/$id/find-contact': typeof ApiAdminScoutAuthorsIdFindContactRoute
   '/api/admin/scout-authors/$id/research-website': typeof ApiAdminScoutAuthorsIdResearchWebsiteRoute
@@ -1546,6 +1561,7 @@ export interface FileRoutesByTo {
   '/api/academy/reply': typeof ApiAcademyReplyRoute
   '/api/academy/session': typeof ApiAcademySessionRoute
   '/api/academy/sessions': typeof ApiAcademySessionsRouteWithChildren
+  '/api/academy/trainers': typeof ApiAcademyTrainersRoute
   '/api/admin/author-audit-leads': typeof ApiAdminAuthorAuditLeadsRoute
   '/api/admin/author-audits': typeof ApiAdminAuthorAuditsRouteWithChildren
   '/api/admin/case-studies': typeof ApiAdminCaseStudiesRouteWithChildren
@@ -1631,7 +1647,7 @@ export interface FileRoutesByTo {
   '/api/admin/expert-portfolio/$id': typeof ApiAdminExpertPortfolioIdRoute
   '/api/admin/expert-reviews/$id': typeof ApiAdminExpertReviewsIdRoute
   '/api/admin/expert-testimonials/$id': typeof ApiAdminExpertTestimonialsIdRoute
-  '/api/admin/experts/$id': typeof ApiAdminExpertsIdRoute
+  '/api/admin/experts/$id': typeof ApiAdminExpertsIdRouteWithChildren
   '/api/admin/invoice-requests/$id': typeof ApiAdminInvoiceRequestsIdRoute
   '/api/admin/invoices/$id': typeof ApiAdminInvoicesIdRoute
   '/api/admin/portfolio/$id': typeof ApiAdminPortfolioIdRoute
@@ -1665,6 +1681,7 @@ export interface FileRoutesByTo {
   '/api/admin/author-audits/$id/synthesize-plan': typeof ApiAdminAuthorAuditsIdSynthesizePlanRoute
   '/api/admin/author-audits/$id/verifications': typeof ApiAdminAuthorAuditsIdVerificationsRoute
   '/api/admin/author-audits/$id/workflow': typeof ApiAdminAuthorAuditsIdWorkflowRoute
+  '/api/admin/experts/$id/perplexity-key': typeof ApiAdminExpertsIdPerplexityKeyRoute
   '/api/admin/scout-authors/$id/confirm-contact': typeof ApiAdminScoutAuthorsIdConfirmContactRoute
   '/api/admin/scout-authors/$id/find-contact': typeof ApiAdminScoutAuthorsIdFindContactRoute
   '/api/admin/scout-authors/$id/research-website': typeof ApiAdminScoutAuthorsIdResearchWebsiteRoute
@@ -1750,6 +1767,7 @@ export interface FileRoutesById {
   '/api/academy/reply': typeof ApiAcademyReplyRoute
   '/api/academy/session': typeof ApiAcademySessionRoute
   '/api/academy/sessions': typeof ApiAcademySessionsRouteWithChildren
+  '/api/academy/trainers': typeof ApiAcademyTrainersRoute
   '/api/admin/author-audit-leads': typeof ApiAdminAuthorAuditLeadsRoute
   '/api/admin/author-audits': typeof ApiAdminAuthorAuditsRouteWithChildren
   '/api/admin/case-studies': typeof ApiAdminCaseStudiesRouteWithChildren
@@ -1835,7 +1853,7 @@ export interface FileRoutesById {
   '/api/admin/expert-portfolio/$id': typeof ApiAdminExpertPortfolioIdRoute
   '/api/admin/expert-reviews/$id': typeof ApiAdminExpertReviewsIdRoute
   '/api/admin/expert-testimonials/$id': typeof ApiAdminExpertTestimonialsIdRoute
-  '/api/admin/experts/$id': typeof ApiAdminExpertsIdRoute
+  '/api/admin/experts/$id': typeof ApiAdminExpertsIdRouteWithChildren
   '/api/admin/invoice-requests/$id': typeof ApiAdminInvoiceRequestsIdRoute
   '/api/admin/invoices/$id': typeof ApiAdminInvoicesIdRoute
   '/api/admin/portfolio/$id': typeof ApiAdminPortfolioIdRoute
@@ -1869,6 +1887,7 @@ export interface FileRoutesById {
   '/api/admin/author-audits/$id/synthesize-plan': typeof ApiAdminAuthorAuditsIdSynthesizePlanRoute
   '/api/admin/author-audits/$id/verifications': typeof ApiAdminAuthorAuditsIdVerificationsRoute
   '/api/admin/author-audits/$id/workflow': typeof ApiAdminAuthorAuditsIdWorkflowRoute
+  '/api/admin/experts/$id/perplexity-key': typeof ApiAdminExpertsIdPerplexityKeyRoute
   '/api/admin/scout-authors/$id/confirm-contact': typeof ApiAdminScoutAuthorsIdConfirmContactRoute
   '/api/admin/scout-authors/$id/find-contact': typeof ApiAdminScoutAuthorsIdFindContactRoute
   '/api/admin/scout-authors/$id/research-website': typeof ApiAdminScoutAuthorsIdResearchWebsiteRoute
@@ -1955,6 +1974,7 @@ export interface FileRouteTypes {
     | '/api/academy/reply'
     | '/api/academy/session'
     | '/api/academy/sessions'
+    | '/api/academy/trainers'
     | '/api/admin/author-audit-leads'
     | '/api/admin/author-audits'
     | '/api/admin/case-studies'
@@ -2074,6 +2094,7 @@ export interface FileRouteTypes {
     | '/api/admin/author-audits/$id/synthesize-plan'
     | '/api/admin/author-audits/$id/verifications'
     | '/api/admin/author-audits/$id/workflow'
+    | '/api/admin/experts/$id/perplexity-key'
     | '/api/admin/scout-authors/$id/confirm-contact'
     | '/api/admin/scout-authors/$id/find-contact'
     | '/api/admin/scout-authors/$id/research-website'
@@ -2158,6 +2179,7 @@ export interface FileRouteTypes {
     | '/api/academy/reply'
     | '/api/academy/session'
     | '/api/academy/sessions'
+    | '/api/academy/trainers'
     | '/api/admin/author-audit-leads'
     | '/api/admin/author-audits'
     | '/api/admin/case-studies'
@@ -2277,6 +2299,7 @@ export interface FileRouteTypes {
     | '/api/admin/author-audits/$id/synthesize-plan'
     | '/api/admin/author-audits/$id/verifications'
     | '/api/admin/author-audits/$id/workflow'
+    | '/api/admin/experts/$id/perplexity-key'
     | '/api/admin/scout-authors/$id/confirm-contact'
     | '/api/admin/scout-authors/$id/find-contact'
     | '/api/admin/scout-authors/$id/research-website'
@@ -2361,6 +2384,7 @@ export interface FileRouteTypes {
     | '/api/academy/reply'
     | '/api/academy/session'
     | '/api/academy/sessions'
+    | '/api/academy/trainers'
     | '/api/admin/author-audit-leads'
     | '/api/admin/author-audits'
     | '/api/admin/case-studies'
@@ -2480,6 +2504,7 @@ export interface FileRouteTypes {
     | '/api/admin/author-audits/$id/synthesize-plan'
     | '/api/admin/author-audits/$id/verifications'
     | '/api/admin/author-audits/$id/workflow'
+    | '/api/admin/experts/$id/perplexity-key'
     | '/api/admin/scout-authors/$id/confirm-contact'
     | '/api/admin/scout-authors/$id/find-contact'
     | '/api/admin/scout-authors/$id/research-website'
@@ -2565,6 +2590,7 @@ export interface RootRouteChildren {
   ApiAcademyReplyRoute: typeof ApiAcademyReplyRoute
   ApiAcademySessionRoute: typeof ApiAcademySessionRoute
   ApiAcademySessionsRoute: typeof ApiAcademySessionsRouteWithChildren
+  ApiAcademyTrainersRoute: typeof ApiAcademyTrainersRoute
   ApiAdminAuthorAuditLeadsRoute: typeof ApiAdminAuthorAuditLeadsRoute
   ApiAdminAuthorAuditsRoute: typeof ApiAdminAuthorAuditsRouteWithChildren
   ApiAdminCaseStudiesRoute: typeof ApiAdminCaseStudiesRouteWithChildren
@@ -3138,6 +3164,13 @@ declare module '@tanstack/react-router' {
       path: '/api/academy/sessions'
       fullPath: '/api/academy/sessions'
       preLoaderRoute: typeof ApiAcademySessionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/academy/trainers': {
+      id: '/api/academy/trainers'
+      path: '/api/academy/trainers'
+      fullPath: '/api/academy/trainers'
+      preLoaderRoute: typeof ApiAcademyTrainersRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/admin/author-audit-leads': {
@@ -3973,6 +4006,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAdminAuthorAuditsIdWorkflowRouteImport
       parentRoute: typeof ApiAdminAuthorAuditsIdRoute
     }
+    '/api/admin/experts/$id/perplexity-key': {
+      id: '/api/admin/experts/$id/perplexity-key'
+      path: '/perplexity-key'
+      fullPath: '/api/admin/experts/$id/perplexity-key'
+      preLoaderRoute: typeof ApiAdminExpertsIdPerplexityKeyRouteImport
+      parentRoute: typeof ApiAdminExpertsIdRoute
+    }
     '/api/admin/scout-authors/$id/confirm-contact': {
       id: '/api/admin/scout-authors/$id/confirm-contact'
       path: '/confirm-contact'
@@ -4250,12 +4290,23 @@ const ApiAdminExpertTestimonialsRouteWithChildren =
     ApiAdminExpertTestimonialsRouteChildren,
   )
 
+interface ApiAdminExpertsIdRouteChildren {
+  ApiAdminExpertsIdPerplexityKeyRoute: typeof ApiAdminExpertsIdPerplexityKeyRoute
+}
+
+const ApiAdminExpertsIdRouteChildren: ApiAdminExpertsIdRouteChildren = {
+  ApiAdminExpertsIdPerplexityKeyRoute: ApiAdminExpertsIdPerplexityKeyRoute,
+}
+
+const ApiAdminExpertsIdRouteWithChildren =
+  ApiAdminExpertsIdRoute._addFileChildren(ApiAdminExpertsIdRouteChildren)
+
 interface ApiAdminExpertsRouteChildren {
-  ApiAdminExpertsIdRoute: typeof ApiAdminExpertsIdRoute
+  ApiAdminExpertsIdRoute: typeof ApiAdminExpertsIdRouteWithChildren
 }
 
 const ApiAdminExpertsRouteChildren: ApiAdminExpertsRouteChildren = {
-  ApiAdminExpertsIdRoute: ApiAdminExpertsIdRoute,
+  ApiAdminExpertsIdRoute: ApiAdminExpertsIdRouteWithChildren,
 }
 
 const ApiAdminExpertsRouteWithChildren = ApiAdminExpertsRoute._addFileChildren(
@@ -4532,6 +4583,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAcademyReplyRoute: ApiAcademyReplyRoute,
   ApiAcademySessionRoute: ApiAcademySessionRoute,
   ApiAcademySessionsRoute: ApiAcademySessionsRouteWithChildren,
+  ApiAcademyTrainersRoute: ApiAcademyTrainersRoute,
   ApiAdminAuthorAuditLeadsRoute: ApiAdminAuthorAuditLeadsRoute,
   ApiAdminAuthorAuditsRoute: ApiAdminAuthorAuditsRouteWithChildren,
   ApiAdminCaseStudiesRoute: ApiAdminCaseStudiesRouteWithChildren,

@@ -21,6 +21,7 @@ export const Route = createFileRoute("/api/admin/experts/$id")({
           "set_access",
           "update_profile",
           "resend_invite",
+          "set_academy_trainer",
         ];
         if (!actions.includes(action))
           return Response.json({ error: "Invalid action" }, { status: 400 });
@@ -30,6 +31,39 @@ export const Route = createFileRoute("/api/admin/experts/$id")({
           // Deletes the auth.users row; expert_profiles cascades (on delete cascade FK).
           const { error } = await supabaseAdmin.auth.admin.deleteUser(params.id);
           if (error) return Response.json({ error: "Could not delete expert." }, { status: 503 });
+          return Response.json({ ok: true });
+        }
+
+        if (action === "set_academy_trainer") {
+          const on = body?.on === true;
+          const { expertProfiles } = await import("@/lib/expert-auth.server");
+          const { data: expert } = await expertProfiles()
+            .select("id, email, full_name")
+            .eq("id", params.id)
+            .maybeSingle();
+          if (!expert) return Response.json({ error: "Expert not found." }, { status: 404 });
+          const { error } = await expertProfiles()
+            .update({ academy_trainer: on })
+            .eq("id", params.id);
+          if (error)
+            return Response.json({ error: "Could not update Academy access." }, { status: 503 });
+          // Same login: the expert's account becomes an Academy trainer (or back).
+          const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+          const academy = (
+            supabaseAdmin as unknown as import("@supabase/supabase-js").SupabaseClient
+          ).from("profiles");
+          const row = expert as { id: string; email: string; full_name: string | null };
+          const { error: profileError } = on
+            ? await academy.upsert(
+                { id: row.id, email: row.email, full_name: row.full_name, role: "trainer" },
+                { onConflict: "id" },
+              )
+            : await academy.update({ role: "trainee" }).eq("id", row.id);
+          if (profileError)
+            return Response.json(
+              { error: "Saved, but the Academy profile could not be updated." },
+              { status: 503 },
+            );
           return Response.json({ ok: true });
         }
 

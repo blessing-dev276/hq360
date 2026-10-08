@@ -50,22 +50,45 @@ const INTENT: Record<Reaction, string> = {
 };
 
 /**
- * The trainer's own Perplexity key: the user's own if they are a trainer,
- * otherwise the most recently saved trainer key. No key means the room uses
- * its stored banks; the admin key is never used here.
+ * A trainer's Perplexity key: the user's own first (their Academy key, or
+ * their expert key if they are an expert assigned as trainer), otherwise the
+ * most recently saved trainer key. No key means the room uses its stored
+ * banks; the admin key is never used here.
  */
 async function trainerKey(userId: string): Promise<string | null> {
-  const { data } = await (supabaseAdmin as unknown as SupabaseClient)
-    .from("academy_trainer_credentials")
-    .select("trainer_id, encrypted_key, updated_at")
-    .order("updated_at", { ascending: false })
-    .limit(50);
-  const rows = (data ?? []) as { trainer_id: string; encrypted_key: string }[];
-  for (const row of [...rows.filter((r) => r.trainer_id === userId), ...rows]) {
+  const db = supabaseAdmin as unknown as SupabaseClient;
+  const [{ data: academy }, { data: experts }] = await Promise.all([
+    db
+      .from("academy_trainer_credentials")
+      .select("trainer_id, encrypted_key, updated_at")
+      .order("updated_at", { ascending: false })
+      .limit(50),
+    db
+      .from("expert_perplexity_credentials")
+      .select("expert_id, encrypted_key, updated_at, expert_profiles!inner(academy_trainer)")
+      .eq("expert_profiles.academy_trainer", true)
+      .order("updated_at", { ascending: false })
+      .limit(50),
+  ]);
+  type Candidate = { owner: string; aad: string; key: string; at: string };
+  const candidates: Candidate[] = [
+    ...((academy ?? []) as { trainer_id: string; encrypted_key: string; updated_at: string }[]).map(
+      (r) => ({
+        owner: r.trainer_id,
+        aad: `academy:${r.trainer_id}`,
+        key: r.encrypted_key,
+        at: r.updated_at,
+      }),
+    ),
+    ...((experts ?? []) as { expert_id: string; encrypted_key: string; updated_at: string }[]).map(
+      (r) => ({ owner: r.expert_id, aad: r.expert_id, key: r.encrypted_key, at: r.updated_at }),
+    ),
+  ].sort((x, y) => y.at.localeCompare(x.at));
+  for (const c of [...candidates.filter((c) => c.owner === userId), ...candidates]) {
     try {
-      return decryptExpertKey(`academy:${row.trainer_id}`, row.encrypted_key);
+      return decryptExpertKey(c.aad, c.key);
     } catch {
-      /* unreadable key; try the next trainer's */
+      /* unreadable key; try the next one */
     }
   }
   return null;

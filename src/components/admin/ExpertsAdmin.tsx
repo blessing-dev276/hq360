@@ -11,6 +11,8 @@ import {
   Images,
   Inbox,
   Link2,
+  GraduationCap,
+  KeyRound,
   Mail,
   Pencil,
   Plus,
@@ -59,6 +61,7 @@ type Expert = {
   is_guest?: boolean;
   invited_at?: string | null;
   invite_expires_at?: string | null;
+  academy_trainer?: boolean;
 };
 type TeamMember = { id: string; name: string; title: string; claimed_by_expert_id: string | null };
 type SitePortfolioItem = { id: string; title: string };
@@ -102,7 +105,8 @@ type ExpertAction =
   | "assign_portfolio"
   | "set_access"
   | "update_profile"
-  | "resend_invite";
+  | "resend_invite"
+  | "set_academy_trainer";
 
 async function post(url: string, body: unknown) {
   const response = await fetch(url, {
@@ -868,6 +872,40 @@ export function ExpertsAdmin() {
                   )
                 }
               />
+            )}
+            {drawerTab === "access" && (
+              <div style={{ display: "grid", gap: 16, marginBottom: 16 }}>
+                {!selected.is_guest && selected.status === "approved" && (
+                  <DrawerCard
+                    icon={GraduationCap}
+                    title="Author Scout Academy trainer"
+                    text={
+                      selected.academy_trainer
+                        ? "On. They're a trainer in the Academy (same login), shown as the trainer with their profile name, photo and headline, and their Perplexity key powers the Practice Room."
+                        : "Make this expert a trainer in the Academy. Their profile details are shown as the trainer, and their Perplexity key is used."
+                    }
+                  >
+                    <button
+                      className={`admin-button${selected.academy_trainer ? "" : " admin-button-primary"}`}
+                      disabled={!!busy}
+                      onClick={() =>
+                        void act(
+                          selected,
+                          "set_academy_trainer",
+                          { on: !selected.academy_trainer },
+                          selected.academy_trainer
+                            ? "Removed as Academy trainer."
+                            : "Now an Academy trainer.",
+                        )
+                      }
+                    >
+                      <GraduationCap size={15} />{" "}
+                      {selected.academy_trainer ? "Remove as trainer" : "Make Academy trainer"}
+                    </button>
+                  </DrawerCard>
+                )}
+                <ExpertKeyCard key={`key-${selected.id}`} expertId={selected.id} />
+              </div>
             )}
             {drawerTab === "access" && (
               <AccessTab
@@ -2168,5 +2206,82 @@ function GuestOverview({
         </button>
       </DrawerCard>
     </div>
+  );
+}
+
+/** Admin can set, replace or remove an expert's Perplexity key. The key is
+ *  encrypted on the server and never shown again. */
+function ExpertKeyCard({ expertId }: { expertId: string }) {
+  const [state, setState] = useState<{ configured: boolean; updatedAt: string | null } | null>(
+    null,
+  );
+  const [value, setValue] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState("");
+  const url = `/api/admin/experts/${expertId}/perplexity-key`;
+  useEffect(() => {
+    void fetch(url)
+      .then((r) => r.json())
+      .then((d) => setState({ configured: !!d.configured, updatedAt: d.updatedAt ?? null }))
+      .catch(() => setMessage("Could not load the key settings."));
+  }, [url]);
+  async function save(method: "PUT" | "DELETE") {
+    if (method === "DELETE" && !window.confirm("Remove this expert's Perplexity key?")) return;
+    setBusy(true);
+    setMessage("");
+    const res = await fetch(url, {
+      method,
+      headers: { "content-type": "application/json" },
+      ...(method === "PUT" ? { body: JSON.stringify({ apiKey: value.trim() }) } : {}),
+    }).catch(() => null);
+    const data = await res?.json().catch(() => ({}));
+    setBusy(false);
+    if (!res?.ok) return setMessage(data?.error || "Could not save the key.");
+    setState({ configured: !!data.configured, updatedAt: data.updatedAt ?? null });
+    setValue("");
+    setMessage(method === "PUT" ? "Key saved." : "Key removed.");
+  }
+  return (
+    <DrawerCard
+      icon={KeyRound}
+      title="Perplexity API key"
+      text={
+        !state
+          ? "Loading…"
+          : state.configured
+            ? `Saved${state.updatedAt ? ` ${new Date(state.updatedAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}` : ""}. Used for this expert's author email search${" "}and, if they're an Academy trainer, the Practice Room. The key is encrypted and can't be viewed.`
+            : "No key saved. Add one so this expert's author email searches (and Academy Practice Room, if they're a trainer) use their own Perplexity account."
+      }
+    >
+      <div className="admin-invoice-form" style={{ width: "100%" }}>
+        <label>
+          {state?.configured ? "Replace key" : "Key"}
+          <input
+            type="password"
+            autoComplete="off"
+            placeholder="pplx-…"
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+          />
+        </label>
+      </div>
+      <button
+        className="admin-button admin-button-primary"
+        disabled={busy || !value.trim()}
+        onClick={() => void save("PUT")}
+      >
+        <KeyRound size={15} /> {busy ? "Saving…" : state?.configured ? "Replace key" : "Save key"}
+      </button>
+      {state?.configured && (
+        <button
+          className="admin-button text-destructive"
+          disabled={busy}
+          onClick={() => void save("DELETE")}
+        >
+          <Trash2 size={15} /> Remove
+        </button>
+      )}
+      {message && <small role="status">{message}</small>}
+    </DrawerCard>
   );
 }

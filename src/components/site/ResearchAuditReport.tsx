@@ -54,6 +54,13 @@ type Page = { id: string; title: string; group: "start" | "areas" | "next" };
 /** The client-facing audit: a small multi-page site (Overview, one page per
  *  audit area, action plan, lists, help, evidence). Pages are kept in the
  *  ?page= query so Back and shared links work. */
+// Retired report areas: hidden even when older audits still hold content.
+const HIDDEN_AREAS = new Set(["reader_journey_audit", "series_and_backlist", "social_media_audit"]);
+const LISTOPIA = "goodreads_listopia_audit";
+// Listopia findings may be filed under Goodreads; they all live on one page.
+const areaOf = (f: { category: string; title: string }) =>
+  f.category === "goodreads_audit" && /listopia/i.test(f.title) ? LISTOPIA : f.category;
+
 export function ResearchAuditReport({
   report: r,
   imageBase = "/api/private-audit?asset=",
@@ -76,18 +83,34 @@ export function ResearchAuditReport({
     [r.sections],
   );
   const summary = sections.find((s) => s.key === "executive_summary")?.text;
-  const areas = sections.filter(
-    (s) =>
-      s.key !== "executive_summary" && (s.text || r.findings.some((f) => f.category === s.key)),
-  );
+  const areas = sections
+    .filter(
+      (s) =>
+        s.key !== "executive_summary" &&
+        !HIDDEN_AREAS.has(s.key) &&
+        (s.text ||
+          r.findings.some((f) => areaOf(f) === s.key) ||
+          (s.key === LISTOPIA && r.listopia.length > 0)),
+    )
+    .map((s) => (s.key === LISTOPIA ? { ...s, title: "Goodreads Listopia" } : s));
+  if (
+    !areas.some((s) => s.key === LISTOPIA) &&
+    (r.listopia.length || r.findings.some((f) => areaOf(f) === LISTOPIA))
+  ) {
+    const at = areas.findIndex((s) => s.key === "goodreads_audit");
+    areas.splice(at + 1, 0, {
+      ...sections[0]!,
+      key: LISTOPIA,
+      title: "Goodreads Listopia",
+      text: "",
+      sources: [],
+    });
+  }
   const looseEvidence = r.assets.filter((a) => !a.finding_id && !a.listopia_id);
   const services = r.actions.filter((a) => a.service);
   const pages: Page[] = [
     { id: "overview", title: "Overview", group: "start" },
     ...areas.map((s) => ({ id: s.key, title: s.title, group: "areas" as const })),
-    ...(r.listopia.length
-      ? [{ id: "listopia", title: "Goodreads lists", group: "areas" as const }]
-      : []),
     ...(r.actions.length ? [{ id: "plan", title: "Action plan", group: "next" as const }] : []),
     ...(services.length
       ? [{ id: "help", title: "How HQ360 can help", group: "next" as const }]
@@ -97,15 +120,17 @@ export function ResearchAuditReport({
       : []),
   ];
 
-  const [page, setPage] = useState(() =>
-    pages.some((p) => p.id === initialPage) ? initialPage : "overview",
-  );
+  const resolve = (id: string) => {
+    const want = id === "listopia" ? LISTOPIA : id;
+    return pages.some((p) => p.id === want) ? want : "overview";
+  };
+  const [page, setPage] = useState(() => resolve(initialPage));
   const [menuOpen, setMenuOpen] = useState(false);
   useEffect(() => {
     if (!syncUrl) return;
     const read = () => {
       const want = new URL(window.location.href).searchParams.get("page") ?? "overview";
-      setPage(pages.some((p) => p.id === want) ? want : "overview");
+      setPage(resolve(want));
     };
     read();
     window.addEventListener("popstate", read);
@@ -188,7 +213,7 @@ export function ResearchAuditReport({
             )}
             <ul className="space-y-0.5">
               {items.map((p) => {
-                const count = r.findings.filter((f) => f.category === p.id).length;
+                const count = r.findings.filter((f) => areaOf(f) === p.id).length;
                 return (
                   <li key={p.id}>
                     <button
@@ -265,7 +290,7 @@ export function ResearchAuditReport({
             {areaIndex >= 0 &&
               (() => {
                 const s = areas[areaIndex]!;
-                const findings = r.findings.filter((f) => f.category === s.key).sort(byPriority);
+                const findings = r.findings.filter((f) => areaOf(f) === s.key).sort(byPriority);
                 const extraSources = s.sources.filter(
                   (url) => !findings.some((f) => f.source_urls.includes(url)),
                 );
@@ -305,6 +330,101 @@ export function ResearchAuditReport({
                         ))}
                       </div>
                     )}
+                    {s.key === LISTOPIA && r.listopia.length > 0 && (
+                      <div className="mt-10 space-y-6">
+                        <p className="text-sm text-slate-500">
+                          Reader-voted lists where your book appears or belongs, and how to move up.
+                        </p>
+                        {r.listopia.map((l) => (
+                          <div
+                            key={l.id}
+                            className="rounded-3xl border border-white/10 bg-white/[.025] p-6 sm:p-8"
+                          >
+                            {l.list_url ? (
+                              <a
+                                className="text-xl text-white hover:text-[#ff8a3d]"
+                                href={l.list_url}
+                                target="_blank"
+                                rel="noreferrer"
+                              >
+                                {l.list_name} <span className="text-[#ff8a3d]">↗</span>
+                              </a>
+                            ) : (
+                              <p className="text-xl text-white">{l.list_name}</p>
+                            )}
+                            <div className="my-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                              {[
+                                [
+                                  "Your position",
+                                  l.position == null ? null : `#${l.position}`,
+                                  true,
+                                ],
+                                ["On page", l.page, false],
+                                ["Votes", l.votes, false],
+                                [
+                                  "Competition",
+                                  l.competition === "unknown" ? null : label(l.competition),
+                                  false,
+                                ],
+                              ]
+                                .filter(([, v]) => v != null)
+                                .map(([k, v, hero]) => (
+                                  <div
+                                    key={String(k)}
+                                    className={`rounded-2xl p-4 ${hero ? "bg-[#ff5a00]/[.12]" : "bg-white/[.04]"}`}
+                                  >
+                                    <p className="text-xs text-slate-400">{k}</p>
+                                    <strong
+                                      className={`mt-1 block font-display text-3xl ${hero ? "text-[#ff8a3d]" : "text-white"}`}
+                                    >
+                                      {v}
+                                    </strong>
+                                  </div>
+                                ))}
+                            </div>
+                            {(l.books_above.length > 0 || l.books_below.length > 0) && (
+                              <div className="mb-6 grid gap-3 text-sm sm:grid-cols-2">
+                                {l.books_above.length > 0 && (
+                                  <p className="text-slate-400">
+                                    <span className="text-slate-500">Just above you:</span>{" "}
+                                    {l.books_above.join(" · ")}
+                                  </p>
+                                )}
+                                {l.books_below.length > 0 && (
+                                  <p className="text-slate-400">
+                                    <span className="text-slate-500">Just below you:</span>{" "}
+                                    {l.books_below.join(" · ")}
+                                  </p>
+                                )}
+                              </div>
+                            )}
+                            <div className="grid gap-6 sm:grid-cols-2">
+                              <div>
+                                <h3 className="text-sm font-semibold text-white">
+                                  {l.position == null ? "List relevance" : "Why you are here"}
+                                </h3>
+                                <p className="mt-2 leading-relaxed whitespace-pre-line text-slate-300">
+                                  {l.why_position ||
+                                    "The cause of this position has not been established."}
+                                </p>
+                              </div>
+                              <div className="rounded-2xl border border-[#ff5a00]/30 bg-[#ff5a00]/[.06] p-5">
+                                <h3 className="text-sm font-semibold text-white">How to move up</h3>
+                                <p className="mt-2 leading-relaxed whitespace-pre-line text-slate-200">
+                                  {l.how_to_improve}
+                                </p>
+                              </div>
+                            </div>
+                            {l.evidence && (
+                              <p className="mt-5 text-sm text-slate-400">{l.evidence}</p>
+                            )}
+                            <div className="mt-5">
+                              {figures(r.assets.filter((a) => a.listopia_id === l.id))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                     <div className="mt-14 grid gap-3 border-t border-white/10 pt-8 sm:grid-cols-2">
                       {prev ? (
                         <PagerButton
@@ -340,100 +460,6 @@ export function ResearchAuditReport({
                   </section>
                 );
               })()}
-
-            {page === "listopia" && (
-              <section id="listopia" className="space-y-6">
-                <Eyebrow>Goodreads</Eyebrow>
-                <h1 className="font-display text-4xl tracking-tight sm:text-6xl">
-                  Goodreads lists
-                </h1>
-                <p className="max-w-2xl text-lg text-slate-400">
-                  The reader-voted Listopia lists where your book appears or belongs, and how to
-                  move up.
-                </p>
-                {r.listopia.map((l) => (
-                  <div
-                    key={l.id}
-                    className="rounded-3xl border border-white/10 bg-white/[.025] p-6 sm:p-8"
-                  >
-                    {l.list_url ? (
-                      <a
-                        className="text-xl text-white hover:text-[#ff8a3d]"
-                        href={l.list_url}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        {l.list_name} <span className="text-[#ff8a3d]">↗</span>
-                      </a>
-                    ) : (
-                      <p className="text-xl text-white">{l.list_name}</p>
-                    )}
-                    <div className="my-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-                      {[
-                        ["Your position", l.position == null ? null : `#${l.position}`, true],
-                        ["On page", l.page, false],
-                        ["Votes", l.votes, false],
-                        [
-                          "Competition",
-                          l.competition === "unknown" ? null : label(l.competition),
-                          false,
-                        ],
-                      ]
-                        .filter(([, v]) => v != null)
-                        .map(([k, v, hero]) => (
-                          <div
-                            key={String(k)}
-                            className={`rounded-2xl p-4 ${hero ? "bg-[#ff5a00]/[.12]" : "bg-white/[.04]"}`}
-                          >
-                            <p className="text-xs text-slate-400">{k}</p>
-                            <strong
-                              className={`mt-1 block font-display text-3xl ${hero ? "text-[#ff8a3d]" : "text-white"}`}
-                            >
-                              {v}
-                            </strong>
-                          </div>
-                        ))}
-                    </div>
-                    {(l.books_above.length > 0 || l.books_below.length > 0) && (
-                      <div className="mb-6 grid gap-3 text-sm sm:grid-cols-2">
-                        {l.books_above.length > 0 && (
-                          <p className="text-slate-400">
-                            <span className="text-slate-500">Just above you:</span>{" "}
-                            {l.books_above.join(" · ")}
-                          </p>
-                        )}
-                        {l.books_below.length > 0 && (
-                          <p className="text-slate-400">
-                            <span className="text-slate-500">Just below you:</span>{" "}
-                            {l.books_below.join(" · ")}
-                          </p>
-                        )}
-                      </div>
-                    )}
-                    <div className="grid gap-6 sm:grid-cols-2">
-                      <div>
-                        <h3 className="text-sm font-semibold text-white">
-                          {l.position == null ? "List relevance" : "Why you are here"}
-                        </h3>
-                        <p className="mt-2 leading-relaxed whitespace-pre-line text-slate-300">
-                          {l.why_position || "The cause of this position has not been established."}
-                        </p>
-                      </div>
-                      <div className="rounded-2xl border border-[#ff5a00]/30 bg-[#ff5a00]/[.06] p-5">
-                        <h3 className="text-sm font-semibold text-white">How to move up</h3>
-                        <p className="mt-2 leading-relaxed whitespace-pre-line text-slate-200">
-                          {l.how_to_improve}
-                        </p>
-                      </div>
-                    </div>
-                    {l.evidence && <p className="mt-5 text-sm text-slate-400">{l.evidence}</p>}
-                    <div className="mt-5">
-                      {figures(r.assets.filter((a) => a.listopia_id === l.id))}
-                    </div>
-                  </div>
-                ))}
-              </section>
-            )}
 
             {page === "plan" && (
               <section id="plan">
@@ -634,7 +660,7 @@ function Overview({
               <li key={f.id}>
                 <button
                   type="button"
-                  onClick={() => go(f.category)}
+                  onClick={() => go(areaOf(f))}
                   className="group flex h-full w-full flex-col rounded-3xl border border-white/10 bg-white/[.025] p-6 text-left transition hover:-translate-y-0.5 hover:border-[#ff5a00]/50"
                 >
                   <span className="font-display text-5xl text-[#ff5a00]/70">{i + 1}</span>
@@ -665,7 +691,7 @@ function Overview({
           <h2 className="mt-3 font-display text-3xl tracking-tight">What we reviewed</h2>
           <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
             {areas.map((s, i) => {
-              const findings = r.findings.filter((f) => f.category === s.key);
+              const findings = r.findings.filter((f) => areaOf(f) === s.key);
               const urgent = findings.filter((f) => f.priority === "immediate").length;
               return (
                 <button
@@ -691,22 +717,6 @@ function Overview({
                 </button>
               );
             })}
-            {pages
-              .filter((p) => p.id === "listopia")
-              .map((p) => (
-                <button
-                  key={p.id}
-                  type="button"
-                  onClick={() => go(p.id)}
-                  className="group rounded-2xl border border-white/10 bg-white/[.02] p-5 text-left transition hover:border-[#ff5a00]/50 hover:bg-white/[.04]"
-                >
-                  <span className="font-display text-sm text-slate-500">★</span>
-                  <h3 className="mt-3 font-display text-lg text-white">{p.title}</h3>
-                  <p className="mt-1.5 text-xs text-slate-500">
-                    {r.listopia.length} list{r.listopia.length === 1 ? "" : "s"}
-                  </p>
-                </button>
-              ))}
           </div>
         </section>
       )}

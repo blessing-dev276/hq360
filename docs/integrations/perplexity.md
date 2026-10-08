@@ -102,15 +102,15 @@ Resend transactional flows separate. Smartlead is a potential campaign provider;
 authenticated sender domains, bounce handling, unsubscribe handling and sender
 reputation still matter. No provider can guarantee inbox placement.
 
-## Email search budgets and source history
+## Email search costs and source history
 
 Scouting author email runs save the unique authors, outcomes and inspected source
 URLs. Stage results are cached for seven days and reused across workspaces so a
 repeat batch does not pay to ask the same queries again. Each new pass reserves
 $0.10 before calling Perplexity, then replaces that reserve with the provider's
 reported USD `usage.cost.total_cost`, including web tools. If no provider cost is
-returned, the reserve remains. The app stops starting new paid passes when the
-batch threshold is reached; already-running requests can finish and may exceed it.
+returned, the reserve remains for cost accounting only. Searches run up to ten
+authors at a time with no app spending cap. Stop prevents new paid passes.
 Configure a Perplexity account spending limit for a provider-enforced cap.
 
 The admin Scouting screen has saved-run reports. Coverage counts unique authors

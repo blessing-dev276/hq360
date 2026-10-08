@@ -81,7 +81,12 @@ export type SessionRow = {
   trust_history: number[];
   difficulty: string;
   silent_left: number;
+  ended_at?: string | null;
+  abandoned?: boolean;
+  trainer_feedback?: TrainerNote[];
+  feedback_unread?: boolean;
 };
+export type TrainerNote = { by: string; byId: string; text: string; at: string };
 export type Viewer = {
   id: string;
   email: string | null;
@@ -465,6 +470,9 @@ export function clientSession(row: SessionRow) {
     persona: row.ended ? revealedPersona(persona) : publicPersona(persona),
     difficulty: difficultyOf(row.difficulty),
     reveal: row.ended ? { mood: row.mood, challenge: style?.label ?? row.challenge } : null,
+    abandoned: !!row.abandoned,
+    trainerFeedback: row.trainer_feedback ?? [],
+    feedbackUnread: !!row.feedback_unread,
   };
 }
 
@@ -476,4 +484,50 @@ export async function loadOwnSession(id: string, viewer: Viewer) {
   // Trainers see only the trainees assigned to them.
   if (viewer.role === "trainer" && (await isAssignedTo(viewer.id, row.user_id))) return row;
   return null;
+}
+
+/**
+ * Scores and closes a chat. Used by "End and get coaching" and when a trainee
+ * walks away from a chat by starting a new author (abandoned = true).
+ */
+export async function finishSession(row: SessionRow, abandoned = false) {
+  const coaching = await getCoaching(row);
+  const ended_at = new Date().toISOString();
+  const { error } = await db
+    .from("sessions")
+    .update({ coaching, ended: true, ended_at, abandoned })
+    .eq("id", row.id);
+  if (error) throw new Error("storage");
+  return { ...row, coaching, ended: true, ended_at, abandoned };
+}
+
+/** Progress facts for one person, from all their chats. */
+export async function progressFor(viewer: Viewer, offsetMinutes: number) {
+  const { computeProgress } = await import("./progress");
+  const { data } = await db
+    .from("sessions")
+    .select("difficulty, mode, ended, ended_at, coaching")
+    .eq("user_id", viewer.id);
+  const chats = (
+    (data ?? []) as {
+      difficulty: string;
+      mode: "cold" | "no";
+      ended: boolean;
+      ended_at: string | null;
+      coaching: { overall?: number; outcome?: string } | null;
+    }[]
+  ).map((c) => ({
+    difficulty: c.difficulty,
+    mode: c.mode,
+    ended: c.ended,
+    endedAt: c.ended_at,
+    overall: c.coaching?.overall ?? null,
+    outcome: c.coaching?.outcome ?? null,
+  }));
+  return computeProgress(chats, {
+    userId: viewer.id,
+    now: new Date(),
+    offsetMinutes,
+    trainer: viewer.role === "trainer",
+  });
 }

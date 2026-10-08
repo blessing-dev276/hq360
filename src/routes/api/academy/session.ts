@@ -20,6 +20,43 @@ export const Route = createFileRoute("/api/academy/session")({
         } catch {
           return a.json({ ok: false, error: "invalid" }, 400);
         }
+        // The ladder: trainees can only pick levels they have unlocked.
+        const progress = await a.progressFor(viewer, 0);
+        const lvl = progress.levels.find((l) => l.level === body.difficulty);
+        if (lvl && !lvl.unlocked)
+          return a.json(
+            {
+              ok: false,
+              error: "locked",
+              message: `Locked. Score ${70}+ in ${lvl.need} more chat${lvl.need === 1 ? "" : "s"} on the level below to unlock ${body.difficulty}.`,
+            },
+            403,
+          );
+
+        // Walking away still counts: unfinished chats are scored, empty ones dropped.
+        const { data: open } = await a.db
+          .from("sessions")
+          .select("*")
+          .eq("user_id", viewer.id)
+          .eq("ended", false);
+        const scored: { author: string; overall: number }[] = [];
+        for (const row of (open ?? []) as import("@/lib/academy/academy.server").SessionRow[]) {
+          if (!row.messages.some((m) => m.role === "scout")) {
+            await a.db.from("sessions").delete().eq("id", row.id);
+            continue;
+          }
+          try {
+            const done = await a.finishSession(row, true);
+            const { findPersona } = await import("@/lib/academy/practice-data.server");
+            scored.push({
+              author: findPersona(row.persona)?.name ?? "your last author",
+              overall: done.coaching.overall,
+            });
+          } catch {
+            /* scoring failed; the chat stays open in My chats */
+          }
+        }
+
         const { startingTrust, stageOf, DIFFICULTIES } =
           await import("@/lib/academy/engine.server");
         const level = DIFFICULTIES[body.difficulty];
@@ -67,7 +104,7 @@ export const Route = createFileRoute("/api/academy/session")({
           .select("*")
           .single();
         if (error || !row) return a.json({ ok: false, error: "storage" }, 500);
-        return a.json({ ok: true, session: a.clientSession(row as never) });
+        return a.json({ ok: true, session: a.clientSession(row as never), scored });
       },
     },
   },

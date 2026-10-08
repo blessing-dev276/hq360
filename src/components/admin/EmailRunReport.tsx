@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { emailCoverage, type ContactEvidence } from "@/lib/scout/email-report";
 type Report = {
-  run: { budget_usd: number; accounted_usd: number; targets: unknown[]; status?: string };
+  run: { accounted_usd: number; targets: unknown[]; status?: string };
   actualUsd: number;
   unsettled: number;
   results: {
@@ -15,7 +15,6 @@ type RunChoice = {
   id: string;
   status: string;
   created_at: string;
-  budget_usd: number;
   accounted_usd: number;
 };
 export function EmailRunReport({ id, revision }: { id: string | null; revision: number }) {
@@ -92,17 +91,15 @@ export function EmailRunReport({ id, revision }: { id: string | null; revision: 
       </p>
       <p>
         {coverage.representative} representative-only · {coverage.unverified} unverified candidates
-        · {coverage.processed}/{coverage.total} processed · {coverage.paused} budget-paused
+        · {coverage.processed}/{coverage.total} processed · {coverage.paused} paused
       </p>
       <p>
-        Provider-reported cost: ${Number(report.actualUsd).toFixed(4)} · budget used/reserved: $
-        {Number(report.run.accounted_usd).toFixed(2)} / ${Number(report.run.budget_usd).toFixed(2)}
+        Provider-reported cost: ${Number(report.actualUsd).toFixed(4)}
         {report.unsettled > 0 ? ` · ${report.unsettled} requests awaiting cost confirmation` : ""}
       </p>
       <p className="text-xs text-muted-foreground">
         Source verification confirms publication and author association, not a working mailbox.
-        Representatives and unverified candidates do not count toward 90%. In-flight charges may
-        exceed the budget threshold.
+        Representatives and unverified candidates do not count toward 90%.
       </p>
       <button
         className="rounded-lg border px-3 py-2"

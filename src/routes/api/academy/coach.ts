@@ -25,13 +25,11 @@ export const Route = createFileRoute("/api/academy/coach")({
             { ok: false, error: "empty", message: "Send at least one message first." },
             400,
           );
-        const coaching = await a.getCoaching(row);
-        const { error } = await a.db
-          .from("sessions")
-          .update({ coaching, ended: true })
-          .eq("id", row.id);
-        if (error) return a.json({ ok: false, error: "storage" }, 500);
-        return a.json({ ok: true, session: a.clientSession({ ...row, coaching, ended: true }) });
+        try {
+          return a.json({ ok: true, session: a.clientSession(await a.finishSession(row)) });
+        } catch {
+          return a.json({ ok: false, error: "storage" }, 500);
+        }
       },
     },
   },

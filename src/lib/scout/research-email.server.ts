@@ -43,7 +43,7 @@ export async function researchAuthorEmail(
     throw new PerplexityError("Save a book for this author before finding contacts.", 400);
   const run = body.runId
     ? await checkEmailRun(body.runId, access.owner, authorId, book.id)
-    : await createEmailRun(access.owner, 0.3, [{ authorId, bookId: book.id }]);
+    : await createEmailRun(access.owner, [{ authorId, bookId: book.id }]);
   const token = randomUUID();
   const { data: claimed, error: claimError } = await db.rpc("claim_scout_email_author", {
     p_author: authorId,

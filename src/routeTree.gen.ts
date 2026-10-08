@@ -74,9 +74,11 @@ import { Route as WorkSlugRouteImport } from './routes/work.$slug'
 import { Route as ApiAcademyAssignRouteImport } from './routes/api/academy/assign'
 import { Route as ApiAcademyCoachRouteImport } from './routes/api/academy/coach'
 import { Route as ApiAcademyDemosRouteImport } from './routes/api/academy/demos'
+import { Route as ApiAcademyFeedbackRouteImport } from './routes/api/academy/feedback'
 import { Route as ApiAcademyHintRouteImport } from './routes/api/academy/hint'
 import { Route as ApiAcademyMeRouteImport } from './routes/api/academy/me'
 import { Route as ApiAcademyPerplexityKeyRouteImport } from './routes/api/academy/perplexity-key'
+import { Route as ApiAcademyProgressRouteImport } from './routes/api/academy/progress'
 import { Route as ApiAcademyReplyRouteImport } from './routes/api/academy/reply'
 import { Route as ApiAcademySessionRouteImport } from './routes/api/academy/session'
 import { Route as ApiAcademySessionsRouteImport } from './routes/api/academy/sessions'
@@ -141,6 +143,7 @@ import { Route as ApiPrivateAuditCommerceRouteImport } from './routes/api/privat
 import { Route as ApiPublicAuthorAuditRouteImport } from './routes/api/public/author-audit'
 import { Route as ApiPublicCaseStudiesRouteImport } from './routes/api/public/case-studies'
 import { Route as ApiPublicExpertPortfolioRouteImport } from './routes/api/public/expert-portfolio'
+import { Route as ApiPublicExpertProofRouteImport } from './routes/api/public/expert-proof'
 import { Route as ApiPublicExpertReviewsRouteImport } from './routes/api/public/expert-reviews'
 import { Route as ApiPublicExpertTestimonialsRouteImport } from './routes/api/public/expert-testimonials'
 import { Route as ApiPublicExpertsRouteImport } from './routes/api/public/experts'
@@ -545,6 +548,11 @@ const ApiAcademyDemosRoute = ApiAcademyDemosRouteImport.update({
   path: '/api/academy/demos',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAcademyFeedbackRoute = ApiAcademyFeedbackRouteImport.update({
+  id: '/api/academy/feedback',
+  path: '/api/academy/feedback',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAcademyHintRoute = ApiAcademyHintRouteImport.update({
   id: '/api/academy/hint',
   path: '/api/academy/hint',
@@ -558,6 +566,11 @@ const ApiAcademyMeRoute = ApiAcademyMeRouteImport.update({
 const ApiAcademyPerplexityKeyRoute = ApiAcademyPerplexityKeyRouteImport.update({
   id: '/api/academy/perplexity-key',
   path: '/api/academy/perplexity-key',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAcademyProgressRoute = ApiAcademyProgressRouteImport.update({
+  id: '/api/academy/progress',
+  path: '/api/academy/progress',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiAcademyReplyRoute = ApiAcademyReplyRouteImport.update({
@@ -895,6 +908,11 @@ const ApiPublicExpertPortfolioRoute =
     path: '/api/public/expert-portfolio',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicExpertProofRoute = ApiPublicExpertProofRouteImport.update({
+  id: '/api/public/expert-proof',
+  path: '/api/public/expert-proof',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicExpertReviewsRoute = ApiPublicExpertReviewsRouteImport.update({
   id: '/api/public/expert-reviews',
   path: '/api/public/expert-reviews',
@@ -1381,9 +1399,11 @@ export interface FileRoutesByFullPath {
   '/api/academy/assign': typeof ApiAcademyAssignRoute
   '/api/academy/coach': typeof ApiAcademyCoachRoute
   '/api/academy/demos': typeof ApiAcademyDemosRouteWithChildren
+  '/api/academy/feedback': typeof ApiAcademyFeedbackRoute
   '/api/academy/hint': typeof ApiAcademyHintRoute
   '/api/academy/me': typeof ApiAcademyMeRoute
   '/api/academy/perplexity-key': typeof ApiAcademyPerplexityKeyRoute
+  '/api/academy/progress': typeof ApiAcademyProgressRoute
   '/api/academy/reply': typeof ApiAcademyReplyRoute
   '/api/academy/session': typeof ApiAcademySessionRoute
   '/api/academy/sessions': typeof ApiAcademySessionsRouteWithChildren
@@ -1448,6 +1468,7 @@ export interface FileRoutesByFullPath {
   '/api/public/author-audit': typeof ApiPublicAuthorAuditRoute
   '/api/public/case-studies': typeof ApiPublicCaseStudiesRoute
   '/api/public/expert-portfolio': typeof ApiPublicExpertPortfolioRoute
+  '/api/public/expert-proof': typeof ApiPublicExpertProofRoute
   '/api/public/expert-reviews': typeof ApiPublicExpertReviewsRoute
   '/api/public/expert-testimonials': typeof ApiPublicExpertTestimonialsRoute
   '/api/public/experts': typeof ApiPublicExpertsRoute
@@ -1591,9 +1612,11 @@ export interface FileRoutesByTo {
   '/api/academy/assign': typeof ApiAcademyAssignRoute
   '/api/academy/coach': typeof ApiAcademyCoachRoute
   '/api/academy/demos': typeof ApiAcademyDemosRouteWithChildren
+  '/api/academy/feedback': typeof ApiAcademyFeedbackRoute
   '/api/academy/hint': typeof ApiAcademyHintRoute
   '/api/academy/me': typeof ApiAcademyMeRoute
   '/api/academy/perplexity-key': typeof ApiAcademyPerplexityKeyRoute
+  '/api/academy/progress': typeof ApiAcademyProgressRoute
   '/api/academy/reply': typeof ApiAcademyReplyRoute
   '/api/academy/session': typeof ApiAcademySessionRoute
   '/api/academy/sessions': typeof ApiAcademySessionsRouteWithChildren
@@ -1658,6 +1681,7 @@ export interface FileRoutesByTo {
   '/api/public/author-audit': typeof ApiPublicAuthorAuditRoute
   '/api/public/case-studies': typeof ApiPublicCaseStudiesRoute
   '/api/public/expert-portfolio': typeof ApiPublicExpertPortfolioRoute
+  '/api/public/expert-proof': typeof ApiPublicExpertProofRoute
   '/api/public/expert-reviews': typeof ApiPublicExpertReviewsRoute
   '/api/public/expert-testimonials': typeof ApiPublicExpertTestimonialsRoute
   '/api/public/experts': typeof ApiPublicExpertsRoute
@@ -1802,9 +1826,11 @@ export interface FileRoutesById {
   '/api/academy/assign': typeof ApiAcademyAssignRoute
   '/api/academy/coach': typeof ApiAcademyCoachRoute
   '/api/academy/demos': typeof ApiAcademyDemosRouteWithChildren
+  '/api/academy/feedback': typeof ApiAcademyFeedbackRoute
   '/api/academy/hint': typeof ApiAcademyHintRoute
   '/api/academy/me': typeof ApiAcademyMeRoute
   '/api/academy/perplexity-key': typeof ApiAcademyPerplexityKeyRoute
+  '/api/academy/progress': typeof ApiAcademyProgressRoute
   '/api/academy/reply': typeof ApiAcademyReplyRoute
   '/api/academy/session': typeof ApiAcademySessionRoute
   '/api/academy/sessions': typeof ApiAcademySessionsRouteWithChildren
@@ -1869,6 +1895,7 @@ export interface FileRoutesById {
   '/api/public/author-audit': typeof ApiPublicAuthorAuditRoute
   '/api/public/case-studies': typeof ApiPublicCaseStudiesRoute
   '/api/public/expert-portfolio': typeof ApiPublicExpertPortfolioRoute
+  '/api/public/expert-proof': typeof ApiPublicExpertProofRoute
   '/api/public/expert-reviews': typeof ApiPublicExpertReviewsRoute
   '/api/public/expert-testimonials': typeof ApiPublicExpertTestimonialsRoute
   '/api/public/experts': typeof ApiPublicExpertsRoute
@@ -2014,9 +2041,11 @@ export interface FileRouteTypes {
     | '/api/academy/assign'
     | '/api/academy/coach'
     | '/api/academy/demos'
+    | '/api/academy/feedback'
     | '/api/academy/hint'
     | '/api/academy/me'
     | '/api/academy/perplexity-key'
+    | '/api/academy/progress'
     | '/api/academy/reply'
     | '/api/academy/session'
     | '/api/academy/sessions'
@@ -2081,6 +2110,7 @@ export interface FileRouteTypes {
     | '/api/public/author-audit'
     | '/api/public/case-studies'
     | '/api/public/expert-portfolio'
+    | '/api/public/expert-proof'
     | '/api/public/expert-reviews'
     | '/api/public/expert-testimonials'
     | '/api/public/experts'
@@ -2224,9 +2254,11 @@ export interface FileRouteTypes {
     | '/api/academy/assign'
     | '/api/academy/coach'
     | '/api/academy/demos'
+    | '/api/academy/feedback'
     | '/api/academy/hint'
     | '/api/academy/me'
     | '/api/academy/perplexity-key'
+    | '/api/academy/progress'
     | '/api/academy/reply'
     | '/api/academy/session'
     | '/api/academy/sessions'
@@ -2291,6 +2323,7 @@ export interface FileRouteTypes {
     | '/api/public/author-audit'
     | '/api/public/case-studies'
     | '/api/public/expert-portfolio'
+    | '/api/public/expert-proof'
     | '/api/public/expert-reviews'
     | '/api/public/expert-testimonials'
     | '/api/public/experts'
@@ -2434,9 +2467,11 @@ export interface FileRouteTypes {
     | '/api/academy/assign'
     | '/api/academy/coach'
     | '/api/academy/demos'
+    | '/api/academy/feedback'
     | '/api/academy/hint'
     | '/api/academy/me'
     | '/api/academy/perplexity-key'
+    | '/api/academy/progress'
     | '/api/academy/reply'
     | '/api/academy/session'
     | '/api/academy/sessions'
@@ -2501,6 +2536,7 @@ export interface FileRouteTypes {
     | '/api/public/author-audit'
     | '/api/public/case-studies'
     | '/api/public/expert-portfolio'
+    | '/api/public/expert-proof'
     | '/api/public/expert-reviews'
     | '/api/public/expert-testimonials'
     | '/api/public/experts'
@@ -2645,9 +2681,11 @@ export interface RootRouteChildren {
   ApiAcademyAssignRoute: typeof ApiAcademyAssignRoute
   ApiAcademyCoachRoute: typeof ApiAcademyCoachRoute
   ApiAcademyDemosRoute: typeof ApiAcademyDemosRouteWithChildren
+  ApiAcademyFeedbackRoute: typeof ApiAcademyFeedbackRoute
   ApiAcademyHintRoute: typeof ApiAcademyHintRoute
   ApiAcademyMeRoute: typeof ApiAcademyMeRoute
   ApiAcademyPerplexityKeyRoute: typeof ApiAcademyPerplexityKeyRoute
+  ApiAcademyProgressRoute: typeof ApiAcademyProgressRoute
   ApiAcademyReplyRoute: typeof ApiAcademyReplyRoute
   ApiAcademySessionRoute: typeof ApiAcademySessionRoute
   ApiAcademySessionsRoute: typeof ApiAcademySessionsRouteWithChildren
@@ -2711,6 +2749,7 @@ export interface RootRouteChildren {
   ApiPublicAuthorAuditRoute: typeof ApiPublicAuthorAuditRoute
   ApiPublicCaseStudiesRoute: typeof ApiPublicCaseStudiesRoute
   ApiPublicExpertPortfolioRoute: typeof ApiPublicExpertPortfolioRoute
+  ApiPublicExpertProofRoute: typeof ApiPublicExpertProofRoute
   ApiPublicExpertReviewsRoute: typeof ApiPublicExpertReviewsRoute
   ApiPublicExpertTestimonialsRoute: typeof ApiPublicExpertTestimonialsRoute
   ApiPublicExpertsRoute: typeof ApiPublicExpertsRoute
@@ -3195,6 +3234,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAcademyDemosRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/academy/feedback': {
+      id: '/api/academy/feedback'
+      path: '/api/academy/feedback'
+      fullPath: '/api/academy/feedback'
+      preLoaderRoute: typeof ApiAcademyFeedbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/academy/hint': {
       id: '/api/academy/hint'
       path: '/api/academy/hint'
@@ -3214,6 +3260,13 @@ declare module '@tanstack/react-router' {
       path: '/api/academy/perplexity-key'
       fullPath: '/api/academy/perplexity-key'
       preLoaderRoute: typeof ApiAcademyPerplexityKeyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/academy/progress': {
+      id: '/api/academy/progress'
+      path: '/api/academy/progress'
+      fullPath: '/api/academy/progress'
+      preLoaderRoute: typeof ApiAcademyProgressRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/academy/reply': {
@@ -3662,6 +3715,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/expert-portfolio'
       fullPath: '/api/public/expert-portfolio'
       preLoaderRoute: typeof ApiPublicExpertPortfolioRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/expert-proof': {
+      id: '/api/public/expert-proof'
+      path: '/api/public/expert-proof'
+      fullPath: '/api/public/expert-proof'
+      preLoaderRoute: typeof ApiPublicExpertProofRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/expert-reviews': {
@@ -4679,9 +4739,11 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAcademyAssignRoute: ApiAcademyAssignRoute,
   ApiAcademyCoachRoute: ApiAcademyCoachRoute,
   ApiAcademyDemosRoute: ApiAcademyDemosRouteWithChildren,
+  ApiAcademyFeedbackRoute: ApiAcademyFeedbackRoute,
   ApiAcademyHintRoute: ApiAcademyHintRoute,
   ApiAcademyMeRoute: ApiAcademyMeRoute,
   ApiAcademyPerplexityKeyRoute: ApiAcademyPerplexityKeyRoute,
+  ApiAcademyProgressRoute: ApiAcademyProgressRoute,
   ApiAcademyReplyRoute: ApiAcademyReplyRoute,
   ApiAcademySessionRoute: ApiAcademySessionRoute,
   ApiAcademySessionsRoute: ApiAcademySessionsRouteWithChildren,
@@ -4746,6 +4808,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicAuthorAuditRoute: ApiPublicAuthorAuditRoute,
   ApiPublicCaseStudiesRoute: ApiPublicCaseStudiesRoute,
   ApiPublicExpertPortfolioRoute: ApiPublicExpertPortfolioRoute,
+  ApiPublicExpertProofRoute: ApiPublicExpertProofRoute,
   ApiPublicExpertReviewsRoute: ApiPublicExpertReviewsRoute,
   ApiPublicExpertTestimonialsRoute: ApiPublicExpertTestimonialsRoute,
   ApiPublicExpertsRoute: ApiPublicExpertsRoute,

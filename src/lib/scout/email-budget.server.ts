@@ -4,14 +4,14 @@ import { PerplexityError } from "@/lib/perplexity/agent.server";
 import type { AuthorContactResult } from "./perplexity-contact.server";
 export const emailDb = () => supabaseAdmin as SupabaseClient;
 export type EmailTarget = { authorId: string; bookId: string };
-export async function createEmailRun(owner: string, budgetUsd: number, targets: EmailTarget[]) {
+export async function createEmailRun(owner: string, targets: EmailTarget[]) {
   const unique = [...new Map(targets.map((t) => [t.authorId, t])).values()];
   const { data, error } = await emailDb()
     .from("scout_email_runs")
-    .insert({ owner, budget_usd: budgetUsd, targets: unique })
+    .insert({ owner, targets: unique })
     .select("id,budget_usd,accounted_usd,targets")
     .single();
-  if (error) throw new PerplexityError("Could not create email search budget.", 503);
+  if (error) throw new PerplexityError("Could not create email search run.", 503);
   return data;
 }
 export async function checkEmailRun(id: string, owner: string, authorId?: string, bookId?: string) {
@@ -21,7 +21,7 @@ export async function checkEmailRun(id: string, owner: string, authorId?: string
     .eq("id", id)
     .eq("owner", owner)
     .maybeSingle();
-  if (error) throw new PerplexityError("Could not load email search budget.", 503);
+  if (error) throw new PerplexityError("Could not load email search run.", 503);
   if (
     !data ||
     (authorId &&
@@ -45,12 +45,9 @@ export async function reserveEmailPass(
     p_stage: stage,
   });
   if (error)
-    throw new PerplexityError("Could not reserve search budget; no new search was started.", 503);
+    throw new PerplexityError("Could not register search request; no new search was started.", 503);
   if (!data)
-    throw new PerplexityError(
-      "Budget threshold reached. Free and saved results remain available.",
-      402,
-    );
+    throw new PerplexityError("Email search run is stopped, completed, or unavailable.", 409);
   return data as string;
 }
 export async function settleEmailPass(ticket: string, costUsd: number | null | undefined) {

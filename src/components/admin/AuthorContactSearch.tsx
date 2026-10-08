@@ -59,8 +59,8 @@ async function searchOne(
   return { status: "error", emails: [], error: "Busy. Try again shortly." };
 }
 
-// Two at a time to limit concurrent paid requests.
-const CONCURRENCY = 2;
+// Keep a bounded pool while searching more authors in parallel.
+const CONCURRENCY = 10;
 
 /** Email search state for a list of authors: one-off searches plus a bulk
  *  run with a small worker pool, progress counts and stop. */
@@ -82,7 +82,7 @@ export function useEmailSearch() {
   }, []);
 
   const findAll = useCallback(
-    async (targets: { authorId: string; bookId: string }[], retry = false, budgetUsd = 1) => {
+    async (targets: { authorId: string; bookId: string }[], retry = false) => {
       if (!targets.length || creating.current) return;
       creating.current = true;
       setRunError("");
@@ -91,7 +91,7 @@ export function useEmailSearch() {
         const response = await fetch("/api/admin/scout-email-runs", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ action: "create", targets, budgetUsd }),
+          body: JSON.stringify({ action: "create", targets }),
         });
         const data = await response.json();
         if (!response.ok) throw new Error(data.message || "Could not start search run.");
@@ -207,7 +207,7 @@ export function EmailSearchProgress({
       </div>
       <p className="mt-2 text-xs text-muted-foreground">
         <span className="text-emerald-500">{found} found</span> · {none} no email
-        {paused ? ` · ${paused} budget-paused` : ""}
+        {paused ? ` · ${paused} paused` : ""}
         {failed ? ` · ${failed} failed` : ""} · {searching} searching now
         {eta !== null && done < run.total ? ` · about ${Math.max(1, eta)} min left` : ""}
       </p>
@@ -273,8 +273,8 @@ export function AuthorContactSearch({
         </div>
       ) : search.status === "paused" ? (
         <p>
-          Budget threshold reached. {search.emails.length} saved candidates. Start a new run to
-          continue; completed passes are reused.
+          Search paused. {search.emails.length} saved candidates. Start a new run to continue;
+          completed passes are reused.
         </p>
       ) : search.status === "not_found" ? (
         <p className="flex items-center gap-1.5 font-medium text-muted-foreground">

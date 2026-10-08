@@ -410,7 +410,6 @@ function AuthorScout({
   }, [batchPage, onBatchPageChange]);
   const [books, setBooks] = useState<Book[]>([]);
   const emails = useEmailSearch();
-  const [emailBudget, setEmailBudget] = useState(1);
   const emailSearchFor = (book: Book) =>
     (book.scout_authors && emails.state[book.scout_authors.id]) || savedSearch(book.scout_authors);
   // One search per author (an author can have several books); skip any
@@ -469,22 +468,22 @@ function AuthorScout({
     if (
       !n ||
       !window.confirm(
-        `Search again for ${n} author${n === 1 ? "" : "s"} with no verified email? The $${emailBudget.toFixed(2)} batch budget stops starting additional paid searches at the threshold. Requests already in progress can still finish.`,
+        `Search again for ${n} author${n === 1 ? "" : "s"} with no verified email? Searches use your Perplexity account.`,
       )
     )
       return;
-    void emails.findAll(notFoundTargets, true, emailBudget);
+    void emails.findAll(notFoundTargets, true);
   }
   function findAllEmails() {
     const n = emailTargets.length;
     if (
       !n ||
       !window.confirm(
-        `Find emails for ${n} author${n === 1 ? "" : "s"}? The $${emailBudget.toFixed(2)} batch budget stops starting additional paid searches at the threshold. Saved and free source checks are reused. Requests already in progress can still finish.`,
+        `Find emails for ${n} author${n === 1 ? "" : "s"}? Searches use your Perplexity account. Saved and free source checks are reused.`,
       )
     )
       return;
-    void emails.findAll(emailTargets, false, emailBudget);
+    void emails.findAll(emailTargets, false);
   }
   const [loading, setLoading] = useState(true);
   const [detailLoading, setDetailLoading] = useState(false);
@@ -1468,34 +1467,13 @@ function AuthorScout({
               )}
               {canFindEmail && (
                 <div className="my-3 space-y-2 rounded-xl border p-3 text-sm">
-                  <label>
-                    Batch search budget (USD)
-                    <input
-                      aria-label="Batch search budget"
-                      className="ml-2 w-24 rounded border bg-background p-2"
-                      type="number"
-                      min={0.1}
-                      max={25}
-                      step={0.1}
-                      value={emailBudget}
-                      disabled={Boolean(emails.run)}
-                      onChange={(e) => setEmailBudget(Number(e.target.value))}
-                    />
-                  </label>
                   <p className="text-xs text-muted-foreground">
-                    Each paid pass reserves $0.10 before starting, then uses the reported cost.
-                    Unconfirmed charges keep their reservation. Free checks continue after the
-                    threshold; in-flight charges may exceed it.
+                    Search up to 10 authors at a time. Usage is billed to your Perplexity account.
                   </p>
                   <button
                     className="rounded-lg border px-3 py-2"
-                    disabled={
-                      Boolean(emails.run) ||
-                      !pilotTargets.length ||
-                      emailBudget < 0.1 ||
-                      emailBudget > 25
-                    }
-                    onClick={() => void emails.findAll(pilotTargets, true, emailBudget)}
+                    disabled={Boolean(emails.run) || !pilotTargets.length}
+                    onClick={() => void emails.findAll(pilotTargets, true)}
                   >
                     Measure {pilotTargets.length}-author sample
                   </button>

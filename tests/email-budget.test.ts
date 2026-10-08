@@ -4,7 +4,7 @@ import { readFile } from "node:fs/promises";
 import { emailCoverage } from "../src/lib/scout/email-report";
 import { parseAgentResponse } from "../src/lib/perplexity/agent.server";
 
-test("budget reservations are atomic, owner scoped and settle idempotently", async () => {
+test("uncapped search accounting is owner scoped, honors stop and settles idempotently", async () => {
   const db = new PGlite();
   try {
     await db.exec(
@@ -16,6 +16,15 @@ test("budget reservations are atomic, owner scoped and settle idempotently", asy
         "utf8",
       ),
     );
+    for (const migration of [
+      "20261008150000_scout_email_run_status.sql",
+      "20261008160000_scout_email_stop_budget.sql",
+      "20261009150000_scout_email_remove_budget.sql",
+    ]) {
+      await db.exec(
+        await readFile(new URL(`../supabase/migrations/${migration}`, import.meta.url), "utf8"),
+      );
+    }
     const a = "00000000-0000-4000-8000-000000000001";
     await db.query("INSERT INTO scout_authors VALUES($1)", [a]);
     const { rows } = await db.query<{ id: string }>(
@@ -32,9 +41,9 @@ test("budget reservations are atomic, owner scoped and settle idempotently", asy
     expect((await reserve("other")).rows[0]!.id).toBeNull();
     const tickets = await Promise.all([reserve(), reserve(), reserve(), reserve()]);
     const issued = tickets.flatMap((t) => (t.rows[0]!.id ? [t.rows[0]!.id] : []));
-    expect(issued).toHaveLength(1);
+    expect(issued).toHaveLength(4);
     await db.query("SELECT settle_scout_email_pass($1,NULL)", [issued[0]]);
-    expect((await reserve()).rows[0]!.id).toBeNull();
+
     await db.query("SELECT settle_scout_email_pass($1,0.01)", [issued[0]]);
     await db.query("SELECT settle_scout_email_pass($1,0.01)", [issued[0]]);
     expect(
@@ -42,7 +51,12 @@ test("budget reservations are atomic, owner scoped and settle idempotently", asy
         (await db.query<{ accounted_usd: string }>("SELECT accounted_usd FROM scout_email_runs"))
           .rows[0]!.accounted_usd,
       ),
-    ).toBe(0.01);
+    ).toBe(0.31);
+    await db.query("UPDATE scout_email_runs SET status = 'stopped'");
+    expect((await reserve()).rows[0]!.id).toBeNull();
+    await db.query("UPDATE scout_email_runs SET status = 'completed'");
+    expect((await reserve()).rows[0]!.id).toBeNull();
+    await db.query("INSERT INTO scout_email_runs(owner,targets) VALUES('one','[]')");
     const t = "00000000-0000-4000-8000-000000000002";
     expect(
       (await db.query<{ ok: boolean }>("SELECT claim_scout_email_author($1,$2) ok", [a, t]))

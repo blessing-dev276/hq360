@@ -56,7 +56,6 @@ export async function emailRunsHandler(request: Request) {
         z
           .object({
             action: z.literal("create"),
-            budgetUsd: z.number().min(0.1).max(25),
             targets: z
               .array(z.object({ authorId: z.string().uuid(), bookId: z.string().uuid() }).strict())
               .min(1)
@@ -72,12 +71,12 @@ export async function emailRunsHandler(request: Request) {
     for (const target of body.targets)
       if (!(await canSeeAuthor(asScoutDb(emailDb()), access.owner, target.authorId)))
         return json({ message: "Author not found." }, 404);
-    return json({ run: await createEmailRun(access.owner, body.budgetUsd, body.targets) });
+    return json({ run: await createEmailRun(access.owner, body.targets) });
   } catch (error) {
     if (error instanceof z.ZodError || error instanceof SyntaxError)
-      return json({ message: "Invalid search budget request." }, 400);
+      return json({ message: "Invalid email search request." }, 400);
     if (error instanceof PerplexityError) return json({ message: error.message }, error.status);
-    return json({ message: "Could not load email search budget." }, 503);
+    return json({ message: "Could not load email search run." }, 503);
   }
 }
 export const Route = createFileRoute("/api/admin/scout-email-runs")({

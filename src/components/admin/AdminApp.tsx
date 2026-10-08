@@ -30,6 +30,7 @@ import {
   GraduationCap,
 } from "lucide-react";
 import { SalesTabs, type SalesView } from "@/components/sales/SalesTabs";
+import { AcademyPeopleAdmin } from "./AcademyPeopleAdmin";
 import { Logo } from "@/components/Logo";
 import { PaymentsAdmin } from "./PaymentsAdmin";
 import { AdminDashboard } from "./AdminDashboard";
@@ -165,7 +166,8 @@ type Tab =
   | "experts"
   | "visitors"
   | "quotes"
-  | "proposals";
+  | "proposals"
+  | "academy";
 type WorkView = "cases" | "gallery";
 const SALES_TABS: Tab[] = ["payments", "quotes", "proposals"];
 const NAV = [
@@ -226,6 +228,12 @@ const NAV = [
     description: "Proposals, quotes and invoices: from the first pitch to the final payment.",
   },
   {
+    id: "academy",
+    label: "Academy",
+    icon: GraduationCap,
+    description: "Every trainee and trainer: progress, chats, trainer assignments and removals.",
+  },
+  {
     id: "experts",
     label: "Experts",
     icon: UserCheck,
@@ -275,6 +283,7 @@ export function AdminApp({ initialTab = "overview" }: { initialTab?: Tab }) {
             "audits",
             "payments",
             "experts",
+            "academy",
             "visitors",
             "projects",
             "work",
@@ -298,10 +307,6 @@ export function AdminApp({ initialTab = "overview" }: { initialTab?: Tab }) {
         </nav>
 
         <div className="admin-sidebar-bottom">
-          <a href="/academy" target="_blank" rel="noreferrer" className="admin-nav-item">
-            <GraduationCap size={18} />
-            Academy
-          </a>
           <a href="/" target="_blank" rel="noreferrer" className="admin-nav-item">
             <ArrowUpRight size={18} />
             View website
@@ -376,6 +381,8 @@ export function AdminApp({ initialTab = "overview" }: { initialTab?: Tab }) {
                 <PaymentsAdmin />
               )}
             </SalesTabs>
+          ) : tab === "academy" ? (
+            <AcademyPeopleAdmin />
           ) : tab === "experts" ? (
             <ExpertsAdmin />
           ) : tab === "visitors" ? (

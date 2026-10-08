@@ -55,7 +55,7 @@ const INTENT: Record<Reaction, string> = {
  * most recently saved trainer key. No key means the room uses its stored
  * banks; the admin key is never used here.
  */
-async function trainerKey(userId: string): Promise<string | null> {
+async function trainerKey(userId: string): Promise<{ key: string; owner: string } | null> {
   const db = supabaseAdmin as unknown as SupabaseClient;
   const [{ data: academy }, { data: experts }] = await Promise.all([
     db
@@ -97,7 +97,7 @@ async function trainerKey(userId: string): Promise<string | null> {
     ...candidates,
   ]) {
     try {
-      return decryptExpertKey(c.aad, c.key);
+      return { key: decryptExpertKey(c.aad, c.key), owner: c.owner };
     } catch {
       /* unreadable key; try the next one */
     }
@@ -105,30 +105,144 @@ async function trainerKey(userId: string): Promise<string | null> {
   return null;
 }
 
+type Kind = "reply" | "hint" | "coach";
+type Settings = {
+  ai_enabled: boolean;
+  ai_reply: boolean;
+  ai_hint: boolean;
+  ai_coach: boolean;
+  model: string;
+  daily_ai_limit: number;
+};
+let cached: { at: number; value: Settings } | null = null;
+/** Admin → Academy → Settings, cached for 30 seconds. */
+export async function academySettings(): Promise<Settings> {
+  if (cached && Date.now() - cached.at < 30_000) return cached.value;
+  const { data } = await (supabaseAdmin as unknown as SupabaseClient)
+    .from("academy_settings")
+    .select("ai_enabled, ai_reply, ai_hint, ai_coach, model, daily_ai_limit")
+    .eq("id", "default")
+    .maybeSingle();
+  const value: Settings = (data as Settings | null) ?? {
+    ai_enabled: true,
+    ai_reply: true,
+    ai_hint: true,
+    ai_coach: true,
+    model: PRACTICE_MODEL,
+    daily_ai_limit: 200,
+  };
+  cached = { at: Date.now(), value };
+  return value;
+}
+
+async function log(row: {
+  userId: string;
+  kind: Kind;
+  outcome: "ai" | "fallback" | "off" | "limit" | "no_key";
+  model?: string;
+  keyOwner?: string | null;
+  latency?: number;
+  input?: number;
+  output?: number;
+  error?: string;
+}) {
+  await (supabaseAdmin as unknown as SupabaseClient)
+    .from("usage_log")
+    .insert({
+      user_id: row.userId,
+      kind: row.kind,
+      outcome: row.outcome,
+      model: row.model ?? null,
+      key_owner: row.keyOwner ?? null,
+      latency_ms: row.latency ?? null,
+      input_tokens: row.input ?? 0,
+      output_tokens: row.output ?? 0,
+      error: row.error?.slice(0, 300) ?? null,
+    })
+    .then(
+      () => undefined,
+      () => undefined,
+    );
+}
+
 async function write(
+  kind: Kind,
   userId: string,
   instructions: string,
   input: string,
   json?: Record<string, unknown>,
 ) {
-  const apiKey = await trainerKey(userId);
-  if (!apiKey) throw new Error("No trainer Perplexity key saved");
+  const settings = await academySettings();
+  const featureOn = settings[`ai_${kind}` as const];
+  if (!settings.ai_enabled || !featureOn) {
+    await log({ userId, kind, outcome: "off" });
+    throw new Error("AI is turned off for this feature");
+  }
+  if (settings.daily_ai_limit > 0) {
+    const since = new Date();
+    since.setUTCHours(0, 0, 0, 0);
+    const { count } = await (supabaseAdmin as unknown as SupabaseClient)
+      .from("usage_log")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", userId)
+      .eq("outcome", "ai")
+      .gte("created_at", since.toISOString());
+    if ((count ?? 0) >= settings.daily_ai_limit) {
+      await log({ userId, kind, outcome: "limit" });
+      throw new Error("Daily AI limit reached");
+    }
+  }
+  const found = await trainerKey(userId);
+  if (!found) {
+    await log({ userId, kind, outcome: "no_key" });
+    throw new Error("No trainer Perplexity key saved");
+  }
+  const model = settings.model || PRACTICE_MODEL;
+  const started = Date.now();
   const signal = AbortSignal.timeout(TIMEOUT_MS);
-  const result = await runAgent(
-    {
-      model: PRACTICE_MODEL,
-      tools: [],
-      max_steps: 1,
-      instructions,
-      input,
-      ...(json
-        ? { response_format: { type: "json_schema", json_schema: { name: "out", schema: json } } }
-        : {}),
-    },
-    (url, init) => fetch(url, { ...init, signal }),
-    { apiKey },
-  );
-  return result.text.trim();
+  try {
+    const result = await runAgent(
+      {
+        model,
+        tools: [],
+        max_steps: 1,
+        instructions,
+        input,
+        ...(json
+          ? {
+              response_format: {
+                type: "json_schema",
+                json_schema: { name: "out", schema: json },
+              },
+            }
+          : {}),
+      },
+      (url, init) => fetch(url, { ...init, signal }),
+      { apiKey: found.key },
+    );
+    await log({
+      userId,
+      kind,
+      outcome: "ai",
+      model,
+      keyOwner: found.owner,
+      latency: Date.now() - started,
+      input: result.usage.input_tokens,
+      output: result.usage.output_tokens,
+    });
+    return result.text.trim();
+  } catch (err) {
+    await log({
+      userId,
+      kind,
+      outcome: "fallback",
+      model,
+      keyOwner: found.owner,
+      latency: Date.now() - started,
+      error: err instanceof Error ? err.message : String(err),
+    });
+    throw err;
+  }
 }
 
 const transcript = (messages: EngineMsg[], persona: Persona) =>
@@ -183,7 +297,7 @@ export async function aiAuthorReply(args: {
     .join("\n");
   const input = `CONVERSATION SO FAR:\n${transcript(args.history, p) || "(none)"}\n\nTHEIR NEW MESSAGE:\n${args.scoutText}\n\nWrite ${p.name}'s reply.`;
   try {
-    const text = (await write(args.userId, instructions, input)).replace(/\s*—\s*/g, ", ");
+    const text = (await write("reply", args.userId, instructions, input)).replace(/\s*—\s*/g, ", ");
     return unusable(text) ? null : text;
   } catch (err) {
     console.error("[academy/ai] reply", err instanceof Error ? err.message : err);
@@ -204,7 +318,7 @@ export async function aiHint(args: {
   const instructions = `You are ${args.coachName}, a senior book-marketing scout coaching a trainee who is messaging an author by email. Give ONE practical hint for their next message (2 to 3 sentences): what to do and why, tied to what the author last said. You may suggest a short example opening phrase in quotes. Never write the whole message for them. Plain text, no em dashes. Coaching focus from the playbook: ${args.ruleHint}`;
   const input = `AUTHOR (public profile only): ${p.name}, "${p.book}" (${p.genre}). ${p.public}\nRelationship: ${args.stage}\n\nCHAT:\n${transcript(args.messages, p) || "(trainee hasn't written yet)"}`;
   try {
-    const text = await write(args.userId, instructions, input);
+    const text = await write("hint", args.userId, instructions, input);
     return unusable(text) ? null : text.replace(/\s*—\s*/g, ", ");
   } catch (err) {
     console.error("[academy/ai] hint", err instanceof Error ? err.message : err);
@@ -263,7 +377,7 @@ export async function aiCoaching(args: {
   const instructions = `You are ${args.coachName}, a senior book-marketing scout reviewing a trainee's practice chat with a demo author. The scores are final; explain them, do not change them. Be specific: quote the trainee's own words. Write: summary (2 to 3 sentences on what happened and why it ended "${args.outcome}"); strengths (2 to 3 items); fixes (2 to 4 concrete changes); better_line (one message the trainee could have sent at their weakest moment, in their own style, under 70 words); moments (up to 4 key trainee lines: quote copied exactly from the trainee's messages, whether it helped or hurt trust, and a one-sentence why). Kind, direct, practical. Plain text in every field, no em dashes.`;
   const input = `AUTHOR: ${p.name}, "${p.book}" (${p.genre}). ${p.public}\nHIDDEN (now revealed to trainee): personality: ${p.personality} Secret worry: ${p.secret} Budget: ${p.budget} What wins them: ${p.wins} Mood: ${args.mood}. Test style: ${args.challenge}.\nTRUST after each message (0-100): ${args.trustHistory.join(" -> ")}\nSCORES (0-10): ${JSON.stringify(args.scores)}; overall ${args.overall}/100\n\nCHAT:\n${transcript(args.messages, p)}`;
   try {
-    const raw = await write(args.userId, instructions, input, coachingSchema);
+    const raw = await write("coach", args.userId, instructions, input, coachingSchema);
     const out = JSON.parse(raw.slice(raw.indexOf("{"), raw.lastIndexOf("}") + 1)) as AiCoaching;
     const clean = (s: unknown, max: number) =>
       typeof s === "string"

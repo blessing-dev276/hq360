@@ -79,7 +79,13 @@ export function parseAgentResponse(raw: unknown) {
     .filter((item) => item.type === "message")
     .flatMap((item) => item.content ?? [])
     .filter((item) => item.type === "output_text");
+  const usage = (raw as { usage?: Record<string, unknown> } | null)?.usage ?? {};
+  const num = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v : 0);
   return {
+    usage: {
+      input_tokens: num(usage.input_tokens ?? usage.prompt_tokens),
+      output_tokens: num(usage.output_tokens ?? usage.completion_tokens),
+    },
     id: response.id,
     ...(response.usage?.cost?.currency === "USD"
       ? { costUsd: response.usage.cost.total_cost }

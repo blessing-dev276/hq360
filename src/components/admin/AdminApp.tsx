@@ -30,7 +30,7 @@ import {
   GraduationCap,
 } from "lucide-react";
 import { SalesTabs, type SalesView } from "@/components/sales/SalesTabs";
-import { AcademyPeopleAdmin } from "./AcademyPeopleAdmin";
+import { AcademyControlCenter } from "./AcademyControlCenter";
 import { Logo } from "@/components/Logo";
 import { PaymentsAdmin } from "./PaymentsAdmin";
 import { AdminDashboard } from "./AdminDashboard";
@@ -382,7 +382,7 @@ export function AdminApp({ initialTab = "overview" }: { initialTab?: Tab }) {
               )}
             </SalesTabs>
           ) : tab === "academy" ? (
-            <AcademyPeopleAdmin />
+            <AcademyControlCenter />
           ) : tab === "experts" ? (
             <ExpertsAdmin />
           ) : tab === "visitors" ? (

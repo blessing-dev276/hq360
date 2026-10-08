@@ -173,6 +173,8 @@ function Trainer() {
   const [loaded, setLoaded] = useState<TrainerInfo[] | null>(null);
   const trainers = loaded?.length ? loaded : [DEFAULT_TRAINER];
   const [missing, setMissing] = useState(false);
+  // The photo sits behind frosted glass until it has fully loaded.
+  const [revealed, setRevealed] = useState(false);
   useEffect(() => {
     void api<{ trainers?: TrainerInfo[] }>("/api/academy/trainers").then(({ status, body }) => {
       if (status === 200 && body.trainers?.length) setMissing(false);
@@ -188,10 +190,22 @@ function Trainer() {
     .slice(0, 2)
     .toUpperCase();
   if (loaded === null)
-    return <div className="asa-card" aria-busy="true" style={{ minHeight: 160, opacity: 0.5 }} />;
+    return (
+      <aside
+        className="asa-card asa-trainer asa-glass-loading"
+        aria-busy="true"
+        aria-label="Loading your trainer"
+      >
+        <div className="asa-trainer-photo asa-glass-pane" />
+        <span className="asa-glass-line" style={{ width: "62%", height: 22, marginTop: 18 }} />
+        <span className="asa-glass-line" style={{ width: "88%" }} />
+        <span className="asa-glass-line" style={{ width: "40%" }} />
+      </aside>
+    );
+  const shown = revealed || missing || !t.photo;
   return (
-    <aside className="asa-card asa-trainer">
-      <div className="asa-trainer-photo">
+    <aside className={`asa-card asa-trainer asa-reveal${shown ? " in" : ""}`}>
+      <div className={`asa-trainer-photo${shown ? " revealed" : ""}`}>
         {missing || !t.photo ? (
           <span className="asa-trainer-initials" aria-hidden="true">
             {initials}
@@ -202,12 +216,15 @@ function Trainer() {
             ref={(img) => {
               // An image that failed before hydration never fires onError.
               if (img?.complete && img.naturalWidth === 0) setMissing(true);
+              else if (img?.complete) setRevealed(true);
             }}
+            onLoad={() => setRevealed(true)}
             src={t.photo}
             alt={`${t.name}, your trainer`}
             onError={() => setMissing(true)}
           />
         )}
+        {!shown && <span className="asa-glass-overlay" aria-hidden="true" />}
         <span className="asa-trainer-badge">
           {trainers.length > 1 ? "Your trainers" : "Your trainer"}
         </span>

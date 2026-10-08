@@ -1514,3 +1514,97 @@
     animation: none !important;
   }
 }
+
+/* Trainer card: frosted-glass loading and reveal */
+@keyframes asa-glass-sheen {
+  0% {
+    transform: translateX(-120%) skewX(-18deg);
+  }
+  100% {
+    transform: translateX(220%) skewX(-18deg);
+  }
+}
+.asa-glass-loading {
+  display: grid;
+  gap: 10px;
+  background: color-mix(in srgb, var(--asa-card) 55%, transparent);
+  backdrop-filter: blur(18px) saturate(140%);
+}
+.asa-glass-pane,
+.asa-glass-line,
+.asa-glass-overlay {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--asa-orange) 18%, transparent),
+    color-mix(in srgb, var(--asa-soft) 80%, transparent)
+  );
+}
+.asa-glass-line {
+  display: block;
+  height: 12px;
+  margin: 0 6px;
+  border-radius: 999px;
+}
+.asa-glass-pane::after,
+.asa-glass-line::after,
+.asa-glass-overlay::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  width: 45%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.45), transparent);
+  animation: asa-glass-sheen 1.6s ease-in-out infinite;
+}
+/* Frosted glass over the photo until it has loaded */
+.asa-glass-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: color-mix(in srgb, #ffffff 22%, transparent);
+  backdrop-filter: blur(16px) saturate(150%);
+  -webkit-backdrop-filter: blur(16px) saturate(150%);
+}
+.asa-trainer-photo img {
+  filter: blur(18px) saturate(1.2);
+  transform: scale(1.08);
+  opacity: 0.6;
+  transition:
+    filter 0.9s ease,
+    transform 1.1s cubic-bezier(0.2, 0.8, 0.2, 1),
+    opacity 0.7s ease;
+}
+.asa-trainer-photo.revealed img {
+  filter: none;
+  transform: none;
+  opacity: 1;
+}
+.asa-reveal h3,
+.asa-reveal p,
+.asa-reveal a {
+  opacity: 0;
+  transform: translateY(6px);
+  transition:
+    opacity 0.6s ease 0.25s,
+    transform 0.6s ease 0.25s;
+}
+.asa-reveal.in h3,
+.asa-reveal.in p,
+.asa-reveal.in a {
+  opacity: 1;
+  transform: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .asa-glass-pane::after,
+  .asa-glass-line::after,
+  .asa-glass-overlay::after {
+    animation: none;
+  }
+  .asa-trainer-photo img,
+  .asa-reveal h3,
+  .asa-reveal p,
+  .asa-reveal a {
+    transition: none;
+  }
+}

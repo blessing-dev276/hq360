@@ -312,3 +312,24 @@
     transition: none;
   }
 }
+
+/* Expert "access denied" lock. */
+@keyframes wiggle {
+  0%,
+  70%,
+  100% {
+    transform: rotate(0);
+  }
+  76% {
+    transform: rotate(-10deg);
+  }
+  82% {
+    transform: rotate(9deg);
+  }
+  88% {
+    transform: rotate(-6deg);
+  }
+  94% {
+    transform: rotate(3deg);
+  }
+}

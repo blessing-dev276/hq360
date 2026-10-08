@@ -127,6 +127,7 @@ import { Route as ApiExpertPhotoUrlRouteImport } from './routes/api/expert/photo
 import { Route as ApiExpertPortfolioRouteImport } from './routes/api/expert/portfolio'
 import { Route as ApiExpertProfileRouteImport } from './routes/api/expert/profile'
 import { Route as ApiExpertProfileSubmitRouteImport } from './routes/api/expert/profile-submit'
+import { Route as ApiExpertRequestAccessRouteImport } from './routes/api/expert/request-access'
 import { Route as ApiExpertReviewsRouteImport } from './routes/api/expert/reviews'
 import { Route as ApiExpertSessionRouteImport } from './routes/api/expert/session'
 import { Route as ApiExpertSignupRouteImport } from './routes/api/expert/signup'
@@ -819,6 +820,11 @@ const ApiExpertProfileSubmitRoute = ApiExpertProfileSubmitRouteImport.update({
   path: '/api/expert/profile-submit',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiExpertRequestAccessRoute = ApiExpertRequestAccessRouteImport.update({
+  id: '/api/expert/request-access',
+  path: '/api/expert/request-access',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiExpertReviewsRoute = ApiExpertReviewsRouteImport.update({
   id: '/api/expert/reviews',
   path: '/api/expert/reviews',
@@ -1410,6 +1416,7 @@ export interface FileRoutesByFullPath {
   '/api/expert/portfolio': typeof ApiExpertPortfolioRouteWithChildren
   '/api/expert/profile': typeof ApiExpertProfileRoute
   '/api/expert/profile-submit': typeof ApiExpertProfileSubmitRoute
+  '/api/expert/request-access': typeof ApiExpertRequestAccessRoute
   '/api/expert/reviews': typeof ApiExpertReviewsRouteWithChildren
   '/api/expert/session': typeof ApiExpertSessionRoute
   '/api/expert/signup': typeof ApiExpertSignupRoute
@@ -1616,6 +1623,7 @@ export interface FileRoutesByTo {
   '/api/expert/portfolio': typeof ApiExpertPortfolioRouteWithChildren
   '/api/expert/profile': typeof ApiExpertProfileRoute
   '/api/expert/profile-submit': typeof ApiExpertProfileSubmitRoute
+  '/api/expert/request-access': typeof ApiExpertRequestAccessRoute
   '/api/expert/reviews': typeof ApiExpertReviewsRouteWithChildren
   '/api/expert/session': typeof ApiExpertSessionRoute
   '/api/expert/signup': typeof ApiExpertSignupRoute
@@ -1823,6 +1831,7 @@ export interface FileRoutesById {
   '/api/expert/portfolio': typeof ApiExpertPortfolioRouteWithChildren
   '/api/expert/profile': typeof ApiExpertProfileRoute
   '/api/expert/profile-submit': typeof ApiExpertProfileSubmitRoute
+  '/api/expert/request-access': typeof ApiExpertRequestAccessRoute
   '/api/expert/reviews': typeof ApiExpertReviewsRouteWithChildren
   '/api/expert/session': typeof ApiExpertSessionRoute
   '/api/expert/signup': typeof ApiExpertSignupRoute
@@ -2031,6 +2040,7 @@ export interface FileRouteTypes {
     | '/api/expert/portfolio'
     | '/api/expert/profile'
     | '/api/expert/profile-submit'
+    | '/api/expert/request-access'
     | '/api/expert/reviews'
     | '/api/expert/session'
     | '/api/expert/signup'
@@ -2237,6 +2247,7 @@ export interface FileRouteTypes {
     | '/api/expert/portfolio'
     | '/api/expert/profile'
     | '/api/expert/profile-submit'
+    | '/api/expert/request-access'
     | '/api/expert/reviews'
     | '/api/expert/session'
     | '/api/expert/signup'
@@ -2443,6 +2454,7 @@ export interface FileRouteTypes {
     | '/api/expert/portfolio'
     | '/api/expert/profile'
     | '/api/expert/profile-submit'
+    | '/api/expert/request-access'
     | '/api/expert/reviews'
     | '/api/expert/session'
     | '/api/expert/signup'
@@ -2650,6 +2662,7 @@ export interface RootRouteChildren {
   ApiExpertPortfolioRoute: typeof ApiExpertPortfolioRouteWithChildren
   ApiExpertProfileRoute: typeof ApiExpertProfileRoute
   ApiExpertProfileSubmitRoute: typeof ApiExpertProfileSubmitRoute
+  ApiExpertRequestAccessRoute: typeof ApiExpertRequestAccessRoute
   ApiExpertReviewsRoute: typeof ApiExpertReviewsRouteWithChildren
   ApiExpertSessionRoute: typeof ApiExpertSessionRoute
   ApiExpertSignupRoute: typeof ApiExpertSignupRoute
@@ -3513,6 +3526,13 @@ declare module '@tanstack/react-router' {
       path: '/api/expert/profile-submit'
       fullPath: '/api/expert/profile-submit'
       preLoaderRoute: typeof ApiExpertProfileSubmitRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/expert/request-access': {
+      id: '/api/expert/request-access'
+      path: '/api/expert/request-access'
+      fullPath: '/api/expert/request-access'
+      preLoaderRoute: typeof ApiExpertRequestAccessRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/expert/reviews': {
@@ -4652,6 +4672,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiExpertPortfolioRoute: ApiExpertPortfolioRouteWithChildren,
   ApiExpertProfileRoute: ApiExpertProfileRoute,
   ApiExpertProfileSubmitRoute: ApiExpertProfileSubmitRoute,
+  ApiExpertRequestAccessRoute: ApiExpertRequestAccessRoute,
   ApiExpertReviewsRoute: ApiExpertReviewsRouteWithChildren,
   ApiExpertSessionRoute: ApiExpertSessionRoute,
   ApiExpertSignupRoute: ApiExpertSignupRoute,

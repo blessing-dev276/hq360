@@ -8,11 +8,6 @@ export const EXPERT_FEATURES = [
     label: "Sales",
     hint: "Proposals, quotes and invoices for their own clients.",
   },
-  {
-    key: "contacts",
-    label: "Find Author Contact",
-    hint: "Find and verify author emails inside Scouting (needs Scouting).",
-  },
 ] as const;
 export type ExpertFeature = (typeof EXPERT_FEATURES)[number]["key"];
 

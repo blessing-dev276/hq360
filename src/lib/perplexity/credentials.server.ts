@@ -41,6 +41,30 @@ export function decryptExpertKey(expertId: string, stored: string, secret?: stri
 }
 export const credentialDb = () =>
   (supabaseAdmin as SupabaseClient).from("expert_perplexity_credentials");
+export const adminCredentialDb = () =>
+  (supabaseAdmin as SupabaseClient).from("admin_perplexity_credentials");
+export async function loadAdminKey(): Promise<string | null> {
+  const { data, error } = await adminCredentialDb()
+    .select("encrypted_key")
+    .eq("id", "admin")
+    .maybeSingle();
+  if (error) throw new PerplexityError("Admin email search settings are unavailable.", 503);
+  if (!data) return null;
+  try {
+    return decryptExpertKey("admin", data.encrypted_key);
+  } catch {
+    throw new PerplexityError("Replace the admin key in Scouting → Email search settings.", 503);
+  }
+}
+export async function adminKeyForResearch(load = loadAdminKey) {
+  const key = (await load()) || process.env.PERPLEXITY_API_KEY?.trim();
+  if (!key)
+    throw new PerplexityError(
+      "Add a Perplexity API key in Scouting → Email search settings or set PERPLEXITY_API_KEY on the server.",
+      503,
+    );
+  return key;
+}
 export async function loadExpertKey(expertId: string): Promise<string | null> {
   const { data, error } = await credentialDb()
     .select("encrypted_key")
@@ -62,15 +86,7 @@ export async function loadExpertKey(expertId: string): Promise<string | null> {
   }
 }
 export async function keyForSearch(access: StaffAccess, load = loadExpertKey) {
-  if (access.role === "admin") {
-    const key = process.env.PERPLEXITY_API_KEY?.trim();
-    if (!key)
-      throw new PerplexityError(
-        "The admin server is missing PERPLEXITY_API_KEY. Add it to the hosting environment and redeploy, or restart your local server after updating .env.local.",
-        503,
-      );
-    return key;
-  }
+  if (access.role === "admin") return adminKeyForResearch();
   const key = await load(access.expertId);
   if (!key)
     throw new PerplexityError(

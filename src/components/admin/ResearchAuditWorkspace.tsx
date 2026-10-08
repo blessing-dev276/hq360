@@ -1,3 +1,4 @@
+import { AuditCommercialAdmin } from "./AuditCommercialAdmin";
 import { useEffect, useState, type ReactNode } from "react";
 import { GlassLoading } from "@/components/ui/glass-loading";
 import { ResearchAuditReport } from "@/components/site/ResearchAuditReport";
@@ -25,6 +26,7 @@ const reviewTabs = [
   ["Goodreads", "Goodreads lists"],
   ["Screenshots", "Evidence"],
   ["Manual Review", "Checks"],
+  ["Commercial", "HQ360 opportunities"],
 ] as const;
 type Entity = "finding" | "section" | "listopia" | "task" | "action" | "asset";
 type Values = Record<string, unknown>;
@@ -649,6 +651,14 @@ export function ResearchAuditWorkspace({
         })}
       </nav>
       <div className="flex flex-wrap items-center justify-between gap-3">
+        {tab === "Commercial" &&
+          (data.permissions.admin ? (
+            <AuditCommercialAdmin auditId={data.audit.id} />
+          ) : (
+            <p className={card}>
+              An administrator manages service availability and approves proposals.
+            </p>
+          ))}
         {reviewTabs.some(([key]) => key === tab) && (
           <nav aria-label="Review content" className="flex flex-wrap gap-2">
             {reviewTabs.map(([key, title]) => (
@@ -1753,6 +1763,7 @@ export function ResearchAuditWorkspace({
               </p>
               <ResearchAuditReport
                 syncUrl={false}
+                commercialEndpoint={`/api/admin/author-audits/${data.audit.id}/commercial`}
                 report={preview}
                 imageBase={`${base}?version=${version}&asset=`}
               />

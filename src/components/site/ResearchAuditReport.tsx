@@ -1,4 +1,19 @@
-import { useEffect, useMemo, useState } from "react";
+import {
+  findingType,
+  retrievalDates,
+  type CommercialPlan,
+  type ProposalDraft,
+  type MatchFinding,
+} from "@/lib/author-audit/commercial";
+import {
+  OfferDetails,
+  CommercialRoadmap,
+  CommercialSummary,
+  InquiryDialog,
+  ClientProposal,
+  type Offer,
+} from "./AuditCommercialReport";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { WorkflowSnapshot } from "@/lib/author-audit/workflow.server";
 import { label } from "@/lib/author-audit/workflow";
 import { reportBrand, sectionNarrative } from "@/lib/author-audit/report-presentation";
@@ -27,9 +42,9 @@ const priorityOf = (f: Finding) => PRIORITY[f.priority] ?? PRIORITY.medium_prior
 const byPriority = (a: Finding, b: Finding) =>
   Number(b.featured) - Number(a.featured) || priorityOf(a).rank - priorityOf(b).rank;
 const HORIZONS = [
-  ["do_first", "Do first", "This week"],
-  ["next_30_days", "Next 30 days", "This month"],
-  ["next_90_days", "Next 90 days", "This quarter"],
+  ["do_first", "Do first", "Confirm prerequisites"],
+  ["next_30_days", "Next 30 days", "Indicative planning horizon"],
+  ["next_90_days", "Next 90 days", "Subject to readiness"],
   ["long_term", "Long term", "Ongoing"],
 ] as const;
 
@@ -66,13 +81,34 @@ export function ResearchAuditReport({
   imageBase = "/api/private-audit?asset=",
   initialPage = "overview",
   syncUrl = true,
+  commercialEndpoint = "/api/private-audit/commerce",
 }: {
   report: Report;
   imageBase?: string;
   initialPage?: string;
   /** false inside the staff preview, so the admin page URL isn't touched. */
   syncUrl?: boolean;
+  commercialEndpoint?: string;
 }) {
+  const [plan, setPlan] = useState<CommercialPlan | null>(null);
+  const [proposal, setProposal] = useState<ProposalDraft | null>(null);
+  const [commercialError, setCommercialError] = useState("");
+  const [focusedFinding, setFocusedFinding] = useState<Finding | null>(null);
+  const [inquiry, setInquiry] = useState<Offer | null>(null);
+  useEffect(() => {
+    const controller = new AbortController();
+    void fetch(commercialEndpoint, { signal: controller.signal })
+      .then(async (response) => {
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "Recommendations unavailable.");
+        setPlan(data.plan);
+        setProposal(syncUrl ? data.proposal : null);
+      })
+      .catch((error) => {
+        if (!controller.signal.aborted) setCommercialError(error.message);
+      });
+    return () => controller.abort();
+  }, [commercialEndpoint, syncUrl]);
   const sections = useMemo(
     () =>
       r.sections.map((s) => ({
@@ -86,7 +122,7 @@ export function ResearchAuditReport({
   const areas = sections
     .filter(
       (s) =>
-        s.key !== "executive_summary" &&
+        !["executive_summary", "hq360_opportunities", "priority_action_plan"].includes(s.key) &&
         !HIDDEN_AREAS.has(s.key) &&
         (s.text ||
           r.findings.some((f) => areaOf(f) === s.key) ||
@@ -107,14 +143,13 @@ export function ResearchAuditReport({
     });
   }
   const looseEvidence = r.assets.filter((a) => !a.finding_id && !a.listopia_id);
-  const services = r.actions.filter((a) => a.service);
+  const services = plan?.services ?? [];
   const pages: Page[] = [
     { id: "overview", title: "Overview", group: "start" },
     ...areas.map((s) => ({ id: s.key, title: s.title, group: "areas" as const })),
-    ...(r.actions.length ? [{ id: "plan", title: "Action plan", group: "next" as const }] : []),
-    ...(services.length
-      ? [{ id: "help", title: "How HQ360 can help", group: "next" as const }]
-      : []),
+    { id: "plan", title: "Action plan", group: "next" as const },
+    { id: "hq360_opportunities", title: "HQ360 Opportunities", group: "next" as const },
+    { id: "help", title: "How HQ360 can help", group: "next" as const },
     ...(looseEvidence.length
       ? [{ id: "evidence", title: "Evidence", group: "next" as const }]
       : []),
@@ -148,6 +183,20 @@ export function ResearchAuditReport({
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
   }
+  function goFinding(finding: MatchFinding) {
+    const area = areaOf(finding);
+    if (!pages.some((p) => p.id === area)) {
+      setFocusedFinding(r.findings.find((f) => f.id === finding.id) ?? null);
+      return;
+    }
+    go(area);
+    requestAnimationFrame(() => {
+      const element = document.getElementById(`finding-${finding.id}`);
+      if (element instanceof HTMLDetailsElement) element.open = true;
+      element?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }
+  const inquire = r.ctaEnabled && syncUrl ? (service: Offer) => setInquiry(service) : undefined;
   const current = pages.find((p) => p.id === page) ?? pages[0]!;
   const areaIndex = areas.findIndex((s) => s.key === page);
 
@@ -284,7 +333,10 @@ export function ResearchAuditReport({
         <main className="min-w-0 flex-1 py-10 sm:py-14" key={page}>
           <div className="hq-fade-in">
             {page === "overview" && (
-              <Overview r={r} summary={summary} areas={areas} pages={pages} go={go} />
+              <>
+                <Overview r={r} summary={summary} areas={areas} pages={pages} go={go} />
+                <CommercialSummary findings={r.findings} plan={plan} go={go} />
+              </>
             )}
 
             {areaIndex >= 0 &&
@@ -325,6 +377,10 @@ export function ResearchAuditReport({
                             key={f.id}
                             f={f}
                             open={i === 0}
+                            offers={services.filter((s) =>
+                              s.matches.some((m) => m.finding_id === f.id),
+                            )}
+                            onInquire={inquire}
                             evidence={figures(r.assets.filter((a) => a.finding_id === f.id))}
                           />
                         ))}
@@ -409,7 +465,9 @@ export function ResearchAuditReport({
                                 </p>
                               </div>
                               <div className="rounded-2xl border border-[#ff5a00]/30 bg-[#ff5a00]/[.06] p-5">
-                                <h3 className="text-sm font-semibold text-white">How to move up</h3>
+                                <h3 className="text-sm font-semibold text-white">
+                                  Recommended participation
+                                </h3>
                                 <p className="mt-2 leading-relaxed whitespace-pre-line text-slate-200">
                                   {l.how_to_improve}
                                 </p>
@@ -470,6 +528,17 @@ export function ResearchAuditReport({
                 <p className="mt-5 max-w-2xl text-lg text-slate-400">
                   Everything this audit recommends, in the order to do it.
                 </p>
+                {plan && (
+                  <CommercialRoadmap
+                    plan={plan}
+                    findings={r.findings}
+                    onFinding={goFinding}
+                    onInquire={inquire}
+                  />
+                )}
+                {r.actions.length > 0 && (
+                  <h2 className="mt-10 font-display text-2xl">Author actions from the audit</h2>
+                )}
                 <ol className="mt-10 space-y-10">
                   {HORIZONS.filter(([h]) => r.actions.some((a) => a.horizon === h)).map(
                     ([h, title, when], col) => (
@@ -495,6 +564,20 @@ export function ResearchAuditReport({
                                 </span>
                                 <div>
                                   <h3 className="font-semibold text-white">{a.title}</h3>
+                                  {(a.finding_ids ?? []).map((id) => {
+                                    const f = r.findings.find((f) => f.id === id);
+                                    return (
+                                      f && (
+                                        <button
+                                          key={id}
+                                          className="mt-2 block text-sm text-[#ff8a3d] underline"
+                                          onClick={() => goFinding(f)}
+                                        >
+                                          Evidence: {f.title}
+                                        </button>
+                                      )
+                                    );
+                                  })}
                                   {a.description && (
                                     <p className="mt-1.5 text-sm leading-relaxed whitespace-pre-line text-slate-400">
                                       {a.description}
@@ -511,40 +594,60 @@ export function ResearchAuditReport({
               </section>
             )}
 
-            {page === "help" && (
+            {(page === "help" || page === "hq360_opportunities") && (
               <section id="recommendations">
-                <Eyebrow>Working together</Eyebrow>
+                <Eyebrow>Evidence-led recommendations</Eyebrow>
                 <h1 className="mt-4 font-display text-4xl tracking-tight sm:text-6xl">
-                  How HQ360 can help
+                  {page === "help" ? "How HQ360 can help" : "HQ360 Opportunities"}
                 </h1>
-                <p className="mt-5 max-w-2xl text-lg text-slate-400">
-                  Only where this audit found a specific reason to — not every service, just the
-                  ones your findings point to.
+                <p className="mt-5 text-lg text-slate-400">
+                  Your evidence comes first. Each proposed service below addresses a specific
+                  observation; scope, eligibility and access are confirmed before work begins.
                 </p>
-                <div className="mt-10 grid gap-4 sm:grid-cols-2">
-                  {services.map((a) => (
-                    <div
-                      key={a.id}
-                      className="rounded-3xl border border-white/10 bg-gradient-to-b from-white/[.04] to-transparent p-6"
-                    >
-                      <h3 className="font-display text-xl text-white">{a.service}</h3>
-                      {a.description && (
-                        <p className="mt-3 text-sm leading-relaxed text-slate-400">
-                          <span className="text-slate-300">Recommended because: </span>
-                          {a.description}
-                        </p>
-                      )}
-                    </div>
-                  ))}
-                </div>
-                {r.ctaEnabled && (
-                  <a
-                    className="mt-10 inline-flex items-center gap-2 rounded-full bg-[#ff5a00] px-7 py-3.5 font-semibold text-black hover:bg-[#ff7a2e]"
-                    href="/contact"
-                  >
-                    Discuss your action plan ↗
-                  </a>
+                {commercialError && (
+                  <p role="status" className="mt-5 text-slate-400">
+                    {commercialError}
+                  </p>
                 )}
+                {!plan && !commercialError && (
+                  <p role="status" className="mt-5">
+                    Loading recommendations…
+                  </p>
+                )}
+                {plan && !services.length && (
+                  <p className="mt-6 text-slate-300">
+                    No services are currently supported by sufficient evidence. Your findings remain
+                    available in the audit areas.
+                  </p>
+                )}
+                {page === "help" &&
+                  plan?.bundles.map((b) => (
+                    <section key={b.id} className="mt-7 border-t border-white/10 pt-5">
+                      <h2 className="font-display text-2xl">{b.name}</h2>
+                      <p className="mt-2 text-slate-300">{b.description}</p>
+                      <p className="mt-2 text-sm text-slate-400">
+                        Supported components:{" "}
+                        {services
+                          .filter((s) => b.serviceIds.includes(s.id))
+                          .map((s) => s.name)
+                          .join("; ")}
+                        .{" "}
+                        {b.pricing.quoteRequired
+                          ? "Tailored scope and quote required."
+                          : `${b.pricing.currency} ${b.pricing.amount}, subject to scope confirmation.`}
+                      </p>
+                    </section>
+                  ))}
+                {services.map((service) => (
+                  <OfferDetails
+                    key={service.id}
+                    service={service}
+                    findings={r.findings}
+                    onFinding={goFinding}
+                    onInquire={inquire}
+                  />
+                ))}
+                {proposal && <ClientProposal proposal={proposal} />}
               </section>
             )}
 
@@ -559,6 +662,29 @@ export function ResearchAuditReport({
         </main>
       </div>
 
+      {focusedFinding && (
+        <FindingDialog onClose={() => setFocusedFinding(null)}>
+          <FindingCard
+            f={focusedFinding}
+            open
+            evidence={figures(r.assets.filter((a) => a.finding_id === focusedFinding.id))}
+            offers={services.filter((s) =>
+              s.matches.some((m) => m.finding_id === focusedFinding.id),
+            )}
+            onInquire={
+              inquire
+                ? (s) => {
+                    setFocusedFinding(null);
+                    inquire(s);
+                  }
+                : undefined
+            }
+          />
+        </FindingDialog>
+      )}
+      {inquiry && (
+        <InquiryDialog service={inquiry} author={r.author.name} onClose={() => setInquiry(null)} />
+      )}
       <footer className="border-t border-white/10">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-5 py-8 text-xs text-slate-500 sm:px-8">
           <Logo variant="mono" size={22} />
@@ -585,7 +711,10 @@ function Overview({
   go: (id: string) => void;
 }) {
   const doFirst = r.findings.filter((f) => f.priority === "immediate").length;
-  const top = [...r.findings].sort(byPriority).slice(0, 3);
+  const top = r.findings
+    .filter((f) => !["strength", "unknown"].includes(findingType(f)) && f.recommendation)
+    .sort(byPriority)
+    .slice(0, 3);
   const stats = [
     [r.findings.length, "Findings"],
     [doFirst, "To do first"],
@@ -769,14 +898,19 @@ function FindingCard({
   f,
   open,
   evidence,
+  offers,
+  onInquire,
 }: {
   f: Finding;
   open: boolean;
   evidence: React.ReactNode;
+  offers: Offer[];
+  onInquire?: ((service: Offer) => void) | undefined;
 }) {
   const priority = priorityOf(f);
   return (
     <details
+      id={`finding-${f.id}`}
       open={open}
       className={`group rounded-3xl border bg-white/[.025] transition open:bg-white/[.035] ${f.featured || f.priority === "immediate" ? "border-[#ff5a00]/40" : "border-white/10"}`}
     >
@@ -786,6 +920,11 @@ function FindingCard({
             className={`inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${priority.className}`}
           >
             {priority.text}
+          </span>
+          <span
+            className={`ml-3 text-xs ${findingType(f) === "strength" ? "text-emerald-200" : "text-slate-400"}`}
+          >
+            {label(findingType(f))} · {label(f.classification)}
           </span>
           <h3 className="mt-3 font-display text-xl leading-snug tracking-tight text-white sm:text-2xl">
             {f.title}
@@ -818,6 +957,22 @@ function FindingCard({
               ))}
           </div>
         )}
+        {f.evidence && (
+          <div className="text-sm">
+            <h4 className="text-[11px] font-semibold tracking-[.2em] text-slate-500 uppercase">
+              Supporting evidence
+            </h4>
+            <p className="mt-2 leading-relaxed whitespace-pre-line text-slate-400">{f.evidence}</p>
+          </div>
+        )}
+        {evidence}
+        {f.source_urls.length > 0 && <SourceChips urls={f.source_urls} />}
+        <p className="text-xs text-slate-400">
+          {retrievalDates(f).length
+            ? `Retrieved ${retrievalDates(f).join(", ")}`
+            : "Retrieval date not recorded"}
+          {f.commercial?.evidence_limitations ? ` · ${f.commercial.evidence_limitations}` : ""}
+        </p>
         {(f.why_it_matters || f.recommendation) && (
           <div className="grid gap-5 rounded-2xl border border-[#ff5a00]/25 bg-[#ff5a00]/[.06] p-5 sm:grid-cols-2 sm:p-6">
             {f.why_it_matters && (
@@ -859,17 +1014,75 @@ function FindingCard({
             </ol>
           </div>
         )}
-        {f.evidence && (
-          <div className="text-sm">
-            <h4 className="text-[11px] font-semibold tracking-[.2em] text-slate-500 uppercase">
-              Evidence
-            </h4>
-            <p className="mt-2 leading-relaxed whitespace-pre-line text-slate-400">{f.evidence}</p>
+
+        {(f.commercial?.reader_impact || f.commercial?.business_impact) && (
+          <div className="space-y-3 text-slate-300">
+            {f.commercial.reader_impact && (
+              <p>
+                <strong>Reader impact: </strong>
+                {f.commercial.reader_impact}
+              </p>
+            )}
+            {f.commercial.business_impact && (
+              <p>
+                <strong>Business opportunity: </strong>
+                {f.commercial.business_impact}
+              </p>
+            )}
           </div>
         )}
-        {evidence}
-        {f.source_urls.length > 0 && <SourceChips urls={f.source_urls} />}
+        {offers.length > 0 && (
+          <section className="border-t border-white/15 pt-5">
+            <h4 className="font-display text-xl">How HQ360 can help</h4>
+            {offers.slice(0, 2).map((s) => (
+              <div key={s.id} className="mt-4 space-y-2">
+                <h5 className="font-semibold">{s.name}</h5>
+                <p className="text-sm text-slate-300">
+                  {s.matches.find((m) => m.finding_id === f.id)?.reason_for_match}
+                </p>
+                <p className="text-sm text-slate-300">Deliverables: {s.deliverables.join("; ")}</p>
+                <p className="text-sm text-slate-400">Requires: {s.prerequisites.join("; ")}</p>
+                <p className="text-sm text-slate-400">Measure: {s.primaryKpi}</p>
+                {onInquire && (
+                  <button
+                    className="mt-2 text-sm text-[#ff8a3d] underline"
+                    onClick={() => onInquire(s)}
+                  >
+                    Discuss improving this area with HQ360 →
+                  </button>
+                )}
+              </div>
+            ))}
+          </section>
+        )}
+        {f.commercial?.proposed_next_action && (
+          <p className="text-sm text-slate-300">
+            <strong>Next step: </strong>
+            {f.commercial.proposed_next_action}
+          </p>
+        )}
       </div>
     </details>
+  );
+}
+
+function FindingDialog({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
+  const ref = useRef<HTMLDialogElement>(null);
+  useEffect(() => {
+    ref.current?.showModal();
+  }, []);
+  return (
+    <dialog
+      ref={ref}
+      onCancel={onClose}
+      onClose={onClose}
+      aria-label="Audit finding"
+      className="max-h-[90vh] w-[min(94vw,56rem)] overflow-y-auto rounded-2xl border border-white/20 bg-[#111] p-4 text-white backdrop:bg-black/70"
+    >
+      <button className="mb-3 text-sm underline" onClick={onClose}>
+        Close finding
+      </button>
+      {children}
+    </dialog>
   );
 }

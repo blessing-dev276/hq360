@@ -90,6 +90,7 @@ import { Route as ApiAdminInvoiceRequestsRouteImport } from './routes/api/admin/
 import { Route as ApiAdminInvoicesRouteImport } from './routes/api/admin/invoices'
 import { Route as ApiAdminLeadsRouteImport } from './routes/api/admin/leads'
 import { Route as ApiAdminNotificationsRouteImport } from './routes/api/admin/notifications'
+import { Route as ApiAdminPerplexitySettingsRouteImport } from './routes/api/admin/perplexity-settings'
 import { Route as ApiAdminPortfolioRouteImport } from './routes/api/admin/portfolio'
 import { Route as ApiAdminQuotesRouteImport } from './routes/api/admin/quotes'
 import { Route as ApiAdminScoutAmazonSearchRouteImport } from './routes/api/admin/scout-amazon-search'
@@ -128,6 +129,7 @@ import { Route as ApiExpertTestimonialsRouteImport } from './routes/api/expert/t
 import { Route as ApiExpertVideoUrlRouteImport } from './routes/api/expert/video-url'
 import { Route as ApiNotificationsDispatchRouteImport } from './routes/api/notifications/dispatch'
 import { Route as ApiPayTokenRouteImport } from './routes/api/pay/$token'
+import { Route as ApiPrivateAuditCommerceRouteImport } from './routes/api/private-audit/commerce'
 import { Route as ApiPublicAuthorAuditRouteImport } from './routes/api/public/author-audit'
 import { Route as ApiPublicCaseStudiesRouteImport } from './routes/api/public/case-studies'
 import { Route as ApiPublicExpertPortfolioRouteImport } from './routes/api/public/expert-portfolio'
@@ -180,6 +182,7 @@ import { Route as ApiPaymentsFlutterwaveWebhookRouteImport } from './routes/api/
 import { Route as ApiPaymentsNowpaymentsIpnRouteImport } from './routes/api/payments/nowpayments/ipn'
 import { Route as ApiPaymentsPaystackWebhookRouteImport } from './routes/api/payments/paystack/webhook'
 import { Route as ApiAdminAuthorAuditsIdBulkImportRouteImport } from './routes/api/admin/author-audits.$id.bulk-import'
+import { Route as ApiAdminAuthorAuditsIdCommercialRouteImport } from './routes/api/admin/author-audits.$id.commercial'
 import { Route as ApiAdminAuthorAuditsIdComparablesRouteImport } from './routes/api/admin/author-audits.$id.comparables'
 import { Route as ApiAdminAuthorAuditsIdEvidenceAssetsRouteImport } from './routes/api/admin/author-audits.$id.evidence-assets'
 import { Route as ApiAdminAuthorAuditsIdPublishingRouteImport } from './routes/api/admin/author-audits.$id.publishing'
@@ -612,6 +615,12 @@ const ApiAdminNotificationsRoute = ApiAdminNotificationsRouteImport.update({
   path: '/api/admin/notifications',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAdminPerplexitySettingsRoute =
+  ApiAdminPerplexitySettingsRouteImport.update({
+    id: '/api/admin/perplexity-settings',
+    path: '/api/admin/perplexity-settings',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiAdminPortfolioRoute = ApiAdminPortfolioRouteImport.update({
   id: '/api/admin/portfolio',
   path: '/api/admin/portfolio',
@@ -812,6 +821,11 @@ const ApiPayTokenRoute = ApiPayTokenRouteImport.update({
   id: '/api/pay/$token',
   path: '/api/pay/$token',
   getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPrivateAuditCommerceRoute = ApiPrivateAuditCommerceRouteImport.update({
+  id: '/commerce',
+  path: '/commerce',
+  getParentRoute: () => ApiPrivateAuditRoute,
 } as any)
 const ApiPublicAuthorAuditRoute = ApiPublicAuthorAuditRouteImport.update({
   id: '/api/public/author-audit',
@@ -1089,6 +1103,12 @@ const ApiAdminAuthorAuditsIdBulkImportRoute =
     path: '/bulk-import',
     getParentRoute: () => ApiAdminAuthorAuditsIdRoute,
   } as any)
+const ApiAdminAuthorAuditsIdCommercialRoute =
+  ApiAdminAuthorAuditsIdCommercialRouteImport.update({
+    id: '/commercial',
+    path: '/commercial',
+    getParentRoute: () => ApiAdminAuthorAuditsIdRoute,
+  } as any)
 const ApiAdminAuthorAuditsIdComparablesRoute =
   ApiAdminAuthorAuditsIdComparablesRouteImport.update({
     id: '/comparables',
@@ -1263,7 +1283,7 @@ export interface FileRoutesByFullPath {
   '/testimonials': typeof TestimonialsRoute
   '/ugc-creators': typeof UgcCreatorsRoute
   '/api/checkout': typeof ApiCheckoutRoute
-  '/api/private-audit': typeof ApiPrivateAuditRoute
+  '/api/private-audit': typeof ApiPrivateAuditRouteWithChildren
   '/blog/$slug': typeof BlogSlugRoute
   '/capabilities/$slug': typeof CapabilitiesSlugRoute
   '/experts/$slug': typeof ExpertsSlugRoute
@@ -1304,6 +1324,7 @@ export interface FileRoutesByFullPath {
   '/api/admin/invoices': typeof ApiAdminInvoicesRouteWithChildren
   '/api/admin/leads': typeof ApiAdminLeadsRoute
   '/api/admin/notifications': typeof ApiAdminNotificationsRoute
+  '/api/admin/perplexity-settings': typeof ApiAdminPerplexitySettingsRoute
   '/api/admin/portfolio': typeof ApiAdminPortfolioRouteWithChildren
   '/api/admin/quotes': typeof ApiAdminQuotesRouteWithChildren
   '/api/admin/scout-amazon-search': typeof ApiAdminScoutAmazonSearchRoute
@@ -1342,6 +1363,7 @@ export interface FileRoutesByFullPath {
   '/api/expert/video-url': typeof ApiExpertVideoUrlRoute
   '/api/notifications/dispatch': typeof ApiNotificationsDispatchRoute
   '/api/pay/$token': typeof ApiPayTokenRoute
+  '/api/private-audit/commerce': typeof ApiPrivateAuditCommerceRoute
   '/api/public/author-audit': typeof ApiPublicAuthorAuditRoute
   '/api/public/case-studies': typeof ApiPublicCaseStudiesRoute
   '/api/public/expert-portfolio': typeof ApiPublicExpertPortfolioRoute
@@ -1394,6 +1416,7 @@ export interface FileRoutesByFullPath {
   '/api/payments/nowpayments/ipn': typeof ApiPaymentsNowpaymentsIpnRoute
   '/api/payments/paystack/webhook': typeof ApiPaymentsPaystackWebhookRoute
   '/api/admin/author-audits/$id/bulk-import': typeof ApiAdminAuthorAuditsIdBulkImportRoute
+  '/api/admin/author-audits/$id/commercial': typeof ApiAdminAuthorAuditsIdCommercialRoute
   '/api/admin/author-audits/$id/comparables': typeof ApiAdminAuthorAuditsIdComparablesRouteWithChildren
   '/api/admin/author-audits/$id/evidence-assets': typeof ApiAdminAuthorAuditsIdEvidenceAssetsRouteWithChildren
   '/api/admin/author-audits/$id/publishing': typeof ApiAdminAuthorAuditsIdPublishingRoute
@@ -1458,7 +1481,7 @@ export interface FileRoutesByTo {
   '/testimonials': typeof TestimonialsRoute
   '/ugc-creators': typeof UgcCreatorsRoute
   '/api/checkout': typeof ApiCheckoutRoute
-  '/api/private-audit': typeof ApiPrivateAuditRoute
+  '/api/private-audit': typeof ApiPrivateAuditRouteWithChildren
   '/blog/$slug': typeof BlogSlugRoute
   '/capabilities/$slug': typeof CapabilitiesSlugRoute
   '/experts/$slug': typeof ExpertsSlugRoute
@@ -1499,6 +1522,7 @@ export interface FileRoutesByTo {
   '/api/admin/invoices': typeof ApiAdminInvoicesRouteWithChildren
   '/api/admin/leads': typeof ApiAdminLeadsRoute
   '/api/admin/notifications': typeof ApiAdminNotificationsRoute
+  '/api/admin/perplexity-settings': typeof ApiAdminPerplexitySettingsRoute
   '/api/admin/portfolio': typeof ApiAdminPortfolioRouteWithChildren
   '/api/admin/quotes': typeof ApiAdminQuotesRouteWithChildren
   '/api/admin/scout-amazon-search': typeof ApiAdminScoutAmazonSearchRoute
@@ -1537,6 +1561,7 @@ export interface FileRoutesByTo {
   '/api/expert/video-url': typeof ApiExpertVideoUrlRoute
   '/api/notifications/dispatch': typeof ApiNotificationsDispatchRoute
   '/api/pay/$token': typeof ApiPayTokenRoute
+  '/api/private-audit/commerce': typeof ApiPrivateAuditCommerceRoute
   '/api/public/author-audit': typeof ApiPublicAuthorAuditRoute
   '/api/public/case-studies': typeof ApiPublicCaseStudiesRoute
   '/api/public/expert-portfolio': typeof ApiPublicExpertPortfolioRoute
@@ -1589,6 +1614,7 @@ export interface FileRoutesByTo {
   '/api/payments/nowpayments/ipn': typeof ApiPaymentsNowpaymentsIpnRoute
   '/api/payments/paystack/webhook': typeof ApiPaymentsPaystackWebhookRoute
   '/api/admin/author-audits/$id/bulk-import': typeof ApiAdminAuthorAuditsIdBulkImportRoute
+  '/api/admin/author-audits/$id/commercial': typeof ApiAdminAuthorAuditsIdCommercialRoute
   '/api/admin/author-audits/$id/comparables': typeof ApiAdminAuthorAuditsIdComparablesRouteWithChildren
   '/api/admin/author-audits/$id/evidence-assets': typeof ApiAdminAuthorAuditsIdEvidenceAssetsRouteWithChildren
   '/api/admin/author-audits/$id/publishing': typeof ApiAdminAuthorAuditsIdPublishingRoute
@@ -1654,7 +1680,7 @@ export interface FileRoutesById {
   '/testimonials': typeof TestimonialsRoute
   '/ugc-creators': typeof UgcCreatorsRoute
   '/api/checkout': typeof ApiCheckoutRoute
-  '/api/private-audit': typeof ApiPrivateAuditRoute
+  '/api/private-audit': typeof ApiPrivateAuditRouteWithChildren
   '/blog/$slug': typeof BlogSlugRoute
   '/capabilities/$slug': typeof CapabilitiesSlugRoute
   '/experts/$slug': typeof ExpertsSlugRoute
@@ -1695,6 +1721,7 @@ export interface FileRoutesById {
   '/api/admin/invoices': typeof ApiAdminInvoicesRouteWithChildren
   '/api/admin/leads': typeof ApiAdminLeadsRoute
   '/api/admin/notifications': typeof ApiAdminNotificationsRoute
+  '/api/admin/perplexity-settings': typeof ApiAdminPerplexitySettingsRoute
   '/api/admin/portfolio': typeof ApiAdminPortfolioRouteWithChildren
   '/api/admin/quotes': typeof ApiAdminQuotesRouteWithChildren
   '/api/admin/scout-amazon-search': typeof ApiAdminScoutAmazonSearchRoute
@@ -1733,6 +1760,7 @@ export interface FileRoutesById {
   '/api/expert/video-url': typeof ApiExpertVideoUrlRoute
   '/api/notifications/dispatch': typeof ApiNotificationsDispatchRoute
   '/api/pay/$token': typeof ApiPayTokenRoute
+  '/api/private-audit/commerce': typeof ApiPrivateAuditCommerceRoute
   '/api/public/author-audit': typeof ApiPublicAuthorAuditRoute
   '/api/public/case-studies': typeof ApiPublicCaseStudiesRoute
   '/api/public/expert-portfolio': typeof ApiPublicExpertPortfolioRoute
@@ -1785,6 +1813,7 @@ export interface FileRoutesById {
   '/api/payments/nowpayments/ipn': typeof ApiPaymentsNowpaymentsIpnRoute
   '/api/payments/paystack/webhook': typeof ApiPaymentsPaystackWebhookRoute
   '/api/admin/author-audits/$id/bulk-import': typeof ApiAdminAuthorAuditsIdBulkImportRoute
+  '/api/admin/author-audits/$id/commercial': typeof ApiAdminAuthorAuditsIdCommercialRoute
   '/api/admin/author-audits/$id/comparables': typeof ApiAdminAuthorAuditsIdComparablesRouteWithChildren
   '/api/admin/author-audits/$id/evidence-assets': typeof ApiAdminAuthorAuditsIdEvidenceAssetsRouteWithChildren
   '/api/admin/author-audits/$id/publishing': typeof ApiAdminAuthorAuditsIdPublishingRoute
@@ -1892,6 +1921,7 @@ export interface FileRouteTypes {
     | '/api/admin/invoices'
     | '/api/admin/leads'
     | '/api/admin/notifications'
+    | '/api/admin/perplexity-settings'
     | '/api/admin/portfolio'
     | '/api/admin/quotes'
     | '/api/admin/scout-amazon-search'
@@ -1930,6 +1960,7 @@ export interface FileRouteTypes {
     | '/api/expert/video-url'
     | '/api/notifications/dispatch'
     | '/api/pay/$token'
+    | '/api/private-audit/commerce'
     | '/api/public/author-audit'
     | '/api/public/case-studies'
     | '/api/public/expert-portfolio'
@@ -1982,6 +2013,7 @@ export interface FileRouteTypes {
     | '/api/payments/nowpayments/ipn'
     | '/api/payments/paystack/webhook'
     | '/api/admin/author-audits/$id/bulk-import'
+    | '/api/admin/author-audits/$id/commercial'
     | '/api/admin/author-audits/$id/comparables'
     | '/api/admin/author-audits/$id/evidence-assets'
     | '/api/admin/author-audits/$id/publishing'
@@ -2087,6 +2119,7 @@ export interface FileRouteTypes {
     | '/api/admin/invoices'
     | '/api/admin/leads'
     | '/api/admin/notifications'
+    | '/api/admin/perplexity-settings'
     | '/api/admin/portfolio'
     | '/api/admin/quotes'
     | '/api/admin/scout-amazon-search'
@@ -2125,6 +2158,7 @@ export interface FileRouteTypes {
     | '/api/expert/video-url'
     | '/api/notifications/dispatch'
     | '/api/pay/$token'
+    | '/api/private-audit/commerce'
     | '/api/public/author-audit'
     | '/api/public/case-studies'
     | '/api/public/expert-portfolio'
@@ -2177,6 +2211,7 @@ export interface FileRouteTypes {
     | '/api/payments/nowpayments/ipn'
     | '/api/payments/paystack/webhook'
     | '/api/admin/author-audits/$id/bulk-import'
+    | '/api/admin/author-audits/$id/commercial'
     | '/api/admin/author-audits/$id/comparables'
     | '/api/admin/author-audits/$id/evidence-assets'
     | '/api/admin/author-audits/$id/publishing'
@@ -2282,6 +2317,7 @@ export interface FileRouteTypes {
     | '/api/admin/invoices'
     | '/api/admin/leads'
     | '/api/admin/notifications'
+    | '/api/admin/perplexity-settings'
     | '/api/admin/portfolio'
     | '/api/admin/quotes'
     | '/api/admin/scout-amazon-search'
@@ -2320,6 +2356,7 @@ export interface FileRouteTypes {
     | '/api/expert/video-url'
     | '/api/notifications/dispatch'
     | '/api/pay/$token'
+    | '/api/private-audit/commerce'
     | '/api/public/author-audit'
     | '/api/public/case-studies'
     | '/api/public/expert-portfolio'
@@ -2372,6 +2409,7 @@ export interface FileRouteTypes {
     | '/api/payments/nowpayments/ipn'
     | '/api/payments/paystack/webhook'
     | '/api/admin/author-audits/$id/bulk-import'
+    | '/api/admin/author-audits/$id/commercial'
     | '/api/admin/author-audits/$id/comparables'
     | '/api/admin/author-audits/$id/evidence-assets'
     | '/api/admin/author-audits/$id/publishing'
@@ -2437,7 +2475,7 @@ export interface RootRouteChildren {
   TestimonialsRoute: typeof TestimonialsRoute
   UgcCreatorsRoute: typeof UgcCreatorsRoute
   ApiCheckoutRoute: typeof ApiCheckoutRoute
-  ApiPrivateAuditRoute: typeof ApiPrivateAuditRoute
+  ApiPrivateAuditRoute: typeof ApiPrivateAuditRouteWithChildren
   BlogSlugRoute: typeof BlogSlugRoute
   CapabilitiesSlugRoute: typeof CapabilitiesSlugRoute
   ExpertsSlugRoute: typeof ExpertsSlugRoute
@@ -2478,6 +2516,7 @@ export interface RootRouteChildren {
   ApiAdminInvoicesRoute: typeof ApiAdminInvoicesRouteWithChildren
   ApiAdminLeadsRoute: typeof ApiAdminLeadsRoute
   ApiAdminNotificationsRoute: typeof ApiAdminNotificationsRoute
+  ApiAdminPerplexitySettingsRoute: typeof ApiAdminPerplexitySettingsRoute
   ApiAdminPortfolioRoute: typeof ApiAdminPortfolioRouteWithChildren
   ApiAdminQuotesRoute: typeof ApiAdminQuotesRouteWithChildren
   ApiAdminScoutAmazonSearchRoute: typeof ApiAdminScoutAmazonSearchRoute
@@ -3114,6 +3153,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAdminNotificationsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/admin/perplexity-settings': {
+      id: '/api/admin/perplexity-settings'
+      path: '/api/admin/perplexity-settings'
+      fullPath: '/api/admin/perplexity-settings'
+      preLoaderRoute: typeof ApiAdminPerplexitySettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/admin/portfolio': {
       id: '/api/admin/portfolio'
       path: '/api/admin/portfolio'
@@ -3379,6 +3425,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/pay/$token'
       preLoaderRoute: typeof ApiPayTokenRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/api/private-audit/commerce': {
+      id: '/api/private-audit/commerce'
+      path: '/commerce'
+      fullPath: '/api/private-audit/commerce'
+      preLoaderRoute: typeof ApiPrivateAuditCommerceRouteImport
+      parentRoute: typeof ApiPrivateAuditRoute
     }
     '/api/public/author-audit': {
       id: '/api/public/author-audit'
@@ -3744,6 +3797,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAdminAuthorAuditsIdBulkImportRouteImport
       parentRoute: typeof ApiAdminAuthorAuditsIdRoute
     }
+    '/api/admin/author-audits/$id/commercial': {
+      id: '/api/admin/author-audits/$id/commercial'
+      path: '/commercial'
+      fullPath: '/api/admin/author-audits/$id/commercial'
+      preLoaderRoute: typeof ApiAdminAuthorAuditsIdCommercialRouteImport
+      parentRoute: typeof ApiAdminAuthorAuditsIdRoute
+    }
     '/api/admin/author-audits/$id/comparables': {
       id: '/api/admin/author-audits/$id/comparables'
       path: '/comparables'
@@ -3901,6 +3961,18 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface ApiPrivateAuditRouteChildren {
+  ApiPrivateAuditCommerceRoute: typeof ApiPrivateAuditCommerceRoute
+}
+
+const ApiPrivateAuditRouteChildren: ApiPrivateAuditRouteChildren = {
+  ApiPrivateAuditCommerceRoute: ApiPrivateAuditCommerceRoute,
+}
+
+const ApiPrivateAuditRouteWithChildren = ApiPrivateAuditRoute._addFileChildren(
+  ApiPrivateAuditRouteChildren,
+)
+
 interface ApiAcademyDemosRouteChildren {
   ApiAcademyDemosIdRoute: typeof ApiAcademyDemosIdRoute
 }
@@ -3956,6 +4028,7 @@ const ApiAdminAuthorAuditsIdEvidenceAssetsRouteWithChildren =
 
 interface ApiAdminAuthorAuditsIdRouteChildren {
   ApiAdminAuthorAuditsIdBulkImportRoute: typeof ApiAdminAuthorAuditsIdBulkImportRoute
+  ApiAdminAuthorAuditsIdCommercialRoute: typeof ApiAdminAuthorAuditsIdCommercialRoute
   ApiAdminAuthorAuditsIdComparablesRoute: typeof ApiAdminAuthorAuditsIdComparablesRouteWithChildren
   ApiAdminAuthorAuditsIdEvidenceAssetsRoute: typeof ApiAdminAuthorAuditsIdEvidenceAssetsRouteWithChildren
   ApiAdminAuthorAuditsIdPublishingRoute: typeof ApiAdminAuthorAuditsIdPublishingRoute
@@ -3977,6 +4050,8 @@ const ApiAdminAuthorAuditsIdRouteChildren: ApiAdminAuthorAuditsIdRouteChildren =
   {
     ApiAdminAuthorAuditsIdBulkImportRoute:
       ApiAdminAuthorAuditsIdBulkImportRoute,
+    ApiAdminAuthorAuditsIdCommercialRoute:
+      ApiAdminAuthorAuditsIdCommercialRoute,
     ApiAdminAuthorAuditsIdComparablesRoute:
       ApiAdminAuthorAuditsIdComparablesRouteWithChildren,
     ApiAdminAuthorAuditsIdEvidenceAssetsRoute:
@@ -4317,7 +4392,7 @@ const rootRouteChildren: RootRouteChildren = {
   TestimonialsRoute: TestimonialsRoute,
   UgcCreatorsRoute: UgcCreatorsRoute,
   ApiCheckoutRoute: ApiCheckoutRoute,
-  ApiPrivateAuditRoute: ApiPrivateAuditRoute,
+  ApiPrivateAuditRoute: ApiPrivateAuditRouteWithChildren,
   BlogSlugRoute: BlogSlugRoute,
   CapabilitiesSlugRoute: CapabilitiesSlugRoute,
   ExpertsSlugRoute: ExpertsSlugRoute,
@@ -4358,6 +4433,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAdminInvoicesRoute: ApiAdminInvoicesRouteWithChildren,
   ApiAdminLeadsRoute: ApiAdminLeadsRoute,
   ApiAdminNotificationsRoute: ApiAdminNotificationsRoute,
+  ApiAdminPerplexitySettingsRoute: ApiAdminPerplexitySettingsRoute,
   ApiAdminPortfolioRoute: ApiAdminPortfolioRouteWithChildren,
   ApiAdminQuotesRoute: ApiAdminQuotesRouteWithChildren,
   ApiAdminScoutAmazonSearchRoute: ApiAdminScoutAmazonSearchRoute,

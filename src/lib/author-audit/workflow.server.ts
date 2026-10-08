@@ -1,3 +1,4 @@
+import { integrityIssues } from "./commercial";
 import { approvalPatch } from "./approval";
 import { evidenceUploadTarget } from "./evidence-upload";
 import { z } from "zod";
@@ -193,7 +194,11 @@ export async function autoValidate(id: string, actor: string) {
   const open = state.findings.filter((f) => !f.hidden && f.review_status !== "rejected");
   const [goodFindings, badFindings] = pick(
     open,
-    (f) => !!f.recommendation?.trim() && (f.source_urls.length > 0 || !!f.evidence_text?.trim()),
+    (f) =>
+      !!f.recommendation?.trim() &&
+      f.source_urls.length > 0 &&
+      !!f.evidence_text?.trim() &&
+      !integrityIssues(f).length,
   );
   await setStatus("audit_findings", id, goodFindings!, {
     review_status: "approved",
@@ -309,6 +314,8 @@ export function clientSnapshot(state: Awaited<ReturnType<typeof workflowState>>)
       implementation_steps: f.implementation_steps,
       priority: f.priority,
       featured: f.featured,
+      confidence_score: f.confidence_score,
+      commercial: f.commercial ?? null,
     }));
   const ids = new Set(findings.map((f) => f.id));
   const assets = state.assets
@@ -371,12 +378,13 @@ export function clientSnapshot(state: Awaited<ReturnType<typeof workflowState>>)
         a.finding_ids.every((id) => ids.has(id)),
     )
     .sort((a, b) => a.sort_order - b.sort_order)
-    .map(({ id, title, description, horizon, service }) => ({
+    .map(({ id, title, description, horizon, service, finding_ids }) => ({
       id,
       title,
       description,
       horizon,
       service,
+      finding_ids,
     }));
   const urls = [
     ...new Set([
@@ -387,6 +395,7 @@ export function clientSnapshot(state: Awaited<ReturnType<typeof workflowState>>)
   ];
   return {
     workflowVersion: 1 as const,
+    objective: state.audit.input_snapshot.objective || "",
     revision: state.audit.workflow_revision,
     reviewIssues: reviewIssues(state),
     author: { name: state.audit.authors.name },
@@ -581,7 +590,7 @@ export async function workflowPost(request: Request, id: string) {
       const imported = await db.rpc("audit_import_research", {
         p_audit: id,
         p_actor: actor.id,
-        p_source: "Claude",
+        p_source: "ChatGPT",
         p_raw: result.raw,
         p_data: result.validated.data,
       });
@@ -778,6 +787,12 @@ export async function workflowPost(request: Request, id: string) {
         patch.client_visible = patch.review_status === "approved";
       }
       if (entity === "finding") {
+        const issues = integrityIssues({
+          ...patch,
+          what_we_found: String(patch.what_we_found),
+          evidence: String(patch.evidence),
+        } as unknown as Parameters<typeof integrityIssues>[0]);
+        if (issues.length) throw new Error(issues.join("; "));
         patch.section = patch.category;
         patch.observation = patch.what_we_found;
         patch.evidence_text = patch.evidence;

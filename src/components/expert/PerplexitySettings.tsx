@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
 
-export function PerplexitySettings() {
+export function PerplexitySettings({ admin = false }: { admin?: boolean }) {
   const [configured, setConfigured] = useState(false);
   const [loading, setLoading] = useState(true);
   const [key, setKey] = useState("");
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
-  const endpoint = "/api/expert/perplexity-settings";
+  const endpoint = admin ? "/api/admin/perplexity-settings" : "/api/expert/perplexity-settings";
   useEffect(() => {
     const controller = new AbortController();
     void fetch(endpoint, { signal: controller.signal })
@@ -23,7 +23,7 @@ export function PerplexitySettings() {
         if (!controller.signal.aborted) setLoading(false);
       });
     return () => controller.abort();
-  }, []);
+  }, [endpoint]);
   async function save(method: "PUT" | "DELETE") {
     setBusy(true);
     setError("");
@@ -41,7 +41,9 @@ export function PerplexitySettings() {
       setMessage(
         method === "PUT"
           ? "Key saved securely. New paid searches will use your Perplexity account."
-          : "Key removed. Paid email searches are disabled until you add another key.",
+          : admin
+            ? "Saved key removed. Admin research will use the server key if configured."
+            : "Key removed. Paid email searches are disabled until you add another key.",
       );
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not update settings.");
@@ -59,9 +61,9 @@ export function PerplexitySettings() {
       </summary>
       <div className="mt-4 max-w-2xl space-y-4 text-sm">
         <p>
-          Use your own Perplexity account to find author emails. API usage is billed to your
-          account; HQ360’s key is never used for your paid searches. Saved results and website
-          checks are reused first to reduce cost.
+          {admin
+            ? "Save a shared admin Perplexity key for Scouting and Audit AI Research. It takes priority over the server key. Removing it restores the server key if configured."
+            : "Use your own Perplexity account to find author emails. API usage is billed to your account; HQ360’s key is never used for your paid searches. Saved results and website checks are reused first to reduce cost."}
         </p>
         <p>
           Create an API key and add credits in the{" "}

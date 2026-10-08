@@ -1,3 +1,4 @@
+import { integrityIssues, type MatchFinding } from "./commercial";
 export type ReviewEntity = "finding" | "section" | "listopia" | "action" | "asset";
 
 /** Approval changes review state only; it must not resubmit stale editor content. */
@@ -6,6 +7,10 @@ export function approvalPatch(
   record: Record<string, unknown>,
   status: "approved" | "rejected",
 ) {
+  if (entity === "finding" && status === "approved") {
+    const issues = integrityIssues(record as unknown as MatchFinding);
+    if (issues.length) throw new Error(issues.join("; "));
+  }
   if (entity === "asset" && status === "approved") {
     const required = {
       caption: "caption",

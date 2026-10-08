@@ -1,5 +1,11 @@
 import { expect, test } from "bun:test";
-import { analyse, DIFFICULTIES, decide, scoreMessage, startingTrust } from "../src/lib/academy/engine.server";
+import {
+  analyse,
+  DIFFICULTIES,
+  decide,
+  scoreMessage,
+  startingTrust,
+} from "../src/lib/academy/engine.server";
 import { findPersona } from "../src/lib/academy/practice-data.server";
 
 const margaret = findPersona("margaret-doyle")!;
@@ -29,10 +35,22 @@ test("a short follow-up naming the author is not low effort; a short first messa
 
 test("new author types react in character", () => {
   const s = analyse(good, margaret, []);
-  const base = { mood: "curious but cautious", stage: "Cold" as const, trust: 10, strikes: 0, objectionRevealed: false, lost: false, won: false, lastReaction: null, priceEarly: false };
+  const base = {
+    mood: "curious but cautious",
+    stage: "Cold" as const,
+    trust: 10,
+    strikes: 0,
+    objectionRevealed: false,
+    lost: false,
+    won: false,
+    lastReaction: null,
+    priceEarly: false,
+  };
   expect(decide({ ...s, objectionKey: false }, { ...base, style: "skeptic" })).toBe("trust_issue");
   expect(decide({ ...s, objectionKey: false }, { ...base, style: "broke" })).toBe("no_budget");
-  expect(decide({ ...s, objectionKey: false }, { ...base, style: "broke", priceEarly: true })).toBe("no_budget");
+  expect(decide({ ...s, objectionKey: false }, { ...base, style: "broke", priceEarly: true })).toBe(
+    "no_budget",
+  );
   expect(DIFFICULTIES.extreme.silent[1]).toBe(3);
   expect(DIFFICULTIES.easy.silent[1]).toBe(0);
 });

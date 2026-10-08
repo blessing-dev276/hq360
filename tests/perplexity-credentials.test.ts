@@ -3,6 +3,7 @@ import {
   encryptExpertKey,
   decryptExpertKey,
   keyForSearch,
+  adminKeyForResearch,
 } from "../src/lib/perplexity/credentials.server";
 import { EMAIL_RESEARCH_MODEL, runAgent } from "../src/lib/perplexity/agent.server";
 const secret = "test-only-encryption-secret";
@@ -44,4 +45,18 @@ test("request credentials stay out of the prompt/body and Luna is the default mo
   await expect(
     runAgent({ input: "test", instructions: "test" }, fetcher, { apiKey: "" }),
   ).rejects.toThrow("Set PERPLEXITY_API_KEY");
+});
+
+test("admin saved key takes priority and removal restores environment fallback", async () => {
+  const previous = process.env.PERPLEXITY_API_KEY;
+  process.env.PERPLEXITY_API_KEY = "pplx-server-placeholder";
+  try {
+    expect(await adminKeyForResearch(async () => key)).toBe(key);
+    expect(await adminKeyForResearch(async () => null)).toBe("pplx-server-placeholder");
+    delete process.env.PERPLEXITY_API_KEY;
+    await expect(adminKeyForResearch(async () => null)).rejects.toThrow("Email search settings");
+  } finally {
+    if (previous === undefined) delete process.env.PERPLEXITY_API_KEY;
+    else process.env.PERPLEXITY_API_KEY = previous;
+  }
 });

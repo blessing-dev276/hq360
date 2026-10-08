@@ -1,0 +1,487 @@
+{
+  "workflowVersion": 1,
+  "revision": 116,
+  "reviewIssues": [],
+  "author": {
+    "name": "Ruth Foster"
+  },
+  "book": {
+    "title": "A Perfect Year?"
+  },
+  "preparedDate": "2026-10-07",
+  "sections": [
+    {
+      "key": "executive_summary",
+      "title": "Executive Summary",
+      "content": "A Perfect Year? is Ruth Foster's debut novel, published by Ollerford Publishing in October 2024, and the verified winner of the 2025 Comedy Women in Print Self-Published Novel prize. Its two biggest supported visibility problems are a still-small Goodreads audience of 29 ratings and 13 reviews and weak current Amazon UK paperback category positions despite strong review sentiment. The biggest supported opportunity is to turn the verified CWIP win, distinctive epistolary premise, existing media endorsements and multi-retailer distribution into a coordinated award-led discovery campaign across Goodreads, retailers, press, interviews and the author's own website.",
+      "sort_order": 0
+    },
+    {
+      "key": "book_identity",
+      "title": "Book Identity",
+      "content": "A Perfect Year? is Ruth Foster's first novel, a comic family and mystery novel told through annual round-robin letters from neighbouring households in England across the 1990s and 2000s. Ollerford Publishing is listed as publisher; the paperback ISBN is 9781068777301 and the ebook ISBN is 9781068777318. Public retailer records place publication in October 2024, with minor date variation between 17 and 21 October depending on edition or retailer metadata.",
+      "sort_order": 1
+    },
+    {
+      "key": "author_profile",
+      "title": "Author Profile",
+      "content": "Ruth Foster's official biography says she is from London, studied law, qualified as a barrister and later worked in publishing and communications, while also writing plays, articles and short stories. She now lives in Devon. A Perfect Year? is identified on her official site as her first novel, and Comedy Women in Print independently verifies her as the 2025 Self-Published Novel winner.",
+      "sort_order": 2
+    },
+    {
+      "key": "what_the_author_already_has",
+      "title": "What The Author Already Has",
+      "content": "The author already has an official website with biography, book positioning, endorsements, contact form and direct Amazon UK and Waterstones purchase routes; a Goodreads author/book presence; a verified national comedy-fiction award; coverage or recognition from Closer, Yours, LoveReading and other book-media sources; an Instagram identity referenced by a book-review source; and paperback/ebook listings across multiple retailers. These are substantial credibility assets that can be consolidated rather than rebuilt.",
+      "sort_order": 3
+    },
+    {
+      "key": "amazon_audit",
+      "title": "Amazon Audit",
+      "content": "Amazon UK currently connects paperback and Kindle editions. The paperback page observed on 2026-10-07 showed 4.5/5 from 45 reviews, but a Books Best Sellers Rank of 457,396 and category positions of 630 in Women's Popular Fiction, 1,308 in Humor About Law & Crime and 1,318 in Satires. The Kindle edition is linked from the same product family under ASIN B0DKDG68ZC; current Kindle sales rank and verified Kindle Unlimited enrollment were not established and are therefore unknown.",
+      "sort_order": 4
+    },
+    {
+      "key": "goodreads_audit",
+      "title": "Goodreads Audit",
+      "content": "Goodreads lists A Perfect Year? at 3.97 from 29 ratings and 13 reviews on the book page retrieved on 2026-10-07, while the author page records one distinct work and two followers. The review base is positive enough to support positioning, but the absolute number of ratings remains small relative to the book's verified award credential. Goodreads therefore represents a reader-discovery and review-volume opportunity rather than a reputation-repair problem.",
+      "sort_order": 5
+    },
+    {
+      "key": "goodreads_listopia_audit",
+      "title": "Goodreads Listopia Audit",
+      "content": "",
+      "sort_order": 6
+    },
+    {
+      "key": "website_audit",
+      "title": "Website Audit",
+      "content": "Ruth Foster has a functioning author website that prominently presents the CWIP 2025 win, Closer endorsement, Yours book-club selection, book synopsis, biography, testimonials, contact form and Amazon UK/Waterstones buying links. The observed page does not expose a visible newsletter subscription proposition, while the book's award and reader interest provide a strong reason to create a permission-based path for retaining visitors rather than sending nearly all purchase-intent traffic away.",
+      "sort_order": 7
+    },
+    {
+      "key": "search_visibility",
+      "title": "Search Visibility",
+      "content": "Exact-title searches surface the official author website, Goodreads, Apple Books, Kobo, LoveReading and other retailer or bibliographic pages, giving the book an established searchable entity footprint. The verified 2025 award creates additional searchable authority through Comedy Women in Print, British Comedy Guide, The Guardian and related coverage. The opportunity is to connect these signals more consistently around the exact title, author name, award and distinctive round-robin-letter premise.",
+      "sort_order": 8
+    },
+    {
+      "key": "retailer_distribution",
+      "title": "Retailer Distribution",
+      "content": "Observed public listings support paperback and ebook distribution across multiple territories and retailers: Amazon UK lists paperback ISBN 9781068777301 and links Kindle ASIN B0DKDG68ZC; Apple Books lists the ebook in both US and UK stores; Kobo lists EPUB ISBN 9781068777318 in its Worldwide store; Bookshop.org UK lists an ebook; Walmart US lists the paperback; Hatchards and Browns Books list the paperback; and FictionDB records paperback and ebook editions. These observations establish listings and observed availability only, not inventory guarantees or underlying distribution contracts. A commercial audiobook listing on major consumer audiobook retailers was not verified; Calibre Audio states that Ruth Foster's audiobook can be listened to through its service, so audiobook rights, edition metadata and general-market availability remain unresolved.",
+      "sort_order": 9
+    },
+    {
+      "key": "reader_journey_audit",
+      "title": "Reader Journey Audit",
+      "content": "The official website gives visitors immediate book context, social proof and direct Amazon UK/Waterstones purchase routes, but the observed page provides no visible reader email-subscription path. A stronger journey would preserve the existing low-friction purchase buttons while adding an award-led reader invitation, book-club material or bonus content that converts interested visitors into a permission-based audience.",
+      "sort_order": 10
+    },
+    {
+      "key": "series_and_backlist",
+      "title": "Series And Backlist",
+      "content": "Goodreads identifies A Perfect Year? as Ruth Foster's one distinct work and the official site calls it her first novel. No verified fiction series or additional Ruth Foster novel belonging to this same author was established; similarly named Goodreads records must not be merged because Goodreads contains other authors named Ruth Foster. Backlist cross-selling is therefore not presently a supported primary strategy.",
+      "sort_order": 11
+    },
+    {
+      "key": "email_newsletter_audit",
+      "title": "Email Newsletter Audit",
+      "content": "The official website page retrieved on 2026-10-07 contains a contact form but no visible newsletter signup or reader mailing-list proposition in the retrieved page text. This does not prove that no mailing infrastructure exists elsewhere or privately. A public reader newsletter is nevertheless a supported opportunity because the current site already attracts book-interest traffic and has award-led reasons for readers to remain connected.",
+      "sort_order": 12
+    },
+    {
+      "key": "social_media_audit",
+      "title": "Social Media Audit",
+      "content": "A July 2025 book-review page identifies the author's Instagram handle as @ruthfosterauthor, and Goodreads provides an author profile with two followers at retrieval. Reliable current follower, posting-frequency and engagement metrics for Instagram or other social platforms were not established, so those metrics remain unknown. Social strategy should therefore begin with verified account inventory and content reuse from the award, interviews, reviews and distinctive book format rather than follower-growth assumptions.",
+      "sort_order": 13
+    },
+    {
+      "key": "media_and_authority",
+      "title": "Media And Authority",
+      "content": "The strongest authority signal is the independently verified 2025 Comedy Women in Print Self-Published Novel win. The official site also cites Closer magazine and a Yours book-club choice, while external sources document review-tour activity and at least one Books & Looks interview about the novel; Calibre Audio also features Ruth Foster in its 2026 author conversations. These assets support an earned-media campaign built around an award-winning debut and its unusual narrative device.",
+      "sort_order": 14
+    },
+    {
+      "key": "reader_and_community_opportunities",
+      "title": "Reader And Community Opportunities",
+      "content": "The book has several evidence-backed reader hooks: epistolary storytelling, competing perspectives, 1990s/2000s British social observation, family drama, humour and a murder-mystery thread. Goodreads reviewers repeatedly respond to the unusual annual-letter format, and the CWIP award validates the comedy positioning. Reader outreach should therefore prioritize epistolary-fiction readers, humorous women's/contemporary fiction readers, British social-comedy audiences, book clubs and mystery readers who accept a lighter cross-genre treatment.",
+      "sort_order": 15
+    },
+    {
+      "key": "competitive_landscape",
+      "title": "Competitive Landscape",
+      "content": "A Perfect Year? competes across several crowded discovery categories rather than one narrow genre: Amazon UK currently places it in Women's Popular Fiction, Humor About Law & Crime and Satires, while LoveReading classifies the paperback under Crime and Mystery and Family Drama and Kobo places it in British & Irish drama, humorous fiction and contemporary women. This breadth is commercially useful but can fragment positioning; the clearest differentiator is the combination of an award-winning comic voice, annual family newsletters and an underlying mystery.",
+      "sort_order": 16
+    },
+    {
+      "key": "priority_action_plan",
+      "title": "Priority Action Plan",
+      "content": "",
+      "sort_order": 17
+    },
+    {
+      "key": "hq360_opportunities",
+      "title": "HQ360 Opportunities",
+      "content": "HQ360 has evidence-supported opportunities in award-led positioning, Goodreads reader discovery, selective Listopia research, retailer metadata consistency, author-site reader conversion, newsletter setup, book-club outreach, press and podcast outreach, and distribution/format auditing. The work should emphasize converting existing credibility into discovery rather than treating the book as lacking proof, reviews or retail presence.",
+      "sort_order": 18
+    }
+  ],
+  "findings": [
+    {
+      "id": "00000000-0000-4000-8000-000000000001",
+      "title": "Historical Mystery is a weaker Listopia fit",
+      "category": "goodreads_listopia_audit",
+      "classification": "supported_inference",
+      "what_we_checked": "Goodreads Best Historical Mystery list definition against the book's documented setting.",
+      "what_we_found": "Goodreads defines the list as mysteries set in an era previous to the author's era, while A Perfect Year? is a 2024 novel looking back at the 1990s and 2000s. The retrieved page does not show A Perfect Year? and therefore does not establish a position.",
+      "evidence": "Goodreads Best Historical Mystery page retrieved 2026-10-07 states its definition and shows 2,336 books and 5,054 voters. Ruth Foster's official site and Goodreads describe A Perfect Year? as beginning in 1990s England.",
+      "source_urls": [
+        "https://www.goodreads.com/list/show/112.Best_Historical_Mystery?page=24",
+        "https://ruthfosterauthor.com/",
+        "https://www.goodreads.com/en/book/show/220603611-a-perfect-year"
+      ],
+      "interpretation": "Other Goodreads pathways appear more closely aligned with the book's primary comic, literary and family-drama identity.",
+      "why_it_matters": "Focusing effort on weakly matched discovery surfaces can dilute positioning and attract fewer qualified readers.",
+      "recommendation": "Treat this list as optional and prioritize better-aligned literary mystery, humorous fiction, epistolary fiction and British contemporary-fiction discovery routes.",
+      "implementation_steps": [
+        "Do not make this list a primary campaign KPI.",
+        "Research more specific thematic Goodreads lists.",
+        "Prioritize reader relevance over raw list size."
+      ],
+      "priority": "optional",
+      "featured": false
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000002",
+      "title": "Audiobook reach requires platform-by-platform clarification",
+      "category": "retailer_distribution",
+      "classification": "unknown",
+      "what_we_checked": "Public audiobook references and major consumer audiobook discovery.",
+      "what_we_found": "Calibre Audio's 2026 programme says readers can listen to Ruth Foster's audiobook and features her in an author conversation, but the research did not establish a matching commercial audiobook edition with verified ISBN, narrator and broad consumer-retailer availability.",
+      "evidence": "Calibre Audio page retrieved 2026-10-07 includes Ruth Foster, describes A Perfect Year? as her debut and says 'Listen to Ruth's audiobook'. No sufficiently reliable matching commercial audiobook metadata was established during this audit.",
+      "source_urls": [
+        "https://www.calibreaudio.org.uk/year-of-reading/calibre-conversations"
+      ],
+      "interpretation": "There may be an accessibility or audiobook asset that is not yet fully mapped in the public commercial reader journey.",
+      "why_it_matters": "Clarifying the edition could reveal either an existing format that needs stronger linking or a genuine format-expansion opportunity.",
+      "recommendation": "Verify audiobook rights, narrator, edition identifiers, Calibre availability terms and consumer/library platform listings before proposing audiobook production or distribution.",
+      "implementation_steps": [
+        "Confirm the exact Calibre edition metadata.",
+        "Check Audible, Apple Audiobooks, Kobo Audiobooks and library catalogues by confirmed identifier.",
+        "Add verified listening links to the author site if appropriate."
+      ],
+      "priority": "medium_priority",
+      "featured": false
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000003",
+      "title": "No verified backlist cross-sell is established for this Ruth Foster identity",
+      "category": "series_and_backlist",
+      "classification": "verified_fact",
+      "what_we_checked": "Official author biography and the correctly matched Goodreads author identity.",
+      "what_we_found": "The official site calls A Perfect Year? Ruth Foster's first novel, and the matched Goodreads author profile lists one distinct work. Search results also contain other authors named Ruth Foster, so unrelated titles cannot safely be attributed to this author.",
+      "evidence": "Ruth Foster's official website retrieved 2026-10-07 states 'A Perfect Year? is her first novel.' The matched Goodreads author page retrieved 2026-10-07 lists 1 distinct work.",
+      "source_urls": [
+        "https://ruthfosterauthor.com/",
+        "https://www.goodreads.com/author/show/54391193.Ruth_Foster"
+      ],
+      "interpretation": "Current visibility planning should concentrate on the debut rather than inventing a catalogue strategy from namesake records.",
+      "why_it_matters": "Misattributing books by another Ruth Foster would damage metadata accuracy and author credibility.",
+      "recommendation": "Keep author-identity records clean and build an owned reader audience now so future verified books can benefit from cross-selling.",
+      "implementation_steps": [
+        "Use the matched Goodreads author ID consistently.",
+        "Do not import titles from other Ruth Foster profiles.",
+        "Prepare the website and newsletter architecture for future verified releases."
+      ],
+      "priority": "medium_priority",
+      "featured": false
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000004",
+      "title": "Public newsletter capture is not visible on the retrieved homepage",
+      "category": "email_newsletter_audit",
+      "classification": "possible_opportunity",
+      "what_we_checked": "Visible homepage forms and calls to action on the official author website.",
+      "what_we_found": "The retrieved page exposes a contact form requiring name, email and message but no visible reader newsletter subscription proposition in the retrieved content.",
+      "evidence": "Official site retrieved 2026-10-07 shows a 'Get in Touch' contact form with name, email and message fields; no newsletter signup text appears in the retrieved homepage content.",
+      "source_urls": [
+        "https://ruthfosterauthor.com/"
+      ],
+      "interpretation": "A reader-specific retention mechanism could complement the site's existing contact function.",
+      "why_it_matters": "Readers attracted by awards, interviews or reviews otherwise have limited visible options between purchasing immediately and sending a personal message.",
+      "recommendation": "Add an opt-in newsletter with a clear reader benefit such as new-book news, events, behind-the-scenes material or occasional reading recommendations.",
+      "implementation_steps": [
+        "Create a permission-based signup form.",
+        "Define a simple reader benefit.",
+        "Add signup points near book and biography content.",
+        "Create a short welcome sequence."
+      ],
+      "priority": "high_impact",
+      "featured": false
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000005",
+      "title": "Distinctive epistolary format is repeatedly validated by readers",
+      "category": "reader_and_community_opportunities",
+      "classification": "verified_fact",
+      "what_we_checked": "Official description and public reader reviews for recurring book-specific response themes.",
+      "what_we_found": "The novel is structured through annual family newsletters, and multiple Goodreads reviews specifically praise or discuss the unusual letter-based format and contrasting perspectives.",
+      "evidence": "Official site retrieved 2026-10-07 describes annual year-end letters from Ali, Caroline and Robert. Goodreads reviews retrieved 2026-10-07 repeatedly discuss the story being told through holiday letters and multiple perspectives.",
+      "source_urls": [
+        "https://ruthfosterauthor.com/",
+        "https://www.goodreads.com/en/book/show/220603611-a-perfect-year"
+      ],
+      "interpretation": "The format is a demonstrated reader hook rather than merely publisher copy.",
+      "why_it_matters": "A specific and memorable narrative device provides stronger targeting and creative material than generic 'funny mystery' positioning.",
+      "recommendation": "Build reader outreach, social content, book-club material and media pitches around the annual-letter device and conflicting versions of shared events.",
+      "implementation_steps": [
+        "Create quote-free promotional concepts showing conflicting perspectives.",
+        "Target epistolary-fiction and book-club communities.",
+        "Develop discussion questions around reliability, memory and social presentation.",
+        "Connect the format to 1990s/2000s nostalgia."
+      ],
+      "priority": "high_impact",
+      "featured": false
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000006",
+      "title": "Verified 2025 Comedy Women in Print prize win",
+      "category": "media_and_authority",
+      "classification": "verified_fact",
+      "what_we_checked": "Official award records and independent reporting for author and book awards.",
+      "what_we_found": "Comedy Women in Print identifies Ruth Foster as its 2025 Self-Published Winner, and independent coverage identifies A Perfect Year? as the winning novel.",
+      "evidence": "Comedy Women in Print 2025 Prize page retrieved 2026-10-07 lists Ruth Foster as Self-Published Winner; British Comedy Guide's 2025 winners report states that A Perfect Year by Ruth Foster won the Self-Published Novel award.",
+      "source_urls": [
+        "https://www.comedywomeninprint.co.uk/2025-prize",
+        "https://www.comedy.co.uk/shop/news/8544/comedy-women-in-print-2025-winners/",
+        "https://www.theguardian.com/books/2025/nov/04/sara-pascoe-weirdo-jilly-cooper-award-comedy-women-in-print"
+      ],
+      "interpretation": "This is the book's strongest independently validated authority asset.",
+      "why_it_matters": "A verified national prize provides a credible reason for readers, media, booksellers and book clubs to reconsider a 2024 debut after its initial launch window.",
+      "recommendation": "Lead future visibility campaigns with the exact verified award wording and connect it directly to retailer, Goodreads, press and book-club pathways.",
+      "implementation_steps": [
+        "Use the exact award and category in promotional metadata.",
+        "Create an award-led press angle around the book's unusual narrative format.",
+        "Update reusable media and retailer copy so the credential is prominent and consistent."
+      ],
+      "priority": "immediate",
+      "featured": false
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000007",
+      "title": "Goodreads reader footprint remains small",
+      "category": "goodreads_audit",
+      "classification": "direct_observation",
+      "what_we_checked": "Current Goodreads book and author pages.",
+      "what_we_found": "The book page retrieved on 2026-10-07 showed a 3.97 average from 29 ratings and 13 reviews; the author page showed two followers and one distinct work.",
+      "evidence": "Goodreads book page retrieved 2026-10-07: 3.97 average, 29 ratings and 13 reviews. Goodreads Ruth Foster author page retrieved 2026-10-07: 2 followers and 1 distinct work.",
+      "source_urls": [
+        "https://www.goodreads.com/en/book/show/220603611-a-perfect-year",
+        "https://www.goodreads.com/author/show/54391193.Ruth_Foster"
+      ],
+      "interpretation": "Reader sentiment is broadly positive, but the Goodreads evidence base is still modest for an award-winning title.",
+      "why_it_matters": "A larger base of genuine ratings, reviews and reader interactions can provide more social proof when Goodreads users encounter the title through search, shelves, lists or recommendations.",
+      "recommendation": "Develop an ethical Goodreads discovery campaign focused on existing readers, book clubs, relevant genre communities and post-purchase review prompts without incentivized ratings.",
+      "implementation_steps": [
+        "Link the correct Goodreads edition prominently from the author site and reader communications.",
+        "Invite existing readers to add or review the book honestly.",
+        "Identify Goodreads communities and lists with strong thematic fit.",
+        "Track ratings and review growth rather than promising rank movement."
+      ],
+      "priority": "high_impact",
+      "featured": false
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000008",
+      "title": "Amazon UK paperback has strong reviews but weak current rank",
+      "category": "amazon_audit",
+      "classification": "direct_observation",
+      "what_we_checked": "Amazon UK paperback product details, reviews, formats and current category ranks.",
+      "what_we_found": "Amazon UK showed 4.5/5 from 45 reviews but a current paperback Books rank of 457,396, with category positions 630 in Women's Popular Fiction, 1,308 in Humor About Law & Crime and 1,318 in Satires.",
+      "evidence": "Amazon UK paperback page retrieved 2026-10-07 showed ISBN 9781068777301, Ollerford Publishing, publication date 17 October 2024, 4.5/5 from 45 reviews and Best Sellers Rank 457,396 in Books; category ranks were 630, 1,308 and 1,318 respectively.",
+      "source_urls": [
+        "https://www.amazon.co.uk/Perfect-Year-feelgood-families-mystery/dp/1068777303/"
+      ],
+      "interpretation": "The observed Amazon page shows a gap between reader satisfaction and current sales/discovery position.",
+      "why_it_matters": "Existing positive review proof means visibility work can focus on qualified traffic and positioning instead of first solving a weak-rating problem.",
+      "recommendation": "Use the award and strongest reader/media proof to drive qualified external traffic while reviewing metadata and category fit without promising ranking outcomes.",
+      "implementation_steps": [
+        "Align title/subtitle and promotional copy around the strongest reader promise.",
+        "Feature the CWIP credential prominently wherever retailer rules permit.",
+        "Build external discovery campaigns around award, humour, epistolary format and mystery.",
+        "Track paperback and Kindle ranks separately over time."
+      ],
+      "priority": "high_impact",
+      "featured": false
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000009",
+      "title": "Paperback and ebook have multi-retailer reach",
+      "category": "retailer_distribution",
+      "classification": "verified_fact",
+      "what_we_checked": "Observed retailer and bibliographic listings for print and ebook editions and territories.",
+      "what_we_found": "Paperback ISBN 9781068777301 and ebook ISBN 9781068777318 appear across multiple public retail channels including Amazon UK, Apple Books, Kobo, Hatchards, Bookshop.org UK, Walmart and Browns Books.",
+      "evidence": "Apple Books US and UK list the ebook from Ollerford Publishing; Kobo Worldwide lists EPUB ISBN 9781068777318; Amazon UK lists paperback ISBN 9781068777301 and Kindle ASIN B0DKDG68ZC; Browns Books, Hatchards and Walmart list the paperback. Sources retrieved 2026-10-07.",
+      "source_urls": [
+        "https://books.apple.com/us/book/a-perfect-year/id6737210740",
+        "https://books.apple.com/gb/book/a-perfect-year/id6737210740",
+        "https://www.kobo.com/ww/en/ebook/a-perfect-year",
+        "https://www.amazon.co.uk/Perfect-Year-feelgood-families-mystery/dp/1068777303/",
+        "https://www.hatchards.co.uk/book/a-perfect-year/ruth-foster/9781068777301",
+        "https://www.brownsbfs.co.uk/Product/Foster-Ruth/A-Perfect-Year/9781068777301",
+        "https://www.walmart.com/ip/13570555398"
+      ],
+      "interpretation": "The book already has meaningful print and ebook discoverability beyond a single retailer.",
+      "why_it_matters": "Visibility activity can direct readers to their preferred buying ecosystem instead of depending entirely on Amazon.",
+      "recommendation": "Create a consolidated multi-retailer buying journey and preserve territory-specific links while distinguishing listings from guaranteed stock.",
+      "implementation_steps": [
+        "Create a single book purchase hub.",
+        "Separate paperback and ebook choices.",
+        "Offer territory-appropriate retailer links.",
+        "Periodically verify links and edition metadata."
+      ],
+      "priority": "medium_priority",
+      "featured": false
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000010",
+      "title": "Official website already carries strong conversion proof",
+      "category": "website_audit",
+      "classification": "direct_observation",
+      "what_we_checked": "Ruth Foster's official website content and reader journey.",
+      "what_we_found": "The site prominently presents the CWIP 2025 win, a Closer endorsement, Yours book-club recognition, synopsis, testimonials, biography, contact form and direct Amazon UK and Waterstones links.",
+      "evidence": "Official Ruth Foster website retrieved 2026-10-07 displays 'WINNER, COMEDY WOMEN IN PRINT PRIZE 2025', Closer and Yours references, paperback/ebook messaging, Amazon UK and Waterstones buying links, biography and contact form.",
+      "source_urls": [
+        "https://ruthfosterauthor.com/"
+      ],
+      "interpretation": "The author is not starting from a weak or missing web presence; the opportunity is conversion and audience retention.",
+      "why_it_matters": "Existing credibility reduces the amount of foundational work required and allows resources to focus on turning visitors into buyers and repeat readers.",
+      "recommendation": "Preserve the site's strong proof while improving the reader journey with a multi-retailer hub and permission-based reader signup.",
+      "implementation_steps": [
+        "Keep award proof above the fold.",
+        "Add a clear reader signup proposition.",
+        "Add broader retailer choices.",
+        "Add press/interview links and book-club resources."
+      ],
+      "priority": "medium_priority",
+      "featured": false
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000011",
+      "title": "The book has an evidence-backed media story beyond its launch",
+      "category": "media_and_authority",
+      "classification": "supported_inference",
+      "what_we_checked": "Press, interviews, reviews and book-community coverage.",
+      "what_we_found": "The book has award coverage, book-review coverage and an author interview discussing its family conflicts, hidden lives and annual-newsletter structure; Calibre Audio also features Ruth Foster in its 2026 author conversation programme.",
+      "evidence": "Books & Looks episode #121 dated 2025-06-04 interviews Ruth Foster about A Perfect Year?; Calibre Audio's 2026 Online Audiobook Festival page features Ruth Foster and states her debut was inspired by round-robin letters; Comedy Women in Print and national comedy/book media documented the 2025 prize. Sources retrieved 2026-10-07.",
+      "source_urls": [
+        "https://castbox.fm/episode/121---Ruth-Foster-on-%27A-Perfect-Year-%27%3A-Family-Conflicts-%26-Hidden-Lives-id6575440-id815452306",
+        "https://www.calibreaudio.org.uk/year-of-reading/calibre-conversations",
+        "https://www.comedywomeninprint.co.uk/2025-prize",
+        "https://www.comedy.co.uk/shop/news/8544/comedy-women-in-print-2025-winners/"
+      ],
+      "interpretation": "The combination of award recognition and a highly explainable narrative device provides multiple timely media angles.",
+      "why_it_matters": "Earned media can expose the book to qualified audiences without relying solely on retailer search visibility.",
+      "recommendation": "Run a targeted second-wave press and podcast campaign focused on the award, round-robin-letter storytelling, British social change and the author's publishing/legal background.",
+      "implementation_steps": [
+        "Build a concise media sheet.",
+        "Segment targets into books, comedy, nostalgia, epistolary fiction and British culture.",
+        "Pitch one specific story angle per outlet.",
+        "Route coverage back to a consolidated book landing page."
+      ],
+      "priority": "high_impact",
+      "featured": false
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000012",
+      "title": "Best Literary Mysteries is relevant but highly crowded",
+      "category": "goodreads_listopia_audit",
+      "classification": "possible_opportunity",
+      "what_we_checked": "Goodreads Best Literary Mysteries list structure, current size and the supplied target page.",
+      "what_we_found": "The list contained 2,711 books and 5,140 voters when retrieved; Goodreads describes the list as mysteries with complex characters, intriguing storylines and rich language. The supplied page does not establish a current position for A Perfect Year?.",
+      "evidence": "Goodreads Best Literary Mysteries page retrieved 2026-10-07 states 2,711 books, 5,140 voters and explains its literary-mystery premise and scoring factors.",
+      "source_urls": [
+        "https://www.goodreads.com/list/show/914.Best_Literary_Mysteries?page=28"
+      ],
+      "interpretation": "The book's cross-genre literary and mystery elements make the list thematically plausible, but the list is crowded and should not be treated as a guaranteed visibility lever.",
+      "why_it_matters": "A relevant Goodreads list can create an additional discovery surface among readers already browsing for a specific kind of mystery.",
+      "recommendation": "Verify eligibility and current full-list presence, then pursue only legitimate reader-driven voting and discovery rather than ranking manipulation.",
+      "implementation_steps": [
+        "Confirm whether the correct Goodreads edition is on the complete list.",
+        "Check thematic fit against the list description.",
+        "Direct genuine interested readers to Goodreads without requiring positive votes.",
+        "Measure referral and reader activity rather than promising position."
+      ],
+      "priority": "medium_priority",
+      "featured": false
+    }
+  ],
+  "assets": [],
+  "listopia": [
+    {
+      "id": "ca9100eb-88c2-4002-8e27-c6f5a89b0c67",
+      "list_name": "Best Literary Mysteries",
+      "list_url": "https://www.goodreads.com/list/show/914.Best_Literary_Mysteries?page=28",
+      "book_present": true,
+      "position": 2711,
+      "page": 28,
+      "votes": 1,
+      "number_of_books": 2711,
+      "competition": "high",
+      "relevance_score": 8,
+      "books_above": [
+        "A Game of Lies by Clare Mackintosh",
+        "The Housemaid by Freida McFadden"
+      ],
+      "books_below": [],
+      "why_position": "The supplied page and live Goodreads page show the bottom of a 2,711-book list, but they do not show A Perfect Year?; this is not evidence that the book is absent elsewhere on the list. Goodreads states that list scores depend on multiple factors including voter count and how highly voters rank a book, so no unsupported ranking algorithm explanation is inferred.",
+      "how_to_improve": "Goodreads Listopia Promotion and Optimization",
+      "evidence": "Goodreads Best Literary Mysteries page retrieved 2026-10-07 states 2,711 books and 5,140 voters and explains that score is based on multiple factors including number of voters and how highly they ranked a book. URL: https://www.goodreads.com/list/show/914.Best_Literary_Mysteries?page=28"
+    },
+    {
+      "id": "e2971d87-3485-4600-b9bc-46db0bb10f8f",
+      "list_name": "100 Mysteries and Thrillers to Read in a Lifetime Readers Picks",
+      "list_url": "https://www.goodreads.com/list/show/73283.100_Mysteries_and_Thrillers_to_Read_in_a_Lifetime_Readers_Picks?page=27",
+      "book_present": true,
+      "position": 2620,
+      "page": 27,
+      "votes": 1,
+      "number_of_books": 2620,
+      "competition": "high",
+      "relevance_score": 6,
+      "books_above": [],
+      "books_below": [],
+      "why_position": "The supplied screenshot shows page 27 ending at position 2,620 with Gulf Storms, not A Perfect Year?. This only establishes what was visible on that supplied page and does not prove that A Perfect Year? is absent from the complete list.",
+      "how_to_improve": "Goodreads Listopia Promotion and Optimization",
+      "evidence": "User-supplied Goodreads screenshot dated in the 2026-10-07 audit context shows page 27 ending at position 2,620 and 2,620 books; live retrieval of the URL timed out on 2026-10-07, so no stronger presence claim is made. URL: https://www.goodreads.com/list/show/73283.100_Mysteries_and_Thrillers_to_Read_in_a_Lifetime_Readers_Picks?page=27"
+    },
+    {
+      "id": "7b165adf-5f97-4649-87e1-720dfbfe49ab",
+      "list_name": "Best Historical Mystery",
+      "list_url": "https://www.goodreads.com/list/show/112.Best_Historical_Mystery?page=24",
+      "book_present": true,
+      "position": 2336,
+      "page": 24,
+      "votes": 1,
+      "number_of_books": 2336,
+      "competition": "high",
+      "relevance_score": 5,
+      "books_above": [
+        "The Bones of Avalon by Phil Rickman",
+        "The First Murder by The Medieval Murderers"
+      ],
+      "books_below": [],
+      "why_position": "The supplied and live page show the bottom of a 2,336-book list but do not show A Perfect Year?. The list defines historical mysteries as mysteries set in an era previous to the author's era; because A Perfect Year? is contemporary publication looking back to the 1990s and 2000s, fit should be evaluated carefully rather than assumed.",
+      "how_to_improve": "Goodreads Listopia Promotion and Optimization",
+      "evidence": "Goodreads Best Historical Mystery page retrieved 2026-10-07 states 2,336 books, 5,054 voters and defines the list as mysteries set in an era previous to the author's era. URL: https://www.goodreads.com/list/show/112.Best_Historical_Mystery?page=24"
+    }
+  ],
+  "actions": [],
+  "ctaEnabled": false,
+  "metrics": {
+    "sources": 18,
+    "platforms": 13,
+    "findings": 12,
+    "screenshots": 3,
+    "actions": 5
+  }
+}

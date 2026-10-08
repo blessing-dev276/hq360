@@ -29,9 +29,7 @@ export const Route = createFileRoute("/api/academy/admin/trainees")({
           const mine = sessions.filter((s) => s.user_id === p.id);
           const scored = mine.filter((s) => s.ended && s.coaching);
           const averageScore = scored.length
-            ? Math.round(
-                scored.reduce((n, s) => n + (s.coaching?.overall ?? 0), 0) / scored.length,
-              )
+            ? Math.round(scored.reduce((n, s) => n + (s.coaching?.overall ?? 0), 0) / scored.length)
             : null;
           let weakest: string | null = null;
           if (scored.length) {

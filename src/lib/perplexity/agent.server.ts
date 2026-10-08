@@ -63,6 +63,7 @@ export type AgentRequest = {
   instructions: string;
   model?: string;
   max_steps?: number;
+  max_output_tokens?: number;
   tools?: { type: "web_search" | "fetch_url" }[];
   response_format?: {
     type: "json_schema";
@@ -96,7 +97,7 @@ export function parseAgentResponse(raw: unknown) {
       .filter((item) => item.type === "url_citation" && item.url),
   };
 }
-export const EMAIL_RESEARCH_MODEL = "perplexity/sonar";
+export const EMAIL_RESEARCH_MODEL = "openai/gpt-6-luna";
 export async function runAgent(
   request: AgentRequest,
   fetcher: typeof fetch = fetch,
@@ -108,8 +109,8 @@ export async function runAgent(
       "Set PERPLEXITY_API_KEY in the server environment to enable author contact research.",
       503,
     );
-  // Rate limits (sonar's are tight) are waited out: up to 2 retries of <= 30s,
-  // keeping a request inside the host function time limit.
+  // Short rate limits are waited out (up to 2 retries of <= 10s); longer waits
+  // fail fast so a request stays inside the host function time limit.
   for (let attempt = 0; attempt < 3; attempt++) {
     const signal = AbortSignal.timeout(90_000);
     let response: Response;
@@ -141,7 +142,7 @@ export async function runAgent(
             ? Math.ceil((Date.parse(header) - Date.now()) / 1000)
             : 1;
       const delay = Number.isFinite(seconds) ? Math.max(1, seconds) : 1;
-      if (attempt < 2 && delay <= 30) {
+      if (attempt < 2 && delay <= 10) {
         await response.body?.cancel();
         await new Promise((resolve) => setTimeout(resolve, delay * 1000));
         continue;
@@ -154,7 +155,7 @@ export async function runAgent(
     }
     if (response.status === 401 || response.status === 403)
       throw new PerplexityError(
-        "Perplexity authentication failed. Check your key in Email search settings (experts) or the server environment (admin), and ensure the Perplexity account has API access.",
+        "Perplexity authentication failed. Check your key in Scouting → Email search settings, and ensure the Perplexity account has API access.",
         503,
         undefined,
         response.status,

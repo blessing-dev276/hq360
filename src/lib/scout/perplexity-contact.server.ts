@@ -204,7 +204,8 @@ async function searchContactStage(
   // which we fetch ourselves. Unverified: the cited page blocks automated
   // reading, so it can't be re-checked. Dropped: we read the page and the
   // address isn't there (the model got it wrong).
-  for (const contact of parsed.contacts) {
+  // The model judged these sources to be about someone else: keep nothing.
+  for (const contact of parsed.identity_match ? parsed.contacts : []) {
     const email = contact.email.toLowerCase();
     if (seen.has(email) || !publicResultUrl(contact.source_url)) continue;
     // The email must appear next to evidence it's this author (not a namesake).

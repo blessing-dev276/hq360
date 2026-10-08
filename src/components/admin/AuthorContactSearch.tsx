@@ -59,7 +59,7 @@ async function searchOne(
   return { status: "error", emails: [], error: "Busy. Try again shortly." };
 }
 
-// Two at a time: perplexity/sonar has a tight rate limit.
+// Two at a time to limit concurrent paid requests.
 const CONCURRENCY = 2;
 
 /** Email search state for a list of authors: one-off searches plus a bulk

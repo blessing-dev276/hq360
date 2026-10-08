@@ -1,3 +1,4 @@
+import { PerplexitySettings } from "@/components/expert/PerplexitySettings";
 import { QuotesWorkspace } from "@/components/quotes/QuotesWorkspace";
 import { GlassLoading } from "@/components/ui/glass-loading";
 import { PanelRefreshButton } from "./PanelRefreshButton";
@@ -337,7 +338,10 @@ export function AdminApp({ initialTab = "overview" }: { initialTab?: Tab }) {
         </header>
         <div className="admin-page" key={refreshKey}>
           {tab === "scout" ? (
-            <ScoutApp canFindEmail maxAuthors={1000} />
+            <>
+              <PerplexitySettings admin />
+              <ScoutApp canFindEmail maxAuthors={1000} />
+            </>
           ) : tab === "overview" ? (
             <AdminDashboard onNavigate={navigate} />
           ) : tab === "projects" ? (

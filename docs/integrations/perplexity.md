@@ -3,7 +3,9 @@
 Experts open **Scouting → Email search settings** to save, replace or remove their
 own Perplexity API key. Approved experts with Scouting access can find author
 emails. Paid expert research uses only that expert's key, never the admin key.
-Admins continue using the server's `PERPLEXITY_API_KEY`.
+Admins can save, replace or remove a shared key in the same Scouting settings.
+The encrypted saved key takes priority over `PERPLEXITY_API_KEY`; removing it
+restores that environment fallback. Audit AI Research uses this admin key too.
 
 Research finds publicly published professional contacts using the author name
 and book title. It does not send email or guarantee deliverability.
@@ -19,7 +21,10 @@ Apply migration `20261007190000_expert_perplexity_credentials.sql` on other envi
 Encryption derives from `SUPABASE_SERVICE_ROLE_KEY`; rotating that secret requires
 re-encrypting stored credentials first or asking experts to re-enter their keys.
 
-For admin searches, set `PERPLEXITY_API_KEY` in `.env.local` and the deployment's
+Apply `20261008170000_admin_perplexity_credentials.sql` for the service-role-only
+admin credential table. Admin keys use the same encryption with a separate admin identity.
+
+For an optional admin fallback, set `PERPLEXITY_API_KEY` in `.env.local` and the deployment's
 server environment. Local Vite loads the server-only key; restart after changing
 it. Hosted deployments need their own environment setting and redeployment.
 Never add a `VITE_` copy or commit a key. Rotate keys exposed in chat or logs.
@@ -117,3 +122,14 @@ The stopped $1 pilot processed 13 of 50 selected authors before its threshold:
 no verified public contact. Provider-reported cost was about $0.48, with $0.20
 in pending reservations for two interrupted requests. This small, budget-limited
 sample does not establish the 45/50 target. A further pilot needs a larger budget.
+
+## Audit AI Research
+
+Audit AI Research uses `openai/gpt-6-luna` via the Perplexity Agent API, the lowest
+listed token-price model as checked on 2026-10-08 ($0.10 input / $0.50 output per
+million tokens at standard context). Scouting uses the same model. Web tools are
+billed separately. Audit retains SerpAPI and book-catalogue source collection,
+then generates JSON with tools disabled to avoid duplicate searches. Existing
+schema validation and collected-source citation checks still apply.
+`AUDIT_AI_MODEL` no longer overrides this research call; Anthropic remains in
+use for the separate legacy synthesis flows.

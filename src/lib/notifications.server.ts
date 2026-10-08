@@ -95,20 +95,24 @@ export async function emailPendingAdminNotifications() {
   const link = (tab: string | null) => `${site}/admin${tab ? `#${tab}` : ""}`;
   const subject =
     items.length === 1 ? `HQ360: ${items[0]!.title}` : `HQ360: ${items.length} new updates`;
-  const text = [
-    items.length === 1
-      ? "There's a new update in your HQ360 admin."
-      : `There are ${items.length} new updates in your HQ360 admin.`,
-    "",
-    ...items.map(
-      (n) =>
-        `• ${n.title}\n  ${n.body}\n  Open ${TAB_LABELS[n.tab ?? ""] ?? "admin"}: ${link(n.tab)}`,
-    ),
-    "",
-    "You're receiving this because you're an HQ360 admin.",
-  ].join("\n");
-
-  const results = await Promise.all(recipients.map((to) => sendEmail({ to, subject, text })));
+  const { buildNotificationEmail } = await import("@/lib/notification-email");
+  const { html, text } = buildNotificationEmail({
+    siteOrigin: site,
+    eyebrow: "Admin update",
+    greeting: "Hello HQ360 team,",
+    intro:
+      items.length === 1
+        ? "There's a new update in your HQ360 admin."
+        : `There are ${items.length} new updates in your HQ360 admin.`,
+    items: items.map((n) => ({
+      title: n.title,
+      body: n.body,
+      url: link(n.tab),
+      cta: `Open ${TAB_LABELS[n.tab ?? ""] ?? "admin"}`,
+    })),
+    footer: "You're receiving this because you're an HQ360 admin.",
+  });
+  const results = await Promise.all(recipients.map((to) => sendEmail({ to, subject, text, html })));
   const ids = items.map((n) => n.id);
   if (results.some((r) => r.sent)) {
     await table().update({ emailed_at: new Date().toISOString() }).in("id", ids);
@@ -156,12 +160,13 @@ export async function emailPendingExpertNotifications() {
     .is("emailed_at", null)
     .gte("created_at", recent)
     .or(`email_claimed_at.is.null,email_claimed_at.lt.${stale}`)
-    .select("id, created_at, expert_id, title, body, tab");
+    .select("id, created_at, expert_id, kind, title, body, tab");
   if (error || !claimed?.length) return { sent: 0 };
   type Row = {
     id: string;
     created_at: string;
     expert_id: string;
+    kind: string;
     title: string;
     body: string;
     tab: string | null;
@@ -188,23 +193,36 @@ export async function emailPendingExpertNotifications() {
       continue;
     }
     const first = profile.full_name?.split(/\s+/)[0];
-    const text = [
-      `Hi ${first || "there"},`,
-      "",
-      items.length === 1
-        ? "There's a new update in your HQ360 expert workspace."
-        : `There are ${items.length} new updates in your HQ360 expert workspace.`,
-      "",
-      ...items.map(
-        (n) => `• ${n.title}\n  ${n.body}\n  Open: ${site}/expert${n.tab ? `#${n.tab}` : ""}`,
-      ),
-      "",
-      "— HQ360",
-    ].join("\n");
+    const nudges = items.filter((n) => n.kind === "nudge").length;
+    const { buildNotificationEmail } = await import("@/lib/notification-email");
+    const { html, text } = buildNotificationEmail({
+      siteOrigin: site,
+      eyebrow: nudges ? "A friendly nudge" : "Expert workspace",
+      greeting: `Hi ${first || "there"},`,
+      intro:
+        nudges === items.length
+          ? "The admin has a little something for you. Read it, laugh, then go do it."
+          : items.length === 1
+            ? "There's a new update in your HQ360 expert workspace."
+            : `There are ${items.length} new updates in your HQ360 expert workspace.`,
+      items: items.map((n) => ({
+        title: n.title,
+        body: n.body,
+        url: `${site}/expert${n.tab ? `#${n.tab}` : ""}`,
+        cta: "Open my workspace",
+      })),
+      footer: "You're receiving this because you're an HQ360 expert.",
+    });
     const result = await sendEmail({
       to: profile.email,
-      subject: items.length === 1 ? `HQ360: ${items[0]!.title}` : `HQ360: ${items.length} updates`,
+      subject:
+        items.length === 1
+          ? `HQ360: ${items[0]!.title}`
+          : nudges === items.length
+            ? `HQ360: ${items.length} friendly nudges from the admin`
+            : `HQ360: ${items.length} updates`,
       text,
+      html,
     });
     if (result.sent) {
       await table().update({ emailed_at: new Date().toISOString() }).in("id", ids);

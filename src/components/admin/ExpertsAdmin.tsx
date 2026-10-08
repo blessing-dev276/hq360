@@ -12,6 +12,7 @@ import {
   Inbox,
   Link2,
   GraduationCap,
+  Megaphone,
   KeyRound,
   Mail,
   Pencil,
@@ -30,6 +31,7 @@ import {
 } from "lucide-react";
 import { AUDIENCES, CORE_SERVICES, getAudience, getCoreService } from "@/data/agency";
 import { EXPERT_FEATURES, EXPERT_ROLES, roleLabel } from "@/lib/expert-roles";
+import { NUDGE_SIGNOFF, NUDGES } from "@/lib/expert-nudges";
 import { uploadAdminMedia } from "@/lib/admin-upload";
 import { initials } from "@/lib/experts";
 
@@ -106,7 +108,8 @@ type ExpertAction =
   | "set_access"
   | "update_profile"
   | "resend_invite"
-  | "set_academy_trainer";
+  | "set_academy_trainer"
+  | "nudge";
 
 async function post(url: string, body: unknown) {
   const response = await fetch(url, {
@@ -815,6 +818,27 @@ export function ExpertsAdmin() {
                 }
                 inviteLink={inviteLink}
                 onDelete={() => remove(selected)}
+              />
+            )}
+            {drawerTab === "overview" && selected.status === "approved" && (
+              <NudgeCard
+                key={`nudge-${selected.id}`}
+                expert={selected}
+                busy={busy}
+                suggested={nudgeSuggestions(
+                  selected,
+                  itemsByExpert.get(selected.id) ?? [],
+                  videos.filter((v) => v.expert_id === selected.id).length,
+                  reviews.filter((r) => r.expert_id === selected.id).length,
+                )}
+                onSend={(keys, note) =>
+                  act(
+                    selected,
+                    "nudge",
+                    { keys, note },
+                    `Nudge sent to ${selected.full_name || selected.email}: ${keys.length} item${keys.length === 1 ? "" : "s"}, by notification and email.`,
+                  )
+                }
               />
             )}
             {drawerTab === "overview" && !selected.is_guest && (
@@ -2283,5 +2307,170 @@ function ExpertKeyCard({ expertId }: { expertId: string }) {
       )}
       {message && <small role="status">{message}</small>}
     </DrawerCard>
+  );
+}
+
+/** What this expert is visibly missing, so the right nudges are pre-ticked. */
+function nudgeSuggestions(
+  e: Expert,
+  items: PortfolioItem[],
+  videoCount: number,
+  reviewCount: number,
+): string[] {
+  const out: string[] = [];
+  if (e.is_guest) return out;
+  if (!e.full_name || !e.headline || !e.summary) out.push("complete_profile");
+  if (!e.photo_url) out.push("profile_photo");
+  if (!e.bio || e.bio.length < 120) out.push("intro_bio");
+  if (!e.is_public && e.profile_status !== "submitted" && e.photo_url && e.bio)
+    out.push("submit_profile");
+  if (!items.some((i) => i.status !== "rejected")) out.push("portfolio");
+  if (!videoCount) out.push("testimonial");
+  if (!reviewCount) out.push("client_reviews");
+  if (!e.linkedin_url && !e.fiverr_url && !e.upwork_url) out.push("platform_links");
+  if (e.academy_trainer && (!e.photo_url || !e.headline)) out.push("academy_trainer");
+  return out;
+}
+
+function NudgeCard({
+  expert,
+  busy,
+  suggested,
+  onSend,
+}: {
+  expert: Expert;
+  busy: string;
+  suggested: string[];
+  onSend: (keys: string[], note: string) => Promise<boolean>;
+}) {
+  const [open, setOpen] = useState(false);
+  const [keys, setKeys] = useState<string[]>(suggested);
+  const [note, setNote] = useState("");
+  const tools = expert.permissions ?? [];
+  // Only nudges that make sense for this expert's access.
+  const available = NUDGES.filter((n) => {
+    if (expert.is_guest)
+      return [
+        "perplexity_key",
+        "scout_target",
+        "follow_up_leads",
+        "finish_audits",
+        "check_notifications",
+      ].includes(n.key);
+    if (["perplexity_key", "scout_target"].includes(n.key)) return tools.includes("scout");
+    if (n.key === "finish_audits") return tools.includes("audit");
+    if (n.key === "academy_trainer") return !!expert.academy_trainer;
+    return true;
+  });
+  const first = available.find((n) => keys.includes(n.key));
+  const sending = busy === expert.id + "nudge";
+  return (
+    <div className="admin-drawer-card" style={{ marginBottom: 16 }}>
+      <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
+        <span className="admin-action-icon" style={{ width: 34, height: 34 }}>
+          <Megaphone size={16} />
+        </span>
+        <div style={{ flex: 1 }}>
+          <strong>Nudge {expert.full_name?.split(/\s+/)[0] || "this expert"}</strong>
+          <p>
+            Send a cheeky (but friendly) reminder by notification and email.
+            {suggested.length > 0 && ` ${suggested.length} suggested from what's missing.`}
+          </p>
+        </div>
+        <button className="admin-button" onClick={() => setOpen((v) => !v)}>
+          {open ? "Hide" : "Choose nudges"}
+        </button>
+      </div>
+      {open && (
+        <div style={{ display: "grid", gap: 10, marginTop: 14 }}>
+          <div
+            style={{
+              display: "grid",
+              gap: 6,
+              gridTemplateColumns: "repeat(auto-fill, minmax(230px, 1fr))",
+            }}
+          >
+            {available.map((n) => (
+              <label
+                key={n.key}
+                className="admin-drawer-card"
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: 8,
+                  padding: "10px 12px",
+                  cursor: "pointer",
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={keys.includes(n.key)}
+                  onChange={() =>
+                    setKeys((k) =>
+                      k.includes(n.key) ? k.filter((x) => x !== n.key) : [...k, n.key],
+                    )
+                  }
+                />
+                <span style={{ fontSize: 13 }}>
+                  {n.label}
+                  {suggested.includes(n.key) && (
+                    <span className="admin-status pending" style={{ marginLeft: 6 }}>
+                      Suggested
+                    </span>
+                  )}
+                </span>
+              </label>
+            ))}
+          </div>
+          <div className="admin-invoice-form">
+            <label>
+              Add a personal line (optional)
+              <input
+                value={note}
+                maxLength={500}
+                placeholder="e.g. Raphael, the client you pitched last week asked about your portfolio 👀"
+                onChange={(e) => setNote(e.target.value)}
+              />
+            </label>
+          </div>
+          {first && (
+            <div
+              style={{
+                padding: "14px 16px",
+                borderRadius: 14,
+                border: "1px dashed var(--border)",
+                fontSize: 13,
+                lineHeight: 1.6,
+              }}
+            >
+              <small style={{ opacity: 0.7 }}>
+                Preview{keys.length > 1 ? ` (1 of ${keys.length})` : ""}
+              </small>
+              <p style={{ margin: "4px 0", fontWeight: 700 }}>{first.title}</p>
+              <p style={{ margin: 0, opacity: 0.85 }}>{first.lines[0]}</p>
+              {note.trim() && <p style={{ margin: "8px 0 0" }}>From the admin: {note.trim()}</p>}
+              <p style={{ margin: "8px 0 0", opacity: 0.7 }}>{NUDGE_SIGNOFF}</p>
+            </div>
+          )}
+          <div className="admin-button-row">
+            <button
+              className="admin-button admin-button-primary"
+              disabled={!!busy || !keys.length}
+              onClick={async () => {
+                if (await onSend(keys, note)) {
+                  setNote("");
+                  setOpen(false);
+                }
+              }}
+            >
+              <Megaphone size={15} />{" "}
+              {sending
+                ? "Sending…"
+                : `Send ${keys.length || ""} nudge${keys.length === 1 ? "" : "s"}`}
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }

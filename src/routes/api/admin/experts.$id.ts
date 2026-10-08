@@ -22,6 +22,7 @@ export const Route = createFileRoute("/api/admin/experts/$id")({
           "update_profile",
           "resend_invite",
           "set_academy_trainer",
+          "nudge",
         ];
         if (!actions.includes(action))
           return Response.json({ error: "Invalid action" }, { status: 400 });
@@ -32,6 +33,34 @@ export const Route = createFileRoute("/api/admin/experts/$id")({
           const { error } = await supabaseAdmin.auth.admin.deleteUser(params.id);
           if (error) return Response.json({ error: "Could not delete expert." }, { status: 503 });
           return Response.json({ ok: true });
+        }
+
+        if (action === "nudge") {
+          const { NUDGES, nudgeBody } = await import("@/lib/expert-nudges");
+          const keys: string[] = Array.isArray(body?.keys) ? body.keys.map(String) : [];
+          const picked = NUDGES.filter((n) => keys.includes(n.key));
+          const note = typeof body?.note === "string" ? body.note.slice(0, 500) : "";
+          if (!picked.length)
+            return Response.json({ error: "Pick at least one nudge." }, { status: 400 });
+          const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+          // One notification per nudge; the notification trigger emails them
+          // (as one digest when several are sent together).
+          const { error } = await (
+            supabaseAdmin as unknown as import("@supabase/supabase-js").SupabaseClient
+          )
+            .from("notifications")
+            .insert(
+              picked.map((n) => ({
+                audience: "expert",
+                expert_id: params.id,
+                kind: "nudge",
+                title: n.title,
+                body: nudgeBody(n, note),
+                tab: n.tab,
+              })),
+            );
+          if (error) return Response.json({ error: "Could not send the nudge." }, { status: 503 });
+          return Response.json({ ok: true, sent: picked.length });
         }
 
         if (action === "set_academy_trainer") {

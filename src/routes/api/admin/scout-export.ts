@@ -2,7 +2,13 @@ import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { resolveScoutAccess } from "@/lib/scout/owner.server";
 import { asScoutDb } from "@/lib/scout/db";
-import { toCsv, SCOUT_EXPORT_COLUMNS, buildScoutExportRow } from "@/lib/scout/csv";
+import {
+  toCsv,
+  SCOUT_EXPORT_COLUMNS,
+  buildScoutExportRow,
+  authorEmails,
+  emailSearchLabel,
+} from "@/lib/scout/csv";
 
 const bodySchema = z.object({
   prospectIds: z.array(z.string().uuid()).min(1).max(5000),
@@ -45,6 +51,8 @@ export const Route = createFileRoute("/api/admin/scout-export")({
               name: string;
               website_url: string | null;
               contact_email: string | null;
+              contact_emails?: string[] | null;
+              contact_search_status?: string | null;
               contact_form_url: string | null;
             } | null;
             scout_discovered_books: {
@@ -68,7 +76,11 @@ export const Route = createFileRoute("/api/admin/scout-export")({
               publicationDate: row.scout_discovered_books?.publication_date ?? null,
               reviewCounts: row.scout_discovered_books?.scout_review_counts ?? [],
               authorWebsite: row.scout_authors?.website_url ?? null,
-              contactEmail: row.scout_authors?.contact_email ?? null,
+              contactEmail: authorEmails(row.scout_authors ?? null) || null,
+              emailSearch: emailSearchLabel(
+                row.scout_authors?.contact_search_status,
+                Boolean(authorEmails(row.scout_authors ?? null)),
+              ),
               contactForm: row.scout_authors?.contact_form_url ?? null,
               bookUrl: row.scout_discovered_books?.source_url ?? null,
               researchNotes: row.research_notes ?? null,

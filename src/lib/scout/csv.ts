@@ -29,7 +29,8 @@ export const SCOUT_EXPORT_COLUMNS = [
   { key: "goodreadsReviews", header: "Goodreads reviews" },
   { key: "amazonReviews", header: "Amazon reviews" },
   { key: "authorWebsite", header: "Author website" },
-  { key: "contactEmail", header: "Public professional email" },
+  { key: "contactEmail", header: "Author email(s)" },
+  { key: "emailSearch", header: "Email search" },
   { key: "contactForm", header: "Contact form" },
   { key: "bookUrl", header: "Book URL" },
   { key: "sourceUrls", header: "Source URLs" },
@@ -37,6 +38,27 @@ export const SCOUT_EXPORT_COLUMNS = [
   { key: "outreachStatus", header: "Outreach status" },
   { key: "lastVerifiedAt", header: "Last verification date" },
 ];
+
+/** Every email found for an author (from the email search) plus the main
+ *  contact email, de-duplicated, for one CSV cell. */
+export function authorEmails(
+  author: {
+    contact_email?: string | null;
+    contact_emails?: string[] | null;
+  } | null,
+) {
+  const all = [...(author?.contact_emails ?? []), author?.contact_email ?? ""]
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean);
+  return [...new Set(all)].join("; ");
+}
+
+/** "Found", "Not found" or "Not searched", for the Email search column. */
+export function emailSearchLabel(status: string | null | undefined, hasEmail: boolean) {
+  if (status === "found" || hasEmail) return "Found";
+  if (status === "not_found") return "Not found";
+  return "Not searched";
+}
 
 export function reviewCountFor(
   counts: { platform: string; review_count: number | null; verified: boolean }[],
@@ -55,6 +77,7 @@ export function buildScoutExportRow(input: {
   reviewCounts: { platform: string; review_count: number | null; verified: boolean }[];
   authorWebsite: string | null;
   contactEmail: string | null;
+  emailSearch?: string;
   contactForm: string | null;
   bookUrl: string | null;
   researchNotes: string | null;
@@ -72,6 +95,7 @@ export function buildScoutExportRow(input: {
     amazonReviews: reviewCountFor(input.reviewCounts, "amazon"),
     authorWebsite: input.authorWebsite ?? "",
     contactEmail: input.contactEmail ?? "",
+    emailSearch: input.emailSearch ?? "",
     contactForm: input.contactForm ?? "",
     bookUrl: input.bookUrl ?? "",
     sourceUrls: input.bookUrl ?? "",

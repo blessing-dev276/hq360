@@ -890,7 +890,8 @@ function AuthorScout({
         "Synopsis",
         "Country",
         "Website",
-        "Email",
+        "Author email(s)",
+        "Email search",
         "Email verification",
         "Contact form",
         "Source",
@@ -903,7 +904,22 @@ function AuthorScout({
         book.description,
         book.scout_authors?.country,
         book.scout_authors?.website_url,
-        book.scout_authors?.contact_email,
+        // Live result of Find email(s), including searches run this session.
+        (() => {
+          const r = emailSearchFor(book);
+          const all = [...r.emails, book.scout_authors?.contact_email ?? ""]
+            .map((e) => e.trim().toLowerCase())
+            .filter(Boolean);
+          return [...new Set(all)].join("; ");
+        })(),
+        (() => {
+          const r = emailSearchFor(book);
+          return r.status === "found" || book.scout_authors?.contact_email
+            ? "Found"
+            : r.status === "not_found"
+              ? "Not found"
+              : "Not searched";
+        })(),
         book.scout_authors?.contact_verification_status ?? "Unverified",
         book.scout_authors?.contact_form_url,
         book.source_url,

@@ -1,7 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ownsBatch, resolveScoutAccess } from "@/lib/scout/owner.server";
 import { asScoutDb } from "@/lib/scout/db";
-import { toCsv, SCOUT_EXPORT_COLUMNS, buildScoutExportRow } from "@/lib/scout/csv";
+import {
+  toCsv,
+  SCOUT_EXPORT_COLUMNS,
+  buildScoutExportRow,
+  authorEmails,
+  emailSearchLabel,
+} from "@/lib/scout/csv";
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -43,6 +49,8 @@ export const Route = createFileRoute("/api/admin/scout-batches/$id/export")({
               name: string;
               website_url: string | null;
               contact_email: string | null;
+              contact_emails?: string[] | null;
+              contact_search_status?: string | null;
               contact_form_url: string | null;
             } | null;
             scout_review_counts: {
@@ -68,7 +76,11 @@ export const Route = createFileRoute("/api/admin/scout-batches/$id/export")({
               publicationDate: row.publication_date,
               reviewCounts: row.scout_review_counts ?? [],
               authorWebsite: row.scout_authors?.website_url ?? null,
-              contactEmail: row.scout_authors?.contact_email ?? null,
+              contactEmail: authorEmails(row.scout_authors ?? null) || null,
+              emailSearch: emailSearchLabel(
+                row.scout_authors?.contact_search_status,
+                Boolean(authorEmails(row.scout_authors ?? null)),
+              ),
               contactForm: row.scout_authors?.contact_form_url ?? null,
               bookUrl: row.source_url,
               researchNotes: prospect?.research_notes ?? null,

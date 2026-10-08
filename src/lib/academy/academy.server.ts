@@ -1,5 +1,7 @@
 // Author Scout Academy server helpers: auth, session storage and the glue
-// between the API routes and the rule based Author Engine. No AI calls.
+// between the API routes and the rule based Author Engine. The engine decides
+// every outcome; ai.server only writes replies, hints and coaching in words,
+// falling back to the stored banks whenever AI is unavailable.
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { isAdminRequest } from "@/lib/admin-auth.server";
@@ -34,6 +36,7 @@ import {
   type Stage,
   type Turn,
 } from "./engine.server";
+import { aiAuthorReply, aiCoaching, aiHint, type AiCoaching } from "./ai.server";
 
 // The generated Database types do not include the academy tables yet.
 export const db = supabaseAdmin as unknown as SupabaseClient;
@@ -54,6 +57,8 @@ export type Coaching = {
   strengths: string[];
   fixes: string[];
   better_line: string;
+  /** Key trainee lines and what they did to trust (AI coaching only). */
+  moments?: AiCoaching["moments"];
 };
 export type SessionRow = {
   id: string;
@@ -158,6 +163,7 @@ async function bankFor(persona: Persona, reaction: Reaction): Promise<BankRow[]>
  * new state. Returns the updated row and how long to show "Typing...".
  */
 export async function handleScoutMessage(row: SessionRow, text: string) {
+  const started = Date.now();
   const persona = findPersona(row.persona)!;
   const history = row.messages;
   const signals = analyse(text, persona, history);
@@ -212,15 +218,31 @@ export async function handleScoutMessage(row: SessionRow, text: string) {
         reaction_used: reaction,
       });
     }
+    let bankLine = inVoice("I have nothing more to add right now.", persona);
     if (choice.row) {
       used.add(choice.row.id);
       const filled = fillLine(choice.row.text, persona, signals.wrongFact);
-      replyText = choice.voice ? inVoice(filled, persona) : filled;
-      if (lateReply)
-        replyText = `${LATE_OPENERS[Math.floor(Math.random() * LATE_OPENERS.length)]} ${replyText}`;
-    } else {
-      replyText = inVoice("I have nothing more to add right now.", persona);
+      bankLine = choice.voice ? inVoice(filled, persona) : filled;
     }
+    // The model writes the engine's decision in the author's voice, reacting
+    // to what the scout actually said; the bank line is the fallback.
+    const written = await aiAuthorReply({
+      persona,
+      mood: row.mood,
+      stage: stageOf(trust),
+      reaction,
+      history,
+      scoutText: text,
+      bankLine,
+      wrongFact: signals.wrongFact,
+      objectionRevealed: row.objection_revealed,
+      lateReply,
+    });
+    replyText =
+      written ??
+      (lateReply
+        ? `${LATE_OPENERS[Math.floor(Math.random() * LATE_OPENERS.length)]} ${bankLine}`
+        : bankLine);
   }
 
   const turn: Turn = {
@@ -262,7 +284,10 @@ export async function handleScoutMessage(row: SessionRow, text: string) {
       silent_left: next.silent_left,
     })
     .eq("id", row.id);
-  return { row: next, delayMs: reaction === "no_reply" ? 800 : typingDelay() };
+  // Time spent writing the reply already counts toward the "Typing..." pause.
+  const delayMs =
+    reaction === "no_reply" ? 800 : Math.max(600, typingDelay() - (Date.now() - started));
+  return { row: next, delayMs };
 }
 
 const LATE_OPENERS = [
@@ -276,11 +301,17 @@ export async function getHint(row: SessionRow) {
   const rule = hintRule(row.messages, row.signals, row.stage, row.objection_revealed);
   const { data } = await db.from("hints").select("rule, text").in("rule", [rule, "default"]);
   const rows = (data ?? []) as { rule: string; text: string }[];
-  return (
+  const ruleHint =
     rows.find((r) => r.rule === rule)?.text ??
     rows.find((r) => r.rule === "default")?.text ??
-    "Keep it personal, give one useful thing, and end with one easy question."
-  );
+    "Keep it personal, give one useful thing, and end with one easy question.";
+  const tailored = await aiHint({
+    persona: findPersona(row.persona)!,
+    stage: row.stage,
+    messages: row.messages,
+    ruleHint,
+  });
+  return tailored ?? ruleHint;
 }
 
 async function feedbackLines(
@@ -335,6 +366,17 @@ export async function getCoaching(row: SessionRow): Promise<Coaching> {
     lines[Math.floor(Math.random() * lines.length)]?.text ??
     "Ask one caring question about their experience, then offer one small step they can check.";
 
+  const ai = await aiCoaching({
+    persona,
+    mood: row.mood,
+    challenge: findStyle(row.challenge)?.label ?? row.challenge,
+    messages: row.messages,
+    trustHistory: row.trust_history,
+    scores,
+    overall,
+    outcome,
+  });
+  if (ai) return { overall, scores, outcome, ...ai };
   return {
     overall,
     scores,

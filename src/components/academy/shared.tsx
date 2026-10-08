@@ -17,6 +17,7 @@ export type Coaching = {
   strengths: string[];
   fixes: string[];
   better_line: string;
+  moments?: { quote: string; effect: "helped" | "hurt"; note: string }[];
 };
 export type PersonaView = {
   id: string;
@@ -301,6 +302,32 @@ export function CoachingPanel({ coaching }: { coaching: Coaching }) {
           </ul>
         </div>
       </div>
+      {coaching.moments?.length ? (
+        <>
+          <h3 style={{ fontSize: 17, margin: "18px 0 6px" }}>Key moments in your chat</h3>
+          <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gap: 10 }}>
+            {coaching.moments.map((m, i) => (
+              <li
+                key={i}
+                style={{
+                  borderLeft: `3px solid var(${m.effect === "helped" ? "--asa-good" : "--asa-bad"})`,
+                  paddingLeft: 12,
+                }}
+              >
+                <q style={{ fontStyle: "italic" }}>{m.quote}</q>
+                <div className="asa-muted" style={{ fontSize: 14, marginTop: 4 }}>
+                  <b
+                    style={{ color: `var(${m.effect === "helped" ? "--asa-good" : "--asa-bad"})` }}
+                  >
+                    {m.effect === "helped" ? "Built trust" : "Cost trust"}
+                  </b>{" "}
+                  · {m.note}
+                </div>
+              </li>
+            ))}
+          </ul>
+        </>
+      ) : null}
       <h3 style={{ fontSize: 17, margin: "18px 0 6px" }}>A stronger line you could have sent</h3>
       <p className="asa-better">{coaching.better_line}</p>
     </div>

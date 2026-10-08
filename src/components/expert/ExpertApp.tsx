@@ -16,6 +16,7 @@ import {
   ScanSearch,
   UserRound,
   type LucideIcon,
+  GraduationCap,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getSupabase } from "@/integrations/supabase/lazy";
@@ -31,9 +32,11 @@ import { ExpertReviews } from "./ExpertReviews";
 import { ExpertAuditLink } from "./ExpertAuditLink";
 import { ExpertInvoiceRequests } from "./ExpertInvoiceRequests";
 import { LeadsWorkspace } from "@/components/admin/LeadsAdmin";
+import { TrainerTools } from "@/components/academy/TrainerTools";
+import "@/components/academy/academy.css";
 import "@/components/admin/admin-workspace.css";
 
-type Tab = "dashboard" | "profile" | "portfolio" | "leads" | ExpertFeature;
+type Tab = "dashboard" | "profile" | "portfolio" | "leads" | "academy" | ExpertFeature;
 type NavItem = { id: Tab; label: string; icon: LucideIcon; description: string };
 
 const CORE: NavItem[] = [
@@ -90,15 +93,26 @@ export function ExpertApp() {
   const [role, setRole] = useState("contributor");
   // Guests have no profile: only the tools the admin granted them.
   const [guest, setGuest] = useState(false);
+  // Experts the admin made Author Scout Academy trainers get Trainer tools here.
+  const [academyTrainer, setAcademyTrainer] = useState(false);
   const [logoutError, setLogoutError] = useState("");
   const [refreshKey, setRefreshKey] = useState(0);
   const [salesView, setSalesView] = useState<SalesView>("proposals");
 
   const unlocked = TOOLS.filter((t) => permissions.includes(t.id));
   const locked = guest ? [] : TOOLS.filter((t) => !permissions.includes(t.id));
-  const nav = guest
-    ? [...CORE.filter((c) => c.id === "leads" && permissions.includes("scout")), ...unlocked]
-    : [...CORE, ...unlocked];
+  const academyItem: NavItem = {
+    id: "academy",
+    label: "Academy trainer",
+    icon: GraduationCap,
+    description: "Author Scout Academy: your trainees' progress, chats and the practice content.",
+  };
+  const nav = [
+    ...(guest
+      ? [...CORE.filter((c) => c.id === "leads" && permissions.includes("scout")), ...unlocked]
+      : [...CORE, ...unlocked]),
+    ...(academyTrainer ? [academyItem] : []),
+  ];
 
   useEffect(() => {
     fetch("/api/expert/profile")
@@ -106,6 +120,7 @@ export function ExpertApp() {
       .then((data) => {
         setPermissions(data.profile?.permissions ?? []);
         setRole(data.profile?.role ?? "contributor");
+        setAcademyTrainer(Boolean(data.profile?.academy_trainer));
         if (data.profile?.is_guest) {
           setGuest(true);
           const tools: string[] = data.profile.permissions ?? [];
@@ -235,6 +250,10 @@ export function ExpertApp() {
               <ExpertTestimonials />
               <ExpertReviews />
             </>
+          ) : current.id === "academy" ? (
+            <div className="asa" style={{ background: "transparent", minHeight: 0 }}>
+              <TrainerTools />
+            </div>
           ) : current.id === "scout" ? (
             <>
               <PerplexitySettings />

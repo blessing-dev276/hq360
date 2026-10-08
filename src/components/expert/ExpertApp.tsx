@@ -17,7 +17,9 @@ import {
   UserRound,
   type LucideIcon,
   GraduationCap,
+  Lock,
 } from "lucide-react";
+import { NoAccess } from "./NoAccess";
 import { cn } from "@/lib/utils";
 import { getSupabase } from "@/integrations/supabase/lazy";
 import { Logo } from "@/components/Logo";
@@ -113,6 +115,9 @@ export function ExpertApp() {
       : [...CORE, ...unlocked]),
     ...(academyTrainer ? [academyItem] : []),
   ];
+  // Experts see every tool; ones they lack open a "not on the list" page.
+  const lockedNav: NavItem[] = guest ? [] : [...locked, ...(academyTrainer ? [] : [academyItem])];
+  const allNav = [...nav, ...lockedNav];
 
   useEffect(() => {
     fetch("/api/expert/profile")
@@ -134,7 +139,7 @@ export function ExpertApp() {
   useEffect(() => {
     const sync = () => {
       const value = window.location.hash.slice(1);
-      if (nav.some((item) => item.id === value)) setTab(value as Tab);
+      if (allNav.some((item) => item.id === value)) setTab(value as Tab);
     };
     sync();
     window.addEventListener("hashchange", sync);
@@ -155,7 +160,8 @@ export function ExpertApp() {
       setLogoutError("Could not sign out. Please try again.");
     }
   }
-  const current = nav.find((item) => item.id === tab) ?? nav[0] ?? CORE[0]!;
+  const current = allNav.find((item) => item.id === tab) ?? nav[0] ?? CORE[0]!;
+  const isLocked = lockedNav.some((item) => item.id === current.id);
 
   return (
     <div className="admin-workspace">
@@ -176,22 +182,18 @@ export function ExpertApp() {
               <span>{label}</span>
             </button>
           ))}
-          {locked.length > 0 && (
-            <p className="admin-nav-label" style={{ marginTop: 18 }}>
-              COMING SOON
-            </p>
-          )}
-          {locked.map(({ id, label, icon: Icon }) => (
+          {lockedNav.map(({ id, label, icon: Icon }) => (
             <button
               key={id}
-              className="admin-nav-item"
-              disabled
-              title={`${label} is coming soon`}
-              style={{ opacity: 0.5, cursor: "not-allowed" }}
+              onClick={() => navigate(id)}
+              className={cn("admin-nav-item", tab === id && "active")}
+              aria-current={tab === id ? "page" : undefined}
+              title={`${label}: not unlocked yet`}
+              style={{ opacity: tab === id ? 1 : 0.6 }}
             >
               <Icon size={18} />
               <span>{label}</span>
-              <span className="admin-new">SOON</span>
+              <Lock size={13} aria-label="Locked" style={{ marginLeft: "auto" }} />
             </button>
           ))}
         </nav>
@@ -202,6 +204,10 @@ export function ExpertApp() {
               Experts directory
             </a>
           )}
+          <a href="/academy" target="_blank" rel="noreferrer" className="admin-nav-item">
+            <GraduationCap size={18} />
+            Academy
+          </a>
           <button className="admin-nav-item" onClick={() => void signOut()}>
             <LogOut size={18} />
             Sign out
@@ -233,7 +239,9 @@ export function ExpertApp() {
           </div>
         </header>
         <div className="admin-page" key={refreshKey}>
-          {guest && nav.length === 0 ? (
+          {isLocked ? (
+            <NoAccess tool={current.id} label={current.label} />
+          ) : guest && nav.length === 0 ? (
             <div className="admin-empty">
               <h3>No tools yet</h3>
               <p>HQ360 hasn't given you access to any tools right now.</p>

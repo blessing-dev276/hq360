@@ -82,6 +82,7 @@ import { Route as ApiAcademySessionRouteImport } from './routes/api/academy/sess
 import { Route as ApiAcademySessionsRouteImport } from './routes/api/academy/sessions'
 import { Route as ApiAcademyTrainersRouteImport } from './routes/api/academy/trainers'
 import { Route as ApiAdminAcademyRouteImport } from './routes/api/admin/academy'
+import { Route as ApiAdminAcademyControlRouteImport } from './routes/api/admin/academy-control'
 import { Route as ApiAdminAuthorAuditLeadsRouteImport } from './routes/api/admin/author-audit-leads'
 import { Route as ApiAdminAuthorAuditsRouteImport } from './routes/api/admin/author-audits'
 import { Route as ApiAdminCaseStudiesRouteImport } from './routes/api/admin/case-studies'
@@ -169,6 +170,7 @@ import { Route as ApiAdminExpertPortfolioIdRouteImport } from './routes/api/admi
 import { Route as ApiAdminExpertReviewsIdRouteImport } from './routes/api/admin/expert-reviews.$id'
 import { Route as ApiAdminExpertTestimonialsIdRouteImport } from './routes/api/admin/expert-testimonials.$id'
 import { Route as ApiAdminExpertsIdRouteImport } from './routes/api/admin/experts.$id'
+import { Route as ApiAdminExpertsNudgeRouteImport } from './routes/api/admin/experts.nudge'
 import { Route as ApiAdminInvoiceRequestsIdRouteImport } from './routes/api/admin/invoice-requests.$id'
 import { Route as ApiAdminInvoicesIdRouteImport } from './routes/api/admin/invoices.$id'
 import { Route as ApiAdminPortfolioIdRouteImport } from './routes/api/admin/portfolio.$id'
@@ -581,6 +583,11 @@ const ApiAcademyTrainersRoute = ApiAcademyTrainersRouteImport.update({
 const ApiAdminAcademyRoute = ApiAdminAcademyRouteImport.update({
   id: '/api/admin/academy',
   path: '/api/admin/academy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminAcademyControlRoute = ApiAdminAcademyControlRouteImport.update({
+  id: '/api/admin/academy-control',
+  path: '/api/admin/academy-control',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiAdminAuthorAuditLeadsRoute =
@@ -1038,6 +1045,11 @@ const ApiAdminExpertsIdRoute = ApiAdminExpertsIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => ApiAdminExpertsRoute,
 } as any)
+const ApiAdminExpertsNudgeRoute = ApiAdminExpertsNudgeRouteImport.update({
+  id: '/nudge',
+  path: '/nudge',
+  getParentRoute: () => ApiAdminExpertsRoute,
+} as any)
 const ApiAdminInvoiceRequestsIdRoute =
   ApiAdminInvoiceRequestsIdRouteImport.update({
     id: '/$id',
@@ -1377,6 +1389,7 @@ export interface FileRoutesByFullPath {
   '/api/academy/sessions': typeof ApiAcademySessionsRouteWithChildren
   '/api/academy/trainers': typeof ApiAcademyTrainersRoute
   '/api/admin/academy': typeof ApiAdminAcademyRoute
+  '/api/admin/academy-control': typeof ApiAdminAcademyControlRoute
   '/api/admin/author-audit-leads': typeof ApiAdminAuthorAuditLeadsRoute
   '/api/admin/author-audits': typeof ApiAdminAuthorAuditsRouteWithChildren
   '/api/admin/case-studies': typeof ApiAdminCaseStudiesRouteWithChildren
@@ -1464,6 +1477,7 @@ export interface FileRoutesByFullPath {
   '/api/admin/expert-reviews/$id': typeof ApiAdminExpertReviewsIdRoute
   '/api/admin/expert-testimonials/$id': typeof ApiAdminExpertTestimonialsIdRoute
   '/api/admin/experts/$id': typeof ApiAdminExpertsIdRouteWithChildren
+  '/api/admin/experts/nudge': typeof ApiAdminExpertsNudgeRoute
   '/api/admin/invoice-requests/$id': typeof ApiAdminInvoiceRequestsIdRoute
   '/api/admin/invoices/$id': typeof ApiAdminInvoicesIdRoute
   '/api/admin/portfolio/$id': typeof ApiAdminPortfolioIdRoute
@@ -1585,6 +1599,7 @@ export interface FileRoutesByTo {
   '/api/academy/sessions': typeof ApiAcademySessionsRouteWithChildren
   '/api/academy/trainers': typeof ApiAcademyTrainersRoute
   '/api/admin/academy': typeof ApiAdminAcademyRoute
+  '/api/admin/academy-control': typeof ApiAdminAcademyControlRoute
   '/api/admin/author-audit-leads': typeof ApiAdminAuthorAuditLeadsRoute
   '/api/admin/author-audits': typeof ApiAdminAuthorAuditsRouteWithChildren
   '/api/admin/case-studies': typeof ApiAdminCaseStudiesRouteWithChildren
@@ -1672,6 +1687,7 @@ export interface FileRoutesByTo {
   '/api/admin/expert-reviews/$id': typeof ApiAdminExpertReviewsIdRoute
   '/api/admin/expert-testimonials/$id': typeof ApiAdminExpertTestimonialsIdRoute
   '/api/admin/experts/$id': typeof ApiAdminExpertsIdRouteWithChildren
+  '/api/admin/experts/nudge': typeof ApiAdminExpertsNudgeRoute
   '/api/admin/invoice-requests/$id': typeof ApiAdminInvoiceRequestsIdRoute
   '/api/admin/invoices/$id': typeof ApiAdminInvoicesIdRoute
   '/api/admin/portfolio/$id': typeof ApiAdminPortfolioIdRoute
@@ -1794,6 +1810,7 @@ export interface FileRoutesById {
   '/api/academy/sessions': typeof ApiAcademySessionsRouteWithChildren
   '/api/academy/trainers': typeof ApiAcademyTrainersRoute
   '/api/admin/academy': typeof ApiAdminAcademyRoute
+  '/api/admin/academy-control': typeof ApiAdminAcademyControlRoute
   '/api/admin/author-audit-leads': typeof ApiAdminAuthorAuditLeadsRoute
   '/api/admin/author-audits': typeof ApiAdminAuthorAuditsRouteWithChildren
   '/api/admin/case-studies': typeof ApiAdminCaseStudiesRouteWithChildren
@@ -1881,6 +1898,7 @@ export interface FileRoutesById {
   '/api/admin/expert-reviews/$id': typeof ApiAdminExpertReviewsIdRoute
   '/api/admin/expert-testimonials/$id': typeof ApiAdminExpertTestimonialsIdRoute
   '/api/admin/experts/$id': typeof ApiAdminExpertsIdRouteWithChildren
+  '/api/admin/experts/nudge': typeof ApiAdminExpertsNudgeRoute
   '/api/admin/invoice-requests/$id': typeof ApiAdminInvoiceRequestsIdRoute
   '/api/admin/invoices/$id': typeof ApiAdminInvoicesIdRoute
   '/api/admin/portfolio/$id': typeof ApiAdminPortfolioIdRoute
@@ -2004,6 +2022,7 @@ export interface FileRouteTypes {
     | '/api/academy/sessions'
     | '/api/academy/trainers'
     | '/api/admin/academy'
+    | '/api/admin/academy-control'
     | '/api/admin/author-audit-leads'
     | '/api/admin/author-audits'
     | '/api/admin/case-studies'
@@ -2091,6 +2110,7 @@ export interface FileRouteTypes {
     | '/api/admin/expert-reviews/$id'
     | '/api/admin/expert-testimonials/$id'
     | '/api/admin/experts/$id'
+    | '/api/admin/experts/nudge'
     | '/api/admin/invoice-requests/$id'
     | '/api/admin/invoices/$id'
     | '/api/admin/portfolio/$id'
@@ -2212,6 +2232,7 @@ export interface FileRouteTypes {
     | '/api/academy/sessions'
     | '/api/academy/trainers'
     | '/api/admin/academy'
+    | '/api/admin/academy-control'
     | '/api/admin/author-audit-leads'
     | '/api/admin/author-audits'
     | '/api/admin/case-studies'
@@ -2299,6 +2320,7 @@ export interface FileRouteTypes {
     | '/api/admin/expert-reviews/$id'
     | '/api/admin/expert-testimonials/$id'
     | '/api/admin/experts/$id'
+    | '/api/admin/experts/nudge'
     | '/api/admin/invoice-requests/$id'
     | '/api/admin/invoices/$id'
     | '/api/admin/portfolio/$id'
@@ -2420,6 +2442,7 @@ export interface FileRouteTypes {
     | '/api/academy/sessions'
     | '/api/academy/trainers'
     | '/api/admin/academy'
+    | '/api/admin/academy-control'
     | '/api/admin/author-audit-leads'
     | '/api/admin/author-audits'
     | '/api/admin/case-studies'
@@ -2507,6 +2530,7 @@ export interface FileRouteTypes {
     | '/api/admin/expert-reviews/$id'
     | '/api/admin/expert-testimonials/$id'
     | '/api/admin/experts/$id'
+    | '/api/admin/experts/nudge'
     | '/api/admin/invoice-requests/$id'
     | '/api/admin/invoices/$id'
     | '/api/admin/portfolio/$id'
@@ -2629,6 +2653,7 @@ export interface RootRouteChildren {
   ApiAcademySessionsRoute: typeof ApiAcademySessionsRouteWithChildren
   ApiAcademyTrainersRoute: typeof ApiAcademyTrainersRoute
   ApiAdminAcademyRoute: typeof ApiAdminAcademyRoute
+  ApiAdminAcademyControlRoute: typeof ApiAdminAcademyControlRoute
   ApiAdminAuthorAuditLeadsRoute: typeof ApiAdminAuthorAuditLeadsRoute
   ApiAdminAuthorAuditsRoute: typeof ApiAdminAuthorAuditsRouteWithChildren
   ApiAdminCaseStudiesRoute: typeof ApiAdminCaseStudiesRouteWithChildren
@@ -3224,6 +3249,13 @@ declare module '@tanstack/react-router' {
       path: '/api/admin/academy'
       fullPath: '/api/admin/academy'
       preLoaderRoute: typeof ApiAdminAcademyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/academy-control': {
+      id: '/api/admin/academy-control'
+      path: '/api/admin/academy-control'
+      fullPath: '/api/admin/academy-control'
+      preLoaderRoute: typeof ApiAdminAcademyControlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/admin/author-audit-leads': {
@@ -3835,6 +3867,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAdminExpertsIdRouteImport
       parentRoute: typeof ApiAdminExpertsRoute
     }
+    '/api/admin/experts/nudge': {
+      id: '/api/admin/experts/nudge'
+      path: '/nudge'
+      fullPath: '/api/admin/experts/nudge'
+      preLoaderRoute: typeof ApiAdminExpertsNudgeRouteImport
+      parentRoute: typeof ApiAdminExpertsRoute
+    }
     '/api/admin/invoice-requests/$id': {
       id: '/api/admin/invoice-requests/$id'
       path: '/$id'
@@ -4363,10 +4402,12 @@ const ApiAdminExpertsIdRouteWithChildren =
 
 interface ApiAdminExpertsRouteChildren {
   ApiAdminExpertsIdRoute: typeof ApiAdminExpertsIdRouteWithChildren
+  ApiAdminExpertsNudgeRoute: typeof ApiAdminExpertsNudgeRoute
 }
 
 const ApiAdminExpertsRouteChildren: ApiAdminExpertsRouteChildren = {
   ApiAdminExpertsIdRoute: ApiAdminExpertsIdRouteWithChildren,
+  ApiAdminExpertsNudgeRoute: ApiAdminExpertsNudgeRoute,
 }
 
 const ApiAdminExpertsRouteWithChildren = ApiAdminExpertsRoute._addFileChildren(
@@ -4646,6 +4687,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAcademySessionsRoute: ApiAcademySessionsRouteWithChildren,
   ApiAcademyTrainersRoute: ApiAcademyTrainersRoute,
   ApiAdminAcademyRoute: ApiAdminAcademyRoute,
+  ApiAdminAcademyControlRoute: ApiAdminAcademyControlRoute,
   ApiAdminAuthorAuditLeadsRoute: ApiAdminAuthorAuditLeadsRoute,
   ApiAdminAuthorAuditsRoute: ApiAdminAuthorAuditsRouteWithChildren,
   ApiAdminCaseStudiesRoute: ApiAdminCaseStudiesRouteWithChildren,

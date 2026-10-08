@@ -31,7 +31,7 @@ import {
 } from "lucide-react";
 import { AUDIENCES, CORE_SERVICES, getAudience, getCoreService } from "@/data/agency";
 import { EXPERT_FEATURES, EXPERT_ROLES, roleLabel } from "@/lib/expert-roles";
-import { NUDGE_SIGNOFF, NUDGES } from "@/lib/expert-nudges";
+import { NUDGE_SIGNOFF, NUDGES, nudgeAvailableFor } from "@/lib/expert-nudges";
 import { uploadAdminMedia } from "@/lib/admin-upload";
 import { initials } from "@/lib/experts";
 
@@ -177,6 +177,9 @@ export function ExpertsAdmin() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [drawerTab, setDrawerTab] = useState<DrawerTab>("overview");
   const [inviting, setInviting] = useState(false);
+  // Bulk nudge: experts ticked in the list.
+  const [picked, setPicked] = useState<Set<string>>(new Set());
+  const [bulkNudge, setBulkNudge] = useState(false);
   const [inviteLink, setInviteLink] = useState("");
 
   const load = useCallback(async () => {
@@ -592,6 +595,35 @@ export function ExpertsAdmin() {
             <UserPlus size={15} /> Invite guest
           </button>
         </div>
+        {picked.size > 0 && (
+          <div
+            role="region"
+            aria-label="Selected experts"
+            className="admin-drawer-card"
+            style={{
+              margin: "0 25px 12px",
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 12,
+              position: "sticky",
+              top: 8,
+              zIndex: 5,
+            }}
+          >
+            <strong style={{ flex: 1 }}>
+              {picked.size} expert{picked.size === 1 ? "" : "s"} selected
+            </strong>
+            <button className="admin-button" onClick={() => setPicked(new Set())}>
+              Clear
+            </button>
+            <button
+              className="admin-button admin-button-primary"
+              onClick={() => setBulkNudge(true)}
+            >
+              <Megaphone size={15} /> Nudge {picked.size}
+            </button>
+          </div>
+        )}
         <div className="admin-table-toolbar">
           <div className="admin-filters" aria-label="Filter experts">
             {(
@@ -643,6 +675,30 @@ export function ExpertsAdmin() {
             <table className="admin-table">
               <thead>
                 <tr>
+                  <th style={{ width: 36 }}>
+                    {(() => {
+                      const ids = visible.filter((e) => e.status === "approved").map((e) => e.id);
+                      const all = ids.length > 0 && ids.every((id) => picked.has(id));
+                      return (
+                        <input
+                          type="checkbox"
+                          aria-label="Select all approved experts shown"
+                          checked={all}
+                          disabled={!ids.length}
+                          onChange={() =>
+                            setPicked((p) => {
+                              const next = new Set(p);
+                              for (const id of ids) {
+                                if (all) next.delete(id);
+                                else next.add(id);
+                              }
+                              return next;
+                            })
+                          }
+                        />
+                      );
+                    })()}
+                  </th>
                   <th>Expert</th>
                   <th>Status</th>
                   <th>Role</th>
@@ -658,6 +714,25 @@ export function ExpertsAdmin() {
                   const items = itemsByExpert.get(e.id) ?? [];
                   return (
                     <tr key={e.id} style={{ cursor: "pointer" }} onClick={() => open(e)}>
+                      <td onClick={(ev) => ev.stopPropagation()}>
+                        <input
+                          type="checkbox"
+                          aria-label={`Select ${e.full_name || e.email}`}
+                          disabled={e.status !== "approved"}
+                          title={
+                            e.status !== "approved" ? "Only approved experts can be nudged" : ""
+                          }
+                          checked={picked.has(e.id)}
+                          onChange={() =>
+                            setPicked((p) => {
+                              const next = new Set(p);
+                              if (next.has(e.id)) next.delete(e.id);
+                              else next.add(e.id);
+                              return next;
+                            })
+                          }
+                        />
+                      </td>
                       <td>
                         <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
                           <Avatar expert={e} />
@@ -711,6 +786,25 @@ export function ExpertsAdmin() {
         )}
       </section>
 
+      {bulkNudge && (
+        <BulkNudgeDialog
+          experts={experts.filter((e) => picked.has(e.id))}
+          suggestionsFor={(e) =>
+            nudgeSuggestions(
+              e,
+              itemsByExpert.get(e.id) ?? [],
+              videos.filter((v) => v.expert_id === e.id).length,
+              reviews.filter((r) => r.expert_id === e.id).length,
+            )
+          }
+          onClose={() => setBulkNudge(false)}
+          onSent={(message) => {
+            setBulkNudge(false);
+            setPicked(new Set());
+            setNotice(message);
+          }}
+        />
+      )}
       {inviting && (
         <InviteGuestDrawer
           busy={busy}
@@ -2346,22 +2440,8 @@ function NudgeCard({
   const [open, setOpen] = useState(false);
   const [keys, setKeys] = useState<string[]>(suggested);
   const [note, setNote] = useState("");
-  const tools = expert.permissions ?? [];
   // Only nudges that make sense for this expert's access.
-  const available = NUDGES.filter((n) => {
-    if (expert.is_guest)
-      return [
-        "perplexity_key",
-        "scout_target",
-        "follow_up_leads",
-        "finish_audits",
-        "check_notifications",
-      ].includes(n.key);
-    if (["perplexity_key", "scout_target"].includes(n.key)) return tools.includes("scout");
-    if (n.key === "finish_audits") return tools.includes("audit");
-    if (n.key === "academy_trainer") return !!expert.academy_trainer;
-    return true;
-  });
+  const available = NUDGES.filter((n) => nudgeAvailableFor(n, expert));
   const first = available.find((n) => keys.includes(n.key));
   const sending = busy === expert.id + "nudge";
   return (
@@ -2471,6 +2551,185 @@ function NudgeCard({
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+/** Nudge several experts at once: their own suggestions, or the same set. */
+function BulkNudgeDialog({
+  experts,
+  suggestionsFor,
+  onClose,
+  onSent,
+}: {
+  experts: Expert[];
+  suggestionsFor: (e: Expert) => string[];
+  onClose: () => void;
+  onSent: (message: string) => void;
+}) {
+  const [mode, setMode] = useState<"suggested" | "same">("suggested");
+  const [keys, setKeys] = useState<string[]>([]);
+  const [note, setNote] = useState("");
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState("");
+  const targets = experts
+    .map((e) => ({
+      expert: e,
+      keys: (mode === "suggested" ? suggestionsFor(e) : keys).filter((k) => {
+        const n = NUDGES.find((x) => x.key === k);
+        return n ? nudgeAvailableFor(n, e) : false;
+      }),
+    }))
+    .filter((t) => t.keys.length);
+  const total = targets.reduce((n, t) => n + t.keys.length, 0);
+  const skipped = experts.length - targets.length;
+  async function send() {
+    setSending(true);
+    setError("");
+    const res = await fetch("/api/admin/experts/nudge", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        targets: targets.map((t) => ({ id: t.expert.id, keys: t.keys })),
+        note,
+      }),
+    }).catch(() => null);
+    const data = (await res?.json().catch(() => ({}))) as {
+      error?: string;
+      sent?: number;
+      people?: number;
+    };
+    setSending(false);
+    if (!res?.ok) return setError(data?.error ?? "Could not send the nudges.");
+    onSent(
+      `Sent ${data.sent} nudge${data.sent === 1 ? "" : "s"} to ${data.people} expert${data.people === 1 ? "" : "s"}, by notification and email.`,
+    );
+  }
+  return (
+    <div className="admin-drawer-backdrop" onClick={onClose}>
+      <aside
+        className="admin-drawer"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="bulk-nudge-title"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="admin-drawer-head">
+          <div style={{ minWidth: 0, flex: 1 }}>
+            <h2 id="bulk-nudge-title">
+              Nudge {experts.length} expert{experts.length === 1 ? "" : "s"}
+            </h2>
+            <small>Cheeky (but friendly) reminders by notification and email.</small>
+          </div>
+          <button className="admin-icon-button" aria-label="Close" onClick={onClose}>
+            <X size={18} />
+          </button>
+        </div>
+        <div style={{ display: "grid", gap: 14 }}>
+          <div className="admin-filters" role="radiogroup" aria-label="Which nudges">
+            <button
+              role="radio"
+              aria-checked={mode === "suggested"}
+              className={mode === "suggested" ? "active" : ""}
+              onClick={() => setMode("suggested")}
+            >
+              Each person's suggestions
+            </button>
+            <button
+              role="radio"
+              aria-checked={mode === "same"}
+              className={mode === "same" ? "active" : ""}
+              onClick={() => setMode("same")}
+            >
+              Same nudges for everyone
+            </button>
+          </div>
+          {mode === "same" && (
+            <div
+              style={{
+                display: "grid",
+                gap: 6,
+                gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
+              }}
+            >
+              {NUDGES.map((n) => (
+                <label
+                  key={n.key}
+                  className="admin-drawer-card"
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 8,
+                    padding: "10px 12px",
+                    cursor: "pointer",
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={keys.includes(n.key)}
+                    onChange={() =>
+                      setKeys((k) =>
+                        k.includes(n.key) ? k.filter((x) => x !== n.key) : [...k, n.key],
+                      )
+                    }
+                  />
+                  <span style={{ fontSize: 13 }}>{n.label}</span>
+                </label>
+              ))}
+            </div>
+          )}
+          <div className="admin-invoice-form">
+            <label>
+              Add a personal line for everyone (optional)
+              <input
+                value={note}
+                maxLength={500}
+                placeholder="e.g. Big client push this week, let's get every profile shining ✨"
+                onChange={(e) => setNote(e.target.value)}
+              />
+            </label>
+          </div>
+          <div className="admin-drawer-card" style={{ gap: 6 }}>
+            <strong style={{ fontSize: 13 }}>Who gets what</strong>
+            {experts.map((e) => {
+              const t = targets.find((x) => x.expert.id === e.id);
+              return (
+                <p key={e.id} style={{ margin: 0, fontSize: 13 }}>
+                  <b>{e.full_name || e.email}</b>
+                  {": "}
+                  <span style={{ opacity: 0.75 }}>
+                    {t
+                      ? t.keys.map((k) => NUDGES.find((n) => n.key === k)?.label).join(", ")
+                      : mode === "suggested"
+                        ? "nothing missing, skipped"
+                        : "none of these apply, skipped"}
+                  </span>
+                </p>
+              );
+            })}
+          </div>
+          {error && (
+            <p role="alert" style={{ color: "var(--destructive)", margin: 0 }}>
+              {error}
+            </p>
+          )}
+          <div className="admin-button-row">
+            <button className="admin-button" onClick={onClose}>
+              Cancel
+            </button>
+            <button
+              className="admin-button admin-button-primary"
+              disabled={sending || !total}
+              onClick={() => void send()}
+            >
+              <Megaphone size={15} />{" "}
+              {sending
+                ? "Sending…"
+                : `Send ${total} nudge${total === 1 ? "" : "s"} to ${targets.length}${skipped ? ` (skip ${skipped})` : ""}`}
+            </button>
+          </div>
+        </div>
+      </aside>
     </div>
   );
 }

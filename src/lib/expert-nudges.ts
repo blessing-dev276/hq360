@@ -168,3 +168,27 @@ export function nudgeBody(n: Nudge, note: string) {
     .filter(Boolean)
     .join("\n\n");
 }
+
+/** Which nudges make sense for an expert, given their access. */
+export function nudgeAvailableFor(
+  n: Nudge,
+  expert: {
+    is_guest?: boolean | null;
+    permissions?: string[] | null;
+    academy_trainer?: boolean | null;
+  },
+) {
+  const tools = expert.permissions ?? [];
+  if (expert.is_guest)
+    return [
+      "perplexity_key",
+      "scout_target",
+      "follow_up_leads",
+      "finish_audits",
+      "check_notifications",
+    ].includes(n.key);
+  if (["perplexity_key", "scout_target"].includes(n.key)) return tools.includes("scout");
+  if (n.key === "finish_audits") return tools.includes("audit");
+  if (n.key === "academy_trainer") return !!expert.academy_trainer;
+  return true;
+}

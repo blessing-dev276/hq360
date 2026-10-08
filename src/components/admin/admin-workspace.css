@@ -1173,7 +1173,7 @@
   flex-direction: column;
   gap: 18px;
   padding: 26px;
-  background: #0e0e0f;
+  background: var(--background);
   border-left: 1px solid var(--border);
   box-shadow: -30px 0 80px rgb(0 0 0 / 0.5);
   color: var(--foreground);

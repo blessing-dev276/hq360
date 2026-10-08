@@ -1,17 +1,35 @@
 import { useEffect, useState } from "react";
+import {
+  APPROACH_STRATEGIES,
+  ApproachStrategies,
+  QualifyChecklist,
+  SCOUTING_STRATEGIES,
+  ScoutingStrategies,
+} from "./PlaybookStrategies";
 
-const CHAPTERS = [
-  ["ch1", "The scout's job"],
-  ["ch2", "Finding the right authors"],
-  ["ch3", "Research before you write"],
-  ["ch4", "The first message"],
-  ["ch5", "Follow ups"],
-  ["ch6", "Reading the reply"],
-  ["ch7", "Handling rejection"],
-  ["ch8", "Closing the deal"],
-  ["ch9", "Integrity rules"],
-  ["ch10", "Your daily scorecard"],
+const PARTS = [
+  ["Foundations", "What the job is and who to look for"],
+  ["Scouting", "Finding 50 good authors a day"],
+  ["Approaching", "Reaching out and starting conversations"],
+  ["Converting", "Turning interest into clients"],
+  ["Standards", "How we work and how we measure it"],
 ] as const;
+
+const CHAPTERS: [id: string, title: string, part: number][] = [
+  ["ch1", "The scout's job", 0],
+  ["ch2", "Finding the right authors", 0],
+  ["s1", "Eight scouting strategies", 1],
+  ["s2", "Qualify in 60 seconds", 1],
+  ["ch3", "Research before you write", 1],
+  ["ch4", "The first message", 2],
+  ["a1", "Approach strategies by channel", 2],
+  ["ch5", "Follow ups", 2],
+  ["ch6", "Reading the reply", 3],
+  ["ch7", "Handling rejection", 3],
+  ["ch8", "Closing the deal", 3],
+  ["ch9", "Integrity rules", 4],
+  ["ch10", "Your daily scorecard", 4],
+];
 
 const LINES: [string, string][] = [
   ["Chris Voss", "Have you given up on getting this book in front of more readers?"],
@@ -61,20 +79,31 @@ const LINES: [string, string][] = [
 
 function Chapter({
   id,
-  n,
   title,
   children,
 }: {
   id: string;
-  n: number;
   title: string;
   children: React.ReactNode;
 }) {
+  const index = CHAPTERS.findIndex(([c]) => c === id);
+  const next = CHAPTERS[index + 1];
+  const part = PARTS[CHAPTERS[index]![2]]![0];
   return (
     <section id={id} className="asa-chapter">
-      <div className="asa-label">Chapter {String(n).padStart(2, "0")}</div>
+      <div className="asa-label">
+        Chapter {String(index + 1).padStart(2, "0")} · {part}
+      </div>
       <h2>{title}</h2>
       {children}
+      {next && (
+        <a href={`#${next[0]}`} className="asa-next">
+          <small>Next chapter</small>
+          <b>
+            {String(index + 2).padStart(2, "0")} · {next[1]} →
+          </b>
+        </a>
+      )}
     </section>
   );
 }
@@ -213,18 +242,17 @@ export function Playbook({ onPractice }: { onPractice: () => void }) {
             conversation, and close the deal honestly.
           </p>
           <div className="asa-counters">
-            <div>
-              <b>10</b>
-              <span className="asa-muted">chapters</span>
-            </div>
-            <div>
-              <b>13</b>
-              <span className="asa-muted">objection lines</span>
-            </div>
-            <div>
-              <b>8</b>
-              <span className="asa-muted">practice authors</span>
-            </div>
+            {[
+              [CHAPTERS.length, "chapters"],
+              [SCOUTING_STRATEGIES.length, "scouting strategies"],
+              [APPROACH_STRATEGIES.length, "approach strategies"],
+              [13, "objection lines"],
+            ].map(([n, t]) => (
+              <div key={t}>
+                <b>{n}</b>
+                <span className="asa-muted">{t}</span>
+              </div>
+            ))}
           </div>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
             <a href="#ch1" className="asa-btn">
@@ -240,18 +268,55 @@ export function Playbook({ onPractice }: { onPractice: () => void }) {
 
       <DailyScorecard />
 
+      <section className="asa-map" aria-label="Playbook map">
+        <div className="asa-label">The playbook at a glance</div>
+        <div className="asa-map-grid">
+          {PARTS.map(([name, blurb], p) => (
+            <div key={name} className="asa-map-part">
+              <small>Part {p + 1}</small>
+              <b>{name}</b>
+              <span className="asa-muted">{blurb}</span>
+              <ul>
+                {CHAPTERS.filter(([, , part]) => part === p).map(([id, title]) => (
+                  <li key={id}>
+                    <a href={`#${id}`}>
+                      <span>
+                        {String(CHAPTERS.findIndex(([c]) => c === id) + 1).padStart(2, "0")}
+                      </span>
+                      {title}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </section>
+
       <div className="asa-book">
         <nav className="asa-toc" aria-label="Chapters">
-          {CHAPTERS.map(([id, title], i) => (
-            <a key={id} href={`#${id}`} className={active === id ? "active" : ""}>
-              <span>{String(i + 1).padStart(2, "0")}</span>
-              {title}
-            </a>
+          <div className="asa-toc-progress" aria-hidden="true">
+            <i
+              style={{
+                width: `${((CHAPTERS.findIndex(([c]) => c === active) + 1) / CHAPTERS.length) * 100}%`,
+              }}
+            />
+          </div>
+          {PARTS.map(([name], p) => (
+            <div key={name} className="asa-toc-part">
+              <small>{name}</small>
+              {CHAPTERS.filter(([, , part]) => part === p).map(([id, title]) => (
+                <a key={id} href={`#${id}`} className={active === id ? "active" : ""}>
+                  <span>{String(CHAPTERS.findIndex(([c]) => c === id) + 1).padStart(2, "0")}</span>
+                  {title}
+                </a>
+              ))}
+            </div>
           ))}
         </nav>
 
         <div>
-          <Chapter id="ch1" n={1} title="The scout's job">
+          <Chapter id="ch1" title="The scout's job">
             <p>
               An Author Scout finds authors whose books deserve more readers, shows them exactly
               what is holding the book back, and makes saying yes feel like the obvious next step.
@@ -286,7 +351,7 @@ export function Playbook({ onPractice }: { onPractice: () => void }) {
             </p>
           </Chapter>
 
-          <Chapter id="ch2" n={2} title="Finding the right authors">
+          <Chapter id="ch2" title="Finding the right authors">
             <div className="asa-grid-2">
               <div className="asa-card">
                 <h3 style={{ marginTop: 0 }}>Strong signals</h3>
@@ -344,7 +409,15 @@ export function Playbook({ onPractice }: { onPractice: () => void }) {
             </div>
           </Chapter>
 
-          <Chapter id="ch3" n={3} title="Research before you write">
+          <Chapter id="s1" title="Eight scouting strategies">
+            <ScoutingStrategies />
+          </Chapter>
+
+          <Chapter id="s2" title="Qualify in 60 seconds">
+            <QualifyChecklist />
+          </Chapter>
+
+          <Chapter id="ch3" title="Research before you write">
             <p>Ten minutes on every author. Work through this checklist before you write a word.</p>
             <ol>
               <li>
@@ -371,7 +444,7 @@ export function Playbook({ onPractice }: { onPractice: () => void }) {
             </div>
           </Chapter>
 
-          <Chapter id="ch4" n={4} title="The first message">
+          <Chapter id="ch4" title="The first message">
             <ul>
               <li>
                 <b>Short and personal:</b> 5 to 8 sentences, first line about them.
@@ -428,7 +501,11 @@ export function Playbook({ onPractice }: { onPractice: () => void }) {
             </div>
           </Chapter>
 
-          <Chapter id="ch5" n={5} title="Follow ups">
+          <Chapter id="a1" title="Approach strategies by channel">
+            <ApproachStrategies />
+          </Chapter>
+
+          <Chapter id="ch5" title="Follow ups">
             <div className="asa-tiles">
               <div className="asa-card asa-tile">
                 <b>Day 3</b>
@@ -450,7 +527,7 @@ export function Playbook({ onPractice }: { onPractice: () => void }) {
             </div>
           </Chapter>
 
-          <Chapter id="ch6" n={6} title="Reading the reply">
+          <Chapter id="ch6" title="Reading the reply">
             <div className="asa-scroll-x">
               <table className="asa-table">
                 <thead>
@@ -502,7 +579,7 @@ export function Playbook({ onPractice }: { onPractice: () => void }) {
             </div>
           </Chapter>
 
-          <Chapter id="ch7" n={7} title="Handling rejection">
+          <Chapter id="ch7" title="Handling rejection">
             <p>
               A no is usually a no to the pitch, not to the goal. Agree with it, then open one small
               door. Use one line per reply, never stack them, and only use claims that are true.
@@ -523,7 +600,7 @@ export function Playbook({ onPractice }: { onPractice: () => void }) {
             </div>
           </Chapter>
 
-          <Chapter id="ch8" n={8} title="Closing the deal">
+          <Chapter id="ch8" title="Closing the deal">
             <p>People act more to avoid a loss than to gain something.</p>
             <figure className="asa-card" style={{ margin: "18px 0" }}>
               <div style={{ display: "flex", alignItems: "flex-end", gap: 6, height: 140 }}>
@@ -581,7 +658,7 @@ export function Playbook({ onPractice }: { onPractice: () => void }) {
             </div>
           </Chapter>
 
-          <Chapter id="ch9" n={9} title="Integrity rules">
+          <Chapter id="ch9" title="Integrity rules">
             <div className="asa-grid-2">
               <div className="asa-card">
                 <h3 style={{ marginTop: 0, color: "var(--asa-good)" }}>Always</h3>
@@ -609,11 +686,11 @@ export function Playbook({ onPractice }: { onPractice: () => void }) {
             </div>
           </Chapter>
 
-          <Chapter id="ch10" n={10} title="Your daily scorecard">
+          <Chapter id="ch10" title="Your daily scorecard">
             <DailyScorecard compact />
             <p>
-              Log every reply as one of the five types from chapter six and note which line you
-              used. Review every Friday.
+              Log every reply as one of the five types from "Reading the reply" and note which line
+              you used. Review every Friday.
             </p>
             <div className="asa-banner">
               <h3>Now practise it</h3>

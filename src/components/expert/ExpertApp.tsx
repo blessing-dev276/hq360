@@ -1,5 +1,7 @@
 import { PerplexitySettings } from "./PerplexitySettings";
 import { QuotesWorkspace } from "@/components/quotes/QuotesWorkspace";
+import { ProposalsWorkspace } from "@/components/proposals/ProposalsWorkspace";
+import { SalesTabs, type SalesView } from "@/components/sales/SalesTabs";
 import { useEffect, useState } from "react";
 import { PanelRefreshButton } from "@/components/admin/PanelRefreshButton";
 import { NotificationBell } from "@/components/admin/NotificationBell";
@@ -14,7 +16,6 @@ import {
   ScanSearch,
   UserRound,
   type LucideIcon,
-  ReceiptText,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getSupabase } from "@/integrations/supabase/lazy";
@@ -77,15 +78,9 @@ const TOOLS: (NavItem & { id: ExpertFeature })[] = [
   },
   {
     id: "invoices",
-    label: "Invoices",
+    label: "Sales",
     icon: CreditCard,
-    description: "Request invoices for your clients and follow each payment.",
-  },
-  {
-    id: "quotes",
-    label: "Quotes",
-    icon: ReceiptText,
-    description: "Branded pricing pages for buyers — share a link, PDF or image.",
+    description: "Proposals, quotes and invoices for your clients: pitch, price, get paid.",
   },
 ];
 
@@ -97,6 +92,7 @@ export function ExpertApp() {
   const [guest, setGuest] = useState(false);
   const [logoutError, setLogoutError] = useState("");
   const [refreshKey, setRefreshKey] = useState(0);
+  const [salesView, setSalesView] = useState<SalesView>("proposals");
 
   const unlocked = TOOLS.filter((t) => permissions.includes(t.id));
   const locked = guest ? [] : TOOLS.filter((t) => !permissions.includes(t.id));
@@ -244,15 +240,21 @@ export function ExpertApp() {
               <PerplexitySettings />
               <ScoutApp canFindEmail={permissions.includes("scout")} />
             </>
-          ) : current.id === "quotes" ? (
-            <QuotesWorkspace />
           ) : current.id === "audit" ? (
             <>
               <ExpertAuditLink />
               <AuthorAuditAdmin />
             </>
           ) : (
-            <ExpertInvoiceRequests />
+            <SalesTabs view={salesView} onSelect={setSalesView}>
+              {salesView === "proposals" ? (
+                <ProposalsWorkspace />
+              ) : salesView === "quotes" ? (
+                <QuotesWorkspace />
+              ) : (
+                <ExpertInvoiceRequests />
+              )}
+            </SalesTabs>
           )}
           <footer className="admin-footer">
             <span>HQ360 · Expert workspace</span>

@@ -3,11 +3,10 @@
 export const EXPERT_FEATURES = [
   { key: "scout", label: "Scouting", hint: "Discover authors and find contact details." },
   { key: "audit", label: "Audit", hint: "Research and build author growth reports." },
-  { key: "invoices", label: "Invoices", hint: "Request invoices for their own clients." },
   {
-    key: "quotes",
-    label: "Quotes",
-    hint: "Create branded pricing pages for buyers (link, PDF, image).",
+    key: "invoices",
+    label: "Sales",
+    hint: "Proposals, quotes and invoices for their own clients.",
   },
   {
     key: "contacts",
@@ -54,6 +53,8 @@ export function roleLabel(role: string) {
 export function featureForPath(pathname: string): ExpertFeature | null {
   if (pathname.startsWith("/api/admin/scout")) return "scout";
   if (pathname.startsWith("/api/admin/author-audit")) return "audit";
-  if (pathname.startsWith("/api/admin/quotes")) return "quotes";
+  // Proposals, Quotes and Invoices are one Sales tool behind one permission.
+  if (pathname.startsWith("/api/admin/quotes") || pathname.startsWith("/api/admin/proposals"))
+    return "invoices";
   return null;
 }

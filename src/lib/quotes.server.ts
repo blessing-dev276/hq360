@@ -11,7 +11,7 @@ export function json(body: unknown, status = 200) {
   return Response.json(body, { status, headers: { "Cache-Control": "no-store" } });
 }
 
-/** Admin (sees every quote) or an expert granted the "quotes" tool (own only). */
+/** Admin (sees every quote) or an expert granted the Sales ("invoices") tool (own only). */
 export async function quoteAccess(request: Request) {
   const access = await resolveStaffAccess(request);
   if (!access) return null;

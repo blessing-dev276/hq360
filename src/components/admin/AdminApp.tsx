@@ -27,7 +27,9 @@ import {
   Globe2,
   ReceiptText,
   FileText,
+  GraduationCap,
 } from "lucide-react";
+import { SalesTabs, type SalesView } from "@/components/sales/SalesTabs";
 import { Logo } from "@/components/Logo";
 import { PaymentsAdmin } from "./PaymentsAdmin";
 import { AdminDashboard } from "./AdminDashboard";
@@ -165,6 +167,7 @@ type Tab =
   | "quotes"
   | "proposals";
 type WorkView = "cases" | "gallery";
+const SALES_TABS: Tab[] = ["payments", "quotes", "proposals"];
 const NAV = [
   {
     id: "scout",
@@ -186,9 +189,9 @@ const NAV = [
   },
   {
     id: "payments",
-    label: "Invoices",
+    label: "Sales",
     icon: CreditCard,
-    description: "From the first invoice to the final payment.",
+    description: "Proposals, quotes and invoices: from the first pitch to the final payment.",
   },
   {
     id: "work",
@@ -209,17 +212,18 @@ const NAV = [
     icon: ScanSearch,
     description: "Turn research into a clear growth direction.",
   },
+  // Quotes and Proposals live inside Sales; their ids stay so links keep working.
   {
     id: "quotes",
-    label: "Quotes",
+    label: "Sales",
     icon: ReceiptText,
-    description: "Branded pricing pages for buyers — share a link, PDF or image.",
+    description: "Proposals, quotes and invoices: from the first pitch to the final payment.",
   },
   {
     id: "proposals",
-    label: "Proposals",
+    label: "Sales",
     icon: FileText,
-    description: "Long-form client proposals — share a link, download a PDF or email the client.",
+    description: "Proposals, quotes and invoices: from the first pitch to the final payment.",
   },
   {
     id: "experts",
@@ -269,22 +273,21 @@ export function AdminApp({ initialTab = "overview" }: { initialTab?: Tab }) {
             "overview",
             "scout",
             "audits",
-            "quotes",
-            "proposals",
+            "payments",
             "experts",
             "visitors",
             "projects",
-            "payments",
             "work",
           ].map((key) =>
             (() => {
               const { id, label, icon: Icon } = NAV.find((item) => item.id === key)!;
+              const active = tab === id || (id === "payments" && SALES_TABS.includes(tab));
               return (
                 <button
                   key={id}
                   onClick={() => navigate(id)}
-                  className={cn("admin-nav-item", tab === id && "active")}
-                  aria-current={tab === id ? "page" : undefined}
+                  className={cn("admin-nav-item", active && "active")}
+                  aria-current={active ? "page" : undefined}
                 >
                   <Icon size={18} />
                   <span>{label}</span>
@@ -295,6 +298,10 @@ export function AdminApp({ initialTab = "overview" }: { initialTab?: Tab }) {
         </nav>
 
         <div className="admin-sidebar-bottom">
+          <a href="/academy" target="_blank" rel="noreferrer" className="admin-nav-item">
+            <GraduationCap size={18} />
+            Academy
+          </a>
           <a href="/" target="_blank" rel="noreferrer" className="admin-nav-item">
             <ArrowUpRight size={18} />
             View website
@@ -356,12 +363,19 @@ export function AdminApp({ initialTab = "overview" }: { initialTab?: Tab }) {
             <AdminDashboard onNavigate={navigate} />
           ) : tab === "projects" ? (
             <LeadsAdmin />
-          ) : tab === "payments" ? (
-            <PaymentsAdmin />
-          ) : tab === "quotes" ? (
-            <QuotesWorkspace />
-          ) : tab === "proposals" ? (
-            <ProposalsWorkspace />
+          ) : SALES_TABS.includes(tab) ? (
+            <SalesTabs
+              view={tab === "payments" ? "invoices" : (tab as SalesView)}
+              onSelect={(v) => navigate(v === "invoices" ? "payments" : v)}
+            >
+              {tab === "quotes" ? (
+                <QuotesWorkspace />
+              ) : tab === "proposals" ? (
+                <ProposalsWorkspace />
+              ) : (
+                <PaymentsAdmin />
+              )}
+            </SalesTabs>
           ) : tab === "experts" ? (
             <ExpertsAdmin />
           ) : tab === "visitors" ? (

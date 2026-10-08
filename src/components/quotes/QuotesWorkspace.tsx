@@ -59,7 +59,7 @@ function priceRange(q: Quote) {
 
 const linkFor = (token: string) => `${window.location.origin}/quote/${token}`;
 
-/** Quotes tool for admins and experts with the "quotes" permission. */
+/** Quotes tool for admins and experts with the Sales ("invoices") permission. */
 export function QuotesWorkspace() {
   const [items, setItems] = useState<Saved[] | null>(null);
   const [me, setMe] = useState({ name: "HQ360", admin: false });

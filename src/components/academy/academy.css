@@ -1090,3 +1090,46 @@
 .asa-strat-body li {
   margin: 4px 0;
 }
+
+/* Follow-up rule + daily rotation */
+.asa-followrule {
+  margin: 14px 0 6px;
+  padding: 20px 22px;
+  border-radius: 18px;
+  background: var(--asa-banner);
+  color: #fff;
+}
+.asa-followrule .asa-label {
+  color: var(--asa-orange-2);
+}
+.asa-followrule p {
+  margin: 8px 0 0;
+  font-size: 17px;
+  line-height: 1.6;
+}
+.asa-followrule a {
+  color: var(--asa-orange-2);
+}
+.asa-days {
+  display: grid;
+  gap: 10px;
+  margin: 14px 0;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+}
+.asa-day small {
+  color: var(--asa-orange);
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.asa-day b {
+  display: block;
+  margin: 4px 0;
+  font-size: 16px;
+}
+.asa-day p {
+  margin: 0;
+  font-size: 14px;
+  color: var(--asa-muted);
+}

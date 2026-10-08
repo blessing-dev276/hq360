@@ -506,24 +506,91 @@ export function Playbook({ onPractice }: { onPractice: () => void }) {
           </Chapter>
 
           <Chapter id="ch5" title="Follow ups">
-            <div className="asa-tiles">
-              <div className="asa-card asa-tile">
-                <b>Day 3</b>
-                Add one fact, for example the page the book sits on in its best list.
-              </div>
-              <div className="asa-card asa-tile">
-                <b>Day 7</b>
-                Add proof: competitor screenshots or a real result.
-              </div>
-              <div className="asa-card asa-tile">
-                <b>Day 14</b>
-                Close the loop kindly: "I will not keep filling your inbox. If the timing changes, I
-                would be glad to help."
-              </div>
+            <div className="asa-followrule">
+              <div className="asa-label">The rule</div>
+              <p>
+                <b>Follow up every day, every 24 hours, until the author replies</b> — whether the
+                reply is a yes or a no. As long as they have not replied, you keep following up
+                daily. The moment they reply, the daily sequence stops and you move to{" "}
+                <a href="#ch6">Reading the reply</a>.
+              </p>
             </div>
+            <h3>How to do it</h3>
+            <ol>
+              <li>
+                <b>Same time, every 24 hours.</b> Send each follow-up close to the time you sent the
+                first message, so it lands at a time they already read messages.
+              </li>
+              <li>
+                <b>Same thread.</b> Reply in the original email thread or DM so they can see the
+                whole conversation.
+              </li>
+              <li>
+                <b>Never repeat yourself.</b> Each day adds one new reason to reply. Use the
+                rotation below; after day 7, start the rotation again with fresh facts.
+              </li>
+              <li>
+                <b>Keep it short.</b> Two to three sentences and one easy question.
+              </li>
+              <li>
+                <b>Log it.</b> Record the day number and date of every follow-up so you always know
+                who is due today.
+              </li>
+            </ol>
+            <h3>The daily rotation</h3>
+            <div className="asa-days">
+              {[
+                [
+                  "Day 1",
+                  "Gentle bump",
+                  '"Just bringing this back to the top of your inbox. Did you get a chance to see my note about {book}?"',
+                ],
+                [
+                  "Day 2",
+                  "One new fact",
+                  "Share one specific finding, e.g. the page {book} sits on in its best Goodreads list.",
+                ],
+                [
+                  "Day 3",
+                  "Show, don't tell",
+                  "Send one screenshot of the gap you found (description, list position, missing website).",
+                ],
+                [
+                  "Day 4",
+                  "Proof",
+                  "A short result from a similar author: what changed and how quickly.",
+                ],
+                [
+                  "Day 5",
+                  "Easy question",
+                  '"Is getting more readers for {book} a priority for you right now?"',
+                ],
+                [
+                  "Day 6",
+                  "Free value",
+                  "Offer something useful with no strings: a 3-point checklist for their book page.",
+                ],
+                [
+                  "Day 7",
+                  "Simple yes/no",
+                  '"Should I keep you on my list, or is now not the right time? A one-word reply is fine."',
+                ],
+              ].map(([day, title, text]) => (
+                <div key={day} className="asa-card asa-day">
+                  <small>{day}</small>
+                  <b>{title}</b>
+                  <p>{text}</p>
+                </div>
+              ))}
+            </div>
+            <p className="asa-muted" style={{ fontSize: 14 }}>
+              Day 8 onwards: repeat the rotation from Day 1 with new facts, new screenshots and a
+              new angle each time. Keep going daily until they reply.
+            </p>
             <div className="asa-callout">
-              <strong>Stop the sequence the moment anyone replies.</strong>
-              An automatic nudge after a no, or after someone shares a loss, destroys trust.
+              <strong>Stop the moment they reply, positive or negative.</strong>A yes moves to
+              closing. A no gets a warm thank-you and no more follow-ups. Never send an automatic
+              follow-up after a reply, or after someone shares a loss.
             </div>
           </Chapter>
 

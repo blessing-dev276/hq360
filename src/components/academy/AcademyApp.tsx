@@ -1,5 +1,14 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  BookOpen,
+  History,
+  LogOut,
+  MessagesSquare,
+  PlayCircle,
+  ShieldCheck,
+  type LucideIcon,
+} from "lucide-react";
 import { api, type Session, type Viewer } from "./shared";
 import { Playbook } from "./Playbook";
 import { PracticeRoom } from "./PracticeRoom";
@@ -41,13 +50,35 @@ export function AcademyApp() {
   };
   const bump = useCallback(() => setVersion((v) => v + 1), []);
 
-  const tabs: [Tab, string][] = [
-    ["playbook", "Playbook"],
-    ["practice", "Practice room"],
-    ["chats", "My chats"],
-    ["demos", "Demos"],
-    ...(viewer?.role === "trainer" ? ([["admin", "Admin"]] as [Tab, string][]) : []),
+  const tabs: [Tab, string, LucideIcon][] = [
+    ["playbook", "Playbook", BookOpen],
+    ["practice", "Practice", MessagesSquare],
+    ["chats", "My chats", History],
+    ["demos", "Demos", PlayCircle],
+    ...(viewer?.role === "trainer"
+      ? ([["admin", "Trainer", ShieldCheck]] as [Tab, string, LucideIcon][])
+      : []),
   ];
+  const who = viewer?.name || viewer?.email || "";
+  const nav = (className: string) => (
+    <nav className={className} aria-label="Academy">
+      {tabs.map(([t, label, Icon]) => (
+        <button
+          key={t}
+          type="button"
+          className="asa-tab"
+          aria-current={tab === t ? "page" : undefined}
+          onClick={() => {
+            if (t === "practice") setResume(null);
+            go(t);
+          }}
+        >
+          <Icon size={17} aria-hidden="true" />
+          <span>{label}</span>
+        </button>
+      ))}
+    </nav>
+  );
 
   return (
     <div className="asa">
@@ -59,34 +90,30 @@ export function AcademyApp() {
           </a>
           {state === "ready" ? (
             <>
-              <nav className="asa-tabs" aria-label="Academy">
-                {tabs.map(([t, label]) => (
-                  <button
-                    key={t}
-                    type="button"
-                    className="asa-tab"
-                    aria-current={tab === t ? "page" : undefined}
-                    onClick={() => {
-                      if (t === "practice") setResume(null);
-                      go(t);
-                    }}
-                  >
-                    {label}
-                  </button>
-                ))}
-              </nav>
-              <button
-                type="button"
-                className="asa-btn asa-btn-ghost asa-btn-sm"
-                style={{ marginLeft: "auto" }}
-                onClick={() => void supabase.auth.signOut()}
-              >
-                Sign out
-              </button>
+              {nav("asa-tabs")}
+              <div className="asa-user">
+                <span className="asa-user-avatar" aria-hidden="true">
+                  {(who || "?").slice(0, 1).toUpperCase()}
+                </span>
+                <span className="asa-user-name">
+                  {who.split(/[\s@]/)[0]}
+                  <small>{viewer?.role === "trainer" ? "Trainer" : "Trainee"}</small>
+                </span>
+                <button
+                  type="button"
+                  className="asa-icon-btn"
+                  aria-label="Sign out"
+                  title="Sign out"
+                  onClick={() => void supabase.auth.signOut()}
+                >
+                  <LogOut size={17} />
+                </button>
+              </div>
             </>
           ) : null}
         </div>
       </header>
+      {state === "ready" ? nav("asa-bottom-nav") : null}
 
       {state === "loading" ? (
         <p className="asa-wrap asa-muted" style={{ padding: 40 }}>

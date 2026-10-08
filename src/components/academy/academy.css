@@ -115,38 +115,124 @@
 }
 .asa-tabs {
   display: flex;
-  gap: 4px;
-  overflow-x: auto;
-  scrollbar-width: none;
-  flex: 1;
+  gap: 2px;
+  margin: 0 auto;
+  padding: 4px;
+  border-radius: 999px;
+  background: var(--asa-soft);
+  border: 1px solid var(--asa-line);
 }
 .asa-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
   white-space: nowrap;
-  padding: 8px 14px;
+  padding: 8px 15px;
   border-radius: 999px;
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--asa-muted);
   background: none;
   border: 0;
   cursor: pointer;
+  transition:
+    background 0.15s,
+    color 0.15s;
 }
 .asa-tab:hover {
   color: var(--asa-ink);
 }
 .asa-tab[aria-current="page"] {
-  background: var(--asa-ink);
-  color: var(--asa-bg);
+  background: var(--asa-card);
+  color: var(--asa-ink);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
 }
-@media (max-width: 767px) {
-  .asa-bar-inner {
-    flex-wrap: wrap;
-    padding: 10px 16px;
-    gap: 8px;
+.asa-tab[aria-current="page"] svg {
+  color: var(--asa-orange);
+}
+.asa-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.asa-user-avatar {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: linear-gradient(140deg, var(--asa-orange), var(--asa-orange-2));
+  color: #fff;
+  font-weight: 700;
+  font-size: 14px;
+}
+.asa-user-name {
+  display: grid;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.2;
+  text-transform: capitalize;
+}
+.asa-user-name small {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--asa-muted);
+  text-transform: none;
+}
+.asa-icon-btn {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid var(--asa-line);
+  background: var(--asa-card);
+  color: var(--asa-muted);
+  cursor: pointer;
+}
+.asa-icon-btn:hover {
+  color: var(--asa-ink);
+}
+/* Phones: tabs move to an app-style bottom bar. */
+.asa-bottom-nav {
+  display: none;
+}
+@media (max-width: 860px) {
+  .asa-bar .asa-tabs,
+  .asa-user-name {
+    display: none;
   }
-  .asa-tabs {
-    order: 3;
-    flex-basis: 100%;
+  .asa-user {
+    margin-left: auto;
+  }
+  .asa-bottom-nav {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 45;
+    display: flex;
+    justify-content: space-around;
+    padding: 6px 6px calc(6px + env(safe-area-inset-bottom));
+    background: color-mix(in srgb, var(--asa-card) 94%, transparent);
+    backdrop-filter: blur(12px);
+    border-top: 1px solid var(--asa-line);
+  }
+  .asa-bottom-nav .asa-tab {
+    flex: 1;
+    flex-direction: column;
+    gap: 3px;
+    padding: 6px 4px;
+    border-radius: 14px;
+    font-size: 11px;
+  }
+  .asa-bottom-nav .asa-tab[aria-current="page"] {
+    box-shadow: none;
+    background: color-mix(in srgb, var(--asa-orange) 12%, transparent);
+    color: var(--asa-orange);
+  }
+  .asa main {
+    padding-bottom: 76px;
   }
 }
 

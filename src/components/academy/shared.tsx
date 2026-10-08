@@ -5,7 +5,13 @@ import { supabase } from "@/integrations/supabase/client";
 export type Msg = { role: "scout" | "author" | "sys"; text: string };
 export type Coaching = {
   overall: number;
-  scores: { personalisation: number; value: number; objection: number; tone: number; close: number };
+  scores: {
+    personalisation: number;
+    value: number;
+    objection: number;
+    tone: number;
+    close: number;
+  };
   outcome: "won" | "warming" | "neutral" | "cooling" | "lost";
   summary: string;
   strengths: string[];
@@ -33,8 +39,37 @@ export type Session = {
   updated_at: string;
   persona: PersonaView;
   reveal: { mood: string; challenge: string } | null;
+  difficulty?: Difficulty;
 };
-export type Viewer = { id: string; email: string | null; name: string | null; role: "trainer" | "trainee" };
+export type Difficulty = "easy" | "medium" | "hard" | "extreme";
+export const DIFFICULTY_INFO: Record<Difficulty, { label: string; who: string; blurb: string }> = {
+  easy: {
+    label: "Easy",
+    who: "Beginners",
+    blurb: "Friendly authors who reply to your first message and forgive small mistakes.",
+  },
+  medium: {
+    label: "Medium",
+    who: "Learning",
+    blurb: "Real objections: questions, proof, budget. Some need a follow-up before replying.",
+  },
+  hard: {
+    label: "Hard",
+    who: "Confident scouts",
+    blurb: "Scam-aware, burned before or not interested. Often silent until you follow up.",
+  },
+  extreme: {
+    label: "Extreme",
+    who: "Experts only",
+    blurb: "Every hard trait at once. Can ignore up to 3 follow-ups. One slip can end it.",
+  },
+};
+export type Viewer = {
+  id: string;
+  email: string | null;
+  name: string | null;
+  role: "trainer" | "trainee";
+};
 
 /* -------------------------------------------------------------------- api */
 
@@ -120,8 +155,11 @@ export function AuthorCard({ session }: { session: Session | null }) {
       <p style={{ margin: 0, fontSize: 14 }}>{p.public}</p>
       <div style={{ marginTop: 14, display: "grid", gap: 8, fontSize: 14 }}>
         <div>
-          <b>Difficulty:</b> Hard
-          {session.reveal ? <> · {session.reveal.challenge}</> : null}
+          <b>Difficulty:</b>{" "}
+          <span className={`asa-diff-badge ${session.difficulty ?? "medium"}`}>
+            {DIFFICULTY_INFO[session.difficulty ?? "medium"].label}
+          </span>
+          {session.reveal ? <> · Author type: {session.reveal.challenge}</> : null}
         </div>
         {session.reveal ? (
           <>
@@ -177,7 +215,7 @@ export function Transcript({
         if (m.role === "author" && m.text.trim() === "[No reply]")
           return (
             <p key={i} className="asa-sys" style={{ margin: 0 }}>
-              No reply. {name} opened it and moved on. You can try one follow up that adds
+              No reply. {name} saw it but has not answered yet. Keep following up, each time with
               something new.
             </p>
           );

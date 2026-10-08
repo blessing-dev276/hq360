@@ -60,6 +60,8 @@ export const REACTIONS = [
   "warming",
   "agree_small_step",
   "won_followup",
+  "trust_issue",
+  "no_budget",
 ] as const;
 export type Reaction = (typeof REACTIONS)[number];
 
@@ -81,7 +83,10 @@ function phraseRe(phrase: string) {
   const p = esc(phrase.toLowerCase());
   const startsWord = /^[a-z0-9]/i.test(phrase);
   const endsWord = /[a-z0-9]$/i.test(phrase);
-  return new RegExp(`${startsWord ? "(?<![a-z0-9])" : ""}${p}${endsWord ? "(?:s|es)?(?![a-z0-9])" : ""}`, "g");
+  return new RegExp(
+    `${startsWord ? "(?<![a-z0-9])" : ""}${p}${endsWord ? "(?:s|es)?(?![a-z0-9])" : ""}`,
+    "g",
+  );
 }
 
 function hasAny(text: string, phrases: string[]) {
@@ -92,15 +97,93 @@ function firstMatch(text: string, phrases: string[]) {
   return phrases.find((p) => phraseRe(p).test(text)) ?? null;
 }
 
-const PRICE = ["$", "£", "€", "dollars", "price", "cost", "fee", "payment", "invoice", "package", "per month", "rate"];
-const GUARANTEE = ["guarantee", "guaranteed", "promise", "number one", "#1", "bestseller", "best seller", "100%", "will definitely", "sure to"];
-const PRESSURE = ["limited time", "act now", "today only", "urgent", "last chance", "only a few spots", "don't miss", "before it's too late"];
-const HYPE = ["skyrocket", "explode", "go viral", "massive", "game changer", "huge opportunity", "life changing", "amazing results"];
-const TEMPLATE_PHRASES = ["i hope this email finds you well", "dear author", "to whom it may concern", "i came across your profile"];
+const PRICE = [
+  "$",
+  "£",
+  "€",
+  "dollars",
+  "price",
+  "cost",
+  "fee",
+  "payment",
+  "invoice",
+  "package",
+  "per month",
+  "rate",
+];
+const GUARANTEE = [
+  "guarantee",
+  "guaranteed",
+  "promise",
+  "number one",
+  "#1",
+  "bestseller",
+  "best seller",
+  "100%",
+  "will definitely",
+  "sure to",
+];
+const PRESSURE = [
+  "limited time",
+  "act now",
+  "today only",
+  "urgent",
+  "last chance",
+  "only a few spots",
+  "don't miss",
+  "before it's too late",
+];
+const HYPE = [
+  "skyrocket",
+  "explode",
+  "go viral",
+  "massive",
+  "game changer",
+  "huge opportunity",
+  "life changing",
+  "amazing results",
+];
+const TEMPLATE_PHRASES = [
+  "i hope this email finds you well",
+  "dear author",
+  "to whom it may concern",
+  "i came across your profile",
+];
 const AI_WORDS = /(?<![a-z])(delv|elevat|unlock|leverag|navigat|tapestr|resonat)[a-z]*/;
-const EMPATHY = ["understand", "appreciate", "totally fair", "i hear you", "sorry", "respect", "makes sense"];
-const PROOF = ["portfolio", "example", "screenshot", "past client", "testimonial", "review", "results", "case study", "you can check", "my website"];
-const VALUE = ["i found", "i built", "i noticed", "i checked", "page", "list", "screenshot", "demo", "free", "here is", "attached"];
+const EMPATHY = [
+  "understand",
+  "appreciate",
+  "totally fair",
+  "i hear you",
+  "sorry",
+  "respect",
+  "makes sense",
+];
+const PROOF = [
+  "portfolio",
+  "example",
+  "screenshot",
+  "past client",
+  "testimonial",
+  "review",
+  "results",
+  "case study",
+  "you can check",
+  "my website",
+];
+const VALUE = [
+  "i found",
+  "i built",
+  "i noticed",
+  "i checked",
+  "page",
+  "list",
+  "screenshot",
+  "demo",
+  "free",
+  "here is",
+  "attached",
+];
 const ABOUT_THEM = ["you", "your", "how is", "what made", "why did", "how has"];
 const CONTRACTIONS = /(?<![a-z])(i'd|i'm|don't|it's|can't|won't|you're|that's|isn't)(?![a-z])/g;
 
@@ -156,8 +239,13 @@ export function analyse(raw: string, persona: Persona, history: EngineMsg[]): Si
     repeatPitch = words.filter((w) => prev.has(w)).length / words.length > 0.5;
   }
 
+  // A short follow-up ("bringing this back to the top of your inbox") is
+  // normal; only a short *first* message, or any message that names neither
+  // the author nor the book, counts as low effort.
+  const isFirst = !history.some((m) => m.role === "scout");
   const lowEffort =
-    !hasRealAuthorReply(history) && (words.length < 12 || (!usesName && !mentionsBook));
+    !hasRealAuthorReply(history) &&
+    ((isFirst && words.length < 12) || (!usesName && !mentionsBook));
 
   return {
     words: words.length,
@@ -184,6 +272,69 @@ export function analyse(raw: string, persona: Persona, history: EngineMsg[]): Si
   };
 }
 
+/* ----------------------------------------------------------- difficulty */
+
+export const DIFFICULTY_IDS = ["easy", "medium", "hard", "extreme"] as const;
+export type Difficulty = (typeof DIFFICULTY_IDS)[number];
+
+/** How hard an author is to convert. Easy is for beginners; Extreme is for
+ *  scouts who already convert well. */
+export const DIFFICULTIES: Record<
+  Difficulty,
+  {
+    trustShift: number;
+    gain: number;
+    loss: number;
+    /** Added to the number of strikes that ends the chat. */
+    strikeBonus: number;
+    /** Range of follow-ups the author ignores before first replying. */
+    silent: [number, number];
+    /** Author types that can appear at this level. */
+    styles: string[];
+    /** Chance a lazy first message gets no reply at all. */
+    lazyNoReply: number;
+  }
+> = {
+  easy: {
+    trustShift: 15,
+    gain: 1.3,
+    loss: 0.6,
+    strikeBonus: 2,
+    silent: [0, 0],
+    styles: ["prover", "interrogator", "broke"],
+    lazyNoReply: 0.4,
+  },
+  medium: {
+    trustShift: 0,
+    gain: 1,
+    loss: 1,
+    strikeBonus: 0,
+    silent: [0, 1],
+    styles: ["interrogator", "decliner", "prover", "broke", "skeptic"],
+    lazyNoReply: 0.7,
+  },
+  hard: {
+    trustShift: -8,
+    gain: 0.85,
+    loss: 1.3,
+    strikeBonus: 0,
+    silent: [1, 2],
+    styles: ["scam", "skeptic", "errorhunter", "decliner", "uninterested", "broke"],
+    lazyNoReply: 0.85,
+  },
+  extreme: {
+    trustShift: -12,
+    gain: 0.7,
+    loss: 1.6,
+    strikeBonus: -1,
+    silent: [1, 3],
+    styles: ["all", "scam", "skeptic", "uninterested"],
+    lazyNoReply: 0.95,
+  },
+};
+export const difficultyOf = (d: string | null | undefined): Difficulty =>
+  (DIFFICULTY_IDS as readonly string[]).includes(d ?? "") ? (d as Difficulty) : "medium";
+
 /* -------------------------------------------------------- trust, strikes */
 
 const START_TRUST: Record<string, number> = {
@@ -192,12 +343,21 @@ const START_TRUST: Record<string, number> = {
   errorhunter: 20,
   scam: 10,
   all: 5,
+  skeptic: 10,
+  prover: 20,
+  broke: 20,
+  uninterested: 10,
 };
 
 export const clampTrust = (n: number) => Math.max(0, Math.min(100, Math.round(n)));
 
-export function startingTrust(style: string, mode: "cold" | "no", mood: string) {
-  let t = START_TRUST[style] ?? 15;
+export function startingTrust(
+  style: string,
+  mode: "cold" | "no",
+  mood: string,
+  difficulty: Difficulty = "medium",
+) {
+  let t = (START_TRUST[style] ?? 15) + DIFFICULTIES[difficulty].trustShift;
   if (mode === "no") t -= 10;
   if (mood === "in a good mood today") t += 5;
   if (mood === "tired and short on patience") t -= 5;
@@ -216,11 +376,18 @@ const is = (style: string, ...ids: string[]) => ids.includes(style) || style ===
 
 export function scoreMessage(
   s: Signals,
-  ctx: { style: string; trust: number; objectionRevealed: boolean; authorAskedLastTurn: boolean },
+  ctx: {
+    style: string;
+    trust: number;
+    objectionRevealed: boolean;
+    authorAskedLastTurn: boolean;
+    difficulty?: Difficulty;
+  },
 ) {
   const { style } = ctx;
+  const level = DIFFICULTIES[ctx.difficulty ?? "medium"];
   const hunter = is(style, "errorhunter") ? 2 : 1;
-  const scam = is(style, "scam") ? 2 : 1;
+  const scam = is(style, "scam", "skeptic") ? 2 : 1;
   let gain = 0;
   let loss = 0;
 
@@ -232,25 +399,36 @@ export function scoreMessage(
   if (s.asksAboutThem) gain += 6;
   if (s.objectionKey && !ctx.objectionRevealed) gain += 15;
   if (s.questions === 1) gain += 4;
+  // Author types: what each one responds to.
+  if (style === "prover" && s.proof) gain += 8;
+  if (style === "skeptic" && (s.empathy || s.proof)) gain += 6;
+  if (style === "broke" && s.value) gain += 6;
 
   const priceEarly = s.priceTalk && ctx.trust < 70;
   if (s.lowEffort) loss += 25;
   if (s.wrongFact) loss += 15 * hunter;
-  if (priceEarly) loss += 15;
+  if (priceEarly) loss += style === "broke" ? 30 : 15;
   if (s.guarantee) loss += 20 * scam;
   if (s.pressure) loss += 15 * scam;
   if (s.hype) loss += 10 * scam;
   if (s.template) loss += 12 * hunter;
   if (s.aiTells) loss += 8 * hunter;
-  if (s.repeatPitch) loss += 10;
+  if (s.repeatPitch) loss += style === "uninterested" ? 20 : 10;
   if (s.questions > 3) loss += 6;
   if (s.words > 220) loss += 8;
-  if (is(style, "interrogator") && ctx.authorAskedLastTurn && !s.value && !s.proof && !s.usesFacts)
+  if (
+    (is(style, "interrogator") || style === "prover") &&
+    ctx.authorAskedLastTurn &&
+    !s.value &&
+    !s.proof &&
+    !s.usesFacts
+  )
     loss += 10;
+  if (style === "uninterested") gain *= 0.8;
 
-  const delta = gain - loss;
+  const delta = Math.round(gain * level.gain - loss * level.loss);
   let strikes = 0;
-  if (is(style, "decliner") && loss > 0) strikes += 1;
+  if ((is(style, "decliner") || style === "uninterested") && loss > 0) strikes += 1;
   if (delta < -10) strikes += 1;
   return { delta, strikes, priceEarly };
 }
@@ -273,23 +451,29 @@ export function decide(
     won: boolean;
     lastReaction: Reaction | null;
     priceEarly: boolean;
+    difficulty?: Difficulty;
   },
 ): Reaction {
+  const level = DIFFICULTIES[st.difficulty ?? "medium"];
   if (st.lost) return "no_reply";
   if (st.won) return "won_followup";
 
   if (s.lowEffort) {
-    if (rnd() < 0.7) return "no_reply";
+    if (rnd() < level.lazyNoReply) return "no_reply";
     return /irritated|tired/.test(st.mood) ? "rude" : "who_are_you";
   }
-  if (st.strikes >= (st.style === "decliner" ? 2 : 3)) return "end_firm_no";
+  const strikeLimit =
+    (st.style === "decliner" || st.style === "uninterested" ? 2 : 3) + level.strikeBonus;
+  if (st.strikes >= Math.max(1, strikeLimit)) return "end_firm_no";
   if (s.guarantee) return "guarantee_trap";
   if (s.wrongFact) return "wrong_fact";
-  if (st.priceEarly) return "price_too_early";
+  if (st.priceEarly) return st.style === "broke" ? "no_budget" : "price_too_early";
   if (s.pressure || s.hype) return "pressure_pushback";
   if ((s.template || s.aiTells) && (st.style === "errorhunter" || st.style === "all"))
     return "template_callout";
-  if (st.lastReaction === "no_reply" && !s.value && !s.proof) return "stop_emailing";
+  // A copy-paste follow-up after silence annoys; a fresh one is fine.
+  if (st.lastReaction === "no_reply" && s.repeatPitch && !s.value && !s.proof)
+    return "stop_emailing";
   if (s.objectionKey && !st.objectionRevealed) return "objection_reveal";
 
   switch (st.stage) {
@@ -299,14 +483,21 @@ export function decide(
         decliner: "polite_decline",
         scam: "scam_suspicion",
         errorhunter: "cold_short",
+        skeptic: "trust_issue",
+        prover: "proof_request",
+        broke: "no_budget",
+        uninterested: "polite_decline",
       };
       return byStyle[st.style] ?? pickOne(Object.values(byStyle));
     }
     case "Wary": {
       if (!st.objectionRevealed && rnd() < 0.5) return "objection_hint";
       if (st.style === "interrogator") return "question_barrage";
-      if (st.style === "scam") return "proof_request";
-      if (st.style === "all") return pickOne(["question_barrage", "proof_request", "soft_decline"] as const);
+      if (st.style === "scam" || st.style === "prover") return "proof_request";
+      if (st.style === "skeptic") return pickOne(["trust_issue", "proof_request"] as const);
+      if (st.style === "broke") return pickOne(["no_budget", "soft_decline"] as const);
+      if (st.style === "all")
+        return pickOne(["question_barrage", "proof_request", "soft_decline"] as const);
       return "soft_decline";
     }
     case "Engaged":
@@ -421,7 +612,10 @@ export function coachScores(c: CoachInput) {
   objection -= 2 * c.strikes;
 
   let tone = 10;
-  tone -= 2 * t.filter((x) => x.signals.template || x.signals.aiTells || x.signals.hype || x.signals.pressure).length;
+  tone -=
+    2 *
+    t.filter((x) => x.signals.template || x.signals.aiTells || x.signals.hype || x.signals.pressure)
+      .length;
   tone -= t.reduce((n, x) => n + x.signals.contractions + x.signals.longDashes, 0);
   tone -= t.filter((x) => x.signals.words > 220).length;
 
@@ -437,7 +631,8 @@ export function coachScores(c: CoachInput) {
     close: clamp10(close),
   };
   const overall = Math.round(
-    ((scores.personalisation + scores.value + scores.objection + scores.tone + scores.close) / 5) * 10,
+    ((scores.personalisation + scores.value + scores.objection + scores.tone + scores.close) / 5) *
+      10,
   );
   const outcome: "won" | "warming" | "neutral" | "cooling" | "lost" = c.lost
     ? "lost"

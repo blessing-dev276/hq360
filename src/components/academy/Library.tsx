@@ -98,11 +98,19 @@ export function MyChats({
             </button>
           ) : null}
           {viewer.role === "trainer" && open.ended ? (
-            <button type="button" className="asa-btn asa-btn-ghost" onClick={() => void share(open.id)}>
+            <button
+              type="button"
+              className="asa-btn asa-btn-ghost"
+              onClick={() => void share(open.id)}
+            >
               Share as demo
             </button>
           ) : null}
-          <button type="button" className="asa-btn asa-btn-danger" onClick={() => void remove(open.id)}>
+          <button
+            type="button"
+            className="asa-btn asa-btn-danger"
+            onClick={() => void remove(open.id)}
+          >
             {confirmDelete ? "Click again to delete" : "Delete"}
           </button>
           {notice ? <span className="asa-muted">{notice}</span> : null}
@@ -126,7 +134,15 @@ export function SessionDetail({
         <Transcript session={session} />
         {session.coaching ? <CoachingPanel coaching={session.coaching} /> : null}
         {children ? (
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 10, alignItems: "center", marginTop: 16 }}>
+          <div
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: 10,
+              alignItems: "center",
+              marginTop: 16,
+            }}
+          >
             {children}
           </div>
         ) : null}

@@ -3,9 +3,21 @@ import {
   api,
   AuthorCard,
   CoachingPanel,
+  DIFFICULTY_INFO,
   Transcript,
+  type Difficulty,
   type Session,
 } from "./shared";
+
+const LEVELS = Object.keys(DIFFICULTY_INFO) as Difficulty[];
+function savedLevel(): Difficulty {
+  try {
+    const v = localStorage.getItem("asa-difficulty");
+    return LEVELS.includes(v as Difficulty) ? (v as Difficulty) : "easy";
+  } catch {
+    return "easy";
+  }
+}
 
 const MAX_CHARS = 1500;
 
@@ -18,6 +30,7 @@ export function PracticeRoom({
 }) {
   const [mode, setMode] = useState<"cold" | "no">(initial?.mode ?? "cold");
   const [session, setSession] = useState<Session | null>(initial);
+  const [level, setLevel] = useState<Difficulty>(() => initial?.difficulty ?? savedLevel());
   const [text, setText] = useState("");
   const [busy, setBusy] = useState<"" | "new" | "send" | "hint" | "coach">("");
   const [typing, setTyping] = useState(false);
@@ -26,14 +39,14 @@ export function PracticeRoom({
   const chatRef = useRef<HTMLDivElement>(null);
 
   const startNew = useCallback(
-    async (m: "cold" | "no") => {
+    async (m: "cold" | "no", lvl: Difficulty = level) => {
       setBusy("new");
       setNotice("");
       setHint("");
       setText("");
       const { status, body } = await api<{ session: Session }>("/api/academy/session", {
         method: "POST",
-        body: { mode: m },
+        body: { mode: m, difficulty: lvl },
       });
       setBusy("");
       if (status === 200 && body.session) {
@@ -41,8 +54,18 @@ export function PracticeRoom({
         onChanged();
       } else setNotice("Could not start a new chat. Try again.");
     },
-    [onChanged],
+    [onChanged, level],
   );
+  function pickLevel(lvl: Difficulty) {
+    if (busy || lvl === level) return;
+    setLevel(lvl);
+    try {
+      localStorage.setItem("asa-difficulty", lvl);
+    } catch {
+      /* storage unavailable */
+    }
+    void startNew(mode, lvl);
+  }
 
   useEffect(() => {
     if (initial) {
@@ -65,8 +88,7 @@ export function PracticeRoom({
     setHint("");
     // Show the scout message right away.
     setSession({ ...session, messages: [...session.messages, { role: "scout", text: msg }] });
-    let res: Awaited<ReturnType<typeof api<{ session?: Session; delayMs?: number }>>> | null =
-      null;
+    let res: Awaited<ReturnType<typeof api<{ session?: Session; delayMs?: number }>>> | null = null;
     try {
       res = await api<{ session?: Session; delayMs?: number }>("/api/academy/reply", {
         method: "POST",
@@ -126,6 +148,11 @@ export function PracticeRoom({
   }
 
   const firstMessage = !session?.messages.some((m) => m.role === "scout");
+  const authorMsgs = session?.messages.filter((m) => m.role === "author") ?? [];
+  const awaitingReply =
+    !session?.ended &&
+    authorMsgs.length > 0 &&
+    authorMsgs.every((m) => m.text.trim() === "[No reply]");
 
   return (
     <div className="asa-wrap">
@@ -134,11 +161,35 @@ export function PracticeRoom({
           <div>
             <h2 style={{ fontSize: 30, margin: "0 0 8px" }}>Talk to a demo author</h2>
             <p className="asa-muted" style={{ margin: 0, fontSize: 14 }}>
-              Every author is hard: a new personality, hidden objection and test style each time
-              (questions, flat refusals, error hunting or scam suspicion). Your chats save to My
-              chats automatically.
+              Demo authors behave like real ones: some are scam aware, some have trust issues, want
+              proof, have no money or simply aren't interested, and some won't reply until you
+              follow up. Start on Easy and work your way up. Chats save to My chats.
             </p>
           </div>
+          <div className="asa-levels" role="radiogroup" aria-label="Difficulty">
+            {LEVELS.map((lvl, i) => (
+              <button
+                key={lvl}
+                type="button"
+                role="radio"
+                aria-checked={level === lvl}
+                disabled={!!busy}
+                className={`asa-level ${lvl}${level === lvl ? " active" : ""}`}
+                onClick={() => pickLevel(lvl)}
+              >
+                <span className="asa-level-bars" aria-hidden="true">
+                  {LEVELS.map((_, j) => (
+                    <i key={j} className={j <= i ? "on" : ""} />
+                  ))}
+                </span>
+                <b>{DIFFICULTY_INFO[lvl].label}</b>
+                <small>{DIFFICULTY_INFO[lvl].who}</small>
+              </button>
+            ))}
+          </div>
+          <p className="asa-muted" style={{ margin: "-6px 0 0", fontSize: 13 }}>
+            {DIFFICULTY_INFO[level].blurb}
+          </p>
           <div className="asa-toggle" role="group" aria-label="Scenario">
             {(
               [
@@ -168,22 +219,30 @@ export function PracticeRoom({
             disabled={!!busy}
             onClick={() => void startNew(mode)}
           >
-            {busy === "new" ? "Finding an author..." : "New random author"}
+            {busy === "new"
+              ? "Finding an author..."
+              : `New ${DIFFICULTY_INFO[level].label.toLowerCase()} author`}
           </button>
         </div>
 
         <div>
           {session ? (
             <>
-              <Transcript
-                session={session}
-                typing={typing}
-                innerRef={chatRef}
-              />
+              <Transcript session={session} typing={typing} innerRef={chatRef} />
+              {awaitingReply && !typing ? (
+                <p className="asa-waiting">
+                  <b>No reply yet.</b> Real authors often ignore the first message. Follow up with
+                  something new: a fact, a screenshot or an easy question.
+                </p>
+              ) : null}
               {!session.ended ? (
                 <div style={{ marginTop: 14 }}>
                   <label htmlFor="asa-compose" style={{ fontWeight: 600, fontSize: 14 }}>
-                    {firstMessage ? "Write your first message to the author" : "Write your reply"}
+                    {firstMessage
+                      ? "Write your first message to the author"
+                      : awaitingReply
+                        ? "Write your follow-up"
+                        : "Write your reply"}
                   </label>
                   <textarea
                     id="asa-compose"

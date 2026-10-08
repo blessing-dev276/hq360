@@ -16,6 +16,8 @@ import {
   chooseLine,
   clampTrust,
   coachScores,
+  difficultyOf,
+  hasRealAuthorReply,
   decide,
   fillLine,
   hintRule,
@@ -40,7 +42,13 @@ export type Role = "trainer" | "trainee";
 export type Msg = EngineMsg;
 export type Coaching = {
   overall: number;
-  scores: { personalisation: number; value: number; objection: number; tone: number; close: number };
+  scores: {
+    personalisation: number;
+    value: number;
+    objection: number;
+    tone: number;
+    close: number;
+  };
   outcome: "won" | "warming" | "neutral" | "cooling" | "lost";
   summary: string;
   strengths: string[];
@@ -66,6 +74,8 @@ export type SessionRow = {
   used_line_ids: string[];
   signals: Turn[];
   trust_history: number[];
+  difficulty: string;
+  silent_left: number;
 };
 export type Viewer = { id: string; email: string | null; name: string | null; role: Role };
 
@@ -154,16 +164,22 @@ export async function handleScoutMessage(row: SessionRow, text: string) {
 
   const lastAuthor = [...history].reverse().find((m) => m.role === "author");
   const authorAskedLastTurn = !!lastAuthor && lastAuthor.text.includes("?");
+  const difficulty = difficultyOf(row.difficulty);
   const { delta, strikes, priceEarly } = scoreMessage(signals, {
     style: row.challenge,
     trust: row.trust,
     objectionRevealed: row.objection_revealed,
     authorAskedLastTurn,
+    difficulty,
   });
   let trust = clampTrust(row.trust + delta);
   const totalStrikes = row.strikes + strikes;
 
-  const reaction = decide(signals, {
+  // Like real authors, some ignore the first message (and a follow-up or
+  // more) before replying. The scout's messages still count while they wait.
+  const silentLeft = row.silent_left ?? 0;
+  const stillSilent = silentLeft > 0 && !hasRealAuthorReply(history) && !isLost(history);
+  const decided = decide(signals, {
     style: row.challenge,
     mood: row.mood,
     stage: stageOf(trust),
@@ -174,7 +190,14 @@ export async function handleScoutMessage(row: SessionRow, text: string) {
     won: isWon(history),
     lastReaction: lastReactionOf(history),
     priceEarly,
+    difficulty,
   });
+  const reaction: Reaction = stillSilent ? "no_reply" : decided;
+  const lateReply =
+    !stillSilent &&
+    reaction !== "no_reply" &&
+    !hasRealAuthorReply(history) &&
+    history.some((m) => m.role === "author" && m.text.trim() === NO_REPLY);
   if (reaction === "guarantee_trap" && (row.challenge === "scam" || row.challenge === "all"))
     trust = clampTrust(trust - 10);
 
@@ -193,6 +216,8 @@ export async function handleScoutMessage(row: SessionRow, text: string) {
       used.add(choice.row.id);
       const filled = fillLine(choice.row.text, persona, signals.wrongFact);
       replyText = choice.voice ? inVoice(filled, persona) : filled;
+      if (lateReply)
+        replyText = `${LATE_OPENERS[Math.floor(Math.random() * LATE_OPENERS.length)]} ${replyText}`;
     } else {
       replyText = inVoice("I have nothing more to add right now.", persona);
     }
@@ -221,6 +246,7 @@ export async function handleScoutMessage(row: SessionRow, text: string) {
     used_line_ids: [...used],
     signals: [...row.signals, turn],
     trust_history: [...row.trust_history, trust],
+    silent_left: stillSilent ? silentLeft - 1 : silentLeft,
   };
   await db
     .from("sessions")
@@ -233,10 +259,18 @@ export async function handleScoutMessage(row: SessionRow, text: string) {
       used_line_ids: next.used_line_ids,
       signals: next.signals,
       trust_history: next.trust_history,
+      silent_left: next.silent_left,
     })
     .eq("id", row.id);
   return { row: next, delayMs: reaction === "no_reply" ? 800 : typingDelay() };
 }
+
+const LATE_OPENERS = [
+  "Sorry for the slow reply.",
+  "Apologies, I only just saw your messages.",
+  "Sorry, it has been a busy few days.",
+  "I saw your follow-ups, sorry for not answering sooner.",
+];
 
 export async function getHint(row: SessionRow) {
   const rule = hintRule(row.messages, row.signals, row.stage, row.objection_revealed);
@@ -249,7 +283,12 @@ export async function getHint(row: SessionRow) {
   );
 }
 
-async function feedbackLines(signals: string[], kind: "worked" | "change", min: number, max: number) {
+async function feedbackLines(
+  signals: string[],
+  kind: "worked" | "change",
+  min: number,
+  max: number,
+) {
   const { data } = await db.from("feedback").select("signal, text").eq("kind", kind);
   const rows = (data ?? []) as { signal: string; text: string }[];
   const out: string[] = [];
@@ -318,14 +357,13 @@ export function clientSession(row: SessionRow) {
     user_id: row.user_id,
     mode: row.mode,
     // Reaction tags stay on the server until the chat is scored.
-    messages: row.ended
-      ? row.messages
-      : row.messages.map(({ role, text }) => ({ role, text })),
+    messages: row.ended ? row.messages : row.messages.map(({ role, text }) => ({ role, text })),
     ended: row.ended,
     coaching: row.ended ? row.coaching : null,
     created_at: row.created_at,
     updated_at: row.updated_at,
     persona: row.ended ? revealedPersona(persona) : publicPersona(persona),
+    difficulty: difficultyOf(row.difficulty),
     reveal: row.ended ? { mood: row.mood, challenge: style?.label ?? row.challenge } : null,
   };
 }

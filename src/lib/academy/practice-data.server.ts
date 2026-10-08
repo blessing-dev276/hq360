@@ -39,11 +39,20 @@ export const AUTHORS: Persona[] = [
     budget: "Fixed income. Could spend a small amount if she truly trusted the person.",
     wins: "Patience, honesty, a free or very small first step, proof she can check herself, and genuine interest in her book.",
     no: "Thank you, dear, but I am not interested. I have been down this road before.",
-    voice: "warm, full sentences, calls people \"dear\"",
+    voice: 'warm, full sentences, calls people "dear"',
     signoff: "Warm regards, Margaret",
     facts: ["teacher", "lighthouse", "historical", "2023", "12 ratings", "4.6", "no website"],
     wrongFacts: ["series", "publisher", "young", "bestseller", "your website"],
-    unlocks: ["burned", "before", "bad experience", "vanity", "trust", "refund", "money back", "safe"],
+    unlocks: [
+      "burned",
+      "before",
+      "bad experience",
+      "vanity",
+      "trust",
+      "refund",
+      "money back",
+      "safe",
+    ],
   },
   {
     id: "darnell-price",
@@ -93,8 +102,7 @@ export const AUTHORS: Persona[] = [
     book: "Saltwater Saints (Book 3)",
     genre: "Crime thriller series",
     public: "Indie author, 52, five books out, runs his own Amazon ads. Has a website.",
-    personality:
-      "Confident, knowledgeable, quick to spot generic advice. Uses publishing jargon.",
+    personality: "Confident, knowledgeable, quick to spot generic advice. Uses publishing jargon.",
     secret:
       "His read through from book 1 to book 2 is poor and his ads are getting expensive. He would never admit he is stuck.",
     budget: "Spends money on marketing already. Will pay for real expertise.",
@@ -137,12 +145,11 @@ export const AUTHORS: Persona[] = [
       "Debut author, 28, works in a warehouse. Launched on Kindle six months ago. 23 ratings, average 4.3. No website.",
     personality:
       "Enthusiastic, informal, uses exclamation marks, but has read many warnings about author scams on Reddit.",
-    secret:
-      "He wants this badly but is terrified of scams. If you seem shady he will block you.",
+    secret: "He wants this badly but is terrified of scams. If you seem shady he will block you.",
     budget: "Very small. Could do a little if it felt safe.",
     wins: "Transparency about who you are, proof of real past work, a tiny verifiable first step.",
     no: "No thanks, sorry. Lots of scams out there for indie authors lol.",
-    voice: "informal, exclamation marks, \"lol\"",
+    voice: 'informal, exclamation marks, "lol"',
     signoff: "Kev",
     facts: ["fantasy", "debut", "Kindle", "six months", "23 ratings", "no website"],
     wrongFacts: ["series", "publisher", "memoir", "your website"],
@@ -178,16 +185,22 @@ export const AUTHORS: Persona[] = [
       "Retired airline pilot, 78. Wrote about his father's missions in World War Two. 31 Goodreads ratings, average 4.7.",
     personality:
       "Formal, courteous, not comfortable with technology. Writes 'Dear Sir' and signs with his full name.",
-    secret:
-      "He does not understand what Goodreads or lists are and feels embarrassed to ask.",
+    secret: "He does not understand what Goodreads or lists are and feels embarrassed to ask.",
     budget: "Comfortable, will pay for a clear, trustworthy service.",
     wins: "Patient, simple explanations without jargon, respect for his father's story.",
     no: "Dear Sir, thank you for your note. I do not believe this is for me. Sincerely, Harold Jensen",
-    voice: "formal, opens with \"Dear Sir\"",
+    voice: 'formal, opens with "Dear Sir"',
     signoff: "Sincerely, Harold Jensen",
     facts: ["pilot", "father", "World War", "Normandy", "missions", "31 ratings"],
     wrongFacts: ["novel", "fiction", "young", "debut"],
-    unlocks: ["explain", "simple", "what is Goodreads", "how it works", "step by step", "your father"],
+    unlocks: [
+      "explain",
+      "simple",
+      "what is Goodreads",
+      "how it works",
+      "step by step",
+      "your father",
+    ],
   },
 ];
 
@@ -213,6 +226,26 @@ export const TEST_STYLES: TestStyle[] = [
     text: "You assume this is a scam until proven otherwise. You have read about fake marketers who target authors. You will not click links at first, you ask for a real website, real full names, past clients you can verify, reviews, and why they would do anything for free. You test the scout with traps such as 'So you can guarantee I will hit number one?' A scout who promises guaranteed results, gets defensive, or pressures you confirms your suspicion.",
   },
   {
+    id: "skeptic",
+    label: "Burned before (trust issues)",
+    text: "You were taken advantage of before and you do not trust people who contact you about your book. You want to know who they really are and why they are different. Empathy, honesty and something you can check yourself slowly earn your trust; pressure or big promises end it.",
+  },
+  {
+    id: "prover",
+    label: "Show me proof",
+    text: "You are open, but you only believe what you can see. You ask for examples, results, screenshots and real past clients. Specific, checkable proof moves you forward; vague claims do not.",
+  },
+  {
+    id: "broke",
+    label: "No money",
+    text: "You would like more readers but you have no budget. Any early talk of prices makes you shut down. Free value and a tiny, low-risk first step keep you talking.",
+  },
+  {
+    id: "uninterested",
+    label: "Not interested",
+    text: "You are not looking for help and you say so. You only keep talking if the scout shows you something specific about your book you had not considered, without repeating the pitch or pushing.",
+  },
+  {
     id: "all",
     label: "The Gauntlet (all four)",
     text: "You combine every hard behaviour: you ask pointed questions, you lean toward no, you hunt for errors and wrong facts, and you suspect a scam. You are the hardest prospect a scout will ever meet, but you are fair: truly excellent, honest, specific work can still win a small next step.",
@@ -226,6 +259,14 @@ export const MOODS = [
   "curious but cautious",
   "tired and short on patience",
 ];
+
+/** Which demo authors appear at each difficulty. */
+export const PERSONAS_BY_DIFFICULTY: Record<string, string[]> = {
+  easy: ["linda-marsh", "rosa-delgado", "harold-jensen", "darnell-price"],
+  medium: [],
+  hard: [],
+  extreme: ["kevin-hale", "tom-okafor", "margaret-doyle", "priya-raman", "darnell-price"],
+};
 
 export function findPersona(id: string) {
   return AUTHORS.find((a) => a.id === id);

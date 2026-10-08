@@ -162,7 +162,12 @@ function BankEditor({ fetcher }: { fetcher: Fetcher }) {
         used in the author's voice when their own lines run out.
       </p>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginBottom: 14 }}>
-        <select className="asa-input" style={{ width: "auto" }} value={author} onChange={(e) => setAuthor(e.target.value)}>
+        <select
+          className="asa-input"
+          style={{ width: "auto" }}
+          value={author}
+          onChange={(e) => setAuthor(e.target.value)}
+        >
           <option value="">All authors</option>
           {[...AUTHORS, "ANY"].map((a) => (
             <option key={a} value={a}>
@@ -170,7 +175,12 @@ function BankEditor({ fetcher }: { fetcher: Fetcher }) {
             </option>
           ))}
         </select>
-        <select className="asa-input" style={{ width: "auto" }} value={reaction} onChange={(e) => setReaction(e.target.value)}>
+        <select
+          className="asa-input"
+          style={{ width: "auto" }}
+          value={reaction}
+          onChange={(e) => setReaction(e.target.value)}
+        >
           <option value="">All reactions</option>
           {REACTIONS.map((r) => (
             <option key={r} value={r}>
@@ -194,7 +204,12 @@ function BankEditor({ fetcher }: { fetcher: Fetcher }) {
           onChange={(e) => setDraft(e.target.value)}
           style={{ marginTop: 6 }}
         />
-        <button type="button" className="asa-btn asa-btn-sm" style={{ marginTop: 10 }} onClick={() => void add()}>
+        <button
+          type="button"
+          className="asa-btn asa-btn-sm"
+          style={{ marginTop: 10 }}
+          onClick={() => void add()}
+        >
           Add line
         </button>
         {error ? <p style={{ color: "var(--asa-bad)", fontSize: 14 }}>{error}</p> : null}
@@ -478,7 +493,9 @@ function WeakSpots({ fetcher }: { fetcher: Fetcher }) {
   const [rows, setRows] = useState<Row[] | null>(null);
   useEffect(() => {
     void (async () => {
-      const { body } = await fetcher<{ rows: Row[] }>("/api/academy/admin/content?table=weak_spots");
+      const { body } = await fetcher<{ rows: Row[] }>(
+        "/api/academy/admin/content?table=weak_spots",
+      );
       setRows(body.rows ?? []);
     })();
   }, [fetcher]);

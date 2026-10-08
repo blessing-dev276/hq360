@@ -1133,3 +1133,94 @@
   font-size: 14px;
   color: var(--asa-muted);
 }
+
+/* Practice room difficulty */
+.asa-levels {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+.asa-level {
+  display: grid;
+  gap: 3px;
+  justify-items: start;
+  padding: 10px;
+  border-radius: 14px;
+  border: 1px solid var(--asa-line);
+  background: var(--asa-card);
+  color: var(--asa-ink);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    transform 0.15s;
+}
+.asa-level:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+.asa-level b {
+  font-size: 14px;
+}
+.asa-level small {
+  font-size: 11px;
+  color: var(--asa-muted);
+}
+.asa-level-bars {
+  display: flex;
+  gap: 3px;
+  margin-bottom: 4px;
+}
+.asa-level-bars i {
+  width: 10px;
+  height: 4px;
+  border-radius: 99px;
+  background: var(--asa-line);
+}
+.asa-level.easy .asa-level-bars i.on {
+  background: var(--asa-good);
+}
+.asa-level.medium .asa-level-bars i.on {
+  background: var(--asa-warn);
+}
+.asa-level.hard .asa-level-bars i.on {
+  background: var(--asa-orange);
+}
+.asa-level.extreme .asa-level-bars i.on {
+  background: var(--asa-bad);
+}
+.asa-level.active {
+  border-color: var(--asa-ink);
+  box-shadow: inset 0 0 0 1px var(--asa-ink);
+}
+.asa-diff-badge {
+  display: inline-block;
+  padding: 1px 9px;
+  border-radius: 99px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+}
+.asa-diff-badge.easy {
+  background: var(--asa-good);
+}
+.asa-diff-badge.medium {
+  background: var(--asa-warn);
+}
+.asa-diff-badge.hard {
+  background: var(--asa-orange);
+}
+.asa-diff-badge.extreme {
+  background: var(--asa-bad);
+}
+.asa-waiting {
+  margin: 10px 0 0;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--asa-warn) 14%, transparent);
+  font-size: 14px;
+}
+@media (max-width: 420px) {
+  .asa-levels {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

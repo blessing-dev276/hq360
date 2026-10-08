@@ -75,6 +75,7 @@ import { Route as ApiAcademyCoachRouteImport } from './routes/api/academy/coach'
 import { Route as ApiAcademyDemosRouteImport } from './routes/api/academy/demos'
 import { Route as ApiAcademyHintRouteImport } from './routes/api/academy/hint'
 import { Route as ApiAcademyMeRouteImport } from './routes/api/academy/me'
+import { Route as ApiAcademyPerplexityKeyRouteImport } from './routes/api/academy/perplexity-key'
 import { Route as ApiAcademyReplyRouteImport } from './routes/api/academy/reply'
 import { Route as ApiAcademySessionRouteImport } from './routes/api/academy/session'
 import { Route as ApiAcademySessionsRouteImport } from './routes/api/academy/sessions'
@@ -540,6 +541,11 @@ const ApiAcademyHintRoute = ApiAcademyHintRouteImport.update({
 const ApiAcademyMeRoute = ApiAcademyMeRouteImport.update({
   id: '/api/academy/me',
   path: '/api/academy/me',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAcademyPerplexityKeyRoute = ApiAcademyPerplexityKeyRouteImport.update({
+  id: '/api/academy/perplexity-key',
+  path: '/api/academy/perplexity-key',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiAcademyReplyRoute = ApiAcademyReplyRouteImport.update({
@@ -1333,6 +1339,7 @@ export interface FileRoutesByFullPath {
   '/api/academy/demos': typeof ApiAcademyDemosRouteWithChildren
   '/api/academy/hint': typeof ApiAcademyHintRoute
   '/api/academy/me': typeof ApiAcademyMeRoute
+  '/api/academy/perplexity-key': typeof ApiAcademyPerplexityKeyRoute
   '/api/academy/reply': typeof ApiAcademyReplyRoute
   '/api/academy/session': typeof ApiAcademySessionRoute
   '/api/academy/sessions': typeof ApiAcademySessionsRouteWithChildren
@@ -1535,6 +1542,7 @@ export interface FileRoutesByTo {
   '/api/academy/demos': typeof ApiAcademyDemosRouteWithChildren
   '/api/academy/hint': typeof ApiAcademyHintRoute
   '/api/academy/me': typeof ApiAcademyMeRoute
+  '/api/academy/perplexity-key': typeof ApiAcademyPerplexityKeyRoute
   '/api/academy/reply': typeof ApiAcademyReplyRoute
   '/api/academy/session': typeof ApiAcademySessionRoute
   '/api/academy/sessions': typeof ApiAcademySessionsRouteWithChildren
@@ -1738,6 +1746,7 @@ export interface FileRoutesById {
   '/api/academy/demos': typeof ApiAcademyDemosRouteWithChildren
   '/api/academy/hint': typeof ApiAcademyHintRoute
   '/api/academy/me': typeof ApiAcademyMeRoute
+  '/api/academy/perplexity-key': typeof ApiAcademyPerplexityKeyRoute
   '/api/academy/reply': typeof ApiAcademyReplyRoute
   '/api/academy/session': typeof ApiAcademySessionRoute
   '/api/academy/sessions': typeof ApiAcademySessionsRouteWithChildren
@@ -1942,6 +1951,7 @@ export interface FileRouteTypes {
     | '/api/academy/demos'
     | '/api/academy/hint'
     | '/api/academy/me'
+    | '/api/academy/perplexity-key'
     | '/api/academy/reply'
     | '/api/academy/session'
     | '/api/academy/sessions'
@@ -2144,6 +2154,7 @@ export interface FileRouteTypes {
     | '/api/academy/demos'
     | '/api/academy/hint'
     | '/api/academy/me'
+    | '/api/academy/perplexity-key'
     | '/api/academy/reply'
     | '/api/academy/session'
     | '/api/academy/sessions'
@@ -2346,6 +2357,7 @@ export interface FileRouteTypes {
     | '/api/academy/demos'
     | '/api/academy/hint'
     | '/api/academy/me'
+    | '/api/academy/perplexity-key'
     | '/api/academy/reply'
     | '/api/academy/session'
     | '/api/academy/sessions'
@@ -2549,6 +2561,7 @@ export interface RootRouteChildren {
   ApiAcademyDemosRoute: typeof ApiAcademyDemosRouteWithChildren
   ApiAcademyHintRoute: typeof ApiAcademyHintRoute
   ApiAcademyMeRoute: typeof ApiAcademyMeRoute
+  ApiAcademyPerplexityKeyRoute: typeof ApiAcademyPerplexityKeyRoute
   ApiAcademyReplyRoute: typeof ApiAcademyReplyRoute
   ApiAcademySessionRoute: typeof ApiAcademySessionRoute
   ApiAcademySessionsRoute: typeof ApiAcademySessionsRouteWithChildren
@@ -3097,6 +3110,13 @@ declare module '@tanstack/react-router' {
       path: '/api/academy/me'
       fullPath: '/api/academy/me'
       preLoaderRoute: typeof ApiAcademyMeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/academy/perplexity-key': {
+      id: '/api/academy/perplexity-key'
+      path: '/api/academy/perplexity-key'
+      fullPath: '/api/academy/perplexity-key'
+      preLoaderRoute: typeof ApiAcademyPerplexityKeyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/academy/reply': {
@@ -4508,6 +4528,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAcademyDemosRoute: ApiAcademyDemosRouteWithChildren,
   ApiAcademyHintRoute: ApiAcademyHintRoute,
   ApiAcademyMeRoute: ApiAcademyMeRoute,
+  ApiAcademyPerplexityKeyRoute: ApiAcademyPerplexityKeyRoute,
   ApiAcademyReplyRoute: ApiAcademyReplyRoute,
   ApiAcademySessionRoute: ApiAcademySessionRoute,
   ApiAcademySessionsRoute: ApiAcademySessionsRouteWithChildren,

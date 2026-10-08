@@ -227,6 +227,7 @@ export async function handleScoutMessage(row: SessionRow, text: string) {
     // The model writes the engine's decision in the author's voice, reacting
     // to what the scout actually said; the bank line is the fallback.
     const written = await aiAuthorReply({
+      userId: row.user_id,
       persona,
       mood: row.mood,
       stage: stageOf(trust),
@@ -306,6 +307,7 @@ export async function getHint(row: SessionRow) {
     rows.find((r) => r.rule === "default")?.text ??
     "Keep it personal, give one useful thing, and end with one easy question.";
   const tailored = await aiHint({
+    userId: row.user_id,
     persona: findPersona(row.persona)!,
     stage: row.stage,
     messages: row.messages,
@@ -367,6 +369,7 @@ export async function getCoaching(row: SessionRow): Promise<Coaching> {
     "Ask one caring question about their experience, then offer one small step they can check.";
 
   const ai = await aiCoaching({
+    userId: row.user_id,
     persona,
     mood: row.mood,
     challenge: findStyle(row.challenge)?.label ?? row.challenge,

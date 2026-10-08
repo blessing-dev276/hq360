@@ -39,13 +39,14 @@ const REACTIONS = [
 const SHOW_MAX = 200;
 
 type Row = Record<string, string | boolean | number | null> & { id: string };
-type Section = "trainees" | "bank" | "hints" | "feedback" | "model" | "weak";
+type Section = "trainees" | "key" | "bank" | "hints" | "feedback" | "model" | "weak";
 
 /** Trainer area: trainees plus every editable part of the Author Engine. */
 export function TrainerTools({ fetcher = api as Fetcher }: { fetcher?: Fetcher }) {
   const [section, setSection] = useState<Section>("trainees");
   const tabs: [Section, string][] = [
     ["trainees", "Trainees"],
+    ["key", "AI key"],
     ["bank", "Response bank"],
     ["hints", "Hints"],
     ["feedback", "Feedback lines"],
@@ -68,6 +69,7 @@ export function TrainerTools({ fetcher = api as Fetcher }: { fetcher?: Fetcher }
         ))}
       </div>
       {section === "trainees" ? <TraineesAdmin fetcher={fetcher} /> : null}
+      {section === "key" ? <TrainerKey fetcher={fetcher} /> : null}
       {section === "bank" ? <BankEditor fetcher={fetcher} /> : null}
       {section === "hints" ? (
         <TableEditor
@@ -548,6 +550,97 @@ function WeakSpots({ fetcher }: { fetcher: Fetcher }) {
           </table>
         </div>
       )}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------- AI key */
+
+/** The trainer's own Perplexity key; it powers the Practice Room AI. */
+function TrainerKey({ fetcher }: { fetcher: Fetcher }) {
+  const [state, setState] = useState<{ configured: boolean; updatedAt: string | null } | null>(
+    null,
+  );
+  const [key, setKey] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState("");
+  useEffect(() => {
+    void fetcher<{ configured: boolean; updatedAt: string | null; message?: string }>(
+      "/api/academy/perplexity-key",
+    ).then(({ status, body }) =>
+      status === 200 ? setState(body) : setMessage(body.message ?? "Could not load your key."),
+    );
+  }, [fetcher]);
+  async function call(method: "PUT" | "DELETE") {
+    setBusy(true);
+    setMessage("");
+    const { status, body } = await fetcher<{ configured: boolean; message?: string }>(
+      "/api/academy/perplexity-key",
+      method === "PUT" ? { method, body: { apiKey: key.trim() } } : { method },
+    );
+    setBusy(false);
+    if (status !== 200) return setMessage(body.message ?? "Something went wrong. Try again.");
+    setKey("");
+    setState({ configured: body.configured, updatedAt: new Date().toISOString() });
+    setMessage(body.configured ? "Key saved. Practice chats now use it." : "Key removed.");
+  }
+  return (
+    <div className="asa-card" style={{ maxWidth: 620 }}>
+      <h3 style={{ margin: "0 0 6px" }}>Your Perplexity API key</h3>
+      <p className="asa-muted" style={{ marginTop: 0, fontSize: 14 }}>
+        Demo authors, hints and coaching are written by AI using your key (the low-cost gpt-6-luna
+        model, about $0.06 per 1,000 messages, no web search). Your chats use your own key; trainees
+        use the most recently saved trainer key. With no key the room uses the Response bank. The
+        key is encrypted and never shown again.
+      </p>
+      <p style={{ fontSize: 14 }}>
+        Status:{" "}
+        <b>
+          {state == null
+            ? "Checking..."
+            : state.configured
+              ? `Saved${state.updatedAt ? ` ${new Date(state.updatedAt).toLocaleDateString()}` : ""}`
+              : "Not set"}
+        </b>
+      </p>
+      <label htmlFor="asa-pplx" style={{ fontWeight: 600, fontSize: 14 }}>
+        {state?.configured ? "Replace key" : "API key"}
+      </label>
+      <input
+        id="asa-pplx"
+        className="asa-input"
+        type="password"
+        autoComplete="off"
+        placeholder="pplx-..."
+        value={key}
+        onChange={(e) => setKey(e.target.value)}
+        style={{ marginTop: 6 }}
+      />
+      <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
+        <button
+          type="button"
+          className="asa-btn asa-btn-sm"
+          disabled={busy || !key.trim().startsWith("pplx-")}
+          onClick={() => void call("PUT")}
+        >
+          {busy ? "Saving..." : "Save key"}
+        </button>
+        {state?.configured ? (
+          <button
+            type="button"
+            className="asa-btn asa-btn-ghost asa-btn-sm"
+            disabled={busy}
+            onClick={() => void call("DELETE")}
+          >
+            Remove key
+          </button>
+        ) : null}
+      </div>
+      {message ? (
+        <p role="status" style={{ fontSize: 14 }}>
+          {message}
+        </p>
+      ) : null}
     </div>
   );
 }

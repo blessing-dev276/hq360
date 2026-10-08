@@ -5,7 +5,9 @@
 // timeout and falls back to the stored Response Bank line, so the room keeps
 // working with no key, a slow API or a bad answer. No web search is used.
 import { runAgent } from "@/lib/perplexity/agent.server";
-import { adminKeyForResearch } from "@/lib/perplexity/credentials.server";
+import { decryptExpertKey } from "@/lib/perplexity/credentials.server";
+import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Persona } from "./practice-data.server";
 import type { EngineMsg, Reaction, Stage } from "./engine.server";
 
@@ -47,11 +49,36 @@ const INTENT: Record<Reaction, string> = {
   no_budget: "You simply don't have money for this right now. Say so honestly.",
 };
 
-function key() {
-  return adminKeyForResearch();
+/**
+ * The trainer's own Perplexity key: the user's own if they are a trainer,
+ * otherwise the most recently saved trainer key. No key means the room uses
+ * its stored banks; the admin key is never used here.
+ */
+async function trainerKey(userId: string): Promise<string | null> {
+  const { data } = await (supabaseAdmin as unknown as SupabaseClient)
+    .from("academy_trainer_credentials")
+    .select("trainer_id, encrypted_key, updated_at")
+    .order("updated_at", { ascending: false })
+    .limit(50);
+  const rows = (data ?? []) as { trainer_id: string; encrypted_key: string }[];
+  for (const row of [...rows.filter((r) => r.trainer_id === userId), ...rows]) {
+    try {
+      return decryptExpertKey(`academy:${row.trainer_id}`, row.encrypted_key);
+    } catch {
+      /* unreadable key; try the next trainer's */
+    }
+  }
+  return null;
 }
 
-async function write(instructions: string, input: string, json?: Record<string, unknown>) {
+async function write(
+  userId: string,
+  instructions: string,
+  input: string,
+  json?: Record<string, unknown>,
+) {
+  const apiKey = await trainerKey(userId);
+  if (!apiKey) throw new Error("No trainer Perplexity key saved");
   const signal = AbortSignal.timeout(TIMEOUT_MS);
   const result = await runAgent(
     {
@@ -65,7 +92,7 @@ async function write(instructions: string, input: string, json?: Record<string, 
         : {}),
     },
     (url, init) => fetch(url, { ...init, signal }),
-    { apiKey: await key() },
+    { apiKey },
   );
   return result.text.trim();
 }
@@ -88,6 +115,7 @@ function unusable(text: string) {
 }
 
 export async function aiAuthorReply(args: {
+  userId: string;
   persona: Persona;
   mood: string;
   stage: Stage;
@@ -121,7 +149,7 @@ export async function aiAuthorReply(args: {
     .join("\n");
   const input = `CONVERSATION SO FAR:\n${transcript(args.history, p) || "(none)"}\n\nTHEIR NEW MESSAGE:\n${args.scoutText}\n\nWrite ${p.name}'s reply.`;
   try {
-    const text = (await write(instructions, input)).replace(/\s*—\s*/g, ", ");
+    const text = (await write(args.userId, instructions, input)).replace(/\s*—\s*/g, ", ");
     return unusable(text) ? null : text;
   } catch (err) {
     console.error("[academy/ai] reply", err instanceof Error ? err.message : err);
@@ -130,6 +158,7 @@ export async function aiAuthorReply(args: {
 }
 
 export async function aiHint(args: {
+  userId: string;
   persona: Persona;
   stage: Stage;
   messages: EngineMsg[];
@@ -139,7 +168,7 @@ export async function aiHint(args: {
   const instructions = `You are Emmanuel, a senior book-marketing scout coaching a trainee who is messaging an author by email. Give ONE practical hint for their next message (2 to 3 sentences): what to do and why, tied to what the author last said. You may suggest a short example opening phrase in quotes. Never write the whole message for them. Plain text, no em dashes. Coaching focus from the playbook: ${args.ruleHint}`;
   const input = `AUTHOR (public profile only): ${p.name}, "${p.book}" (${p.genre}). ${p.public}\nRelationship: ${args.stage}\n\nCHAT:\n${transcript(args.messages, p) || "(trainee hasn't written yet)"}`;
   try {
-    const text = await write(instructions, input);
+    const text = await write(args.userId, instructions, input);
     return unusable(text) ? null : text.replace(/\s*—\s*/g, ", ");
   } catch (err) {
     console.error("[academy/ai] hint", err instanceof Error ? err.message : err);
@@ -181,6 +210,7 @@ const coachingSchema = {
 
 /** Scores stay rule based; the model explains them using the actual chat. */
 export async function aiCoaching(args: {
+  userId: string;
   persona: Persona;
   mood: string;
   challenge: string;
@@ -195,7 +225,7 @@ export async function aiCoaching(args: {
   const instructions = `You are Emmanuel, a senior book-marketing scout reviewing a trainee's practice chat with a demo author. The scores are final; explain them, do not change them. Be specific: quote the trainee's own words. Write: summary (2 to 3 sentences on what happened and why it ended "${args.outcome}"); strengths (2 to 3 items); fixes (2 to 4 concrete changes); better_line (one message the trainee could have sent at their weakest moment, in their own style, under 70 words); moments (up to 4 key trainee lines: quote copied exactly from the trainee's messages, whether it helped or hurt trust, and a one-sentence why). Kind, direct, practical. Plain text in every field, no em dashes.`;
   const input = `AUTHOR: ${p.name}, "${p.book}" (${p.genre}). ${p.public}\nHIDDEN (now revealed to trainee): personality: ${p.personality} Secret worry: ${p.secret} Budget: ${p.budget} What wins them: ${p.wins} Mood: ${args.mood}. Test style: ${args.challenge}.\nTRUST after each message (0-100): ${args.trustHistory.join(" -> ")}\nSCORES (0-10): ${JSON.stringify(args.scores)}; overall ${args.overall}/100\n\nCHAT:\n${transcript(args.messages, p)}`;
   try {
-    const raw = await write(instructions, input, coachingSchema);
+    const raw = await write(args.userId, instructions, input, coachingSchema);
     const out = JSON.parse(raw.slice(raw.indexOf("{"), raw.lastIndexOf("}") + 1)) as AiCoaching;
     const clean = (s: unknown, max: number) =>
       typeof s === "string"

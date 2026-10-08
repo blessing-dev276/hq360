@@ -169,14 +169,14 @@ const DEFAULT_TRAINER: TrainerInfo = {
 
 /** Experts the admin assigned as trainers; the default card if none. */
 function Trainer() {
-  const [trainers, setTrainers] = useState<TrainerInfo[]>([DEFAULT_TRAINER]);
+  // Null while loading, so the default card never flashes before the real trainer.
+  const [loaded, setLoaded] = useState<TrainerInfo[] | null>(null);
+  const trainers = loaded?.length ? loaded : [DEFAULT_TRAINER];
   const [missing, setMissing] = useState(false);
   useEffect(() => {
     void api<{ trainers?: TrainerInfo[] }>("/api/academy/trainers").then(({ status, body }) => {
-      if (status === 200 && body.trainers?.length) {
-        setMissing(false);
-        setTrainers(body.trainers);
-      }
+      if (status === 200 && body.trainers?.length) setMissing(false);
+      setLoaded(status === 200 ? (body.trainers ?? []) : []);
     });
   }, []);
   const [main, ...others] = trainers;
@@ -187,6 +187,8 @@ function Trainer() {
     .join("")
     .slice(0, 2)
     .toUpperCase();
+  if (loaded === null)
+    return <div className="asa-card" aria-busy="true" style={{ minHeight: 160, opacity: 0.5 }} />;
   return (
     <aside className="asa-card asa-trainer">
       <div className="asa-trainer-photo">

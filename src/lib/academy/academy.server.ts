@@ -329,6 +329,27 @@ const LATE_OPENERS = [
   "I saw your follow-ups, sorry for not answering sooner.",
 ];
 
+/** First name of the user's assigned trainer (themselves for a trainer). */
+export async function coachNameFor(userId: string) {
+  const { data: me } = await db
+    .from("profiles")
+    .select("role, trainer_id, full_name")
+    .eq("id", userId)
+    .maybeSingle();
+  const row = me as { role: string; trainer_id: string | null; full_name: string | null } | null;
+  let name = row?.role === "trainer" ? row.full_name : null;
+  if (!name && row?.trainer_id) {
+    const { data: t } = await db
+      .from("profiles")
+      .select("full_name, email")
+      .eq("id", row.trainer_id)
+      .maybeSingle();
+    const tr = t as { full_name: string | null; email: string | null } | null;
+    name = tr?.full_name || tr?.email?.split("@")[0] || null;
+  }
+  return (name || "Your trainer").split(/\s+/)[0]!;
+}
+
 export async function getHint(row: SessionRow) {
   const rule = hintRule(row.messages, row.signals, row.stage, row.objection_revealed);
   const { data } = await db.from("hints").select("rule, text").in("rule", [rule, "default"]);
@@ -337,14 +358,16 @@ export async function getHint(row: SessionRow) {
     rows.find((r) => r.rule === rule)?.text ??
     rows.find((r) => r.rule === "default")?.text ??
     "Keep it personal, give one useful thing, and end with one easy question.";
+  const coachName = await coachNameFor(row.user_id);
   const tailored = await aiHint({
     userId: row.user_id,
+    coachName,
     persona: findPersona(row.persona)!,
     stage: row.stage,
     messages: row.messages,
     ruleHint,
   });
-  return tailored ?? ruleHint;
+  return { hint: tailored ?? ruleHint, from: coachName };
 }
 
 async function feedbackLines(
@@ -401,6 +424,7 @@ export async function getCoaching(row: SessionRow): Promise<Coaching> {
 
   const ai = await aiCoaching({
     userId: row.user_id,
+    coachName: await coachNameFor(row.user_id),
     persona,
     mood: row.mood,
     challenge: findStyle(row.challenge)?.label ?? row.challenge,

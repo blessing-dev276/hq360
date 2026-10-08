@@ -19,7 +19,8 @@ export const Route = createFileRoute("/api/academy/hint")({
         const row = await a.loadOwnSession(body.sessionId, viewer);
         if (!row || row.user_id !== viewer.id)
           return a.json({ ok: false, error: "not_found" }, 404);
-        return a.json({ ok: true, hint: await a.getHint(row) });
+        const { hint, from } = await a.getHint(row);
+        return a.json({ ok: true, hint, from });
       },
     },
   },

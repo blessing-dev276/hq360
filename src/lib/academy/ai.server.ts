@@ -193,13 +193,15 @@ export async function aiAuthorReply(args: {
 
 export async function aiHint(args: {
   userId: string;
+  /** The trainee's trainer, who "writes" the hint or coaching. */
+  coachName: string;
   persona: Persona;
   stage: Stage;
   messages: EngineMsg[];
   ruleHint: string;
 }): Promise<string | null> {
   const p = args.persona;
-  const instructions = `You are Emmanuel, a senior book-marketing scout coaching a trainee who is messaging an author by email. Give ONE practical hint for their next message (2 to 3 sentences): what to do and why, tied to what the author last said. You may suggest a short example opening phrase in quotes. Never write the whole message for them. Plain text, no em dashes. Coaching focus from the playbook: ${args.ruleHint}`;
+  const instructions = `You are ${args.coachName}, a senior book-marketing scout coaching a trainee who is messaging an author by email. Give ONE practical hint for their next message (2 to 3 sentences): what to do and why, tied to what the author last said. You may suggest a short example opening phrase in quotes. Never write the whole message for them. Plain text, no em dashes. Coaching focus from the playbook: ${args.ruleHint}`;
   const input = `AUTHOR (public profile only): ${p.name}, "${p.book}" (${p.genre}). ${p.public}\nRelationship: ${args.stage}\n\nCHAT:\n${transcript(args.messages, p) || "(trainee hasn't written yet)"}`;
   try {
     const text = await write(args.userId, instructions, input);
@@ -245,6 +247,8 @@ const coachingSchema = {
 /** Scores stay rule based; the model explains them using the actual chat. */
 export async function aiCoaching(args: {
   userId: string;
+  /** The trainee's trainer, who "writes" the hint or coaching. */
+  coachName: string;
   persona: Persona;
   mood: string;
   challenge: string;
@@ -256,7 +260,7 @@ export async function aiCoaching(args: {
 }): Promise<AiCoaching | null> {
   const p = args.persona;
   const scoutLines = args.messages.filter((m) => m.role === "scout").map((m) => m.text);
-  const instructions = `You are Emmanuel, a senior book-marketing scout reviewing a trainee's practice chat with a demo author. The scores are final; explain them, do not change them. Be specific: quote the trainee's own words. Write: summary (2 to 3 sentences on what happened and why it ended "${args.outcome}"); strengths (2 to 3 items); fixes (2 to 4 concrete changes); better_line (one message the trainee could have sent at their weakest moment, in their own style, under 70 words); moments (up to 4 key trainee lines: quote copied exactly from the trainee's messages, whether it helped or hurt trust, and a one-sentence why). Kind, direct, practical. Plain text in every field, no em dashes.`;
+  const instructions = `You are ${args.coachName}, a senior book-marketing scout reviewing a trainee's practice chat with a demo author. The scores are final; explain them, do not change them. Be specific: quote the trainee's own words. Write: summary (2 to 3 sentences on what happened and why it ended "${args.outcome}"); strengths (2 to 3 items); fixes (2 to 4 concrete changes); better_line (one message the trainee could have sent at their weakest moment, in their own style, under 70 words); moments (up to 4 key trainee lines: quote copied exactly from the trainee's messages, whether it helped or hurt trust, and a one-sentence why). Kind, direct, practical. Plain text in every field, no em dashes.`;
   const input = `AUTHOR: ${p.name}, "${p.book}" (${p.genre}). ${p.public}\nHIDDEN (now revealed to trainee): personality: ${p.personality} Secret worry: ${p.secret} Budget: ${p.budget} What wins them: ${p.wins} Mood: ${args.mood}. Test style: ${args.challenge}.\nTRUST after each message (0-100): ${args.trustHistory.join(" -> ")}\nSCORES (0-10): ${JSON.stringify(args.scores)}; overall ${args.overall}/100\n\nCHAT:\n${transcript(args.messages, p)}`;
   try {
     const raw = await write(args.userId, instructions, input, coachingSchema);

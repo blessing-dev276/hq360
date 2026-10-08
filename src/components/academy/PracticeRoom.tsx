@@ -36,6 +36,7 @@ export function PracticeRoom({
   const [typing, setTyping] = useState(false);
   const [notice, setNotice] = useState("");
   const [hint, setHint] = useState("");
+  const [hintFrom, setHintFrom] = useState("your trainer");
   const chatRef = useRef<HTMLDivElement>(null);
 
   const startNew = useCallback(
@@ -123,13 +124,15 @@ export function PracticeRoom({
     if (!session || busy) return;
     setBusy("hint");
     setNotice("");
-    const { body } = await api<{ hint: string }>("/api/academy/hint", {
+    const { body } = await api<{ hint: string; from?: string }>("/api/academy/hint", {
       method: "POST",
       body: { sessionId: session.id },
     });
     setBusy("");
-    if (body.hint) setHint(body.hint);
-    else setNotice(body.message ?? "Could not get a hint.");
+    if (body.hint) {
+      setHint(body.hint);
+      if (body.from) setHintFrom(body.from);
+    } else setNotice(body.message ?? "Could not get a hint.");
   }
 
   async function endChat() {
@@ -298,7 +301,7 @@ export function PracticeRoom({
                   </div>
                   {hint ? (
                     <div className="asa-callout">
-                      <strong>Hint from Emmanuel</strong>
+                      <strong>Hint from {hintFrom}</strong>
                       {hint}
                     </div>
                   ) : null}

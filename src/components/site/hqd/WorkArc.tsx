@@ -3,7 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { fetchPublicContent } from "@/lib/public-content";
 import { toCaseStudyShape, type SerializedCaseStudy } from "@/lib/case-study-view";
 import { CASE_STUDIES, type CaseStudy } from "@/data/work";
-import { buildAgencyProof, type PortfolioProof } from "@/lib/agency-work";
+import { useExpertProof } from "@/lib/expert-proof";
+import { expertProof, buildAgencyProof, type PortfolioProof } from "@/lib/agency-work";
 
 /**
  * A concave, auto-drifting arc of project images. Positions are written straight
@@ -22,9 +23,12 @@ export function WorkArc() {
   });
   const studies =
     cases.data?.items.map((item) => toCaseStudyShape(item) as CaseStudy) ?? CASE_STUDIES;
-  const withImages = buildAgencyProof(portfolio.data?.items ?? [], studies).filter(
-    (item) => item.image,
-  );
+  // Work HQ360 experts added (approved), credited to them.
+  const experts = useExpertProof();
+  const withImages = [
+    ...buildAgencyProof(portfolio.data?.items ?? [], studies),
+    ...expertProof(experts.data?.portfolio ?? []),
+  ].filter((item) => item.image);
   // Show each actual project once, including when the collection is small.
   const cards = withImages;
 

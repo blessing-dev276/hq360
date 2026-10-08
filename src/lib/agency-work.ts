@@ -21,7 +21,37 @@ export type AgencyProof = {
   image?: string;
   video?: string;
   href?: string;
+  /** Every audience the work applies to (expert items can have several). */
+  audiences?: string[];
+  /** Expert credit for work an HQ360 expert added. */
+  by?: { name: string; slug: string | null };
 };
+export type ExpertWork = {
+  id: string;
+  title: string;
+  description: string | null;
+  image_url: string | null;
+  external_link: string | null;
+  services: string[];
+  audiences: string[];
+  expert: { name: string; slug: string | null; photo: string | null };
+};
+/** Approved expert portfolio items as website proof, credited to the expert. */
+export function expertProof(items: ExpertWork[]): AgencyProof[] {
+  return items.map((item) => ({
+    id: `expert-${item.id}`,
+    title: item.title,
+    description: item.description ?? "",
+    services: [...new Set(item.services.map((tag) => aliases[tag] ?? tag))],
+    ...audience(item.audiences[0] ?? ""),
+    audiences: item.audiences,
+    ...(item.image_url ? { image: item.image_url } : {}),
+    ...(item.external_link && /^https?:\/\//.test(item.external_link)
+      ? { href: item.external_link }
+      : {}),
+    by: { name: item.expert.name, slug: item.expert.slug },
+  }));
+}
 export const proofServiceLabel = (slug: string) =>
   CORE_SERVICES.find((item) => item.slug === slug)?.name ??
   {
@@ -114,7 +144,7 @@ export function filterAgencyProof(items: AgencyProof[], service = "", audienceSl
   return items.filter(
     (item) =>
       (!service || item.services.includes(service)) &&
-      (!audienceSlug || item.audience === audienceSlug),
+      (!audienceSlug || item.audience === audienceSlug || !!item.audiences?.includes(audienceSlug)),
   );
 }
 export function selectAgencyProof(items: AgencyProof[], limit: number) {

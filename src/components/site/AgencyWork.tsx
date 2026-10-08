@@ -2,11 +2,13 @@ import { LoadingRegion, SkeletonCard, SkeletonGrid } from "@/components/ui/skele
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchPublicContent } from "@/lib/public-content";
+import { useExpertProof } from "@/lib/expert-proof";
 import { toCaseStudyShape, type SerializedCaseStudy } from "@/lib/case-study-view";
 import { CASE_STUDIES, type CaseStudy } from "@/data/work";
 import { CORE_SERVICES, AUDIENCES } from "@/data/agency";
 import {
   buildAgencyProof,
+  expertProof,
   filterAgencyProof,
   selectAgencyProof,
   proofServiceLabel,
@@ -37,7 +39,12 @@ export function AgencyWork({
   });
   const studies =
     cases.data?.items.map((item) => toCaseStudyShape(item) as CaseStudy) ?? CASE_STUDIES;
-  const items = buildAgencyProof(portfolio.data?.items ?? [], studies);
+  // Work HQ360 experts added (approved), credited to them.
+  const experts = useExpertProof();
+  const items = [
+    ...buildAgencyProof(portfolio.data?.items ?? [], studies),
+    ...expertProof(experts.data?.portfolio ?? []),
+  ];
   const filtered = filterAgencyProof(items, service || chosenService, audience || chosenAudience);
   const shown = limit ? selectAgencyProof(filtered, limit) : filtered;
   return (
@@ -139,6 +146,22 @@ export function AgencyWork({
                 {item.audienceLabel}
               </p>
               <h3 className="mt-2 text-xl">{item.title}</h3>
+              {item.by && (
+                <p className="mt-1 text-xs text-muted-foreground">
+                  By{" "}
+                  {item.by.slug ? (
+                    <a
+                      href={`/experts/${item.by.slug}`}
+                      className="font-semibold text-foreground underline underline-offset-4"
+                    >
+                      {item.by.name}
+                    </a>
+                  ) : (
+                    <span className="font-semibold text-foreground">{item.by.name}</span>
+                  )}
+                  , HQ360 expert
+                </p>
+              )}
               {item.description && (
                 <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
                   {item.description}

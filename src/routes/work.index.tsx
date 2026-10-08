@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Section, SectionHeader } from "@/components/site/Primitives";
 import { AgencyWork } from "@/components/site/AgencyWork";
+import { ExpertVoices } from "@/components/site/ExpertVoices";
 import { TestimonialStrip } from "@/components/site/TestimonialStrip";
 import { CtaBand } from "@/components/site/CtaBand";
 import { buildSeo, breadcrumbSchema } from "@/lib/seo";
@@ -36,6 +37,7 @@ function WorkPage() {
       </Section>
       <Section>
         <AgencyWork filters />
+        <ExpertVoices />
       </Section>
       <TestimonialStrip />
       <CtaBand

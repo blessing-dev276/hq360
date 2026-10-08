@@ -13,6 +13,7 @@ import { PLANS } from "@/data/pricing";
 import { Section, SectionHeader, ButtonLink } from "./Primitives";
 import { ProjectInquiryForm } from "./ProjectInquiryForm";
 import { FaqSection } from "./FaqSection";
+import { ExpertVoices } from "./ExpertVoices";
 import { AgencyWork } from "./AgencyWork";
 
 /** Starting price per service, where one of the /pricing packages covers it.
@@ -190,6 +191,7 @@ export function CoreServicePage({
           intro="Published examples that match this service. We keep gaps visible rather than presenting proposed work as a completed project."
         />
         <AgencyWork service={service.slug} limit={4} />
+        <ExpertVoices service={service.slug} />
       </Section>
       <Section>
         <SectionHeader title="How delivery works" />
@@ -298,6 +300,7 @@ export function AudiencePage({ audience }: { audience: Audience }) {
       <Section tone="raised">
         <SectionHeader title="Relevant published work" />
         <AgencyWork audience={audience.slug} limit={4} />
+        <ExpertVoices audience={audience.slug} />
       </Section>
       <Section>
         <SectionHeader title="A practical way to work together" />

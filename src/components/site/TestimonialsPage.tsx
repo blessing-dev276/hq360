@@ -4,6 +4,7 @@ import { Quote } from "lucide-react";
 import { Container } from "@/components/site/Primitives";
 import { CtaBand } from "@/components/site/CtaBand";
 import { TestimonialStrip } from "@/components/site/TestimonialStrip";
+import { ExpertVoices } from "@/components/site/ExpertVoices";
 import { fetchPublicContent } from "@/lib/public-content";
 import { CTAS } from "@/config/brand";
 import "./testimonials-page.css";
@@ -81,6 +82,9 @@ export function TestimonialsPage() {
         eyebrow="Client proof"
         title={TAB_COPY[mediaType]}
       />
+      <Container>
+        <ExpertVoices limit={12} />
+      </Container>
 
       <CtaBand
         title="Want results like these?"

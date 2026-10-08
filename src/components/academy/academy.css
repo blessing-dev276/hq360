@@ -1580,18 +1580,18 @@
   transform: none;
   opacity: 1;
 }
-.asa-reveal h3,
-.asa-reveal p,
-.asa-reveal a {
+.asa-tcard h3,
+.asa-tcard p,
+.asa-tcard a {
   opacity: 0;
   transform: translateY(6px);
   transition:
     opacity 0.6s ease 0.25s,
     transform 0.6s ease 0.25s;
 }
-.asa-reveal.in h3,
-.asa-reveal.in p,
-.asa-reveal.in a {
+.asa-tcard.in h3,
+.asa-tcard.in p,
+.asa-tcard.in a {
   opacity: 1;
   transform: none;
 }
@@ -1602,9 +1602,9 @@
     animation: none;
   }
   .asa-trainer-photo img,
-  .asa-reveal h3,
-  .asa-reveal p,
-  .asa-reveal a {
+  .asa-tcard h3,
+  .asa-tcard p,
+  .asa-tcard a {
     transition: none;
   }
 }

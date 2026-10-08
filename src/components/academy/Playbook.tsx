@@ -204,7 +204,7 @@ function Trainer() {
     );
   const shown = revealed || missing || !t.photo;
   return (
-    <aside className={`asa-card asa-trainer asa-reveal${shown ? " in" : ""}`}>
+    <aside className={`asa-card asa-trainer asa-tcard${shown ? " in" : ""}`}>
       <div className={`asa-trainer-photo${shown ? " revealed" : ""}`}>
         {missing || !t.photo ? (
           <span className="asa-trainer-initials" aria-hidden="true">

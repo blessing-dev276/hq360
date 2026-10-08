@@ -9,19 +9,36 @@ type SessionLite = {
   coaching: { overall?: number; scores?: Record<string, number> } | null;
 };
 
-// Trainer overview. Works with a trainer login or the /admin passphrase cookie.
+// Trainer overview: a trainer sees their assigned trainees; the /admin
+// passphrase cookie sees everyone.
 export const Route = createFileRoute("/api/academy/admin/trainees")({
   server: {
     handlers: {
       GET: async ({ request }) => {
         const a = await import("@/lib/academy/academy.server");
-        if (!(await a.isTrainerRequest(request)))
-          return a.json({ ok: false, error: "forbidden" }, 403);
+        const scope = await a.trainerScope(request);
+        if (!scope) return a.json({ ok: false, error: "forbidden" }, 403);
 
-        const [{ data: profiles }, { data: sessionData }] = await Promise.all([
-          a.db.from("profiles").select("id, full_name, email, role, created_at"),
-          a.db.from("sessions").select("user_id, coaching, ended, created_at"),
-        ]);
+        // A trainer sees their assigned trainees; the admin sees everyone.
+        let profileQuery = a.db
+          .from("profiles")
+          .select("id, full_name, email, role, created_at, trainer_id, trainer_assigned_at");
+        if (!scope.all) profileQuery = profileQuery.eq("trainer_id", scope.trainerId);
+        const { data: profiles } = await profileQuery;
+        const ids = (profiles ?? []).map((p) => p.id as string);
+        const { data: sessionData } = ids.length
+          ? await a.db
+              .from("sessions")
+              .select("user_id, coaching, ended, created_at")
+              .in("user_id", ids)
+          : { data: [] };
+        const { data: trainerRows } = await a.db
+          .from("profiles")
+          .select("id, full_name, email")
+          .eq("role", "trainer");
+        const trainerName = new Map(
+          (trainerRows ?? []).map((t) => [t.id as string, (t.full_name || t.email) as string]),
+        );
         const sessions = (sessionData ?? []) as SessionLite[];
 
         const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
@@ -44,6 +61,9 @@ export const Route = createFileRoute("/api/academy/admin/trainees")({
             name: p.full_name as string | null,
             email: p.email as string | null,
             role: p.role as string,
+            joinedAt: p.created_at as string,
+            trainer: p.trainer_id ? (trainerName.get(p.trainer_id as string) ?? null) : null,
+            assignedAt: (p.trainer_assigned_at as string | null) ?? null,
             sessionsThisWeek: mine.filter((s) => new Date(s.created_at).getTime() >= weekAgo)
               .length,
             totalSessions: mine.length,
@@ -56,8 +76,8 @@ export const Route = createFileRoute("/api/academy/admin/trainees")({
       /** Make someone a trainer, or back to a trainee. */
       PATCH: async ({ request }) => {
         const a = await import("@/lib/academy/academy.server");
-        if (!(await a.isTrainerRequest(request)))
-          return a.json({ ok: false, error: "forbidden" }, 403);
+        const scope = await a.trainerScope(request);
+        if (!scope) return a.json({ ok: false, error: "forbidden" }, 403);
         const body = (await request.json().catch(() => null)) as {
           id?: unknown;
           role?: unknown;
@@ -66,6 +86,8 @@ export const Route = createFileRoute("/api/academy/admin/trainees")({
         const role = body?.role === "trainer" || body?.role === "trainee" ? body.role : null;
         if (!/^[0-9a-f-]{36}$/.test(id) || !role)
           return a.json({ ok: false, message: "Invalid request." }, 400);
+        if (!scope.all && !(await a.isAssignedTo(scope.trainerId, id)))
+          return a.json({ ok: false, message: "You can only manage your own trainees." }, 403);
         const viewer = await a.getViewer(request);
         if (viewer?.id === id && role === "trainee")
           return a.json({ ok: false, message: "You can't remove your own trainer access." }, 400);

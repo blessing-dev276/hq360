@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   BookOpen,
@@ -14,6 +14,7 @@ import { Playbook } from "./Playbook";
 import { PracticeRoom } from "./PracticeRoom";
 import { Demos, MyChats } from "./Library";
 import { TrainerTools } from "./TrainerTools";
+import { TrainerReveal, type ReelTrainer } from "./TrainerReveal";
 
 type Tab = "playbook" | "practice" | "chats" | "demos" | "admin";
 
@@ -23,6 +24,21 @@ export function AcademyApp() {
   const [tab, setTab] = useState<Tab>("playbook");
   const [resume, setResume] = useState<Session | null>(null);
   const [version, setVersion] = useState(0);
+  const [recovery, setRecovery] = useState(false);
+  const [reveal, setReveal] = useState<{ pool: ReelTrainer[]; winner: ReelTrainer } | null>(null);
+
+  // First sign in: the server randomly assigns a trainer, then we reveal it.
+  const assignTrainer = useCallback(async (v: Viewer) => {
+    if (v.role !== "trainee" || v.trainerId) return;
+    const { status, body } = await api<{ trainer: ReelTrainer | null; pool: ReelTrainer[] }>(
+      "/api/academy/assign",
+      { method: "POST" },
+    );
+    if (status !== 200 || !body.trainer) return;
+    const winner = body.trainer;
+    setViewer({ ...v, trainerId: winner.id, trainer: { id: winner.id, name: winner.name } });
+    setReveal({ pool: body.pool.length ? body.pool : [winner], winner });
+  }, []);
 
   const loadViewer = useCallback(async () => {
     const { data } = await supabase.auth.getSession();
@@ -35,12 +51,22 @@ export function AcademyApp() {
     if (status === 200 && body.viewer) {
       setViewer(body.viewer);
       setState("ready");
+      void assignTrainer(body.viewer);
     } else setState("signin");
-  }, []);
+  }, [assignTrainer]);
 
   useEffect(() => {
     void loadViewer();
-    const { data } = supabase.auth.onAuthStateChange(() => void loadViewer());
+    const { data } = supabase.auth.onAuthStateChange((event) => {
+      // A password reset link signs the user in; ask for the new password first.
+      if (event === "PASSWORD_RECOVERY") {
+        setRecovery(true);
+        setState("signin");
+        return;
+      }
+      if (event === "USER_UPDATED") setRecovery(false);
+      void loadViewer();
+    });
     return () => data.subscription.unsubscribe();
   }, [loadViewer]);
 
@@ -120,8 +146,11 @@ export function AcademyApp() {
           Loading...
         </p>
       ) : null}
-      {state === "signin" ? <SignIn /> : null}
-      {state === "ready" && viewer ? (
+      {state === "signin" || recovery ? <SignIn recovery={recovery} /> : null}
+      {reveal ? (
+        <TrainerReveal pool={reveal.pool} winner={reveal.winner} onDone={() => setReveal(null)} />
+      ) : null}
+      {state === "ready" && viewer && !recovery ? (
         <main>
           {tab === "playbook" ? <Playbook onPractice={() => go("practice")} /> : null}
           {tab === "practice" ? <PracticeRoom initial={resume} onChanged={bump} /> : null}
@@ -150,28 +179,53 @@ export function AcademyApp() {
   );
 }
 
-function SignIn() {
+function SignIn({ recovery = false }: { recovery?: boolean }) {
+  const [mode, setMode] = useState<"signin" | "signup" | "reset" | "newpass">(
+    recovery ? "newpass" : "signin",
+  );
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [sent, setSent] = useState(false);
+  const [password, setPassword] = useState("");
+  const [info, setInfo] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
-  const redirectTo =
-    typeof window !== "undefined" ? `${window.location.origin}/academy` : undefined;
+  const back = typeof window !== "undefined" ? `${window.location.origin}/academy` : undefined;
 
   async function submit(e: FormEvent) {
     e.preventDefault();
-    if (!email || busy) return;
+    if (busy) return;
     setBusy(true);
     setError("");
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: redirectTo ? { emailRedirectTo: redirectTo } : {},
-    });
+    setInfo("");
+    const result =
+      mode === "signin"
+        ? await supabase.auth.signInWithPassword({ email, password })
+        : mode === "signup"
+          ? await supabase.auth.signUp({
+              email,
+              password,
+              options: {
+                data: { full_name: name.trim() },
+                ...(back ? { emailRedirectTo: back } : {}),
+              },
+            })
+          : mode === "reset"
+            ? await supabase.auth.resetPasswordForEmail(email, back ? { redirectTo: back } : {})
+            : await supabase.auth.updateUser({ password });
     setBusy(false);
-    if (error) setError(error.message);
-    else setSent(true);
+    if (result.error) return setError(friendly(result.error.message));
+    if (mode === "signup" && !("session" in result.data && result.data.session))
+      setInfo(`Almost there. Confirm your email from the link we sent to ${email}, then sign in.`);
+    else if (mode === "reset") setInfo(`We sent a password reset link to ${email}.`);
+    // Sign in, sign up with a session and new password all continue via onAuthStateChange.
   }
 
+  const title = {
+    signin: "Sign in",
+    signup: "Create your account",
+    reset: "Reset your password",
+    newpass: "Choose a new password",
+  }[mode];
   return (
     <div className="asa-wrap" style={{ padding: "64px 16px" }}>
       <div className="asa-card" style={{ maxWidth: 440, margin: "0 auto", padding: 32 }}>
@@ -180,47 +234,117 @@ function SignIn() {
           Author Scout <span className="asa-orange">Academy</span>
         </h1>
         <p className="asa-muted" style={{ marginTop: 0 }}>
-          Sign in to read the playbook and practise with demo authors.
+          {title}. Read the playbook, practise with demo authors and learn from your trainer.
         </p>
-        {sent ? (
-          <p>Check your inbox. We sent a sign in link to {email}.</p>
-        ) : (
-          <form onSubmit={submit} style={{ display: "grid", gap: 10 }}>
-            <label htmlFor="asa-email" style={{ fontWeight: 600, fontSize: 14 }}>
-              Email
-            </label>
-            <input
-              id="asa-email"
-              type="email"
-              required
-              autoComplete="email"
-              className="asa-input"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-            <button type="submit" className="asa-btn" disabled={busy}>
-              {busy ? "Sending..." : "Email me a sign in link"}
-            </button>
-          </form>
-        )}
-        <div className="asa-muted" style={{ textAlign: "center", margin: "16px 0", fontSize: 13 }}>
-          or
-        </div>
-        <button
-          type="button"
-          className="asa-btn asa-btn-ghost"
-          style={{ width: "100%" }}
-          onClick={() =>
-            void supabase.auth.signInWithOAuth({
-              provider: "google",
-              options: redirectTo ? { redirectTo } : {},
-            })
-          }
-        >
-          Continue with Google
-        </button>
-        {error ? <p style={{ color: "var(--asa-bad)", fontSize: 14 }}>{error}</p> : null}
+        <form onSubmit={submit} style={{ display: "grid", gap: 10 }}>
+          {mode === "signup" ? (
+            <Field label="Full name" id="asa-name">
+              <input
+                id="asa-name"
+                required
+                autoComplete="name"
+                className="asa-input"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+              />
+            </Field>
+          ) : null}
+          {mode !== "newpass" ? (
+            <Field label="Email" id="asa-email">
+              <input
+                id="asa-email"
+                type="email"
+                required
+                autoComplete="email"
+                className="asa-input"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </Field>
+          ) : null}
+          {mode !== "reset" ? (
+            <Field label={mode === "newpass" ? "New password" : "Password"} id="asa-password">
+              <input
+                id="asa-password"
+                type="password"
+                required
+                minLength={8}
+                autoComplete={mode === "signin" ? "current-password" : "new-password"}
+                className="asa-input"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </Field>
+          ) : null}
+          <button type="submit" className="asa-btn" disabled={busy} style={{ marginTop: 6 }}>
+            {busy
+              ? "Please wait..."
+              : mode === "reset"
+                ? "Send reset link"
+                : mode === "newpass"
+                  ? "Save password"
+                  : title}
+          </button>
+        </form>
+        {info ? (
+          <p role="status" style={{ fontSize: 14 }}>
+            {info}
+          </p>
+        ) : null}
+        {error ? (
+          <p role="alert" style={{ color: "var(--asa-bad)", fontSize: 14 }}>
+            {error}
+          </p>
+        ) : null}
+        {mode !== "newpass" ? (
+          <div
+            className="asa-muted"
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              gap: 12,
+              marginTop: 18,
+              fontSize: 14,
+            }}
+          >
+            {mode === "signin" ? (
+              <>
+                <button type="button" className="asa-link" onClick={() => setMode("signup")}>
+                  New here? Create an account
+                </button>
+                <button type="button" className="asa-link" onClick={() => setMode("reset")}>
+                  Forgot password?
+                </button>
+              </>
+            ) : (
+              <button type="button" className="asa-link" onClick={() => setMode("signin")}>
+                Already have an account? Sign in
+              </button>
+            )}
+          </div>
+        ) : null}
       </div>
     </div>
   );
+}
+
+function Field({ label, id, children }: { label: string; id: string; children: ReactNode }) {
+  return (
+    <div style={{ display: "grid", gap: 6 }}>
+      <label htmlFor={id} style={{ fontWeight: 600, fontSize: 14 }}>
+        {label}
+      </label>
+      {children}
+    </div>
+  );
+}
+
+function friendly(message: string) {
+  if (/invalid login credentials/i.test(message))
+    return "Wrong email or password. Signed up with an email link before? Use Forgot password to set one.";
+  if (/email not confirmed/i.test(message))
+    return "Confirm your email first: open the link we sent you, then sign in.";
+  if (/already registered|already exists/i.test(message))
+    return "That email already has an account. Sign in, or use Forgot password.";
+  return message;
 }

@@ -70,6 +70,8 @@ export type Viewer = {
   email: string | null;
   name: string | null;
   role: "trainer" | "trainee";
+  trainerId?: string | null;
+  trainer?: { id: string; name: string } | null;
 };
 
 /* -------------------------------------------------------------------- api */

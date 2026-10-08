@@ -71,6 +71,7 @@ import { Route as ToolsAuthorVisibilityAuditRouteImport } from './routes/tools/a
 import { Route as ToolsWebsiteAuditRouteImport } from './routes/tools/website-audit'
 import { Route as WorkIndexRouteImport } from './routes/work.index'
 import { Route as WorkSlugRouteImport } from './routes/work.$slug'
+import { Route as ApiAcademyAssignRouteImport } from './routes/api/academy/assign'
 import { Route as ApiAcademyCoachRouteImport } from './routes/api/academy/coach'
 import { Route as ApiAcademyDemosRouteImport } from './routes/api/academy/demos'
 import { Route as ApiAcademyHintRouteImport } from './routes/api/academy/hint'
@@ -523,6 +524,11 @@ const WorkIndexRoute = WorkIndexRouteImport.update({
 const WorkSlugRoute = WorkSlugRouteImport.update({
   id: '/work/$slug',
   path: '/work/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAcademyAssignRoute = ApiAcademyAssignRouteImport.update({
+  id: '/api/academy/assign',
+  path: '/api/academy/assign',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiAcademyCoachRoute = ApiAcademyCoachRouteImport.update({
@@ -1348,6 +1354,7 @@ export interface FileRoutesByFullPath {
   '/services/': typeof ServicesIndexRoute
   '/tools/': typeof ToolsIndexRoute
   '/work/': typeof WorkIndexRoute
+  '/api/academy/assign': typeof ApiAcademyAssignRoute
   '/api/academy/coach': typeof ApiAcademyCoachRoute
   '/api/academy/demos': typeof ApiAcademyDemosRouteWithChildren
   '/api/academy/hint': typeof ApiAcademyHintRoute
@@ -1553,6 +1560,7 @@ export interface FileRoutesByTo {
   '/services': typeof ServicesIndexRoute
   '/tools': typeof ToolsIndexRoute
   '/work': typeof WorkIndexRoute
+  '/api/academy/assign': typeof ApiAcademyAssignRoute
   '/api/academy/coach': typeof ApiAcademyCoachRoute
   '/api/academy/demos': typeof ApiAcademyDemosRouteWithChildren
   '/api/academy/hint': typeof ApiAcademyHintRoute
@@ -1759,6 +1767,7 @@ export interface FileRoutesById {
   '/services/': typeof ServicesIndexRoute
   '/tools/': typeof ToolsIndexRoute
   '/work/': typeof WorkIndexRoute
+  '/api/academy/assign': typeof ApiAcademyAssignRoute
   '/api/academy/coach': typeof ApiAcademyCoachRoute
   '/api/academy/demos': typeof ApiAcademyDemosRouteWithChildren
   '/api/academy/hint': typeof ApiAcademyHintRoute
@@ -1966,6 +1975,7 @@ export interface FileRouteTypes {
     | '/services/'
     | '/tools/'
     | '/work/'
+    | '/api/academy/assign'
     | '/api/academy/coach'
     | '/api/academy/demos'
     | '/api/academy/hint'
@@ -2171,6 +2181,7 @@ export interface FileRouteTypes {
     | '/services'
     | '/tools'
     | '/work'
+    | '/api/academy/assign'
     | '/api/academy/coach'
     | '/api/academy/demos'
     | '/api/academy/hint'
@@ -2376,6 +2387,7 @@ export interface FileRouteTypes {
     | '/services/'
     | '/tools/'
     | '/work/'
+    | '/api/academy/assign'
     | '/api/academy/coach'
     | '/api/academy/demos'
     | '/api/academy/hint'
@@ -2582,6 +2594,7 @@ export interface RootRouteChildren {
   ServicesIndexRoute: typeof ServicesIndexRoute
   ToolsIndexRoute: typeof ToolsIndexRoute
   WorkIndexRoute: typeof WorkIndexRoute
+  ApiAcademyAssignRoute: typeof ApiAcademyAssignRoute
   ApiAcademyCoachRoute: typeof ApiAcademyCoachRoute
   ApiAcademyDemosRoute: typeof ApiAcademyDemosRouteWithChildren
   ApiAcademyHintRoute: typeof ApiAcademyHintRoute
@@ -3108,6 +3121,13 @@ declare module '@tanstack/react-router' {
       path: '/work/$slug'
       fullPath: '/work/$slug'
       preLoaderRoute: typeof WorkSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/academy/assign': {
+      id: '/api/academy/assign'
+      path: '/api/academy/assign'
+      fullPath: '/api/academy/assign'
+      preLoaderRoute: typeof ApiAcademyAssignRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/academy/coach': {
@@ -4575,6 +4595,7 @@ const rootRouteChildren: RootRouteChildren = {
   ServicesIndexRoute: ServicesIndexRoute,
   ToolsIndexRoute: ToolsIndexRoute,
   WorkIndexRoute: WorkIndexRoute,
+  ApiAcademyAssignRoute: ApiAcademyAssignRoute,
   ApiAcademyCoachRoute: ApiAcademyCoachRoute,
   ApiAcademyDemosRoute: ApiAcademyDemosRouteWithChildren,
   ApiAcademyHintRoute: ApiAcademyHintRoute,

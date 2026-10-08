@@ -84,7 +84,18 @@ async function trainerKey(userId: string): Promise<string | null> {
       (r) => ({ owner: r.expert_id, aad: r.expert_id, key: r.encrypted_key, at: r.updated_at }),
     ),
   ].sort((x, y) => y.at.localeCompare(x.at));
-  for (const c of [...candidates.filter((c) => c.owner === userId), ...candidates]) {
+  // The user's own key (trainers), then their assigned trainer's, then any.
+  const { data: me } = await db
+    .from("profiles")
+    .select("trainer_id")
+    .eq("id", userId)
+    .maybeSingle();
+  const assigned = (me as { trainer_id: string | null } | null)?.trainer_id ?? null;
+  for (const c of [
+    ...candidates.filter((c) => c.owner === userId),
+    ...candidates.filter((c) => c.owner === assigned),
+    ...candidates,
+  ]) {
     try {
       return decryptExpertKey(c.aad, c.key);
     } catch {

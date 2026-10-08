@@ -82,7 +82,14 @@ export type SessionRow = {
   difficulty: string;
   silent_left: number;
 };
-export type Viewer = { id: string; email: string | null; name: string | null; role: Role };
+export type Viewer = {
+  id: string;
+  email: string | null;
+  name: string | null;
+  role: Role;
+  /** The trainer this trainee was randomly assigned (null until assigned). */
+  trainerId: string | null;
+};
 
 export { NO_REPLY };
 export const MAX_MESSAGE_CHARS = 1500;
@@ -106,7 +113,7 @@ export async function getViewer(request: Request): Promise<Viewer | null> {
 
   let { data: profile } = await db
     .from("profiles")
-    .select("id, full_name, email, role")
+    .select("id, full_name, email, role, trainer_id")
     .eq("id", user.id)
     .maybeSingle();
   if (!profile) {
@@ -119,7 +126,7 @@ export async function getViewer(request: Request): Promise<Viewer | null> {
         email: user.email,
         full_name: (meta.full_name as string) ?? (meta.name as string) ?? null,
       })
-      .select("id, full_name, email, role")
+      .select("id, full_name, email, role, trainer_id")
       .single();
     profile = inserted.data;
   }
@@ -128,7 +135,31 @@ export async function getViewer(request: Request): Promise<Viewer | null> {
     email: user.email ?? null,
     name: (profile?.full_name as string | null) ?? null,
     role: profile?.role === "trainer" ? "trainer" : "trainee",
+    trainerId: (profile?.trainer_id as string | null) ?? null,
   };
+}
+
+/**
+ * Whose trainee data this request may see: everyone (the /admin passphrase),
+ * or only the trainees assigned to this trainer. Null for anyone else.
+ */
+export async function trainerScope(
+  request: Request,
+): Promise<{ all: true } | { all: false; trainerId: string } | null> {
+  if (await isAdminRequest(request)) return { all: true };
+  const viewer = await getViewer(request);
+  return viewer?.role === "trainer" ? { all: false, trainerId: viewer.id } : null;
+}
+
+/** Is this user one of the trainer's assigned trainees? */
+export async function isAssignedTo(trainerId: string, userId: string) {
+  const { data } = await db
+    .from("profiles")
+    .select("id")
+    .eq("id", userId)
+    .eq("trainer_id", trainerId)
+    .maybeSingle();
+  return Boolean(data);
 }
 
 /** Trainer via Supabase login, or anyone holding the /admin passphrase cookie. */
@@ -417,6 +448,8 @@ export async function loadOwnSession(id: string, viewer: Viewer) {
   const { data } = await db.from("sessions").select("*").eq("id", id).maybeSingle();
   const row = data as SessionRow | null;
   if (!row) return null;
-  if (row.user_id !== viewer.id && viewer.role !== "trainer") return null;
-  return row;
+  if (row.user_id === viewer.id) return row;
+  // Trainers see only the trainees assigned to them.
+  if (viewer.role === "trainer" && (await isAssignedTo(viewer.id, row.user_id))) return row;
+  return null;
 }

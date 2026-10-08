@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 // GET /api/academy/sessions          -> the viewer's own chats
-// GET /api/academy/sessions?id=...   -> one chat (own, or any for the trainer)
-// GET /api/academy/sessions?user=... -> a trainee's chats (trainer only)
+// GET /api/academy/sessions?id=...   -> one chat (own, or an assigned trainee's)
+// GET /api/academy/sessions?user=... -> an assigned trainee's chats (their trainer, or admin)
 export const Route = createFileRoute("/api/academy/sessions")({
   server: {
     handlers: {
@@ -13,7 +13,8 @@ export const Route = createFileRoute("/api/academy/sessions")({
         const user = url.searchParams.get("user");
 
         if (user) {
-          if (!(await a.isTrainerRequest(request)))
+          const scope = await a.trainerScope(request);
+          if (!scope || (!scope.all && !(await a.isAssignedTo(scope.trainerId, user))))
             return a.json({ ok: false, error: "forbidden" }, 403);
           const { data } = await a.db
             .from("sessions")

@@ -12,16 +12,20 @@ export const Route = createFileRoute("/api/academy/me")({
           const { db } = await import("@/lib/academy/academy.server");
           const { data } = await db
             .from("profiles")
-            .select("id, full_name, email")
+            .select("id, full_name, email, role")
             .eq("id", viewer.trainerId)
             .maybeSingle();
-          if (data)
+          if (data?.role === "trainer")
             trainer = {
               id: data.id as string,
               name: (data.full_name as string | null) || (data.email as string).split("@")[0]!,
             };
         }
-        return json({ ok: true, viewer: { ...viewer, trainer } });
+        // A trainer who stepped down counts as none: the trainee gets a new draw.
+        return json({
+          ok: true,
+          viewer: { ...viewer, trainerId: trainer ? viewer.trainerId : null, trainer },
+        });
       },
     },
   },

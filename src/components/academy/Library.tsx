@@ -242,6 +242,37 @@ export function TraineesAdmin({ fetcher = api as Fetcher }: { fetcher?: Fetcher 
   const [selected, setSelected] = useState<Trainee | null>(null);
   const [chats, setChats] = useState<Session[] | null>(null);
   const [openId, setOpenId] = useState<string | null>(null);
+  const [roleBusy, setRoleBusy] = useState("");
+  const [roleNotice, setRoleNotice] = useState("");
+
+  async function setRole(t: Trainee, role: "trainer" | "trainee") {
+    const who = t.name || t.email || "this person";
+    if (
+      !window.confirm(
+        role === "trainer"
+          ? `Make ${who} a trainer? They'll get Trainer tools: every trainee's chats, scores and the content editors.`
+          : `Remove trainer access from ${who}?`,
+      )
+    )
+      return;
+    setRoleBusy(t.id);
+    setRoleNotice("");
+    const { status, body } = await fetcher<{ message?: string }>("/api/academy/admin/trainees", {
+      method: "PATCH",
+      body: { id: t.id, role },
+    });
+    setRoleBusy("");
+    if (status === 200) {
+      setData((d) =>
+        d ? { trainees: d.trainees.map((x) => (x.id === t.id ? { ...x, role } : x)) } : d,
+      );
+      setRoleNotice(
+        role === "trainer"
+          ? `${who} is now a trainer. They'll see Trainer tools next time they open the Academy.`
+          : `${who} is now a trainee.`,
+      );
+    } else setRoleNotice(body.message || "Could not update the role.");
+  }
 
   useEffect(() => {
     void (async () => {
@@ -291,6 +322,15 @@ export function TraineesAdmin({ fetcher = api as Fetcher }: { fetcher?: Fetcher 
           team average score
         </div>
       </div>
+      {roleNotice ? (
+        <p role="status" style={{ fontSize: 14 }}>
+          {roleNotice}
+        </p>
+      ) : null}
+      <p className="asa-muted" style={{ fontSize: 13 }}>
+        Someone appears here after they sign in to the Academy once. Use Make trainer to give them
+        Trainer tools.
+      </p>
       <div className="asa-card asa-scroll-x" style={{ padding: 8 }}>
         <table className="asa-table">
           <thead>
@@ -301,6 +341,7 @@ export function TraineesAdmin({ fetcher = api as Fetcher }: { fetcher?: Fetcher 
               <th>Total</th>
               <th>Average</th>
               <th>Weakest</th>
+              <th>Role</th>
             </tr>
           </thead>
           <tbody>
@@ -319,6 +360,23 @@ export function TraineesAdmin({ fetcher = api as Fetcher }: { fetcher?: Fetcher 
                 <td>{t.totalSessions}</td>
                 <td>{t.averageScore ?? "-"}</td>
                 <td>{t.weakest ? SUB_NAMES[t.weakest] : "-"}</td>
+                <td>
+                  <button
+                    type="button"
+                    className={`asa-btn asa-btn-sm${t.role === "trainer" ? " asa-btn-ghost" : ""}`}
+                    disabled={roleBusy === t.id}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      void setRole(t, t.role === "trainer" ? "trainee" : "trainer");
+                    }}
+                  >
+                    {roleBusy === t.id
+                      ? "Saving..."
+                      : t.role === "trainer"
+                        ? "Remove trainer"
+                        : "Make trainer"}
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>

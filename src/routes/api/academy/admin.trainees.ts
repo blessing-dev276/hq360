@@ -53,6 +53,32 @@ export const Route = createFileRoute("/api/academy/admin/trainees")({
         });
         return a.json({ ok: true, trainees });
       },
+      /** Make someone a trainer, or back to a trainee. */
+      PATCH: async ({ request }) => {
+        const a = await import("@/lib/academy/academy.server");
+        if (!(await a.isTrainerRequest(request)))
+          return a.json({ ok: false, error: "forbidden" }, 403);
+        const body = (await request.json().catch(() => null)) as {
+          id?: unknown;
+          role?: unknown;
+        } | null;
+        const id = typeof body?.id === "string" ? body.id : "";
+        const role = body?.role === "trainer" || body?.role === "trainee" ? body.role : null;
+        if (!/^[0-9a-f-]{36}$/.test(id) || !role)
+          return a.json({ ok: false, message: "Invalid request." }, 400);
+        const viewer = await a.getViewer(request);
+        if (viewer?.id === id && role === "trainee")
+          return a.json({ ok: false, message: "You can't remove your own trainer access." }, 400);
+        const { data, error } = await a.db
+          .from("profiles")
+          .update({ role })
+          .eq("id", id)
+          .select("id, role")
+          .maybeSingle();
+        if (error) return a.json({ ok: false, message: "Could not update the role." }, 503);
+        if (!data) return a.json({ ok: false, message: "Person not found." }, 404);
+        return a.json({ ok: true, id, role });
+      },
     },
   },
 });

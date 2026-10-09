@@ -65,6 +65,8 @@ export function QuotesWorkspace() {
   const [me, setMe] = useState({ name: "HQ360", admin: false });
   const [error, setError] = useState("");
   const [editing, setEditing] = useState<Quote | null>(null);
+  // Opening a quote via "Create invoice" goes straight to the invoice form.
+  const [invoiceOnOpen, setInvoiceOnOpen] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -87,8 +89,10 @@ export function QuotesWorkspace() {
       <QuoteEditor
         initial={editing}
         isAdmin={me.admin}
+        startInvoice={invoiceOnOpen}
         onBack={() => {
           setEditing(null);
+          setInvoiceOnOpen(false);
           void load();
         }}
       />
@@ -134,7 +138,18 @@ export function QuotesWorkspace() {
         <ul className="qw-grid">
           {items.map((q) => (
             <li key={q.id}>
-              <QuoteCard quote={q} showOwner={me.admin} onOpen={() => setEditing(q)} />
+              <QuoteCard
+                quote={q}
+                showOwner={me.admin}
+                onOpen={() => {
+                  setInvoiceOnOpen(false);
+                  setEditing(q);
+                }}
+                onInvoice={() => {
+                  setInvoiceOnOpen(true);
+                  setEditing(q);
+                }}
+              />
             </li>
           ))}
         </ul>
@@ -146,10 +161,12 @@ export function QuotesWorkspace() {
 function QuoteCard({
   quote,
   onOpen,
+  onInvoice,
   showOwner,
 }: {
   quote: Saved;
   onOpen: () => void;
+  onInvoice: () => void;
   showOwner: boolean;
 }) {
   const [copied, setCopied] = useState(false);
@@ -177,6 +194,11 @@ function QuoteCard({
       >
         {copied ? <Check size={14} /> : <Link2 size={14} />} {copied ? "Copied" : "Copy link"}
       </button>
+      {["USD", "EUR"].includes(quote.currency) && (
+        <button type="button" className="qw-card-link qw-card-invoice" onClick={onInvoice}>
+          <FileText size={14} /> Create invoice
+        </button>
+      )}
     </div>
   );
 }
@@ -185,17 +207,19 @@ function QuoteEditor({
   initial,
   onBack,
   isAdmin,
+  startInvoice = false,
 }: {
   initial: Quote;
   onBack: () => void;
   isAdmin: boolean;
+  startInvoice?: boolean;
 }) {
   const [quote, setQuote] = useState<Quote>(initial);
   const [saved, setSaved] = useState<Quote>(initial);
   const [busy, setBusy] = useState<"" | "save" | "pdf" | "png" | "link" | "delete" | "convert">("");
   const [error, setError] = useState("");
   const [flash, setFlash] = useState("");
-  const [converting, setConverting] = useState(false);
+  const [converting, setConverting] = useState(startInvoice);
   const [conversionMethod, setConversionMethod] = useState<
     "bank_transfer" | "flutterwave" | "nowpayments"
   >(initial.currency === "EUR" ? "bank_transfer" : "flutterwave");
@@ -310,8 +334,10 @@ function QuoteEditor({
 
   async function convert(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!quote.id || dirty) return;
     const fields = new FormData(event.currentTarget);
+    // Save first, so the invoice always matches what's on screen.
+    const stored = dirty || !quote.id ? await save() : quote;
+    if (!stored?.id) return;
     setBusy("convert");
     setError("");
     try {
@@ -319,7 +345,7 @@ function QuoteEditor({
         kind: "invoice" | "request";
         invoice?: { number: string };
         existing: boolean;
-      }>(`/api/admin/quotes/${quote.id}/invoice`, {
+      }>(`/api/admin/quotes/${stored.id}/invoice`, {
         method: "POST",
         body: JSON.stringify({
           package_index: conversionPackage,
@@ -380,11 +406,19 @@ function QuoteEditor({
         <div className="qw-actions">
           <button
             className="admin-button admin-button-primary"
-            disabled={
-              Boolean(busy) || dirty || !quote.id || !["USD", "EUR"].includes(quote.currency)
+            disabled={Boolean(busy) || !["USD", "EUR"].includes(quote.currency)}
+            title={
+              ["USD", "EUR"].includes(quote.currency)
+                ? "Turn this quote into an invoice"
+                : "Invoices support USD or EUR quotes"
             }
-            onClick={() => {
+            onClick={async () => {
               setConversionResult("");
+              // Unsaved changes are saved first, so the invoice matches the quote.
+              if (dirty || !quote.id) {
+                const stored = await save();
+                if (!stored) return;
+              }
               setConverting(true);
             }}
           >

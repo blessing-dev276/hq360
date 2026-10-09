@@ -49,6 +49,9 @@ export function quoteInvoiceDetails(
   return {
     buyer_name: parsed.data.client_name,
     description,
+    title: parsed.data.project_title.slice(0, 200),
+    package_name: pkg.name.slice(0, 160),
+    included: pkg.features.filter(Boolean).slice(0, 30),
     amount_minor: amount,
     currency: parsed.data.currency as "USD" | "EUR",
   };

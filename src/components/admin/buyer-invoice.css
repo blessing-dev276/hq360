@@ -373,3 +373,78 @@
   color: var(--inv-muted);
   line-height: 1.5;
 }
+
+/* Title, package and what's included */
+.buyer-package {
+  margin: 0 0 20px;
+  padding: 18px 20px;
+  border: 1px solid #ececec;
+  border-radius: 16px;
+}
+.buyer-package h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+}
+.buyer-package-name {
+  margin: 4px 0 0;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #ff5a00;
+}
+.buyer-package-label {
+  margin: 14px 0 6px;
+  font-size: 11px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: #5f6368;
+}
+.buyer-package ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 6px;
+}
+.buyer-package li {
+  position: relative;
+  padding-left: 22px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.buyer-package li::before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  color: #ff5a00;
+  font-weight: 700;
+}
+
+/* "Sent by" expert on the buyer invoice. */
+.buyer-sender {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.buyer-sender-photo {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex: none;
+}
+.buyer-sender span {
+  display: grid;
+  gap: 2px;
+}
+.buyer-sender small {
+  font-weight: 400;
+  opacity: 0.7;
+}
+.buyer-sender a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}

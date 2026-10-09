@@ -47,6 +47,9 @@ export const Route = createFileRoute("/api/admin/invoice-requests/$id")({
             buyer_email: reqRow.buyer_email,
             buyer_phone: reqRow.buyer_phone,
             description: reqRow.description,
+            title: reqRow.title ?? "",
+            package_name: reqRow.package_name ?? "",
+            included: reqRow.included ?? [],
             amount_minor: reqRow.amount_minor,
             ...(reqRow.payment_type === "bank_transfer"
               ? {

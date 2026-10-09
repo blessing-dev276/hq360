@@ -5,6 +5,11 @@ export type Invoice = {
   buyer_email: string;
   buyer_phone: string;
   description: string;
+  /** Optional invoice heading, e.g. the project. */
+  title?: string;
+  package_name?: string;
+  /** What's included in the package, one item per entry. */
+  included?: string[];
   amount_minor: number;
   bank_transfer_amount_minor: number | null;
   currency: "USD" | "NGN" | "EUR";

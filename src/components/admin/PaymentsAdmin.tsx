@@ -241,6 +241,12 @@ export function PaymentsAdmin() {
         buyer_email: form.get("buyer_email"),
         buyer_phone: form.get("buyer_phone"),
         description: form.get("description"),
+        title: String(form.get("title") || ""),
+        package_name: String(form.get("package_name") || ""),
+        included: String(form.get("included") || "")
+          .split("\n")
+          .map((line) => line.replace(/^[-•*]\s*/, "").trim())
+          .filter(Boolean),
         amount_minor: Math.round(amount * 100),
         currency: "USD",
         bank_transfer_amount_minor:
@@ -775,6 +781,30 @@ export function PaymentsAdmin() {
                 />
               </label>
             </div>
+            <div className="admin-form-grid">
+              <label>
+                Title (optional)
+                <input
+                  name="title"
+                  maxLength={200}
+                  placeholder="e.g. Author website for Jane Doe"
+                />
+              </label>
+              <label>
+                Package name (optional)
+                <input name="package_name" maxLength={160} placeholder="e.g. Growth" />
+              </label>
+            </div>
+            <label>
+              What's included (optional, one item per line)
+              <textarea
+                name="included"
+                rows={4}
+                placeholder={
+                  "Custom 5-page author website\nBook page with buy links\nNewsletter signup"
+                }
+              />
+            </label>
             <label>
               What is this invoice for?
               <textarea
@@ -841,6 +871,15 @@ export function PaymentsAdmin() {
                   {invoiceStatus(selected)}
                 </span>
                 <strong>{money(selected.amount_minor, selected.currency)}</strong>
+                {selected.title && <p style={{ fontWeight: 700 }}>{selected.title}</p>}
+                {selected.package_name && <p>{selected.package_name} package</p>}
+                {selected.included && selected.included.length > 0 && (
+                  <ul style={{ margin: "4px 0 8px", paddingLeft: 18, listStyle: "disc" }}>
+                    {selected.included.map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                )}
                 <p>{selected.description}</p>
               </div>
               <dl className="admin-invoice-details">

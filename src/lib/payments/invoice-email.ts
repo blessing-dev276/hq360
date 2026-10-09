@@ -30,6 +30,24 @@ function longDate(value: string) {
       });
 }
 
+/** Title, package name and what's included, when the invoice has them. */
+function packageBlock(invoice: Invoice) {
+  if (!invoice.title && !invoice.package_name && !invoice.included?.length) return "";
+  const items = (invoice.included ?? [])
+    .map(
+      (item) =>
+        `<tr><td style="padding:4px 0;font-size:14px;line-height:1.5;color:${INK};"><span style="color:${ORANGE};font-weight:700;">&#10003;</span>&nbsp; ${esc(item)}</td></tr>`,
+    )
+    .join("");
+  return `<tr><td colspan="2" style="padding:0 0 18px;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid ${LINE};border-radius:14px;"><tr><td style="padding:18px 20px;">
+      ${invoice.title ? `<p style="margin:0;font-size:17px;font-weight:800;color:${INK};">${esc(invoice.title)}</p>` : ""}
+      ${invoice.package_name ? `<p style="margin:4px 0 0;font-size:13px;letter-spacing:1px;text-transform:uppercase;color:${ORANGE};font-weight:700;">${esc(invoice.package_name)} package</p>` : ""}
+      ${items ? `<p style="margin:14px 0 4px;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:${MUTED};">What's included</p><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">${items}</table>` : ""}
+    </td></tr></table>
+  </td></tr>`;
+}
+
 export function buildInvoiceEmail(invoice: Invoice, payUrl: string, siteOrigin: string) {
   const test = invoice.environment === "demo";
   const amount = money(invoice.amount_minor, invoice.currency);
@@ -50,6 +68,11 @@ export function buildInvoiceEmail(invoice: Invoice, payUrl: string, siteOrigin: 
     "",
     `Amount due: ${amount}`,
     `Due date: ${due}`,
+    ...(invoice.title ? [`Project: ${invoice.title}`] : []),
+    ...(invoice.package_name ? [`Package: ${invoice.package_name}`] : []),
+    ...(invoice.included?.length
+      ? ["What's included:", ...invoice.included.map((item) => `  - ${item}`)]
+      : []),
     `For: ${invoice.description}`,
     "",
     ...(invoice.provider === "bank_transfer"
@@ -124,6 +147,7 @@ export function buildInvoiceEmail(invoice: Invoice, payUrl: string, siteOrigin: 
         </td></tr>
         <tr><td style="padding:24px 36px 0;">
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+            ${packageBlock(invoice)}
             <tr><td colspan="2" style="padding:0 0 6px;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:${MUTED};">For</td></tr>
             <tr><td colspan="2" style="padding:0 0 14px;border-bottom:1px solid ${LINE};font-size:15px;line-height:1.6;color:${INK};">${esc(invoice.description)}</td></tr>
             ${row("Billed to", invoice.buyer_name)}

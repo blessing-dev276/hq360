@@ -63,6 +63,13 @@ export const invoiceSchema = z.object({
     .or(z.literal(""))
     .default(""),
   description: z.string().trim().min(3).max(1000),
+  title: z.string().trim().max(200).optional(),
+  package_name: z.string().trim().max(160).optional(),
+  included: z
+    .array(z.string().trim().max(300))
+    .max(30)
+    .transform((items) => items.filter(Boolean))
+    .optional(),
   amount_minor: z.number().int().positive().max(10000000000),
   currency: z.enum(["USD", "EUR"]).optional(),
   bank_transfer_amount_minor: z.number().int().positive().max(10000000000).optional(),

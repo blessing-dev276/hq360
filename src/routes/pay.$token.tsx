@@ -20,6 +20,9 @@ type PaymentData = {
   invoice: {
     number: string;
     description: string;
+    title?: string;
+    package_name?: string;
+    included?: string[];
     amount_minor: number;
     bank_transfer_amount_minor: number | null;
     currency: Invoice["currency"];
@@ -167,6 +170,25 @@ function BuyerInvoice() {
                   {status}
                 </span>
               </div>
+
+              {(inv.title || inv.package_name || inv.included?.length) && (
+                <section className="buyer-package" aria-label="Package">
+                  {inv.title && <h2>{inv.title}</h2>}
+                  {inv.package_name && (
+                    <p className="buyer-package-name">{inv.package_name} package</p>
+                  )}
+                  {inv.included && inv.included.length > 0 && (
+                    <>
+                      <p className="buyer-package-label">What's included</p>
+                      <ul>
+                        {inv.included.map((item) => (
+                          <li key={item}>{item}</li>
+                        ))}
+                      </ul>
+                    </>
+                  )}
+                </section>
+              )}
 
               <dl className="buyer-details">
                 <div className="buyer-for-row">

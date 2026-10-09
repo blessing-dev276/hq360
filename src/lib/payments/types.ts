@@ -10,6 +10,11 @@ export type Invoice = {
   package_name?: string;
   /** What's included in the package, one item per entry. */
   included?: string[];
+  /** "deposit" (50% to start) and "balance" (50% on delivery) are linked by installment_group. */
+  installment?: "full" | "deposit" | "balance";
+  installment_group?: string | null;
+  /** Full project price when the invoice is one part of a split. */
+  project_total_minor?: number | null;
   amount_minor: number;
   bank_transfer_amount_minor: number | null;
   currency: "USD" | "NGN" | "EUR";
@@ -61,6 +66,26 @@ export function money(minor: number, currency: Invoice["currency"] = "USD") {
     currency,
     maximumFractionDigits: 2,
   }).format(minor / 100);
+}
+/** For a 50/50 split: which part this invoice is and how it fits the total. */
+export function installmentInfo(
+  invoice: Pick<Invoice, "installment" | "project_total_minor" | "amount_minor" | "currency">,
+) {
+  if (!invoice.installment || invoice.installment === "full" || !invoice.project_total_minor)
+    return null;
+  const total = money(invoice.project_total_minor, invoice.currency);
+  const other = money(invoice.project_total_minor - invoice.amount_minor, invoice.currency);
+  return invoice.installment === "deposit"
+    ? {
+        label: "Deposit · 50% to start",
+        short: "Deposit 1 of 2",
+        note: `Project total ${total}. This 50% deposit starts the work; the remaining ${other} is due on delivery.`,
+      }
+    : {
+        label: "Balance · 50% on delivery",
+        short: "Balance 2 of 2",
+        note: `Project total ${total}. The 50% deposit of ${other} was the first payment; this balance is due on delivery.`,
+      };
 }
 export function invoiceStatus(invoice: Invoice) {
   return invoice.status === "pending" && invoice.due_date < new Date().toISOString().slice(0, 10)

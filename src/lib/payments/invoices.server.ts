@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
@@ -37,6 +38,14 @@ function providerModule(name: Invoice["provider"]) {
     throw new Error("This provider is no longer supported for new invoices.");
   return providers[name];
 }
+function addDays(date: string, days: number) {
+  return new Date(Date.parse(`${date}T00:00:00Z`) + days * 86400_000).toISOString().slice(0, 10);
+}
+/** A stable UUID derived from another, for the balance half of a split. */
+function derivedId(id: string) {
+  const hex = createHash("sha256").update(`balance:${id}`).digest("hex");
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-4${hex.slice(13, 16)}-a${hex.slice(17, 20)}-${hex.slice(20, 32)}`;
+}
 export function combinedSetup(): PaymentSetup {
   return {
     bank_transfer: { configured: true, environment: "live" },
@@ -64,6 +73,12 @@ export const invoiceSchema = z.object({
     .default(""),
   description: z.string().trim().min(3).max(1000),
   title: z.string().trim().max(200).optional(),
+  /** Split into 50% to start (this invoice) and 50% on delivery (a linked draft). */
+  split: z.boolean().optional(),
+  balance_due_date: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional(),
   package_name: z.string().trim().max(160).optional(),
   included: z
     .array(z.string().trim().max(300))
@@ -138,16 +153,44 @@ export async function createInvoice(input: z.infer<typeof invoiceSchema>) {
     input.provider === "bank_transfer"
       ? "live"
       : providerModule(input.provider).paymentSetup().environment;
-  const { error } = await db().upsert(
-    {
-      ...input,
-      // The requesting expert is the sender unless another one was picked.
-      sender_expert_id: input.sender_expert_id ?? input.requested_by_expert_id ?? null,
-      currency,
-      environment,
-    },
-    { onConflict: "id", ignoreDuplicates: true },
-  );
+  const { split, balance_due_date, ...fields } = input;
+  const base = {
+    ...fields,
+    // The requesting expert is the sender unless another one was picked.
+    sender_expert_id: input.sender_expert_id ?? input.requested_by_expert_id ?? null,
+    currency,
+    environment,
+  };
+  const rows: Record<string, unknown>[] = [];
+  if (split) {
+    // 50% to start now, 50% on delivery. The balance is a linked draft the
+    // admin issues when the work is delivered. Its id is derived from the
+    // deposit's, so a retried request never creates a second balance.
+    const half = (n: number) => Math.ceil(n / 2);
+    const balanceId = derivedId(input.id);
+    const bank = input.bank_transfer_amount_minor;
+    rows.push(
+      {
+        ...base,
+        amount_minor: half(input.amount_minor),
+        bank_transfer_amount_minor: bank ? half(bank) : bank,
+        installment: "deposit",
+        installment_group: input.id,
+        project_total_minor: input.amount_minor,
+      },
+      {
+        ...base,
+        id: balanceId,
+        amount_minor: input.amount_minor - half(input.amount_minor),
+        bank_transfer_amount_minor: bank ? bank - half(bank) : bank,
+        due_date: balance_due_date ?? addDays(input.due_date, 30),
+        installment: "balance",
+        installment_group: input.id,
+        project_total_minor: input.amount_minor,
+      },
+    );
+  } else rows.push(base);
+  const { error } = await db().upsert(rows, { onConflict: "id", ignoreDuplicates: true });
   if (error)
     throw new Error("Could not save the invoice. Check the database connection and migration.");
   return getInvoice(input.id);

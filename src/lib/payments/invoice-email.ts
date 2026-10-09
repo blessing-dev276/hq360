@@ -1,5 +1,5 @@
 import { bankDetails, bankInstructions } from "./bank-transfer";
-import { money, providerLabel, type Invoice } from "./types";
+import { installmentInfo, money, providerLabel, type Invoice } from "./types";
 
 // Branded invoice email. Email clients ignore <style> blocks and modern CSS,
 // so this is table-based with inline styles only, a 600px card, system
@@ -28,6 +28,13 @@ function longDate(value: string) {
         year: "numeric",
         timeZone: "UTC",
       });
+}
+
+/** "Deposit · 50% to start" / "Balance · 50% on delivery" with the project total. */
+function installmentBlock(invoice: Invoice) {
+  const part = installmentInfo(invoice);
+  if (!part) return "";
+  return `<tr><td colspan="2" style="padding:0 0 14px;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#fff7f2;border:1px solid #ffe0cc;border-radius:14px;"><tr><td style="padding:14px 18px;"><p style="margin:0;font-size:14px;font-weight:800;color:${ORANGE};">${esc(part.label)}</p><p style="margin:4px 0 0;font-size:13.5px;line-height:1.55;color:${INK};">${esc(part.note)}</p></td></tr></table></td></tr>`;
 }
 
 /** Title, package name and what's included, when the invoice has them. */
@@ -63,7 +70,8 @@ export function buildInvoiceEmail(
   const first = invoice.buyer_name.trim().split(/\s+/)[0] || invoice.buyer_name;
   const method = providerLabel(invoice.provider);
 
-  const subject = `${test ? "Test: " : ""}Invoice ${invoice.number} from ${from}, ${amount} due ${due}`;
+  const part = installmentInfo(invoice);
+  const subject = `${test ? "Test: " : ""}${part ? `${part.label.split(" · ")[0]} invoice` : "Invoice"} ${invoice.number} from ${from}, ${amount} due ${due}`;
   // Inbox preview line shown next to the subject.
   const preheader = `${amount} for ${invoice.description.slice(0, 80)}. Due ${due}.`;
 
@@ -75,6 +83,9 @@ export function buildInvoiceEmail(
     "",
     `Amount due: ${amount}`,
     `Due date: ${due}`,
+    ...(installmentInfo(invoice)
+      ? [installmentInfo(invoice)!.label, installmentInfo(invoice)!.note, ""]
+      : []),
     ...(invoice.title ? [`Project: ${invoice.title}`] : []),
     ...(invoice.package_name ? [`Package: ${invoice.package_name}`] : []),
     ...(invoice.included?.length
@@ -155,6 +166,7 @@ export function buildInvoiceEmail(
         </td></tr>
         <tr><td style="padding:24px 36px 0;">
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+            ${installmentBlock(invoice)}
             ${packageBlock(invoice)}
             <tr><td colspan="2" style="padding:0 0 6px;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:${MUTED};">For</td></tr>
             <tr><td colspan="2" style="padding:0 0 14px;border-bottom:1px solid ${LINE};font-size:15px;line-height:1.6;color:${INK};">${esc(invoice.description)}</td></tr>

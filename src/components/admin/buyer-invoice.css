@@ -479,3 +479,21 @@
   text-decoration: underline;
   text-underline-offset: 3px;
 }
+.buyer-installment {
+  display: grid;
+  gap: 4px;
+  margin: 0 0 16px;
+  padding: 14px 18px;
+  border-radius: 14px;
+  background: #fff7f2;
+  border: 1px solid #ffe0cc;
+}
+.buyer-installment strong {
+  color: #ff5a00;
+  font-size: 14px;
+}
+.buyer-installment span {
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: #3c4043;
+}

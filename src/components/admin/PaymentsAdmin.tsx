@@ -24,6 +24,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import {
+  installmentInfo,
   invoiceStatus,
   money,
   providerLabel,
@@ -86,6 +87,8 @@ export function PaymentsAdmin() {
   const [filter, setFilter] = useState("all");
   const [creating, setCreating] = useState(false);
   const [provider, setProvider] = useState<Invoice["provider"]>("bank_transfer");
+  // "split" = 50% to start now, 50% on delivery (a linked balance draft).
+  const [terms, setTerms] = useState<"full" | "split">("split");
   const [selected, setSelected] = useState<Invoice | null>(null);
   const [busy, setBusy] = useState("");
   const [requests, setRequests] = useState<InvoiceRequest[]>([]);
@@ -298,13 +301,23 @@ export function PaymentsAdmin() {
             ? Math.round(Number(form.get("bank_transfer_amount")) * 100)
             : undefined,
         due_date: form.get("due_date"),
+        ...(terms === "split"
+          ? {
+              split: true,
+              balance_due_date: String(form.get("balance_due_date") || "") || undefined,
+            }
+          : {}),
         ...(form.get("sender_expert_id")
           ? { sender_expert_id: String(form.get("sender_expert_id")) }
           : {}),
       });
       merge(data.invoice);
       setCreating(false);
-      setNotice("Draft saved. Review the details, then issue your invoice.");
+      setNotice(
+        terms === "split"
+          ? "Saved two linked drafts: the 50% deposit (issue it now) and the 50% balance (issue it on delivery)."
+          : "Draft saved. Review the details, then issue your invoice.",
+      );
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not create invoice.");
     } finally {
@@ -561,6 +574,11 @@ export function PaymentsAdmin() {
                         {i.number}
                       </button>
                       <small>{i.buyer_name}</small>
+                      {installmentInfo(i) && (
+                        <small style={{ color: "var(--brand)", fontWeight: 600 }}>
+                          {installmentInfo(i)!.short}
+                        </small>
+                      )}
                       {i.requested_by && (
                         <small>
                           Requested by {i.requested_by.full_name || i.requested_by.email}
@@ -874,8 +892,30 @@ export function PaymentsAdmin() {
                 placeholder="Service or product, scope and any agreed details"
               />
             </label>
+            <div className="admin-form-grid">
+              <label>
+                Payment terms
+                <select
+                  value={terms}
+                  onChange={(e) => setTerms(e.target.value as "full" | "split")}
+                >
+                  <option value="split">50% to start, 50% on delivery</option>
+                  <option value="full">Full payment</option>
+                </select>
+              </label>
+              {terms === "split" && (
+                <label>
+                  Balance due date (on delivery)
+                  <input
+                    name="balance_due_date"
+                    type="date"
+                    defaultValue={new Date(Date.now() + 37 * 86400000).toISOString().slice(0, 10)}
+                  />
+                </label>
+              )}
+            </div>
             <label>
-              Amount (USD)
+              {terms === "split" ? "Total project price (USD)" : "Amount (USD)"}
               <input
                 name="amount"
                 type="number"
@@ -888,7 +928,9 @@ export function PaymentsAdmin() {
             </label>
             {provider === "bank_transfer" && (
               <label>
-                Agreed transfer amount (EUR)
+                {terms === "split"
+                  ? "Total agreed transfer amount (EUR)"
+                  : "Agreed transfer amount (EUR)"}
                 <input
                   name="bank_transfer_amount"
                   type="number"
@@ -929,6 +971,11 @@ export function PaymentsAdmin() {
                   {invoiceStatus(selected)}
                 </span>
                 <strong>{money(selected.amount_minor, selected.currency)}</strong>
+                {installmentInfo(selected) && (
+                  <p style={{ color: "var(--brand)", fontWeight: 600 }}>
+                    {installmentInfo(selected)!.label} · {installmentInfo(selected)!.note}
+                  </p>
+                )}
                 {selected.title && <p style={{ fontWeight: 700 }}>{selected.title}</p>}
                 {selected.package_name && <p>{selected.package_name} package</p>}
                 {selected.included && selected.included.length > 0 && (

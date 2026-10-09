@@ -21,6 +21,12 @@ export const conversionInput = z.object({
       "Invalid due date",
     ),
   payment_method: z.enum(["bank_transfer", "flutterwave", "nowpayments"]),
+  /** 50% to start, 50% on delivery (admin invoices only). */
+  split: z.boolean().default(false),
+  balance_due_date: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional(),
 });
 
 export function quoteInvoiceDetails(

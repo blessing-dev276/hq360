@@ -42,6 +42,8 @@ async function publicInvoice(token: string, verify: boolean) {
         title: invoice.title ?? "",
         package_name: invoice.package_name ?? "",
         included: invoice.included ?? [],
+        installment: invoice.installment ?? "full",
+        project_total_minor: invoice.project_total_minor ?? null,
         buyer_name: invoice.buyer_name,
         created_at: invoice.created_at,
         paid_at: invoice.paid_at,

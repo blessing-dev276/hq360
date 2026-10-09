@@ -356,6 +356,10 @@ function QuoteEditor({
             ? Math.round(Number(fields.get("bank_transfer_amount")) * 100)
             : undefined,
           payment_method: fields.get("payment_method"),
+          split: fields.get("payment_terms") === "split",
+          ...(fields.get("balance_due_date")
+            ? { balance_due_date: fields.get("balance_due_date") }
+            : {}),
         }),
       });
       setConversionResult(
@@ -479,6 +483,15 @@ function QuoteEditor({
                 ))}
               </select>
             </label>
+            {isAdmin && (
+              <label>
+                Payment terms
+                <select name="payment_terms" defaultValue="split">
+                  <option value="split">50% to start, 50% on delivery</option>
+                  <option value="full">Full payment</option>
+                </select>
+              </label>
+            )}
             <label>
               Payment method
               <select

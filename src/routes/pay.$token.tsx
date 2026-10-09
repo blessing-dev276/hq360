@@ -3,7 +3,13 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { ArrowUpRight, CheckCircle2, LockKeyhole, RefreshCw, Printer } from "lucide-react";
 import { bankDetails, bankInstructions } from "@/lib/payments/bank-transfer";
-import { money, paymentKind, providerLabel, type Invoice } from "@/lib/payments/types";
+import {
+  installmentInfo,
+  money,
+  paymentKind,
+  providerLabel,
+  type Invoice,
+} from "@/lib/payments/types";
 import "@/components/admin/buyer-invoice.css";
 
 export const Route = createFileRoute("/pay/$token")({
@@ -23,6 +29,8 @@ type PaymentData = {
     title?: string;
     package_name?: string;
     included?: string[];
+    installment?: "full" | "deposit" | "balance";
+    project_total_minor?: number | null;
     amount_minor: number;
     bank_transfer_amount_minor: number | null;
     currency: Invoice["currency"];
@@ -205,6 +213,15 @@ function BuyerInvoice() {
                 </span>
               </div>
 
+              {(() => {
+                const part = installmentInfo(inv);
+                return part ? (
+                  <div className="buyer-installment">
+                    <strong>{part.label}</strong>
+                    <span>{part.note}</span>
+                  </div>
+                ) : null;
+              })()}
               {(inv.title || inv.package_name || inv.included?.length) && (
                 <section className="buyer-package" aria-label="Package">
                   {inv.title && <h2>{inv.title}</h2>}

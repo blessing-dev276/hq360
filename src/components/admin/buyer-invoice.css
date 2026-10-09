@@ -329,6 +329,7 @@
   }
   .buyer-actions,
   .buyer-closing button,
+  .buyer-invoice-card button,
   .buyer-message {
     display: none;
   }

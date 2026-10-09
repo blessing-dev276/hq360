@@ -12,6 +12,7 @@ import {
   type PaymentSetup,
 } from "./types";
 
+const ACTIVE_PROVIDERS = ["bank_transfer", "nowpayments", "flutterwave"] as const;
 const HOSTED_PROVIDERS = ["nowpayments", "flutterwave"] as const;
 type HostedProvider = (typeof HOSTED_PROVIDERS)[number];
 type ProviderModule = {
@@ -38,19 +39,21 @@ function providerModule(name: Invoice["provider"]) {
 }
 export function combinedSetup(): PaymentSetup {
   return {
+    bank_transfer: { configured: true, environment: "live" },
     emailConfigured: process.env.EMAIL_PROVIDER === "resend" && Boolean(process.env.RESEND_API_KEY),
     nowpayments: nowpayments.paymentSetup(),
     flutterwave: flutterwave.paymentSetup(),
   };
 }
 export function checkoutUrlFor(invoice: Invoice) {
+  if (invoice.provider === "bank_transfer") return "";
   return providerModule(invoice.provider).checkoutUrl(invoice.checkout_url, invoice.environment);
 }
 
 const db = () => (supabaseAdmin as SupabaseClient).from("payment_invoices");
 export const invoiceSchema = z.object({
   id: z.string().uuid(),
-  provider: z.enum(HOSTED_PROVIDERS),
+  provider: z.enum(ACTIVE_PROVIDERS),
   buyer_name: z.string().trim().min(2).max(150),
   buyer_email: z.string().trim().email().max(254),
   buyer_phone: z
@@ -85,7 +88,7 @@ export function sameOrigin(request: Request) {
 export async function listInvoices() {
   const { data, error } = await db()
     .select("*, requested_by:expert_profiles(full_name, email)")
-    .in("provider", HOSTED_PROVIDERS)
+    .in("provider", ACTIVE_PROVIDERS)
     .order("created_at", { ascending: false })
     .limit(1000);
   if (error)
@@ -102,13 +105,16 @@ export async function getInvoice(id: string, byToken = false): Promise<Invoice> 
     .eq(byToken ? "payment_token" : "id", id)
     .maybeSingle();
   if (error) throw new Error("Invoice storage is unavailable.");
-  if (!data || !HOSTED_PROVIDERS.includes(data.provider)) throw new Error("Invoice not found.");
+  if (!data || !ACTIVE_PROVIDERS.includes(data.provider)) throw new Error("Invoice not found.");
   return data as Invoice;
 }
 export async function createInvoice(input: z.infer<typeof invoiceSchema>) {
-  const environment = providerModule(input.provider).paymentSetup().environment;
+  const environment =
+    input.provider === "bank_transfer"
+      ? "live"
+      : providerModule(input.provider).paymentSetup().environment;
   const { error } = await db().upsert(
-    { ...input, currency: "USD", environment },
+    { ...input, currency: input.provider === "bank_transfer" ? "EUR" : "USD", environment },
     { onConflict: "id", ignoreDuplicates: true },
   );
   if (error)
@@ -121,7 +127,7 @@ export async function deleteDraft(id: string) {
   const { data, error } = await db()
     .delete()
     .eq("id", id)
-    .in("provider", HOSTED_PROVIDERS)
+    .in("provider", ACTIVE_PROVIDERS)
     .eq("status", "draft")
     .is("provider_invoice_id", null)
     .is("payment_id", null)
@@ -142,13 +148,26 @@ export async function cancelInvoice(id: string) {
   const { data, error } = await db()
     .update({ status: "cancelled" })
     .eq("id", id)
-    .in("provider", HOSTED_PROVIDERS)
+    .in("provider", ACTIVE_PROVIDERS)
     .eq("status", "pending")
     .select("id");
   if (error) throw new Error("Could not cancel this invoice. Please try again.");
   if (!data?.length) throw new Error("Only an issued, unpaid invoice can be cancelled.");
 }
 export async function issueInvoice(invoice: Invoice) {
+  if (invoice.provider === "bank_transfer") {
+    if (invoice.provider_invoice_id) return invoice;
+    const { error, data } = await db()
+      .update({ status: "pending", provider_invoice_id: invoice.number })
+      .eq("id", invoice.id)
+      .eq("provider", "bank_transfer")
+      .eq("currency", "EUR")
+      .eq("status", "draft")
+      .is("provider_invoice_id", null)
+      .select("id");
+    if (error || !data?.length) throw new Error("Could not issue the bank transfer invoice.");
+    return getInvoice(invoice.id);
+  }
   const mod = providerModule(invoice.provider);
   if (invoice.provider_invoice_id) return invoice;
   // Validate local configuration before claiming the one-shot provider request.
@@ -218,7 +237,28 @@ export async function reconcilePayment(invoice: Invoice, paymentId: string) {
   if (error) throw new Error("Payment status could not be saved. Please check again.");
   return getInvoice(invoice.id);
 }
+export async function confirmBankTransfer(invoice: Invoice, reference: unknown) {
+  const parsed = z.string().trim().min(3).max(200).safeParse(reference);
+  if (invoice.provider !== "bank_transfer" || !parsed.success)
+    throw new Error("Enter the bank transaction reference after confirming receipt.");
+  const { error, data } = await db()
+    .update({
+      status: "paid",
+      paid_at: new Date().toISOString(),
+      payment_id: parsed.data,
+      provider_status: "receipt_confirmed_by_admin",
+    })
+    .eq("id", invoice.id)
+    .eq("provider", "bank_transfer")
+    .eq("currency", "EUR")
+    .eq("status", "pending")
+    .select("id");
+  if (error || !data?.length)
+    throw new Error("Only an unpaid bank transfer invoice can be confirmed.");
+  return getInvoice(invoice.id);
+}
 export async function verifyInvoice(invoice: Invoice) {
+  if (invoice.provider === "bank_transfer") return getInvoice(invoice.id);
   providerModule(invoice.provider);
   if (!invoice.provider_invoice_id) throw new Error("Issue this invoice before checking payment.");
   // The signed IPN supplies the payment ID once the buyer chooses a coin.
@@ -239,7 +279,7 @@ export function invoiceLink(invoice: Invoice) {
   return `${site.origin}/pay/${invoice.payment_token}`;
 }
 export async function emailInvoice(invoice: Invoice) {
-  providerModule(invoice.provider);
+  if (invoice.provider !== "bank_transfer") providerModule(invoice.provider);
   if (!invoice.provider_invoice_id) throw new Error("Issue the invoice before sending it.");
   if (invoice.status === "cancelled") throw new Error("This invoice was cancelled.");
   if (["paid", "refunded"].includes(invoice.status))

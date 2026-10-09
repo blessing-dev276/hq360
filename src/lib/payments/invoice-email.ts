@@ -1,3 +1,4 @@
+import { bankDetails, bankInstructions } from "./bank-transfer";
 import { money, providerLabel, type Invoice } from "./types";
 
 // Branded invoice email. Email clients ignore <style> blocks and modern CSS,
@@ -51,6 +52,14 @@ export function buildInvoiceEmail(invoice: Invoice, payUrl: string, siteOrigin: 
     `Due date: ${due}`,
     `For: ${invoice.description}`,
     "",
+    ...(invoice.provider === "bank_transfer"
+      ? [
+          bankInstructions,
+          ...bankDetails.map(([label, value]) => `${label}: ${value}`),
+          `Payment reference: ${invoice.number}`,
+          "",
+        ]
+      : []),
     `View and pay securely (${method}):`,
     payUrl,
     "",
@@ -120,6 +129,7 @@ export function buildInvoiceEmail(invoice: Invoice, payUrl: string, siteOrigin: 
             ${row("Payment method", method)}
           </table>
         </td></tr>
+        ${invoice.provider === "bank_transfer" ? `<tr><td style="padding:24px 36px 0;"><p style="font-size:14px;line-height:1.6;">${esc(bankInstructions)}</p><table width="100%">${bankDetails.map(([label, value]) => row(label, value)).join("")}${row("Payment reference", invoice.number)}</table></td></tr>` : ""}
         <tr><td align="center" style="padding:30px 36px 8px;">
           <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
             <td align="center" style="border-radius:999px;background:${ORANGE};">

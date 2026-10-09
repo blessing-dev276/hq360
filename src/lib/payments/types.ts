@@ -6,10 +6,10 @@ export type Invoice = {
   buyer_phone: string;
   description: string;
   amount_minor: number;
-  currency: "USD" | "NGN";
+  currency: "USD" | "NGN" | "EUR";
   due_date: string;
   status: "draft" | "pending" | "paid" | "refunded" | "cancelled";
-  provider: "nowpayments" | "flutterwave" | "paystack" | "remita";
+  provider: "bank_transfer" | "nowpayments" | "flutterwave" | "paystack" | "remita";
   provider_invoice_id: string | null;
   checkout_url: string | null;
   payment_id: string | null;
@@ -25,17 +25,20 @@ export type Invoice = {
 export type ProviderSetup = { configured: boolean; environment: "demo" | "live" };
 export type PaymentSetup = {
   emailConfigured: boolean;
+  bank_transfer: ProviderSetup;
   nowpayments: ProviderSetup;
   flutterwave: ProviderSetup;
 };
 export function providerLabel(provider: Invoice["provider"]) {
-  return provider === "paystack"
-    ? "Paystack"
-    : provider === "nowpayments"
-      ? "NOWPayments"
-      : provider === "flutterwave"
-        ? "Flutterwave"
-        : "Remita";
+  return provider === "bank_transfer"
+    ? "Bank transfer (EUR)"
+    : provider === "paystack"
+      ? "Paystack"
+      : provider === "nowpayments"
+        ? "NOWPayments"
+        : provider === "flutterwave"
+          ? "Flutterwave"
+          : "Remita";
 }
 /** Crypto (NOWPayments) vs card/bank (Flutterwave) -- drives copy on the
  *  buyer-facing checkout page and the expert invoice-request form. */

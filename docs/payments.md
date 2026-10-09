@@ -37,6 +37,16 @@ The dashboard and CSV cover the latest 1,000 NOWPayments invoices in the current
 
 References: [NOWPayments integration guide](https://nowpayments.io/blog/nowpayments-api-explained-customize-your-payment-gateway), [official SDK and signature rules](https://github.com/NowPaymentsIO/nowpayments-sdk-nodejs), [API endpoint documentation](https://nowpayments.zendesk.com/hc/en-us/articles/21345824322717-API-and-endpoint-description), and [sandbox guide](https://nowpayments.io/blog/how-to-use-the-sandbox-a-guide).
 
-## Active provider
+## Provider migration history
 
-NOWPayments is the only active provider. Apply `20260930110000_nowpayments_only.sql` after the existing migrations to enforce this for database writes as well as the application. Historical Remita/Paystack rows are preserved, but those providers cannot create invoices, issue checkout links or receive payment callbacks in HQ360. The retired Paystack webhook returns HTTP 410.
+The `20260930110000` migration made NOWPayments the only active provider at that point. Later migrations add Flutterwave and direct EUR bank transfers. Apply `20260930110000_nowpayments_only.sql` after the existing migrations to enforce this for database writes as well as the application. Historical Remita/Paystack rows are preserved, but those providers cannot create invoices, issue checkout links or receive payment callbacks in HQ360. The retired Paystack webhook returns HTTP 410.
+
+## Direct EUR bank transfers
+
+Apply `20261009120000_bank_transfer_invoices.sql` after the Flutterwave and cancellation migrations, then deploy the application. Bank transfer is an additional active method and the default selection for new admin invoices. It requires no payment gateway credentials; email still requires the existing email configuration.
+
+Choose **Bank transfer**, enter the agreed amount in **EUR**, save and issue the invoice, then use **Send invoice** or **Copy link**. Emails and printable buyer invoices include the supplied Clear Junction account details, the invoice number as payment reference, and the account holder's receiving restrictions: EUR only, SEPA or SEPA Instant from EEA banks. The SWIFT/BIC is shown as an account identifier, not an offered wire-transfer method. Existing USD invoices are not converted; issue a new EUR invoice for an agreed EUR amount when changing methods.
+
+Transfers remain pending until an authenticated admin checks the actual bank receipt and selects **Confirm bank receipt**, entering the bank transaction reference. Refreshing the buyer page never marks a payment paid. There is no bank feed or automated settlement verification. Record full receipt only; partial transfers remain pending. USD and EUR dashboard totals are separate. Cancelling an invoice hides payment instructions but cannot prevent someone transferring to previously shared bank details.
+
+Verification: `bun test tests/bank-transfer.test.ts tests/payments.test.ts tests/payments-database.test.ts`. After building and starting preview on port 8081, run `bun scripts/test-bank-transfer-browser.mjs` for mocked desktop, mobile, print, pending-status and cancellation checks.

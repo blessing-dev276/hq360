@@ -2,6 +2,7 @@ import { LoadingRegion, Skeleton } from "@/components/ui/skeleton";
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { ArrowUpRight, CheckCircle2, LockKeyhole, RefreshCw, Printer } from "lucide-react";
+import { bankDetails, bankInstructions } from "@/lib/payments/bank-transfer";
 import { money, paymentKind, providerLabel, type Invoice } from "@/lib/payments/types";
 import "@/components/admin/buyer-invoice.css";
 
@@ -20,7 +21,7 @@ type PaymentData = {
     number: string;
     description: string;
     amount_minor: number;
-    currency: "USD" | "NGN";
+    currency: Invoice["currency"];
     due_date: string;
     status: string;
     provider: Invoice["provider"];
@@ -210,9 +211,32 @@ function BuyerInvoice() {
 
               {inv.status === "paid" ? (
                 <div className="buyer-paid">
-                  <CheckCircle2 size={20} /> Payment confirmed by {providerLabel(inv.provider)}
+                  <CheckCircle2 size={20} /> Payment confirmed by{" "}
+                  {inv.provider === "bank_transfer" ? "HQ360" : providerLabel(inv.provider)}
                 </div>
-              ) : inv.status === "cancelled" || inv.status === "refunded" ? null : (
+              ) : inv.status === "cancelled" || inv.status === "refunded" ? null : inv.provider ===
+                "bank_transfer" ? (
+                <section aria-label="Bank transfer instructions">
+                  <h2>Pay by bank transfer</h2>
+                  <p className="buyer-note">{bankInstructions}</p>
+                  <dl className="buyer-details">
+                    {bankDetails.map(([label, value]) => (
+                      <div key={label}>
+                        <dt>{label}</dt>
+                        <dd style={{ overflowWrap: "anywhere" }}>{value}</dd>
+                      </div>
+                    ))}
+                    <div>
+                      <dt>Payment reference</dt>
+                      <dd>{inv.number}</dd>
+                    </div>
+                  </dl>
+                  <button className="buyer-link" disabled={busy} onClick={() => void verify()}>
+                    <RefreshCw size={14} />
+                    Refresh payment status
+                  </button>
+                </section>
+              ) : (
                 <div className="buyer-actions">
                   <a className="buyer-pay" href={data.checkout.url} rel="noreferrer">
                     {paymentKind(inv.provider) === "crypto" ? "Pay with crypto" : "Pay invoice"}
@@ -235,8 +259,11 @@ function BuyerInvoice() {
 
               <div className="buyer-closing">
                 <span>
-                  <LockKeyhole size={13} /> Secured by {providerLabel(inv.provider)}. Questions?{" "}
-                  <a href="mailto:ceo@hq360.space">Contact HQ360</a>
+                  <LockKeyhole size={13} />{" "}
+                  {inv.provider === "bank_transfer"
+                    ? "Direct bank transfer"
+                    : `Secured by ${providerLabel(inv.provider)}`}
+                  . Questions? <a href="mailto:ceo@hq360.space">Contact HQ360</a>
                 </span>
                 <button
                   className="buyer-link"

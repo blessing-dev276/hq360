@@ -49,6 +49,11 @@ type InvoiceRequest = {
 };
 
 const PROVIDERS = [
+  {
+    value: "bank_transfer",
+    label: "Bank transfer",
+    hint: "EUR only · SEPA / SEPA Instant from EEA banks · receipt confirmed manually",
+  },
   { value: "nowpayments", label: "NOWPayments", hint: "Crypto checkout" },
   { value: "flutterwave", label: "Flutterwave", hint: "Card & bank checkout" },
 ] as const;
@@ -77,7 +82,7 @@ export function PaymentsAdmin() {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
   const [creating, setCreating] = useState(false);
-  const [provider, setProvider] = useState<Invoice["provider"]>("nowpayments");
+  const [provider, setProvider] = useState<Invoice["provider"]>("bank_transfer");
   const [selected, setSelected] = useState<Invoice | null>(null);
   const [busy, setBusy] = useState("");
   const [requests, setRequests] = useState<InvoiceRequest[]>([]);
@@ -118,12 +123,21 @@ export function PaymentsAdmin() {
     );
     setSelected(invoice);
   }
-  async function action(invoice: Invoice, action: "issue" | "send" | "verify") {
+  async function action(invoice: Invoice, action: "issue" | "send" | "verify" | "confirm_bank") {
+    let reference: string | undefined;
+    if (action === "confirm_bank") {
+      reference = window
+        .prompt(
+          `Confirm that ${money(invoice.amount_minor, invoice.currency)} has arrived in your bank account for ${invoice.number}. Enter the bank transaction reference:`,
+        )
+        ?.trim();
+      if (!reference) return;
+    }
     setBusy(action);
     setError("");
     setNotice("");
     try {
-      const data = await call(`/api/admin/invoices/${invoice.id}`, { action });
+      const data = await call(`/api/admin/invoices/${invoice.id}`, { action, reference });
       merge(data.invoice);
       setNotice(
         action === "send"
@@ -131,7 +145,9 @@ export function PaymentsAdmin() {
           : action === "issue"
             ? "Invoice issued. Your buyer’s payment link is ready."
             : data.invoice.status === "paid"
-              ? `Payment verified by ${providerLabel(data.invoice.provider)}.`
+              ? data.invoice.provider === "bank_transfer"
+                ? "Bank receipt confirmed."
+                : `Payment verified by ${providerLabel(data.invoice.provider)}.`
               : "Payment is not confirmed yet. You can check again shortly.",
       );
     } catch (err) {
@@ -243,10 +259,16 @@ export function PaymentsAdmin() {
         .includes(search.toLowerCase()),
   );
   const setupFor = (p: Invoice["provider"]) =>
-    p === "nowpayments" ? setup?.nowpayments : p === "flutterwave" ? setup?.flutterwave : undefined;
-  const sum = (status: string) =>
+    p === "bank_transfer"
+      ? setup?.bank_transfer
+      : p === "nowpayments"
+        ? setup?.nowpayments
+        : p === "flutterwave"
+          ? setup?.flutterwave
+          : undefined;
+  const sum = (status: string, currency: Invoice["currency"] = "USD") =>
     invoices
-      .filter((i) => i.status === status && i.currency === "USD")
+      .filter((i) => i.status === status && i.currency === currency)
       .reduce((s, i) => s + i.amount_minor, 0);
   function exportCsv() {
     const escape = (value: string) =>
@@ -319,7 +341,7 @@ export function PaymentsAdmin() {
             className="admin-button admin-button-primary"
             onClick={() => {
               createId.current = crypto.randomUUID();
-              setProvider("nowpayments");
+              setProvider("bank_transfer");
               setError("");
               setNotice("");
               setCreating(true);
@@ -337,9 +359,9 @@ export function PaymentsAdmin() {
           <div>
             <strong>Your payment workspace is ready.</strong>
             <p>
-              You can save drafts now.{" "}
+              EUR bank transfer invoices are ready to issue.{" "}
               {!setup.nowpayments.configured && !setup.flutterwave.configured
-                ? "Connect your NOWPayments or Flutterwave credentials to issue invoices and accept payments."
+                ? "Connect NOWPayments or Flutterwave to offer hosted checkout too."
                 : !setup.nowpayments.configured
                   ? "Connect your NOWPayments merchant credentials to issue crypto invoices too."
                   : "Connect your Flutterwave merchant credentials to issue card invoices too."}
@@ -384,7 +406,22 @@ export function PaymentsAdmin() {
               <Icon size={18} />
             </div>
             <strong>{loading ? "—" : money(amount)}</strong>
-            <small>{note} · USD only · latest 1,000 invoices</small>
+            <strong>
+              {loading
+                ? "—"
+                : money(
+                    sum(
+                      label === "Total received"
+                        ? "paid"
+                        : label === "Outstanding"
+                          ? "pending"
+                          : "draft",
+                      "EUR",
+                    ),
+                    "EUR",
+                  )}
+            </strong>
+            <small>{note} · USD / EUR · latest 1,000 invoices</small>
           </div>
         ))}
       </div>
@@ -740,9 +777,10 @@ export function PaymentsAdmin() {
               />
             </label>
             <label>
-              Amount (USD)
+              Amount ({provider === "bank_transfer" ? "EUR" : "USD"})
               <input
                 name="amount"
+                key={provider === "bank_transfer" ? "EUR" : "USD"}
                 type="number"
                 required
                 min="0.01"
@@ -805,9 +843,15 @@ export function PaymentsAdmin() {
                   <dd>{selected.provider_invoice_id || "Not issued yet"}</dd>
                 </div>
                 <div>
-                  <dt>Provider status</dt>
+                  <dt>Payment status</dt>
                   <dd>{selected.provider_status?.replaceAll("_", " ") || "No payment yet"}</dd>
                 </div>
+                {selected.provider === "bank_transfer" && selected.payment_id && (
+                  <div>
+                    <dt>Bank transaction reference</dt>
+                    <dd>{selected.payment_id}</dd>
+                  </div>
+                )}
                 <div>
                   <dt>Environment</dt>
                   <dd>{selected.environment === "demo" ? "Test — no real payments" : "Live"}</dd>
@@ -872,7 +916,7 @@ export function PaymentsAdmin() {
                     >
                       View invoice <ArrowUpRight size={15} />
                     </a>
-                    {!["paid", "refunded"].includes(selected.status) && (
+                    {!["paid", "refunded", "cancelled"].includes(selected.status) && (
                       <>
                         <button
                           className="admin-button admin-button-primary"
@@ -889,10 +933,19 @@ export function PaymentsAdmin() {
                         <button
                           className="admin-button"
                           disabled={!!busy}
-                          onClick={() => void action(selected, "verify")}
+                          onClick={() =>
+                            void action(
+                              selected,
+                              selected.provider === "bank_transfer" ? "confirm_bank" : "verify",
+                            )
+                          }
                         >
                           <RefreshCw size={15} />
-                          {busy === "verify" ? "Checking…" : "Check payment"}
+                          {busy
+                            ? "Updating…"
+                            : selected.provider === "bank_transfer"
+                              ? "Confirm bank receipt"
+                              : "Check payment"}
                         </button>
                       </>
                     )}

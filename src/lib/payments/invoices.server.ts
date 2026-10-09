@@ -272,6 +272,14 @@ export async function confirmBankTransfer(invoice: Invoice, reference: unknown) 
   const parsed = z.string().trim().min(3).max(200).safeParse(reference);
   if (invoice.provider !== "bank_transfer" || !parsed.success)
     throw new Error("Enter the bank transaction reference after confirming receipt.");
+  const { data: pendingReceipt, error: receiptError } = await (supabaseAdmin as SupabaseClient)
+    .from("bank_transfer_receipts")
+    .select("id")
+    .eq("invoice_id", invoice.id)
+    .eq("status", "submitted")
+    .maybeSingle();
+  if (receiptError) throw new Error("Could not check the buyer's screenshot.");
+  if (pendingReceipt) throw new Error("Review the buyer's screenshot before confirming payment.");
   const { error, data } = await db()
     .update({
       status: "paid",

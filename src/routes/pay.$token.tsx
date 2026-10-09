@@ -44,6 +44,7 @@ type PaymentData = {
     photo: string | null;
     profileUrl: string | null;
   } | null;
+  receipt: { status: string; submitted_at: string; admin_note: string | null } | null;
 };
 function BuyerInvoice() {
   const { token } = Route.useParams();
@@ -52,6 +53,8 @@ function BuyerInvoice() {
   const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [receiptFile, setReceiptFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
   const load = useCallback(
     async (verify = false) => {
       setError("");
@@ -88,6 +91,30 @@ function BuyerInvoice() {
     }, 15000);
     return () => window.clearInterval(timer);
   }, [data?.invoice.status, load]);
+  async function submitReceipt() {
+    if (!receiptFile) return;
+    setUploading(true);
+    setError("");
+    try {
+      const form = new FormData();
+      form.set("screenshot", receiptFile);
+      const response = await fetch(`/api/pay/${encodeURIComponent(token)}/receipt`, {
+        method: "POST",
+        body: form,
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Could not submit screenshot.");
+      setReceiptFile(null);
+      setNotice(
+        "Screenshot submitted for review. HQ360 will check the bank account before confirming payment.",
+      );
+      await load();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not submit screenshot.");
+    } finally {
+      setUploading(false);
+    }
+  }
   async function verify() {
     setBusy(true);
     await load(true);
@@ -293,9 +320,43 @@ function BuyerInvoice() {
                       <dd>{inv.number}</dd>
                     </div>
                   </dl>
+                  {data.receipt?.status === "submitted" ? (
+                    <p className="buyer-message info" role="status">
+                      Screenshot received. HQ360 is reviewing it against the bank transfer.
+                    </p>
+                  ) : (
+                    <div className="buyer-receipt-form">
+                      {data.receipt?.status === "rejected" && (
+                        <p className="buyer-message error">
+                          The previous screenshot was not accepted.{" "}
+                          {data.receipt.admin_note || "Please upload a clearer transfer receipt."}
+                        </p>
+                      )}
+                      <label>
+                        Already transferred? Upload a payment screenshot (PNG, JPG or WebP, up to 4
+                        MB)
+                        <input
+                          type="file"
+                          accept="image/png,image/jpeg,image/webp"
+                          onChange={(e) => setReceiptFile(e.target.files?.[0] ?? null)}
+                        />
+                      </label>
+                      <button
+                        className="buyer-pay"
+                        type="button"
+                        disabled={!receiptFile || uploading}
+                        onClick={() => void submitReceipt()}
+                      >
+                        {uploading ? "Submitting…" : "Submit payment screenshot"}
+                      </button>
+                      <p className="buyer-note">
+                        A screenshot is proof for review. Your invoice is confirmed after HQ360
+                        verifies the bank receipt.
+                      </p>
+                    </div>
+                  )}
                   <button className="buyer-link" disabled={busy} onClick={() => void verify()}>
-                    <RefreshCw size={14} />
-                    Refresh payment status
+                    <RefreshCw size={14} /> Refresh payment status
                   </button>
                 </section>
               ) : (

@@ -58,3 +58,10 @@ Apply `20261009180000_quote_invoice_link.sql` after the bank transfer migration.
 Admins receive a draft in Payments to review, issue and send. Experts receive an invoice request for admin review; they can track it in Invoice requests. Creation never sends an invoice automatically. A quote can have one linked invoice or request, so repeating the action returns the existing record. The selected package index and source quote remain linked for tracing, while invoice details are a snapshot of the quote at creation. For staged payment terms, create the required deposit and balance invoices separately; this conversion currently creates one invoice for the selected package's full price.
 
 Apply `20261009190000_bank_usd_settlement.sql` after the quote link migration for USD invoices settled into the EUR account. The buyer invoice and email show the USD invoice total and a separate agreed EUR transfer amount. Buyer phone is optional; Flutterwave receives it only when supplied.
+
+
+## Buyer bank transfer screenshots
+
+Apply `20261009200000_bank_transfer_receipts.sql`. A buyer with an issued, pending bank invoice can upload a PNG, JPEG or WebP screenshot up to 4 MB from the invoice page. The private storage bucket keeps screenshots out of public URLs. Only one screenshot can await review at a time, and the buyer can resubmit after rejection (up to three submissions). Uploads do not mark invoices paid.
+
+The upload emails the HQ360 inbox, configured admin notification addresses and founder with the screenshot attached and a secure review link. It also creates an in-app admin notification, so a failed email does not hide the submission. Admin or the founder signs in, opens the review link, checks the bank account for the full EUR amount, and enters the bank transaction reference before confirming. Rejection keeps the invoice pending. The screenshot and review action are not available through the public invoice API.

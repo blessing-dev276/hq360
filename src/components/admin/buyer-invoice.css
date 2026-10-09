@@ -374,6 +374,37 @@
   line-height: 1.5;
 }
 
+.buyer-receipt-form {
+  display: grid;
+  gap: 12px;
+  margin-top: 22px;
+}
+.buyer-receipt-form label {
+  display: grid;
+  gap: 8px;
+  color: var(--inv-ink);
+  font-size: 14px;
+  font-weight: 600;
+}
+.buyer-receipt-form input[type="file"] {
+  max-width: 100%;
+  font-size: 13px;
+}
+.buyer-receipt-form .buyer-pay {
+  border: 0;
+  cursor: pointer;
+  justify-content: center;
+}
+.buyer-receipt-form .buyer-pay:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+@media print {
+  .buyer-receipt-form {
+    display: none;
+  }
+}
+
 /* Title, package and what's included */
 .buyer-package {
   margin: 0 0 20px;
@@ -420,33 +451,6 @@
   left: 0;
   color: #ff5a00;
   font-weight: 700;
-}
-
-/* "Sent by" expert on the buyer invoice. */
-.buyer-sender {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.buyer-sender-photo {
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  object-fit: cover;
-  flex: none;
-}
-.buyer-sender span {
-  display: grid;
-  gap: 2px;
-}
-.buyer-sender small {
-  font-weight: 400;
-  opacity: 0.7;
-}
-.buyer-sender a {
-  color: inherit;
-  text-decoration: underline;
-  text-underline-offset: 3px;
 }
 
 /* "Sent by" expert on the buyer invoice. */

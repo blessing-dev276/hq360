@@ -61,6 +61,7 @@ import { Route as InsightsIndexRouteImport } from './routes/insights.index'
 import { Route as InsightsSlugRouteImport } from './routes/insights.$slug'
 import { Route as InsightsGlossaryRouteImport } from './routes/insights.glossary'
 import { Route as PayTokenRouteImport } from './routes/pay.$token'
+import { Route as PaymentReviewIdRouteImport } from './routes/payment-review.$id'
 import { Route as ProposalTokenRouteImport } from './routes/proposal.$token'
 import { Route as QuoteTokenRouteImport } from './routes/quote.$token'
 import { Route as ServicesIndexRouteImport } from './routes/services.index'
@@ -192,9 +193,11 @@ import { Route as ApiAdminTestimonialsReorderRouteImport } from './routes/api/ad
 import { Route as ApiExpertPortfolioIdRouteImport } from './routes/api/expert/portfolio.$id'
 import { Route as ApiExpertReviewsIdRouteImport } from './routes/api/expert/reviews.$id'
 import { Route as ApiExpertTestimonialsIdRouteImport } from './routes/api/expert/testimonials.$id'
+import { Route as ApiPayTokenReceiptRouteImport } from './routes/api/pay/$token/receipt'
 import { Route as ApiPaymentsFlutterwaveWebhookRouteImport } from './routes/api/payments/flutterwave/webhook'
 import { Route as ApiPaymentsNowpaymentsIpnRouteImport } from './routes/api/payments/nowpayments/ipn'
 import { Route as ApiPaymentsPaystackWebhookRouteImport } from './routes/api/payments/paystack/webhook'
+import { Route as ApiStaffPaymentReceiptsIdRouteImport } from './routes/api/staff/payment-receipts/$id'
 import { Route as ApiAdminAuthorAuditsIdBulkImportRouteImport } from './routes/api/admin/author-audits.$id.bulk-import'
 import { Route as ApiAdminAuthorAuditsIdCommercialRouteImport } from './routes/api/admin/author-audits.$id.commercial'
 import { Route as ApiAdminAuthorAuditsIdComparablesRouteImport } from './routes/api/admin/author-audits.$id.comparables'
@@ -214,6 +217,7 @@ import { Route as ApiAdminScoutAuthorsIdFindContactRouteImport } from './routes/
 import { Route as ApiAdminScoutAuthorsIdResearchWebsiteRouteImport } from './routes/api/admin/scout-authors.$id.research-website'
 import { Route as ApiAdminScoutBatchesIdExportRouteImport } from './routes/api/admin/scout-batches.$id.export'
 import { Route as ApiAdminScoutBatchesIdScoutRouteImport } from './routes/api/admin/scout-batches.$id.scout'
+import { Route as ApiStaffPaymentReceiptsIdImageRouteImport } from './routes/api/staff/payment-receipts/$id/image'
 import { Route as ApiAdminAuthorAuditsIdComparablesComparableIdRouteImport } from './routes/api/admin/author-audits.$id.comparables.$comparableId'
 import { Route as ApiAdminAuthorAuditsIdEvidenceAssetsAssetIdRouteImport } from './routes/api/admin/author-audits.$id.evidence-assets.$assetId'
 import { Route as ApiAdminAuthorAuditsIdFindingsFindingIdRouteImport } from './routes/api/admin/author-audits.$id.findings.$findingId'
@@ -481,6 +485,11 @@ const InsightsGlossaryRoute = InsightsGlossaryRouteImport.update({
 const PayTokenRoute = PayTokenRouteImport.update({
   id: '/pay/$token',
   path: '/pay/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PaymentReviewIdRoute = PaymentReviewIdRouteImport.update({
+  id: '/payment-review/$id',
+  path: '/payment-review/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProposalTokenRoute = ProposalTokenRouteImport.update({
@@ -1165,6 +1174,11 @@ const ApiExpertTestimonialsIdRoute = ApiExpertTestimonialsIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => ApiExpertTestimonialsRoute,
 } as any)
+const ApiPayTokenReceiptRoute = ApiPayTokenReceiptRouteImport.update({
+  id: '/receipt',
+  path: '/receipt',
+  getParentRoute: () => ApiPayTokenRoute,
+} as any)
 const ApiPaymentsFlutterwaveWebhookRoute =
   ApiPaymentsFlutterwaveWebhookRouteImport.update({
     id: '/api/payments/flutterwave/webhook',
@@ -1181,6 +1195,12 @@ const ApiPaymentsPaystackWebhookRoute =
   ApiPaymentsPaystackWebhookRouteImport.update({
     id: '/api/payments/paystack/webhook',
     path: '/api/payments/paystack/webhook',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiStaffPaymentReceiptsIdRoute =
+  ApiStaffPaymentReceiptsIdRouteImport.update({
+    id: '/api/staff/payment-receipts/$id',
+    path: '/api/staff/payment-receipts/$id',
     getParentRoute: () => rootRouteImport,
   } as any)
 const ApiAdminAuthorAuditsIdBulkImportRoute =
@@ -1296,6 +1316,12 @@ const ApiAdminScoutBatchesIdScoutRoute =
     path: '/scout',
     getParentRoute: () => ApiAdminScoutBatchesIdRoute,
   } as any)
+const ApiStaffPaymentReceiptsIdImageRoute =
+  ApiStaffPaymentReceiptsIdImageRouteImport.update({
+    id: '/image',
+    path: '/image',
+    getParentRoute: () => ApiStaffPaymentReceiptsIdRoute,
+  } as any)
 const ApiAdminAuthorAuditsIdComparablesComparableIdRoute =
   ApiAdminAuthorAuditsIdComparablesComparableIdRouteImport.update({
     id: '/$comparableId',
@@ -1387,6 +1413,7 @@ export interface FileRoutesByFullPath {
   '/insights/$slug': typeof InsightsSlugRoute
   '/insights/glossary': typeof InsightsGlossaryRoute
   '/pay/$token': typeof PayTokenRoute
+  '/payment-review/$id': typeof PaymentReviewIdRoute
   '/proposal/$token': typeof ProposalTokenRoute
   '/quote/$token': typeof QuoteTokenRoute
   '/services/$slug': typeof ServicesSlugRoute
@@ -1469,7 +1496,7 @@ export interface FileRoutesByFullPath {
   '/api/expert/testimonials': typeof ApiExpertTestimonialsRouteWithChildren
   '/api/expert/video-url': typeof ApiExpertVideoUrlRoute
   '/api/notifications/dispatch': typeof ApiNotificationsDispatchRoute
-  '/api/pay/$token': typeof ApiPayTokenRoute
+  '/api/pay/$token': typeof ApiPayTokenRouteWithChildren
   '/api/private-audit/commerce': typeof ApiPrivateAuditCommerceRoute
   '/api/public/author-audit': typeof ApiPublicAuthorAuditRoute
   '/api/public/case-studies': typeof ApiPublicCaseStudiesRoute
@@ -1523,9 +1550,11 @@ export interface FileRoutesByFullPath {
   '/api/expert/portfolio/$id': typeof ApiExpertPortfolioIdRoute
   '/api/expert/reviews/$id': typeof ApiExpertReviewsIdRoute
   '/api/expert/testimonials/$id': typeof ApiExpertTestimonialsIdRoute
+  '/api/pay/$token/receipt': typeof ApiPayTokenReceiptRoute
   '/api/payments/flutterwave/webhook': typeof ApiPaymentsFlutterwaveWebhookRoute
   '/api/payments/nowpayments/ipn': typeof ApiPaymentsNowpaymentsIpnRoute
   '/api/payments/paystack/webhook': typeof ApiPaymentsPaystackWebhookRoute
+  '/api/staff/payment-receipts/$id': typeof ApiStaffPaymentReceiptsIdRouteWithChildren
   '/api/admin/author-audits/$id/bulk-import': typeof ApiAdminAuthorAuditsIdBulkImportRoute
   '/api/admin/author-audits/$id/commercial': typeof ApiAdminAuthorAuditsIdCommercialRoute
   '/api/admin/author-audits/$id/comparables': typeof ApiAdminAuthorAuditsIdComparablesRouteWithChildren
@@ -1545,6 +1574,7 @@ export interface FileRoutesByFullPath {
   '/api/admin/scout-authors/$id/research-website': typeof ApiAdminScoutAuthorsIdResearchWebsiteRoute
   '/api/admin/scout-batches/$id/export': typeof ApiAdminScoutBatchesIdExportRoute
   '/api/admin/scout-batches/$id/scout': typeof ApiAdminScoutBatchesIdScoutRoute
+  '/api/staff/payment-receipts/$id/image': typeof ApiStaffPaymentReceiptsIdImageRoute
   '/api/admin/author-audits/$id/comparables/$comparableId': typeof ApiAdminAuthorAuditsIdComparablesComparableIdRoute
   '/api/admin/author-audits/$id/evidence-assets/$assetId': typeof ApiAdminAuthorAuditsIdEvidenceAssetsAssetIdRoute
   '/api/admin/author-audits/$id/findings/$findingId': typeof ApiAdminAuthorAuditsIdFindingsFindingIdRoute
@@ -1601,6 +1631,7 @@ export interface FileRoutesByTo {
   '/insights/$slug': typeof InsightsSlugRoute
   '/insights/glossary': typeof InsightsGlossaryRoute
   '/pay/$token': typeof PayTokenRoute
+  '/payment-review/$id': typeof PaymentReviewIdRoute
   '/proposal/$token': typeof ProposalTokenRoute
   '/quote/$token': typeof QuoteTokenRoute
   '/services/$slug': typeof ServicesSlugRoute
@@ -1683,7 +1714,7 @@ export interface FileRoutesByTo {
   '/api/expert/testimonials': typeof ApiExpertTestimonialsRouteWithChildren
   '/api/expert/video-url': typeof ApiExpertVideoUrlRoute
   '/api/notifications/dispatch': typeof ApiNotificationsDispatchRoute
-  '/api/pay/$token': typeof ApiPayTokenRoute
+  '/api/pay/$token': typeof ApiPayTokenRouteWithChildren
   '/api/private-audit/commerce': typeof ApiPrivateAuditCommerceRoute
   '/api/public/author-audit': typeof ApiPublicAuthorAuditRoute
   '/api/public/case-studies': typeof ApiPublicCaseStudiesRoute
@@ -1737,9 +1768,11 @@ export interface FileRoutesByTo {
   '/api/expert/portfolio/$id': typeof ApiExpertPortfolioIdRoute
   '/api/expert/reviews/$id': typeof ApiExpertReviewsIdRoute
   '/api/expert/testimonials/$id': typeof ApiExpertTestimonialsIdRoute
+  '/api/pay/$token/receipt': typeof ApiPayTokenReceiptRoute
   '/api/payments/flutterwave/webhook': typeof ApiPaymentsFlutterwaveWebhookRoute
   '/api/payments/nowpayments/ipn': typeof ApiPaymentsNowpaymentsIpnRoute
   '/api/payments/paystack/webhook': typeof ApiPaymentsPaystackWebhookRoute
+  '/api/staff/payment-receipts/$id': typeof ApiStaffPaymentReceiptsIdRouteWithChildren
   '/api/admin/author-audits/$id/bulk-import': typeof ApiAdminAuthorAuditsIdBulkImportRoute
   '/api/admin/author-audits/$id/commercial': typeof ApiAdminAuthorAuditsIdCommercialRoute
   '/api/admin/author-audits/$id/comparables': typeof ApiAdminAuthorAuditsIdComparablesRouteWithChildren
@@ -1759,6 +1792,7 @@ export interface FileRoutesByTo {
   '/api/admin/scout-authors/$id/research-website': typeof ApiAdminScoutAuthorsIdResearchWebsiteRoute
   '/api/admin/scout-batches/$id/export': typeof ApiAdminScoutBatchesIdExportRoute
   '/api/admin/scout-batches/$id/scout': typeof ApiAdminScoutBatchesIdScoutRoute
+  '/api/staff/payment-receipts/$id/image': typeof ApiStaffPaymentReceiptsIdImageRoute
   '/api/admin/author-audits/$id/comparables/$comparableId': typeof ApiAdminAuthorAuditsIdComparablesComparableIdRoute
   '/api/admin/author-audits/$id/evidence-assets/$assetId': typeof ApiAdminAuthorAuditsIdEvidenceAssetsAssetIdRoute
   '/api/admin/author-audits/$id/findings/$findingId': typeof ApiAdminAuthorAuditsIdFindingsFindingIdRoute
@@ -1816,6 +1850,7 @@ export interface FileRoutesById {
   '/insights/$slug': typeof InsightsSlugRoute
   '/insights/glossary': typeof InsightsGlossaryRoute
   '/pay/$token': typeof PayTokenRoute
+  '/payment-review/$id': typeof PaymentReviewIdRoute
   '/proposal/$token': typeof ProposalTokenRoute
   '/quote/$token': typeof QuoteTokenRoute
   '/services/$slug': typeof ServicesSlugRoute
@@ -1898,7 +1933,7 @@ export interface FileRoutesById {
   '/api/expert/testimonials': typeof ApiExpertTestimonialsRouteWithChildren
   '/api/expert/video-url': typeof ApiExpertVideoUrlRoute
   '/api/notifications/dispatch': typeof ApiNotificationsDispatchRoute
-  '/api/pay/$token': typeof ApiPayTokenRoute
+  '/api/pay/$token': typeof ApiPayTokenRouteWithChildren
   '/api/private-audit/commerce': typeof ApiPrivateAuditCommerceRoute
   '/api/public/author-audit': typeof ApiPublicAuthorAuditRoute
   '/api/public/case-studies': typeof ApiPublicCaseStudiesRoute
@@ -1952,9 +1987,11 @@ export interface FileRoutesById {
   '/api/expert/portfolio/$id': typeof ApiExpertPortfolioIdRoute
   '/api/expert/reviews/$id': typeof ApiExpertReviewsIdRoute
   '/api/expert/testimonials/$id': typeof ApiExpertTestimonialsIdRoute
+  '/api/pay/$token/receipt': typeof ApiPayTokenReceiptRoute
   '/api/payments/flutterwave/webhook': typeof ApiPaymentsFlutterwaveWebhookRoute
   '/api/payments/nowpayments/ipn': typeof ApiPaymentsNowpaymentsIpnRoute
   '/api/payments/paystack/webhook': typeof ApiPaymentsPaystackWebhookRoute
+  '/api/staff/payment-receipts/$id': typeof ApiStaffPaymentReceiptsIdRouteWithChildren
   '/api/admin/author-audits/$id/bulk-import': typeof ApiAdminAuthorAuditsIdBulkImportRoute
   '/api/admin/author-audits/$id/commercial': typeof ApiAdminAuthorAuditsIdCommercialRoute
   '/api/admin/author-audits/$id/comparables': typeof ApiAdminAuthorAuditsIdComparablesRouteWithChildren
@@ -1974,6 +2011,7 @@ export interface FileRoutesById {
   '/api/admin/scout-authors/$id/research-website': typeof ApiAdminScoutAuthorsIdResearchWebsiteRoute
   '/api/admin/scout-batches/$id/export': typeof ApiAdminScoutBatchesIdExportRoute
   '/api/admin/scout-batches/$id/scout': typeof ApiAdminScoutBatchesIdScoutRoute
+  '/api/staff/payment-receipts/$id/image': typeof ApiStaffPaymentReceiptsIdImageRoute
   '/api/admin/author-audits/$id/comparables/$comparableId': typeof ApiAdminAuthorAuditsIdComparablesComparableIdRoute
   '/api/admin/author-audits/$id/evidence-assets/$assetId': typeof ApiAdminAuthorAuditsIdEvidenceAssetsAssetIdRoute
   '/api/admin/author-audits/$id/findings/$findingId': typeof ApiAdminAuthorAuditsIdFindingsFindingIdRoute
@@ -2032,6 +2070,7 @@ export interface FileRouteTypes {
     | '/insights/$slug'
     | '/insights/glossary'
     | '/pay/$token'
+    | '/payment-review/$id'
     | '/proposal/$token'
     | '/quote/$token'
     | '/services/$slug'
@@ -2168,9 +2207,11 @@ export interface FileRouteTypes {
     | '/api/expert/portfolio/$id'
     | '/api/expert/reviews/$id'
     | '/api/expert/testimonials/$id'
+    | '/api/pay/$token/receipt'
     | '/api/payments/flutterwave/webhook'
     | '/api/payments/nowpayments/ipn'
     | '/api/payments/paystack/webhook'
+    | '/api/staff/payment-receipts/$id'
     | '/api/admin/author-audits/$id/bulk-import'
     | '/api/admin/author-audits/$id/commercial'
     | '/api/admin/author-audits/$id/comparables'
@@ -2190,6 +2231,7 @@ export interface FileRouteTypes {
     | '/api/admin/scout-authors/$id/research-website'
     | '/api/admin/scout-batches/$id/export'
     | '/api/admin/scout-batches/$id/scout'
+    | '/api/staff/payment-receipts/$id/image'
     | '/api/admin/author-audits/$id/comparables/$comparableId'
     | '/api/admin/author-audits/$id/evidence-assets/$assetId'
     | '/api/admin/author-audits/$id/findings/$findingId'
@@ -2246,6 +2288,7 @@ export interface FileRouteTypes {
     | '/insights/$slug'
     | '/insights/glossary'
     | '/pay/$token'
+    | '/payment-review/$id'
     | '/proposal/$token'
     | '/quote/$token'
     | '/services/$slug'
@@ -2382,9 +2425,11 @@ export interface FileRouteTypes {
     | '/api/expert/portfolio/$id'
     | '/api/expert/reviews/$id'
     | '/api/expert/testimonials/$id'
+    | '/api/pay/$token/receipt'
     | '/api/payments/flutterwave/webhook'
     | '/api/payments/nowpayments/ipn'
     | '/api/payments/paystack/webhook'
+    | '/api/staff/payment-receipts/$id'
     | '/api/admin/author-audits/$id/bulk-import'
     | '/api/admin/author-audits/$id/commercial'
     | '/api/admin/author-audits/$id/comparables'
@@ -2404,6 +2449,7 @@ export interface FileRouteTypes {
     | '/api/admin/scout-authors/$id/research-website'
     | '/api/admin/scout-batches/$id/export'
     | '/api/admin/scout-batches/$id/scout'
+    | '/api/staff/payment-receipts/$id/image'
     | '/api/admin/author-audits/$id/comparables/$comparableId'
     | '/api/admin/author-audits/$id/evidence-assets/$assetId'
     | '/api/admin/author-audits/$id/findings/$findingId'
@@ -2460,6 +2506,7 @@ export interface FileRouteTypes {
     | '/insights/$slug'
     | '/insights/glossary'
     | '/pay/$token'
+    | '/payment-review/$id'
     | '/proposal/$token'
     | '/quote/$token'
     | '/services/$slug'
@@ -2596,9 +2643,11 @@ export interface FileRouteTypes {
     | '/api/expert/portfolio/$id'
     | '/api/expert/reviews/$id'
     | '/api/expert/testimonials/$id'
+    | '/api/pay/$token/receipt'
     | '/api/payments/flutterwave/webhook'
     | '/api/payments/nowpayments/ipn'
     | '/api/payments/paystack/webhook'
+    | '/api/staff/payment-receipts/$id'
     | '/api/admin/author-audits/$id/bulk-import'
     | '/api/admin/author-audits/$id/commercial'
     | '/api/admin/author-audits/$id/comparables'
@@ -2618,6 +2667,7 @@ export interface FileRouteTypes {
     | '/api/admin/scout-authors/$id/research-website'
     | '/api/admin/scout-batches/$id/export'
     | '/api/admin/scout-batches/$id/scout'
+    | '/api/staff/payment-receipts/$id/image'
     | '/api/admin/author-audits/$id/comparables/$comparableId'
     | '/api/admin/author-audits/$id/evidence-assets/$assetId'
     | '/api/admin/author-audits/$id/findings/$findingId'
@@ -2675,6 +2725,7 @@ export interface RootRouteChildren {
   InsightsSlugRoute: typeof InsightsSlugRoute
   InsightsGlossaryRoute: typeof InsightsGlossaryRoute
   PayTokenRoute: typeof PayTokenRoute
+  PaymentReviewIdRoute: typeof PaymentReviewIdRoute
   ProposalTokenRoute: typeof ProposalTokenRoute
   QuoteTokenRoute: typeof QuoteTokenRoute
   ServicesSlugRoute: typeof ServicesSlugRoute
@@ -2757,7 +2808,7 @@ export interface RootRouteChildren {
   ApiExpertTestimonialsRoute: typeof ApiExpertTestimonialsRouteWithChildren
   ApiExpertVideoUrlRoute: typeof ApiExpertVideoUrlRoute
   ApiNotificationsDispatchRoute: typeof ApiNotificationsDispatchRoute
-  ApiPayTokenRoute: typeof ApiPayTokenRoute
+  ApiPayTokenRoute: typeof ApiPayTokenRouteWithChildren
   ApiPublicAuthorAuditRoute: typeof ApiPublicAuthorAuditRoute
   ApiPublicCaseStudiesRoute: typeof ApiPublicCaseStudiesRoute
   ApiPublicExpertPortfolioRoute: typeof ApiPublicExpertPortfolioRoute
@@ -2787,6 +2838,7 @@ export interface RootRouteChildren {
   ApiPaymentsFlutterwaveWebhookRoute: typeof ApiPaymentsFlutterwaveWebhookRoute
   ApiPaymentsNowpaymentsIpnRoute: typeof ApiPaymentsNowpaymentsIpnRoute
   ApiPaymentsPaystackWebhookRoute: typeof ApiPaymentsPaystackWebhookRoute
+  ApiStaffPaymentReceiptsIdRoute: typeof ApiStaffPaymentReceiptsIdRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -3153,6 +3205,13 @@ declare module '@tanstack/react-router' {
       path: '/pay/$token'
       fullPath: '/pay/$token'
       preLoaderRoute: typeof PayTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/payment-review/$id': {
+      id: '/payment-review/$id'
+      path: '/payment-review/$id'
+      fullPath: '/payment-review/$id'
+      preLoaderRoute: typeof PaymentReviewIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/proposal/$token': {
@@ -4072,6 +4131,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiExpertTestimonialsIdRouteImport
       parentRoute: typeof ApiExpertTestimonialsRoute
     }
+    '/api/pay/$token/receipt': {
+      id: '/api/pay/$token/receipt'
+      path: '/receipt'
+      fullPath: '/api/pay/$token/receipt'
+      preLoaderRoute: typeof ApiPayTokenReceiptRouteImport
+      parentRoute: typeof ApiPayTokenRoute
+    }
     '/api/payments/flutterwave/webhook': {
       id: '/api/payments/flutterwave/webhook'
       path: '/api/payments/flutterwave/webhook'
@@ -4091,6 +4157,13 @@ declare module '@tanstack/react-router' {
       path: '/api/payments/paystack/webhook'
       fullPath: '/api/payments/paystack/webhook'
       preLoaderRoute: typeof ApiPaymentsPaystackWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/staff/payment-receipts/$id': {
+      id: '/api/staff/payment-receipts/$id'
+      path: '/api/staff/payment-receipts/$id'
+      fullPath: '/api/staff/payment-receipts/$id'
+      preLoaderRoute: typeof ApiStaffPaymentReceiptsIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/admin/author-audits/$id/bulk-import': {
@@ -4225,6 +4298,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/admin/scout-batches/$id/scout'
       preLoaderRoute: typeof ApiAdminScoutBatchesIdScoutRouteImport
       parentRoute: typeof ApiAdminScoutBatchesIdRoute
+    }
+    '/api/staff/payment-receipts/$id/image': {
+      id: '/api/staff/payment-receipts/$id/image'
+      path: '/image'
+      fullPath: '/api/staff/payment-receipts/$id/image'
+      preLoaderRoute: typeof ApiStaffPaymentReceiptsIdImageRouteImport
+      parentRoute: typeof ApiStaffPaymentReceiptsIdRoute
     }
     '/api/admin/author-audits/$id/comparables/$comparableId': {
       id: '/api/admin/author-audits/$id/comparables/$comparableId'
@@ -4682,6 +4762,18 @@ const ApiExpertTestimonialsRouteWithChildren =
     ApiExpertTestimonialsRouteChildren,
   )
 
+interface ApiPayTokenRouteChildren {
+  ApiPayTokenReceiptRoute: typeof ApiPayTokenReceiptRoute
+}
+
+const ApiPayTokenRouteChildren: ApiPayTokenRouteChildren = {
+  ApiPayTokenReceiptRoute: ApiPayTokenReceiptRoute,
+}
+
+const ApiPayTokenRouteWithChildren = ApiPayTokenRoute._addFileChildren(
+  ApiPayTokenRouteChildren,
+)
+
 interface ApiAdminScoutAuthorsIdRouteChildren {
   ApiAdminScoutAuthorsIdConfirmContactRoute: typeof ApiAdminScoutAuthorsIdConfirmContactRoute
   ApiAdminScoutAuthorsIdFindContactRoute: typeof ApiAdminScoutAuthorsIdFindContactRoute
@@ -4701,6 +4793,20 @@ const ApiAdminScoutAuthorsIdRouteChildren: ApiAdminScoutAuthorsIdRouteChildren =
 const ApiAdminScoutAuthorsIdRouteWithChildren =
   ApiAdminScoutAuthorsIdRoute._addFileChildren(
     ApiAdminScoutAuthorsIdRouteChildren,
+  )
+
+interface ApiStaffPaymentReceiptsIdRouteChildren {
+  ApiStaffPaymentReceiptsIdImageRoute: typeof ApiStaffPaymentReceiptsIdImageRoute
+}
+
+const ApiStaffPaymentReceiptsIdRouteChildren: ApiStaffPaymentReceiptsIdRouteChildren =
+  {
+    ApiStaffPaymentReceiptsIdImageRoute: ApiStaffPaymentReceiptsIdImageRoute,
+  }
+
+const ApiStaffPaymentReceiptsIdRouteWithChildren =
+  ApiStaffPaymentReceiptsIdRoute._addFileChildren(
+    ApiStaffPaymentReceiptsIdRouteChildren,
   )
 
 const rootRouteChildren: RootRouteChildren = {
@@ -4751,6 +4857,7 @@ const rootRouteChildren: RootRouteChildren = {
   InsightsSlugRoute: InsightsSlugRoute,
   InsightsGlossaryRoute: InsightsGlossaryRoute,
   PayTokenRoute: PayTokenRoute,
+  PaymentReviewIdRoute: PaymentReviewIdRoute,
   ProposalTokenRoute: ProposalTokenRoute,
   QuoteTokenRoute: QuoteTokenRoute,
   ServicesSlugRoute: ServicesSlugRoute,
@@ -4834,7 +4941,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiExpertTestimonialsRoute: ApiExpertTestimonialsRouteWithChildren,
   ApiExpertVideoUrlRoute: ApiExpertVideoUrlRoute,
   ApiNotificationsDispatchRoute: ApiNotificationsDispatchRoute,
-  ApiPayTokenRoute: ApiPayTokenRoute,
+  ApiPayTokenRoute: ApiPayTokenRouteWithChildren,
   ApiPublicAuthorAuditRoute: ApiPublicAuthorAuditRoute,
   ApiPublicCaseStudiesRoute: ApiPublicCaseStudiesRoute,
   ApiPublicExpertPortfolioRoute: ApiPublicExpertPortfolioRoute,
@@ -4864,6 +4971,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPaymentsFlutterwaveWebhookRoute: ApiPaymentsFlutterwaveWebhookRoute,
   ApiPaymentsNowpaymentsIpnRoute: ApiPaymentsNowpaymentsIpnRoute,
   ApiPaymentsPaystackWebhookRoute: ApiPaymentsPaystackWebhookRoute,
+  ApiStaffPaymentReceiptsIdRoute: ApiStaffPaymentReceiptsIdRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -9,7 +9,22 @@ export const Route = createFileRoute("/api/admin/invoices")({
           await import("@/lib/payments/invoices.server");
         if (!(await isAdminRequest(request))) return paymentJson({ error: "Unauthorized" }, 401);
         try {
-          return paymentJson({ invoices: await listInvoices(), setup: combinedSetup() });
+          const invoices = await listInvoices();
+          const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+          const db = supabaseAdmin as import("@supabase/supabase-js").SupabaseClient;
+          const bankIds = invoices.filter((i) => i.provider === "bank_transfer").map((i) => i.id);
+          const { data: rows, error: receiptError } = bankIds.length
+            ? await db
+                .from("bank_transfer_receipts")
+                .select("id,invoice_id,status,submitted_at")
+                .in("invoice_id", bankIds)
+                .order("submitted_at", { ascending: false })
+            : { data: [], error: null };
+          if (receiptError) throw receiptError;
+          const receipts: Record<string, { id: string; status: string; submitted_at: string }> = {};
+          for (const row of rows ?? [])
+            if (!receipts[row.invoice_id]) receipts[row.invoice_id] = row;
+          return paymentJson({ invoices, receipts, setup: combinedSetup() });
         } catch {
           return paymentJson(
             {

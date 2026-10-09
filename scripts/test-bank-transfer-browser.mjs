@@ -6,8 +6,13 @@ try {
   const errors = [];
   page.on("pageerror", (error) => errors.push(error.message));
   let status = "pending";
-  await page.route("**/api/pay/*", (route) =>
-    route.fulfill({
+  let receiptStatus = null;
+  await page.route("**/api/pay/*/receipt", (route) => {
+    receiptStatus = "submitted";
+    return route.fulfill({ status: 201, json: { receipt: { status: "submitted" } } });
+  });
+  await page.route("**/api/pay/*", (route) => {
+    return route.fulfill({
       json: {
         invoice: {
           number: "HQ-123456",
@@ -24,9 +29,12 @@ try {
           buyer_name: "Test Client",
         },
         checkout: { url: "" },
+        receipt: receiptStatus
+          ? { status: receiptStatus, submitted_at: new Date().toISOString(), admin_note: null }
+          : null,
       },
-    }),
-  );
+    });
+  });
   for (const width of [1440, 390]) {
     await page.setViewportSize({ width, height: 1000 });
     await page.goto(
@@ -46,6 +54,14 @@ try {
     await expect(page.getByRole("button", { name: "Refresh payment status" })).toBeHidden();
     await page.emulateMedia({ media: "screen" });
   }
+  await page.setInputFiles('input[type="file"]', {
+    name: "receipt.png",
+    mimeType: "image/png",
+    buffer: Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]),
+  });
+  await page.getByRole("button", { name: "Submit payment screenshot" }).click();
+  await expect(page.getByText(/Screenshot received/)).toBeVisible();
+  await expect(page.getByText("Awaiting payment", { exact: true })).toBeVisible();
   status = "cancelled";
   await page.reload();
   await expect(page.getByText("Cancelled", { exact: true })).toBeVisible();

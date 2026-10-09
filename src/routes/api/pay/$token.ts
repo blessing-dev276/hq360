@@ -19,7 +19,21 @@ async function publicInvoice(token: string, verify: boolean) {
       return p.paymentJson({ error: "This invoice is not ready for payment." }, 404);
     if (verify) invoice = await p.verifyInvoice(invoice);
     const checkoutUrl = p.checkoutUrlFor(invoice);
+    let receipt: { status: string; submitted_at: string; admin_note: string | null } | null = null;
+    if (invoice.provider === "bank_transfer") {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const db = supabaseAdmin as import("@supabase/supabase-js").SupabaseClient;
+      const { data } = await db
+        .from("bank_transfer_receipts")
+        .select("status,submitted_at,admin_note")
+        .eq("invoice_id", invoice.id)
+        .order("submitted_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      receipt = data;
+    }
     return p.paymentJson({
+      receipt,
       // The expert the buyer sees as the sender (null = HQ360).
       sender: await p.invoiceSender(invoice.sender_expert_id),
       invoice: {

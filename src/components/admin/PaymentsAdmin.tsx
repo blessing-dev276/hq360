@@ -77,6 +77,7 @@ async function call(url: string, body?: unknown) {
 }
 export function PaymentsAdmin() {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [receipts, setReceipts] = useState<Record<string, { id: string; status: string }>>({});
   const [setup, setSetup] = useState<PaymentSetup | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -141,6 +142,7 @@ export function PaymentsAdmin() {
       setSetup(data.setup ?? null);
       if (!response.ok) throw new Error(data.error);
       setInvoices(data.invoices);
+      setReceipts(data.receipts ?? {});
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not load invoices.");
     } finally {
@@ -981,6 +983,23 @@ export function PaymentsAdmin() {
                   <dt>{providerLabel(selected.provider)} reference</dt>
                   <dd>{selected.provider_invoice_id || "Not issued yet"}</dd>
                 </div>
+                {selected.provider === "bank_transfer" && receipts[selected.id] && (
+                  <div>
+                    <dt>Buyer screenshot</dt>
+                    <dd>
+                      <a
+                        href={`/payment-review/${receipts[selected.id]!.id}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="admin-text-button"
+                      >
+                        {receipts[selected.id]!.status === "submitted"
+                          ? "Awaiting review — open screenshot"
+                          : `${receipts[selected.id]!.status} — view screenshot`}
+                      </a>
+                    </dd>
+                  </div>
+                )}
                 <div>
                   <dt>Payment status</dt>
                   <dd>{selected.provider_status?.replaceAll("_", " ") || "No payment yet"}</dd>
@@ -1069,23 +1088,35 @@ export function PaymentsAdmin() {
                               ? "Resend invoice"
                               : "Send invoice"}
                         </button>
-                        <button
-                          className="admin-button"
-                          disabled={!!busy}
-                          onClick={() =>
-                            void action(
-                              selected,
-                              selected.provider === "bank_transfer" ? "confirm_bank" : "verify",
-                            )
-                          }
-                        >
-                          <RefreshCw size={15} />
-                          {busy
-                            ? "Updating…"
-                            : selected.provider === "bank_transfer"
-                              ? "Confirm bank receipt"
-                              : "Check payment"}
-                        </button>
+                        {selected.provider === "bank_transfer" &&
+                        receipts[selected.id]?.status === "submitted" ? (
+                          <a
+                            className="admin-button"
+                            href={`/payment-review/${receipts[selected.id]!.id}`}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            Review buyer screenshot
+                          </a>
+                        ) : (
+                          <button
+                            className="admin-button"
+                            disabled={!!busy}
+                            onClick={() =>
+                              void action(
+                                selected,
+                                selected.provider === "bank_transfer" ? "confirm_bank" : "verify",
+                              )
+                            }
+                          >
+                            <RefreshCw size={15} />
+                            {busy
+                              ? "Updating…"
+                              : selected.provider === "bank_transfer"
+                                ? "Confirm bank receipt"
+                                : "Check payment"}
+                          </button>
+                        )}
                       </>
                     )}
                   </>

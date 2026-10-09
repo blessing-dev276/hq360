@@ -841,13 +841,6 @@ export function PaymentsAdmin() {
                   {invoiceStatus(selected)}
                 </span>
                 <strong>{money(selected.amount_minor, selected.currency)}</strong>
-                {selected.provider === "bank_transfer" &&
-                  selected.bank_transfer_amount_minor &&
-                  selected.currency === "USD" && (
-                    <small>
-                      Agreed EUR transfer: {money(selected.bank_transfer_amount_minor, "EUR")}
-                    </small>
-                  )}
                 <p>{selected.description}</p>
               </div>
               <dl className="admin-invoice-details">

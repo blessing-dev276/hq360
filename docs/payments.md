@@ -43,7 +43,7 @@ The `20260930110000` migration made NOWPayments the only active provider at that
 
 ## Direct EUR bank transfers
 
-Apply `20261009120000_bank_transfer_invoices.sql` after the Flutterwave and cancellation migrations, then deploy the application. Bank transfer is an additional active method and the default selection for new admin invoices. It requires no payment gateway credentials; email still requires the existing email configuration.
+Apply `20261009170000_bank_transfer_invoices.sql` after the Flutterwave and cancellation migrations, then deploy the application. Bank transfer is an additional active method and the default selection for new admin invoices. It requires no payment gateway credentials; email still requires the existing email configuration.
 
 Choose **Bank transfer**, enter the agreed amount in **EUR**, save and issue the invoice, then use **Send invoice** or **Copy link**. Emails and printable buyer invoices include the supplied Clear Junction account details, the invoice number as payment reference, and the account holder's receiving restrictions: EUR only, SEPA or SEPA Instant from EEA banks. The SWIFT/BIC is shown as an account identifier, not an offered wire-transfer method. Existing USD invoices are not converted; issue a new EUR invoice for an agreed EUR amount when changing methods.
 

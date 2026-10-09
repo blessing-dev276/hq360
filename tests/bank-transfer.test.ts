@@ -15,7 +15,7 @@ beforeAll(async () => {
     "20260930110000_nowpayments_only",
     "20261002100000_flutterwave_invoices",
     "20261002110000_cancel_invoices",
-    "20261009120000_bank_transfer_invoices",
+    "20261009170000_bank_transfer_invoices",
   ]) {
     await db.exec(
       await readFile(new URL(`../supabase/migrations/${name}.sql`, import.meta.url), "utf8"),

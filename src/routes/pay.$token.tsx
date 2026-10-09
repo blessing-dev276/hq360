@@ -37,6 +37,13 @@ type PaymentData = {
     paid_at?: string | null;
   };
   checkout: { url: string };
+  /** The HQ360 expert shown as the sender; null means HQ360. */
+  sender?: {
+    name: string;
+    headline: string;
+    photo: string | null;
+    profileUrl: string | null;
+  } | null;
 };
 function BuyerInvoice() {
   const { token } = Route.useParams();
@@ -194,6 +201,28 @@ function BuyerInvoice() {
                 <div className="buyer-for-row">
                   <dt className="buyer-for-label">For</dt>
                   <dd className="buyer-for">{inv.description}</dd>
+                </div>
+                <div>
+                  <dt>Sent by</dt>
+                  <dd className="buyer-sender">
+                    {data.sender?.photo ? (
+                      <img src={data.sender.photo} alt="" className="buyer-sender-photo" />
+                    ) : null}
+                    <span>
+                      {data.sender ? (
+                        data.sender.profileUrl ? (
+                          <a href={data.sender.profileUrl} target="_blank" rel="noreferrer">
+                            {data.sender.name}
+                          </a>
+                        ) : (
+                          data.sender.name
+                        )
+                      ) : (
+                        "HQ360"
+                      )}
+                      {data.sender && <small>{data.sender.headline} · HQ360</small>}
+                    </span>
+                  </dd>
                 </div>
                 {inv.buyer_name && (
                   <div>

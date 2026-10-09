@@ -82,6 +82,8 @@ export const invoiceSchema = z.object({
       "Invalid date",
     ),
   requested_by_expert_id: z.string().uuid().optional(),
+  /** Expert the buyer sees as the sender; omitted = HQ360. */
+  sender_expert_id: z.string().uuid().optional(),
   source_quote_id: z.string().uuid().optional(),
   source_package_index: z.number().int().min(0).max(3).optional(),
 });
@@ -100,7 +102,9 @@ export function sameOrigin(request: Request) {
 }
 export async function listInvoices() {
   const { data, error } = await db()
-    .select("*, requested_by:expert_profiles(full_name, email)")
+    .select(
+      "*, requested_by:expert_profiles!payment_invoices_requested_by_expert_id_fkey(full_name, email)",
+    )
     .in("provider", ACTIVE_PROVIDERS)
     .order("created_at", { ascending: false })
     .limit(1000);
@@ -135,7 +139,13 @@ export async function createInvoice(input: z.infer<typeof invoiceSchema>) {
       ? "live"
       : providerModule(input.provider).paymentSetup().environment;
   const { error } = await db().upsert(
-    { ...input, currency, environment },
+    {
+      ...input,
+      // The requesting expert is the sender unless another one was picked.
+      sender_expert_id: input.sender_expert_id ?? input.requested_by_expert_id ?? null,
+      currency,
+      environment,
+    },
     { onConflict: "id", ignoreDuplicates: true },
   );
   if (error)
@@ -307,7 +317,8 @@ export async function emailInvoice(invoice: Invoice) {
     throw new Error("This invoice has already been paid.");
   const { buildInvoiceEmail } = await import("./invoice-email");
   const link = invoiceLink(invoice);
-  const email = buildInvoiceEmail(invoice, link, new URL(link).origin);
+  const sender = await invoiceSender(invoice.sender_expert_id);
+  const email = buildInvoiceEmail(invoice, link, new URL(link).origin, sender?.name);
   const result = await sendEmail({
     to: invoice.buyer_email,
     subject: email.subject,
@@ -326,4 +337,43 @@ export async function emailInvoice(invoice: Invoice) {
       "Email sent, but delivery time could not be saved. Avoid sending again immediately.",
     );
   return getInvoice(invoice.id);
+}
+
+/** The expert a buyer sees as an invoice's sender, or null for HQ360. */
+export async function invoiceSender(expertId: string | null | undefined) {
+  if (!expertId) return null;
+  const { data } = await (supabaseAdmin as SupabaseClient)
+    .from("expert_profiles")
+    .select("full_name, headline, photo_url, slug, is_public")
+    .eq("id", expertId)
+    .maybeSingle();
+  const e = data as {
+    full_name: string | null;
+    headline: string | null;
+    photo_url: string | null;
+    slug: string | null;
+    is_public: boolean;
+  } | null;
+  if (!e?.full_name) return null;
+  return {
+    name: e.full_name,
+    headline: e.headline || "HQ360 expert",
+    photo: e.photo_url,
+    profileUrl: e.is_public && e.slug ? `/experts/${e.slug}` : null,
+  };
+}
+
+export async function setInvoiceSender(id: string, expertId: string | null) {
+  if (!z.string().uuid().safeParse(id).success) throw new Error("Invoice not found.");
+  if (expertId) {
+    const { data } = await (supabaseAdmin as SupabaseClient)
+      .from("expert_profiles")
+      .select("id")
+      .eq("id", expertId)
+      .eq("status", "approved")
+      .maybeSingle();
+    if (!data) throw new Error("That expert isn't approved.");
+  }
+  const { error } = await db().update({ sender_expert_id: expertId }).eq("id", id);
+  if (error) throw new Error("Could not change the sender.");
 }

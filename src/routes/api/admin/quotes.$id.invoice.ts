@@ -70,6 +70,10 @@ export const Route = createFileRoute("/api/admin/quotes/$id/invoice")({
                 due_date: parsed.data.due_date,
                 source_quote_id: params.id,
                 source_package_index: parsed.data.package_index,
+                // An expert's quote is sent to the buyer under their name.
+                ...(quote.owner && quote.owner !== "hq360"
+                  ? { sender_expert_id: quote.owner }
+                  : {}),
               });
               return json({ kind: "invoice", invoice, existing: false }, 201);
             } catch (error) {

@@ -22,9 +22,21 @@ export const Route = createFileRoute("/api/admin/invoices/$id")({
         if (!(await isAdminRequest(request))) return p.paymentJson({ error: "Unauthorized" }, 401);
         if (!p.sameOrigin(request)) return p.paymentJson({ error: "Invalid origin" }, 403);
         const body = await request.json().catch(() => null);
-        if (!["issue", "send", "verify", "cancel", "confirm_bank"].includes(body?.action))
+        if (
+          !["issue", "send", "verify", "cancel", "confirm_bank", "set_sender"].includes(
+            body?.action,
+          )
+        )
           return p.paymentJson({ error: "Invalid action" }, 400);
         try {
+          if (body.action === "set_sender") {
+            // Who the buyer sees as the sender: an expert id, or null for HQ360.
+            const sender = body.senderExpertId;
+            if (sender !== null && !/^[0-9a-f-]{36}$/.test(String(sender)))
+              return p.paymentJson({ error: "Pick an expert or HQ360." }, 400);
+            await p.setInvoiceSender(params.id, sender);
+            return p.paymentJson({ invoice: await p.getInvoice(params.id) });
+          }
           if (body.action === "cancel") {
             await p.cancelInvoice(params.id);
             return p.paymentJson({ invoice: await p.getInvoice(params.id) });

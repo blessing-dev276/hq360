@@ -23,6 +23,7 @@ export type Invoice = {
   payment_token: string;
   environment: "demo" | "live";
   requested_by_expert_id: string | null;
+  sender_expert_id?: string | null;
   requested_by?: { full_name: string | null; email: string } | null;
   created_at: string;
   sent_at: string | null;

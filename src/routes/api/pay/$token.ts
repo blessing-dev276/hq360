@@ -20,6 +20,8 @@ async function publicInvoice(token: string, verify: boolean) {
     if (verify) invoice = await p.verifyInvoice(invoice);
     const checkoutUrl = p.checkoutUrlFor(invoice);
     return p.paymentJson({
+      // The expert the buyer sees as the sender (null = HQ360).
+      sender: await p.invoiceSender(invoice.sender_expert_id),
       invoice: {
         number: invoice.number,
         description: invoice.description,

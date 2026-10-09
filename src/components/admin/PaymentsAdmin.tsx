@@ -89,6 +89,48 @@ export function PaymentsAdmin() {
   const [busy, setBusy] = useState("");
   const [requests, setRequests] = useState<InvoiceRequest[]>([]);
   const [requestsError, setRequestsError] = useState("");
+  // Approved experts the buyer can see as an invoice's sender.
+  const [senders, setSenders] = useState<{ id: string; name: string }[]>([]);
+  useEffect(() => {
+    fetch("/api/admin/experts")
+      .then((r) => r.json())
+      .then(
+        (d: {
+          experts?: {
+            id: string;
+            full_name: string | null;
+            email: string;
+            status: string;
+            is_guest?: boolean;
+          }[];
+        }) =>
+          setSenders(
+            (d.experts ?? [])
+              .filter((e) => e.status === "approved" && !e.is_guest)
+              .map((e) => ({ id: e.id, name: e.full_name || e.email }))
+              .sort((a, b) => a.name.localeCompare(b.name)),
+          ),
+      )
+      .catch(() => {});
+  }, []);
+  async function setSender(invoice: Invoice, senderExpertId: string | null) {
+    setBusy(invoice.id + "sender");
+    setError("");
+    try {
+      const data = await call(`/api/admin/invoices/${invoice.id}`, {
+        action: "set_sender",
+        senderExpertId,
+      });
+      merge(data.invoice);
+      setNotice(
+        `The buyer now sees this invoice as sent by ${senders.find((x) => x.id === senderExpertId)?.name ?? "HQ360"}.`,
+      );
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not change the sender.");
+    } finally {
+      setBusy("");
+    }
+  }
   const createId = useRef("");
   const load = useCallback(async () => {
     setLoading(true);
@@ -254,6 +296,9 @@ export function PaymentsAdmin() {
             ? Math.round(Number(form.get("bank_transfer_amount")) * 100)
             : undefined,
         due_date: form.get("due_date"),
+        ...(form.get("sender_expert_id")
+          ? { sender_expert_id: String(form.get("sender_expert_id")) }
+          : {}),
       });
       merge(data.invoice);
       setCreating(false);
@@ -796,6 +841,17 @@ export function PaymentsAdmin() {
               </label>
             </div>
             <label>
+              Sent by (what the buyer sees)
+              <select name="sender_expert_id" defaultValue="">
+                <option value="">HQ360</option>
+                {senders.map((e) => (
+                  <option key={e.id} value={e.id}>
+                    {e.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
               What's included (optional, one item per line)
               <textarea
                 name="included"
@@ -893,6 +949,27 @@ export function PaymentsAdmin() {
                 <div>
                   <dt>Due date</dt>
                   <dd>{selected.due_date}</dd>
+                </div>
+                <div>
+                  <dt>Sent by (buyer sees)</dt>
+                  <dd>
+                    <select
+                      aria-label="Sent by"
+                      value={selected.sender_expert_id ?? ""}
+                      disabled={
+                        busy === selected.id + "sender" ||
+                        ["paid", "refunded"].includes(selected.status)
+                      }
+                      onChange={(e) => void setSender(selected, e.target.value || null)}
+                    >
+                      <option value="">HQ360</option>
+                      {senders.map((e) => (
+                        <option key={e.id} value={e.id}>
+                          {e.name}
+                        </option>
+                      ))}
+                    </select>
+                  </dd>
                 </div>
                 {selected.requested_by && (
                   <div>

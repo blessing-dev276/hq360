@@ -448,3 +448,30 @@
   text-decoration: underline;
   text-underline-offset: 3px;
 }
+
+/* "Sent by" expert on the buyer invoice. */
+.buyer-sender {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.buyer-sender-photo {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex: none;
+}
+.buyer-sender span {
+  display: grid;
+  gap: 2px;
+}
+.buyer-sender small {
+  font-weight: 400;
+  opacity: 0.7;
+}
+.buyer-sender a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}

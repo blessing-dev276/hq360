@@ -103,7 +103,7 @@ export async function createHostedInvoice(invoice: Invoice) {
     redirect_url: `${origin}/pay/${invoice.payment_token}`,
     customer: {
       email: invoice.buyer_email,
-      phonenumber: invoice.buyer_phone,
+      ...(invoice.buyer_phone ? { phonenumber: invoice.buyer_phone } : {}),
       name: invoice.buyer_name,
     },
     customizations: {

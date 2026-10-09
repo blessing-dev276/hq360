@@ -21,6 +21,7 @@ type PaymentData = {
     number: string;
     description: string;
     amount_minor: number;
+    bank_transfer_amount_minor: number | null;
     currency: Invoice["currency"];
     due_date: string;
     status: string;
@@ -218,6 +219,16 @@ function BuyerInvoice() {
                 "bank_transfer" ? (
                 <section aria-label="Bank transfer instructions">
                   <h2>Pay by bank transfer</h2>
+                  {inv.bank_transfer_amount_minor && inv.currency === "USD" && (
+                    <div className="buyer-transfer">
+                      <span>Agreed transfer amount (EUR)</span>
+                      <strong>{money(inv.bank_transfer_amount_minor, "EUR")}</strong>
+                      <small>
+                        For the {money(inv.amount_minor, "USD")} invoice above. Send this EUR
+                        amount.
+                      </small>
+                    </div>
+                  )}
                   <p className="buyer-note">{bankInstructions}</p>
                   <dl className="buyer-details">
                     {bankDetails.map(([label, value]) => (

@@ -8,6 +8,7 @@ beforeAll(async () => {
   await db.exec(
     "create role anon; create role authenticated; create role service_role; create table expert_profiles(id uuid primary key);",
   );
+  await db.exec("create table price_quotes(id uuid primary key default gen_random_uuid());");
   for (const name of [
     "20260923090000_payment_invoices",
     "20260923100000_nowpayments",
@@ -15,7 +16,9 @@ beforeAll(async () => {
     "20260930110000_nowpayments_only",
     "20261002100000_flutterwave_invoices",
     "20261002110000_cancel_invoices",
-    "20261009170000_bank_transfer_invoices",
+    "20261009120000_bank_transfer_invoices",
+    "20261009180000_quote_invoice_link",
+    "20261009190000_bank_usd_settlement",
   ]) {
     await db.exec(
       await readFile(new URL(`../supabase/migrations/${name}.sql`, import.meta.url), "utf8"),
@@ -75,5 +78,62 @@ test("email includes exact bank details, EUR restrictions and invoice reference"
       inv.number,
     ])
       expect(body).toContain(detail);
+  }
+});
+
+test("a quote can produce only one linked invoice and one linked expert request", async () => {
+  const quote = (
+    await db.query<{ id: string }>("insert into price_quotes default values returning id")
+  ).rows[0]!;
+  const first = await draft();
+  await db.query(
+    "update payment_invoices set source_quote_id=$1, source_package_index=2 where id=$2",
+    [quote.id, first.id],
+  );
+  const second = await draft();
+  await expect(
+    db.query("update payment_invoices set source_quote_id=$1 where id=$2", [quote.id, second.id]),
+  ).rejects.toThrow();
+  await expect(db.query("delete from price_quotes where id=$1", [quote.id])).rejects.toThrow();
+  const expert = (
+    await db.query<{ id: string }>(
+      "insert into expert_profiles(id) values (gen_random_uuid()) returning id",
+    )
+  ).rows[0]!;
+  await db.query(
+    "insert into expert_invoice_requests(expert_id,buyer_name,buyer_email,buyer_phone,description,amount_minor,due_date,payment_type,bank_transfer_amount_minor,source_quote_id,source_package_index) values ($1,'Client','c@example.com','1234567','Premium package',125050,'2026-11-01','bank_transfer',110000,$2,2)",
+    [expert.id, quote.id],
+  );
+  await expect(
+    db.query(
+      "insert into expert_invoice_requests(expert_id,buyer_name,buyer_email,buyer_phone,description,amount_minor,due_date,payment_type,bank_transfer_amount_minor,source_quote_id) values ($1,'Client','c@example.com','1234567','Premium package',125050,'2026-11-01','bank_transfer',110000,$2)",
+      [expert.id, quote.id],
+    ),
+  ).rejects.toThrow();
+});
+
+test("USD invoice keeps its quoted total and requires an agreed EUR bank amount", async () => {
+  await expect(
+    db.query(
+      "insert into payment_invoices(buyer_name,buyer_email,buyer_phone,description,amount_minor,currency,due_date,environment,provider) values ('Client','client@example.com','','Premium',125050,'USD','2026-11-01','live','bank_transfer')",
+    ),
+  ).rejects.toThrow();
+  const inv = (
+    await db.query<Invoice>(
+      "insert into payment_invoices(buyer_name,buyer_email,buyer_phone,description,amount_minor,currency,bank_transfer_amount_minor,due_date,environment,provider) values ('Client','client@example.com','','Premium',125050,'USD',110000,'2026-11-01','live','bank_transfer') returning *",
+    )
+  ).rows[0]!;
+  expect(inv.currency).toBe("USD");
+  expect(Number(inv.bank_transfer_amount_minor)).toBe(110000);
+  inv.due_date = "2026-11-01";
+  inv.created_at = "2026-10-09T12:00:00Z";
+  const email = buildInvoiceEmail(
+    inv,
+    "https://www.hq360.space/pay/token",
+    "https://www.hq360.space",
+  );
+  for (const body of [email.text, email.html]) {
+    expect(body).toContain("$1,250.50");
+    expect(body).toContain("€1,100.00");
   }
 });

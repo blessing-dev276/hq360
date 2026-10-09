@@ -208,6 +208,7 @@ import { Route as ApiAdminAuthorAuditsIdSynthesizePlanRouteImport } from './rout
 import { Route as ApiAdminAuthorAuditsIdVerificationsRouteImport } from './routes/api/admin/author-audits.$id.verifications'
 import { Route as ApiAdminAuthorAuditsIdWorkflowRouteImport } from './routes/api/admin/author-audits.$id.workflow'
 import { Route as ApiAdminExpertsIdPerplexityKeyRouteImport } from './routes/api/admin/experts.$id.perplexity-key'
+import { Route as ApiAdminQuotesIdInvoiceRouteImport } from './routes/api/admin/quotes.$id.invoice'
 import { Route as ApiAdminScoutAuthorsIdConfirmContactRouteImport } from './routes/api/admin/scout-authors.$id.confirm-contact'
 import { Route as ApiAdminScoutAuthorsIdFindContactRouteImport } from './routes/api/admin/scout-authors.$id.find-contact'
 import { Route as ApiAdminScoutAuthorsIdResearchWebsiteRouteImport } from './routes/api/admin/scout-authors.$id.research-website'
@@ -1260,6 +1261,11 @@ const ApiAdminExpertsIdPerplexityKeyRoute =
     path: '/perplexity-key',
     getParentRoute: () => ApiAdminExpertsIdRoute,
   } as any)
+const ApiAdminQuotesIdInvoiceRoute = ApiAdminQuotesIdInvoiceRouteImport.update({
+  id: '/invoice',
+  path: '/invoice',
+  getParentRoute: () => ApiAdminQuotesIdRoute,
+} as any)
 const ApiAdminScoutAuthorsIdConfirmContactRoute =
   ApiAdminScoutAuthorsIdConfirmContactRouteImport.update({
     id: '/confirm-contact',
@@ -1504,7 +1510,7 @@ export interface FileRoutesByFullPath {
   '/api/admin/portfolio/$id': typeof ApiAdminPortfolioIdRoute
   '/api/admin/portfolio/reorder': typeof ApiAdminPortfolioReorderRoute
   '/api/admin/proposals/$id': typeof ApiAdminProposalsIdRoute
-  '/api/admin/quotes/$id': typeof ApiAdminQuotesIdRoute
+  '/api/admin/quotes/$id': typeof ApiAdminQuotesIdRouteWithChildren
   '/api/admin/scout-audience-batches/$id': typeof ApiAdminScoutAudienceBatchesIdRoute
   '/api/admin/scout-audience-leads/$id': typeof ApiAdminScoutAudienceLeadsIdRoute
   '/api/admin/scout-authors/$id': typeof ApiAdminScoutAuthorsIdRouteWithChildren
@@ -1533,6 +1539,7 @@ export interface FileRoutesByFullPath {
   '/api/admin/author-audits/$id/verifications': typeof ApiAdminAuthorAuditsIdVerificationsRoute
   '/api/admin/author-audits/$id/workflow': typeof ApiAdminAuthorAuditsIdWorkflowRoute
   '/api/admin/experts/$id/perplexity-key': typeof ApiAdminExpertsIdPerplexityKeyRoute
+  '/api/admin/quotes/$id/invoice': typeof ApiAdminQuotesIdInvoiceRoute
   '/api/admin/scout-authors/$id/confirm-contact': typeof ApiAdminScoutAuthorsIdConfirmContactRoute
   '/api/admin/scout-authors/$id/find-contact': typeof ApiAdminScoutAuthorsIdFindContactRoute
   '/api/admin/scout-authors/$id/research-website': typeof ApiAdminScoutAuthorsIdResearchWebsiteRoute
@@ -1717,7 +1724,7 @@ export interface FileRoutesByTo {
   '/api/admin/portfolio/$id': typeof ApiAdminPortfolioIdRoute
   '/api/admin/portfolio/reorder': typeof ApiAdminPortfolioReorderRoute
   '/api/admin/proposals/$id': typeof ApiAdminProposalsIdRoute
-  '/api/admin/quotes/$id': typeof ApiAdminQuotesIdRoute
+  '/api/admin/quotes/$id': typeof ApiAdminQuotesIdRouteWithChildren
   '/api/admin/scout-audience-batches/$id': typeof ApiAdminScoutAudienceBatchesIdRoute
   '/api/admin/scout-audience-leads/$id': typeof ApiAdminScoutAudienceLeadsIdRoute
   '/api/admin/scout-authors/$id': typeof ApiAdminScoutAuthorsIdRouteWithChildren
@@ -1746,6 +1753,7 @@ export interface FileRoutesByTo {
   '/api/admin/author-audits/$id/verifications': typeof ApiAdminAuthorAuditsIdVerificationsRoute
   '/api/admin/author-audits/$id/workflow': typeof ApiAdminAuthorAuditsIdWorkflowRoute
   '/api/admin/experts/$id/perplexity-key': typeof ApiAdminExpertsIdPerplexityKeyRoute
+  '/api/admin/quotes/$id/invoice': typeof ApiAdminQuotesIdInvoiceRoute
   '/api/admin/scout-authors/$id/confirm-contact': typeof ApiAdminScoutAuthorsIdConfirmContactRoute
   '/api/admin/scout-authors/$id/find-contact': typeof ApiAdminScoutAuthorsIdFindContactRoute
   '/api/admin/scout-authors/$id/research-website': typeof ApiAdminScoutAuthorsIdResearchWebsiteRoute
@@ -1931,7 +1939,7 @@ export interface FileRoutesById {
   '/api/admin/portfolio/$id': typeof ApiAdminPortfolioIdRoute
   '/api/admin/portfolio/reorder': typeof ApiAdminPortfolioReorderRoute
   '/api/admin/proposals/$id': typeof ApiAdminProposalsIdRoute
-  '/api/admin/quotes/$id': typeof ApiAdminQuotesIdRoute
+  '/api/admin/quotes/$id': typeof ApiAdminQuotesIdRouteWithChildren
   '/api/admin/scout-audience-batches/$id': typeof ApiAdminScoutAudienceBatchesIdRoute
   '/api/admin/scout-audience-leads/$id': typeof ApiAdminScoutAudienceLeadsIdRoute
   '/api/admin/scout-authors/$id': typeof ApiAdminScoutAuthorsIdRouteWithChildren
@@ -1960,6 +1968,7 @@ export interface FileRoutesById {
   '/api/admin/author-audits/$id/verifications': typeof ApiAdminAuthorAuditsIdVerificationsRoute
   '/api/admin/author-audits/$id/workflow': typeof ApiAdminAuthorAuditsIdWorkflowRoute
   '/api/admin/experts/$id/perplexity-key': typeof ApiAdminExpertsIdPerplexityKeyRoute
+  '/api/admin/quotes/$id/invoice': typeof ApiAdminQuotesIdInvoiceRoute
   '/api/admin/scout-authors/$id/confirm-contact': typeof ApiAdminScoutAuthorsIdConfirmContactRoute
   '/api/admin/scout-authors/$id/find-contact': typeof ApiAdminScoutAuthorsIdFindContactRoute
   '/api/admin/scout-authors/$id/research-website': typeof ApiAdminScoutAuthorsIdResearchWebsiteRoute
@@ -2175,6 +2184,7 @@ export interface FileRouteTypes {
     | '/api/admin/author-audits/$id/verifications'
     | '/api/admin/author-audits/$id/workflow'
     | '/api/admin/experts/$id/perplexity-key'
+    | '/api/admin/quotes/$id/invoice'
     | '/api/admin/scout-authors/$id/confirm-contact'
     | '/api/admin/scout-authors/$id/find-contact'
     | '/api/admin/scout-authors/$id/research-website'
@@ -2388,6 +2398,7 @@ export interface FileRouteTypes {
     | '/api/admin/author-audits/$id/verifications'
     | '/api/admin/author-audits/$id/workflow'
     | '/api/admin/experts/$id/perplexity-key'
+    | '/api/admin/quotes/$id/invoice'
     | '/api/admin/scout-authors/$id/confirm-contact'
     | '/api/admin/scout-authors/$id/find-contact'
     | '/api/admin/scout-authors/$id/research-website'
@@ -2601,6 +2612,7 @@ export interface FileRouteTypes {
     | '/api/admin/author-audits/$id/verifications'
     | '/api/admin/author-audits/$id/workflow'
     | '/api/admin/experts/$id/perplexity-key'
+    | '/api/admin/quotes/$id/invoice'
     | '/api/admin/scout-authors/$id/confirm-contact'
     | '/api/admin/scout-authors/$id/find-contact'
     | '/api/admin/scout-authors/$id/research-website'
@@ -4172,6 +4184,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAdminExpertsIdPerplexityKeyRouteImport
       parentRoute: typeof ApiAdminExpertsIdRoute
     }
+    '/api/admin/quotes/$id/invoice': {
+      id: '/api/admin/quotes/$id/invoice'
+      path: '/invoice'
+      fullPath: '/api/admin/quotes/$id/invoice'
+      preLoaderRoute: typeof ApiAdminQuotesIdInvoiceRouteImport
+      parentRoute: typeof ApiAdminQuotesIdRoute
+    }
     '/api/admin/scout-authors/$id/confirm-contact': {
       id: '/api/admin/scout-authors/$id/confirm-contact'
       path: '/confirm-contact'
@@ -4523,12 +4542,23 @@ const ApiAdminProposalsRouteChildren: ApiAdminProposalsRouteChildren = {
 const ApiAdminProposalsRouteWithChildren =
   ApiAdminProposalsRoute._addFileChildren(ApiAdminProposalsRouteChildren)
 
+interface ApiAdminQuotesIdRouteChildren {
+  ApiAdminQuotesIdInvoiceRoute: typeof ApiAdminQuotesIdInvoiceRoute
+}
+
+const ApiAdminQuotesIdRouteChildren: ApiAdminQuotesIdRouteChildren = {
+  ApiAdminQuotesIdInvoiceRoute: ApiAdminQuotesIdInvoiceRoute,
+}
+
+const ApiAdminQuotesIdRouteWithChildren =
+  ApiAdminQuotesIdRoute._addFileChildren(ApiAdminQuotesIdRouteChildren)
+
 interface ApiAdminQuotesRouteChildren {
-  ApiAdminQuotesIdRoute: typeof ApiAdminQuotesIdRoute
+  ApiAdminQuotesIdRoute: typeof ApiAdminQuotesIdRouteWithChildren
 }
 
 const ApiAdminQuotesRouteChildren: ApiAdminQuotesRouteChildren = {
-  ApiAdminQuotesIdRoute: ApiAdminQuotesIdRoute,
+  ApiAdminQuotesIdRoute: ApiAdminQuotesIdRouteWithChildren,
 }
 
 const ApiAdminQuotesRouteWithChildren = ApiAdminQuotesRoute._addFileChildren(

@@ -7,7 +7,7 @@ function json(body: unknown, status = 200) {
 }
 
 const FIELDS =
-  "id, buyer_name, buyer_email, buyer_phone, description, amount_minor, due_date, payment_type, status, admin_note, invoice_id, created_at, reviewed_at";
+  "id, buyer_name, buyer_email, buyer_phone, description, amount_minor, currency, bank_transfer_amount_minor, due_date, payment_type, status, admin_note, invoice_id, created_at, reviewed_at";
 
 const schema = z.object({
   buyer_name: z.string().trim().min(2).max(150),
@@ -15,9 +15,12 @@ const schema = z.object({
   buyer_phone: z
     .string()
     .trim()
-    .regex(/^\+?[\d ()-]{7,25}$/),
+    .regex(/^\+?[\d ()-]{7,25}$/)
+    .or(z.literal(""))
+    .default(""),
   description: z.string().trim().min(3).max(1000),
   amount_minor: z.number().int().positive().max(10000000000),
+  bank_transfer_amount_minor: z.number().int().positive().max(10000000000).optional(),
   due_date: z
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/)
@@ -26,7 +29,7 @@ const schema = z.object({
         !Number.isNaN(Date.parse(value)) && new Date(value).toISOString().slice(0, 10) === value,
       "Invalid date",
     ),
-  payment_type: z.enum(["card", "crypto"]),
+  payment_type: z.enum(["card", "crypto", "bank_transfer"]),
 });
 
 export const Route = createFileRoute("/api/expert/invoice-requests")({

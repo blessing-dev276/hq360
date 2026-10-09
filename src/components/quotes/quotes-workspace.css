@@ -355,3 +355,17 @@
     flex: 1;
   }
 }
+.qw-convert {
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--glass, var(--card));
+}
+.qw-convert h3 {
+  font-size: 17px;
+  font-weight: 650;
+}
+.qw-convert p {
+  color: var(--muted-foreground);
+  font-size: 13px;
+}

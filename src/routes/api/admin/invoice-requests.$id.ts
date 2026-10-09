@@ -7,6 +7,8 @@ export const Route = createFileRoute("/api/admin/invoice-requests/$id")({
       POST: async ({ request, params }) => {
         if (!(await isAdminRequest(request)))
           return Response.json({ error: "Unauthorized" }, { status: 401 });
+        if (request.headers.get("origin") !== new URL(request.url).origin)
+          return Response.json({ error: "Invalid origin" }, { status: 403 });
         const body = await request.json().catch(() => null);
         if (!["fulfill", "decline"].includes(body?.action))
           return Response.json({ error: "Invalid action" }, { status: 400 });
@@ -35,14 +37,31 @@ export const Route = createFileRoute("/api/admin/invoice-requests/$id")({
         try {
           const invoice = await createInvoice({
             id: crypto.randomUUID(),
-            provider: reqRow.payment_type === "crypto" ? "nowpayments" : "flutterwave",
+            provider:
+              reqRow.payment_type === "crypto"
+                ? "nowpayments"
+                : reqRow.payment_type === "bank_transfer"
+                  ? "bank_transfer"
+                  : "flutterwave",
             buyer_name: reqRow.buyer_name,
             buyer_email: reqRow.buyer_email,
             buyer_phone: reqRow.buyer_phone,
             description: reqRow.description,
             amount_minor: reqRow.amount_minor,
+            ...(reqRow.payment_type === "bank_transfer"
+              ? {
+                  currency: reqRow.currency,
+                  bank_transfer_amount_minor: reqRow.bank_transfer_amount_minor ?? undefined,
+                }
+              : {}),
             due_date: reqRow.due_date,
             requested_by_expert_id: reqRow.expert_id,
+            ...(reqRow.source_quote_id
+              ? {
+                  source_quote_id: reqRow.source_quote_id,
+                  source_package_index: reqRow.source_package_index,
+                }
+              : {}),
           });
           const { error } = await expertInvoiceRequests()
             .update({

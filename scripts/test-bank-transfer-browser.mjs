@@ -13,7 +13,8 @@ try {
           number: "HQ-123456",
           description: "Consulting services",
           amount_minor: 125050,
-          currency: "EUR",
+          currency: "USD",
+          bank_transfer_amount_minor: 110000,
           due_date: "2026-11-01",
           status,
           provider: "bank_transfer",
@@ -32,6 +33,8 @@ try {
       `${process.env.PAYMENTS_TEST_URL || "http://localhost:8081"}/pay/${"a".repeat(64)}`,
     );
     await expect(page.getByRole("heading", { name: "Pay by bank transfer" })).toBeVisible();
+    await expect(page.locator(".buyer-total-amount")).toHaveText("$1,250.50");
+    await expect(page.locator(".buyer-transfer strong")).toBeVisible();
     await expect(page.getByText("GB04CLJU04130735848221", { exact: true })).toBeVisible();
     await page.getByRole("button", { name: "Refresh payment status" }).click();
     await expect(page.getByText("Awaiting payment", { exact: true })).toBeVisible();

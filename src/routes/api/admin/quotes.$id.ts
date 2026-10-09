@@ -32,7 +32,16 @@ export const Route = createFileRoute("/api/admin/quotes/$id")({
         let query = quotesTable().delete().eq("id", params.id);
         if (!who.admin) query = query.eq("owner", who.owner);
         const { error } = await query;
-        if (error) return json({ error: "Could not delete the quote." }, 503);
+        if (error)
+          return json(
+            {
+              error:
+                error.code === "23503"
+                  ? "This quote is linked to an invoice or invoice request and cannot be deleted."
+                  : "Could not delete the quote.",
+            },
+            error.code === "23503" ? 409 : 503,
+          );
         return json({ ok: true });
       },
     },

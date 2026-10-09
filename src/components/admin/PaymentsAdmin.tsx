@@ -39,8 +39,10 @@ type InvoiceRequest = {
   buyer_phone: string;
   description: string;
   amount_minor: number;
+  bank_transfer_amount_minor?: number | null;
+  currency?: "USD" | "EUR";
   due_date: string;
-  payment_type: "card" | "crypto";
+  payment_type: "card" | "crypto" | "bank_transfer";
   status: "pending" | "fulfilled" | "declined";
   admin_note: string | null;
   invoice_id: string | null;
@@ -128,7 +130,7 @@ export function PaymentsAdmin() {
     if (action === "confirm_bank") {
       reference = window
         .prompt(
-          `Confirm that ${money(invoice.amount_minor, invoice.currency)} has arrived in your bank account for ${invoice.number}. Enter the bank transaction reference:`,
+          `Confirm that ${money(invoice.bank_transfer_amount_minor ?? invoice.amount_minor, "EUR")} has arrived in your bank account for ${invoice.number}. Enter the bank transaction reference:`,
         )
         ?.trim();
       if (!reference) return;
@@ -240,6 +242,11 @@ export function PaymentsAdmin() {
         buyer_phone: form.get("buyer_phone"),
         description: form.get("description"),
         amount_minor: Math.round(amount * 100),
+        currency: "USD",
+        bank_transfer_amount_minor:
+          provider === "bank_transfer"
+            ? Math.round(Number(form.get("bank_transfer_amount")) * 100)
+            : undefined,
         due_date: form.get("due_date"),
       });
       merge(data.invoice);
@@ -631,10 +638,14 @@ export function PaymentsAdmin() {
                       </small>
                       <small>{r.description.slice(0, 80)}</small>
                     </td>
-                    <td className="admin-numeric">{money(r.amount_minor)}</td>
+                    <td className="admin-numeric">{money(r.amount_minor, r.currency ?? "USD")}</td>
                     <td>
                       <span className="admin-status pending">
-                        {r.payment_type === "crypto" ? "Crypto" : "Card"}
+                        {r.payment_type === "crypto"
+                          ? "Crypto"
+                          : r.payment_type === "bank_transfer"
+                            ? "Bank transfer"
+                            : "Card"}
                       </span>
                     </td>
                     <td>
@@ -745,11 +756,10 @@ export function PaymentsAdmin() {
                 />
               </label>
               <label>
-                Phone number
+                Phone number (optional)
                 <input
                   name="buyer_phone"
                   type="tel"
-                  required
                   minLength={7}
                   maxLength={25}
                   placeholder="+234…"
@@ -777,10 +787,9 @@ export function PaymentsAdmin() {
               />
             </label>
             <label>
-              Amount ({provider === "bank_transfer" ? "EUR" : "USD"})
+              Amount (USD)
               <input
                 name="amount"
-                key={provider === "bank_transfer" ? "EUR" : "USD"}
                 type="number"
                 required
                 min="0.01"
@@ -789,6 +798,20 @@ export function PaymentsAdmin() {
                 placeholder="0.00"
               />
             </label>
+            {provider === "bank_transfer" && (
+              <label>
+                Agreed transfer amount (EUR)
+                <input
+                  name="bank_transfer_amount"
+                  type="number"
+                  min="0.01"
+                  max="100000000"
+                  step="0.01"
+                  required
+                  placeholder="0.00"
+                />
+              </label>
+            )}
             <p className="admin-form-note">
               Save a draft first. You’ll review it before issuing or emailing it.
             </p>
@@ -818,6 +841,13 @@ export function PaymentsAdmin() {
                   {invoiceStatus(selected)}
                 </span>
                 <strong>{money(selected.amount_minor, selected.currency)}</strong>
+                {selected.provider === "bank_transfer" &&
+                  selected.bank_transfer_amount_minor &&
+                  selected.currency === "USD" && (
+                    <small>
+                      Agreed EUR transfer: {money(selected.bank_transfer_amount_minor, "EUR")}
+                    </small>
+                  )}
                 <p>{selected.description}</p>
               </div>
               <dl className="admin-invoice-details">

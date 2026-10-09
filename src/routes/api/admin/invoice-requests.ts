@@ -10,7 +10,7 @@ export const Route = createFileRoute("/api/admin/invoice-requests")({
         const { expertInvoiceRequests } = await import("@/lib/expert-auth.server");
         const { data, error } = await expertInvoiceRequests()
           .select(
-            "id, expert_id, buyer_name, buyer_email, buyer_phone, description, amount_minor, due_date, payment_type, status, admin_note, invoice_id, created_at, reviewed_at, expert_profiles(full_name, email)",
+            "id, expert_id, buyer_name, buyer_email, buyer_phone, description, amount_minor, currency, bank_transfer_amount_minor, due_date, payment_type, status, admin_note, invoice_id, created_at, reviewed_at, expert_profiles(full_name, email)",
           )
           .order("created_at", { ascending: false });
         if (error)

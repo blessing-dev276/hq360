@@ -10,8 +10,10 @@ type InvoiceRequest = {
   buyer_phone: string;
   description: string;
   amount_minor: number;
+  currency?: "USD" | "EUR";
+  bank_transfer_amount_minor?: number | null;
   due_date: string;
-  payment_type: "card" | "crypto";
+  payment_type: "card" | "crypto" | "bank_transfer";
   status: "pending" | "fulfilled" | "declined";
   admin_note: string | null;
   created_at: string;
@@ -149,11 +151,10 @@ export function ExpertInvoiceRequests() {
               <input name="buyer_email" type="email" required maxLength={254} />
             </label>
             <label>
-              Client phone
+              Client phone (optional)
               <input
                 name="buyer_phone"
                 type="tel"
-                required
                 minLength={7}
                 maxLength={25}
                 placeholder="+234…"
@@ -241,7 +242,7 @@ export function ExpertInvoiceRequests() {
                     <small>{r.buyer_email}</small>
                     <small>{r.description.slice(0, 80)}</small>
                   </td>
-                  <td className="admin-numeric">{money(r.amount_minor)}</td>
+                  <td className="admin-numeric">{money(r.amount_minor, r.currency ?? "USD")}</td>
                   <td>
                     <StatusBadge status={r.status} />
                     {r.status === "declined" && r.admin_note && (

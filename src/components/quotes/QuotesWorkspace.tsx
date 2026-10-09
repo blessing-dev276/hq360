@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import {
   AlertCircle,
   ArrowLeft,
@@ -86,6 +86,7 @@ export function QuotesWorkspace() {
     return (
       <QuoteEditor
         initial={editing}
+        isAdmin={me.admin}
         onBack={() => {
           setEditing(null);
           void load();
@@ -180,12 +181,34 @@ function QuoteCard({
   );
 }
 
-function QuoteEditor({ initial, onBack }: { initial: Quote; onBack: () => void }) {
+function QuoteEditor({
+  initial,
+  onBack,
+  isAdmin,
+}: {
+  initial: Quote;
+  onBack: () => void;
+  isAdmin: boolean;
+}) {
   const [quote, setQuote] = useState<Quote>(initial);
   const [saved, setSaved] = useState<Quote>(initial);
-  const [busy, setBusy] = useState<"" | "save" | "pdf" | "png" | "link" | "delete">("");
+  const [busy, setBusy] = useState<"" | "save" | "pdf" | "png" | "link" | "delete" | "convert">("");
   const [error, setError] = useState("");
   const [flash, setFlash] = useState("");
+  const [converting, setConverting] = useState(false);
+  const [conversionMethod, setConversionMethod] = useState<
+    "bank_transfer" | "flutterwave" | "nowpayments"
+  >(initial.currency === "EUR" ? "bank_transfer" : "flutterwave");
+  const [conversionPackage, setConversionPackage] = useState(() => {
+    const premium = initial.packages.findIndex((pkg) => pkg.name.toLowerCase() === "premium");
+    return premium >= 0
+      ? premium
+      : Math.max(
+          0,
+          initial.packages.findIndex((pkg) => pkg.recommended),
+        );
+  });
+  const [conversionResult, setConversionResult] = useState("");
   const [mobileView, setMobileView] = useState<"edit" | "preview">("edit");
   const exportRef = useRef<HTMLDivElement>(null);
   const dirty = useMemo(() => JSON.stringify(quote) !== JSON.stringify(saved), [quote, saved]);
@@ -285,6 +308,45 @@ function QuoteEditor({ initial, onBack }: { initial: Quote; onBack: () => void }
     }
   }
 
+  async function convert(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!quote.id || dirty) return;
+    const fields = new FormData(event.currentTarget);
+    setBusy("convert");
+    setError("");
+    try {
+      const result = await api<{
+        kind: "invoice" | "request";
+        invoice?: { number: string };
+        existing: boolean;
+      }>(`/api/admin/quotes/${quote.id}/invoice`, {
+        method: "POST",
+        body: JSON.stringify({
+          package_index: conversionPackage,
+          buyer_email: fields.get("buyer_email"),
+          buyer_phone: fields.get("buyer_phone"),
+          due_date: fields.get("due_date"),
+          bank_transfer_amount_minor: fields.get("bank_transfer_amount")
+            ? Math.round(Number(fields.get("bank_transfer_amount")) * 100)
+            : undefined,
+          payment_method: fields.get("payment_method"),
+        }),
+      });
+      setConversionResult(
+        result.kind === "invoice"
+          ? `${result.existing ? "Existing" : "Draft"} invoice ${result.invoice?.number ?? ""} is in Payments. Review and issue it there before sending.`
+          : result.existing
+            ? "An invoice request for this quote already exists. Check Invoice requests for its status."
+            : "Invoice request sent to admin. You can track it in Invoice requests.",
+      );
+      setConverting(false);
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy("");
+    }
+  }
+
   function applyTemplate(key: string) {
     const template = QUOTE_TEMPLATES.find((t) => t.key === key);
     if (!template) return;
@@ -316,6 +378,18 @@ function QuoteEditor({ initial, onBack }: { initial: Quote; onBack: () => void }
                 : "New quote"}
         </span>
         <div className="qw-actions">
+          <button
+            className="admin-button admin-button-primary"
+            disabled={
+              Boolean(busy) || dirty || !quote.id || !["USD", "EUR"].includes(quote.currency)
+            }
+            onClick={() => {
+              setConversionResult("");
+              setConverting(true);
+            }}
+          >
+            <FileText size={15} /> Create invoice
+          </button>
           <button className="admin-button" disabled={Boolean(busy)} onClick={() => void save()}>
             {busy === "save" ? "Saving…" : "Save"}
           </button>
@@ -342,6 +416,109 @@ function QuoteEditor({ initial, onBack }: { initial: Quote; onBack: () => void }
         <div className="admin-alert" role="alert">
           <AlertCircle size={18} /> {error}
         </div>
+      )}
+      {conversionResult && (
+        <div className="admin-notice" role="status">
+          <Check size={18} /> {conversionResult}
+          {isAdmin && <a href="/admin#payments">Open Payments</a>}
+        </div>
+      )}
+      {converting && (
+        <form className="admin-invoice-form qw-convert" onSubmit={convert}>
+          <h3>Invoice from this quote</h3>
+          <p>
+            Select the agreed package. The buyer will see its full price in {quote.currency}. If
+            using bank transfer for a USD quote, enter the separate EUR amount you agreed with the
+            buyer.
+          </p>
+          <div className="admin-form-grid">
+            <label>
+              Agreed package
+              <select
+                value={conversionPackage}
+                onChange={(e) => setConversionPackage(Number(e.target.value))}
+              >
+                {quote.packages.map((pkg, i) => (
+                  <option key={i} value={i}>
+                    {pkg.name} — {formatPrice(pkg.price, quote.currency)}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              Payment method
+              <select
+                name="payment_method"
+                value={quote.currency === "EUR" ? "bank_transfer" : conversionMethod}
+                onChange={(e) => setConversionMethod(e.target.value as typeof conversionMethod)}
+              >
+                {quote.currency === "EUR" ? (
+                  <option value="bank_transfer">EUR bank transfer (SEPA)</option>
+                ) : (
+                  <>
+                    <option value="flutterwave">Card / hosted checkout (USD)</option>
+                    <option value="bank_transfer">
+                      Bank transfer (invoice USD, pay agreed EUR)
+                    </option>
+                    <option value="nowpayments">Crypto checkout</option>
+                  </>
+                )}
+              </select>
+            </label>
+            {quote.currency === "USD" && conversionMethod === "bank_transfer" && (
+              <label>
+                Agreed transfer amount (EUR)
+                <input
+                  name="bank_transfer_amount"
+                  type="number"
+                  min="0.01"
+                  max="100000000"
+                  step="0.01"
+                  required
+                  placeholder="0.00"
+                />
+              </label>
+            )}
+            <label>
+              Buyer email
+              <input name="buyer_email" type="email" required maxLength={254} />
+            </label>
+            <label>
+              Buyer phone (optional)
+              <input name="buyer_phone" type="tel" minLength={7} maxLength={25} />
+            </label>
+            <label>
+              Due date
+              <input
+                name="due_date"
+                type="date"
+                required
+                defaultValue={new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10)}
+              />
+            </label>
+          </div>
+          <div className="admin-button-row">
+            <button
+              className="admin-button admin-button-primary"
+              disabled={Boolean(busy) || !quote.packages[conversionPackage]?.price}
+              type="submit"
+            >
+              {busy === "convert"
+                ? "Creating…"
+                : isAdmin
+                  ? "Create draft invoice"
+                  : "Request invoice"}
+            </button>
+            <button
+              className="admin-button"
+              type="button"
+              disabled={Boolean(busy)}
+              onClick={() => setConverting(false)}
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
       )}
       {flash && (
         <div className="admin-notice" role="status">

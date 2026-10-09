@@ -6,6 +6,7 @@ export type Invoice = {
   buyer_phone: string;
   description: string;
   amount_minor: number;
+  bank_transfer_amount_minor: number | null;
   currency: "USD" | "NGN" | "EUR";
   due_date: string;
   status: "draft" | "pending" | "paid" | "refunded" | "cancelled";

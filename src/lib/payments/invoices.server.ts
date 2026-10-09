@@ -59,9 +59,13 @@ export const invoiceSchema = z.object({
   buyer_phone: z
     .string()
     .trim()
-    .regex(/^\+?[\d ()-]{7,25}$/),
+    .regex(/^\+?[\d ()-]{7,25}$/)
+    .or(z.literal(""))
+    .default(""),
   description: z.string().trim().min(3).max(1000),
   amount_minor: z.number().int().positive().max(10000000000),
+  currency: z.enum(["USD", "EUR"]).optional(),
+  bank_transfer_amount_minor: z.number().int().positive().max(10000000000).optional(),
   due_date: z
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/)
@@ -71,6 +75,8 @@ export const invoiceSchema = z.object({
       "Invalid date",
     ),
   requested_by_expert_id: z.string().uuid().optional(),
+  source_quote_id: z.string().uuid().optional(),
+  source_package_index: z.number().int().min(0).max(3).optional(),
 });
 export function paymentJson(body: unknown, status = 200) {
   return Response.json(body, {
@@ -109,12 +115,20 @@ export async function getInvoice(id: string, byToken = false): Promise<Invoice> 
   return data as Invoice;
 }
 export async function createInvoice(input: z.infer<typeof invoiceSchema>) {
+  const currency = input.currency ?? (input.provider === "bank_transfer" ? "EUR" : "USD");
+  if (input.provider === "bank_transfer") {
+    if (!(["USD", "EUR"] as string[]).includes(currency))
+      throw new Error("Unsupported bank invoice currency.");
+    if (currency === "USD" && !input.bank_transfer_amount_minor)
+      throw new Error("Enter the agreed EUR transfer amount for a USD invoice.");
+  } else if (currency !== "USD" || input.bank_transfer_amount_minor)
+    throw new Error("Hosted checkout invoices use USD and do not have a EUR transfer amount.");
   const environment =
     input.provider === "bank_transfer"
       ? "live"
       : providerModule(input.provider).paymentSetup().environment;
   const { error } = await db().upsert(
-    { ...input, currency: input.provider === "bank_transfer" ? "EUR" : "USD", environment },
+    { ...input, currency, environment },
     { onConflict: "id", ignoreDuplicates: true },
   );
   if (error)
@@ -161,7 +175,7 @@ export async function issueInvoice(invoice: Invoice) {
       .update({ status: "pending", provider_invoice_id: invoice.number })
       .eq("id", invoice.id)
       .eq("provider", "bank_transfer")
-      .eq("currency", "EUR")
+      .in("currency", ["USD", "EUR"])
       .eq("status", "draft")
       .is("provider_invoice_id", null)
       .select("id");
@@ -250,7 +264,7 @@ export async function confirmBankTransfer(invoice: Invoice, reference: unknown) 
     })
     .eq("id", invoice.id)
     .eq("provider", "bank_transfer")
-    .eq("currency", "EUR")
+    .in("currency", ["USD", "EUR"])
     .eq("status", "pending")
     .select("id");
   if (error || !data?.length)

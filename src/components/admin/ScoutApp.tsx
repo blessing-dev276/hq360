@@ -1,9 +1,9 @@
-import { EmailRunReport } from "./EmailRunReport";
 import type { ContactEvidence } from "@/lib/scout/email-report";
 import { EmailCheckBadge } from "./EmailCheckBadge";
 import {
   AuthorContactSearch,
   EmailSearchProgress,
+  EmailSpend,
   savedSearch,
   useEmailSearch,
   type EmailSearch,
@@ -456,34 +456,33 @@ function AuthorScout({
     }
     return out;
   })();
-  const pilotTargets = [
-    ...new Map(
-      books
-        .filter((b) => b.scout_authors && !b.localOnly)
-        .map((b) => [b.scout_authors!.id, { authorId: b.scout_authors!.id, bookId: b.id }]),
-    ).values(),
-  ].slice(0, 50);
+  // Optional spending limit for the next email search ("" = no limit).
+  const [emailBudget, setEmailBudget] = useState("");
+  const budgetUsd = Number(emailBudget) > 0 ? Number(emailBudget) : undefined;
+  const budgetNote = budgetUsd
+    ? ` Paid searches stop at $${budgetUsd.toFixed(2)}.`
+    : " No spending limit is set.";
   function retryNotFound() {
     const n = notFoundTargets.length;
     if (
       !n ||
       !window.confirm(
-        `Search again for ${n} author${n === 1 ? "" : "s"} with no verified email? Searches use your Perplexity account.`,
+        `Search again for ${n} author${n === 1 ? "" : "s"} with no verified email? Searches use your Perplexity account.${budgetNote}`,
       )
     )
       return;
-    void emails.findAll(notFoundTargets, true);
+    void emails.findAll(notFoundTargets, true, budgetUsd);
   }
   function findAllEmails() {
     const n = emailTargets.length;
     if (
       !n ||
       !window.confirm(
-        `Find emails for ${n} author${n === 1 ? "" : "s"}? Searches use your Perplexity account. Saved and free source checks are reused.`,
+        `Find emails for ${n} author${n === 1 ? "" : "s"}? Searches use your Perplexity account. Saved and free source checks are reused.${budgetNote}`,
       )
     )
       return;
-    void emails.findAll(emailTargets, false);
+    void emails.findAll(emailTargets, false, budgetUsd);
   }
   const [loading, setLoading] = useState(true);
   const [detailLoading, setDetailLoading] = useState(false);
@@ -1378,6 +1377,27 @@ function AuthorScout({
               </div>
               <div className="flex flex-wrap items-center gap-2">
                 {canFindEmail && (
+                  <label
+                    className="inline-flex h-11 items-center gap-1 rounded-xl border border-border px-3 text-sm text-muted-foreground"
+                    title="Paid Perplexity searches stop at this amount. Leave empty for no limit."
+                  >
+                    Max spend $
+                    <input
+                      aria-label="Max spend for this email search, in US dollars"
+                      type="number"
+                      inputMode="decimal"
+                      min={0.05}
+                      max={500}
+                      step={0.5}
+                      placeholder="no limit"
+                      value={emailBudget}
+                      disabled={Boolean(emails.run)}
+                      onChange={(e) => setEmailBudget(e.target.value)}
+                      className="w-20 bg-transparent text-foreground outline-none"
+                    />
+                  </label>
+                )}
+                {canFindEmail && (
                   <button
                     type="button"
                     disabled={Boolean(emails.run) || detailLoading || !emailTargets.length}
@@ -1466,21 +1486,15 @@ function AuthorScout({
                 </p>
               )}
               {canFindEmail && (
-                <div className="my-3 space-y-2 rounded-xl border p-3 text-sm">
-                  <p className="text-xs text-muted-foreground">
-                    Search up to 10 authors at a time. Usage is billed to your Perplexity account.
-                  </p>
-                  <button
-                    className="rounded-lg border px-3 py-2"
-                    disabled={Boolean(emails.run) || !pilotTargets.length}
-                    onClick={() => void emails.findAll(pilotTargets, true)}
-                  >
-                    Measure {pilotTargets.length}-author sample
-                  </button>
-                  {emails.runError && <p role="alert">{emails.runError}</p>}
-                </div>
+                <>
+                  <EmailSpend runId={emails.lastRunId} revision={emails.revision} />
+                  {emails.runError && (
+                    <p role="alert" className="text-xs text-destructive">
+                      {emails.runError}
+                    </p>
+                  )}
+                </>
               )}
-              {canFindEmail && <EmailRunReport id={emails.lastRunId} revision={emails.revision} />}
               <button
                 onClick={exportCsv}
                 disabled={!visible.length || detailLoading}

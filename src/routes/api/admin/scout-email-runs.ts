@@ -60,6 +60,8 @@ export async function emailRunsHandler(request: Request) {
               .array(z.object({ authorId: z.string().uuid(), bookId: z.string().uuid() }).strict())
               .min(1)
               .max(500),
+            /** Optional spending limit in USD; omitted = no limit. */
+            budgetUsd: z.number().min(0.05).max(500).optional(),
           })
           .strict(),
       ])
@@ -71,7 +73,7 @@ export async function emailRunsHandler(request: Request) {
     for (const target of body.targets)
       if (!(await canSeeAuthor(asScoutDb(emailDb()), access.owner, target.authorId)))
         return json({ message: "Author not found." }, 404);
-    return json({ run: await createEmailRun(access.owner, body.targets) });
+    return json({ run: await createEmailRun(access.owner, body.targets, body.budgetUsd) });
   } catch (error) {
     if (error instanceof z.ZodError || error instanceof SyntaxError)
       return json({ message: "Invalid email search request." }, 400);

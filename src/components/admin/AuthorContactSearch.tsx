@@ -1,6 +1,6 @@
 import type { ContactEvidence } from "@/lib/scout/email-report";
 import { EmailCheckBadge, type EmailCheck } from "./EmailCheckBadge";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Copy, Loader2, MailCheck, MailX, Search, Square } from "lucide-react";
 
 export type EmailSearch = {
@@ -82,7 +82,12 @@ export function useEmailSearch() {
   }, []);
 
   const findAll = useCallback(
-    async (targets: { authorId: string; bookId: string }[], retry = false) => {
+    async (
+      targets: { authorId: string; bookId: string }[],
+      retry = false,
+      /** Optional spending limit for this run, in USD. */
+      budgetUsd?: number,
+    ) => {
       if (!targets.length || creating.current) return;
       creating.current = true;
       setRunError("");
@@ -91,7 +96,11 @@ export function useEmailSearch() {
         const response = await fetch("/api/admin/scout-email-runs", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ action: "create", targets }),
+          body: JSON.stringify({
+            action: "create",
+            targets,
+            ...(budgetUsd ? { budgetUsd } : {}),
+          }),
         });
         const data = await response.json();
         if (!response.ok) throw new Error(data.message || "Could not start search run.");
@@ -304,6 +313,67 @@ export function AuthorContactSearch({
               {search.error}
             </span>
           )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** Live spend for the current or last run: "Spent $0.84 of $2.00 · 12 found". */
+export function EmailSpend({ runId, revision }: { runId: string | null; revision: number }) {
+  const [data, setData] = useState<{
+    budget: number | null;
+    spent: number;
+    found: number;
+    paused: number;
+  } | null>(null);
+  useEffect(() => {
+    if (!runId) return;
+    const controller = new AbortController();
+    void fetch(`/api/admin/scout-email-runs?id=${encodeURIComponent(runId)}`, {
+      signal: controller.signal,
+    })
+      .then((r) => r.json())
+      .then(
+        (d: {
+          run?: { budget_usd: number | null; accounted_usd: number };
+          results?: { status: string }[];
+        }) => {
+          if (!d.run) return;
+          setData({
+            budget: d.run.budget_usd == null ? null : Number(d.run.budget_usd),
+            // Settled real costs plus estimates still waiting for Perplexity's figure.
+            spent: Number(d.run.accounted_usd),
+            found: (d.results ?? []).filter((r) => r.status === "found").length,
+            paused: (d.results ?? []).filter((r) => r.status === "paused").length,
+          });
+        },
+      )
+      .catch(() => {});
+    return () => controller.abort();
+  }, [runId, revision]);
+  if (!runId || !data) return null;
+  const used = data.budget ? Math.min(100, (data.spent / data.budget) * 100) : null;
+  return (
+    <div className="text-xs" role="status">
+      <p>
+        Spent <b>${data.spent.toFixed(2)}</b>
+        {data.budget != null ? <> of ${data.budget.toFixed(2)}</> : " (no limit)"} ·{" "}
+        <b className="text-emerald-500">{data.found}</b> email{data.found === 1 ? "" : "s"} found
+        {data.paused > 0 && (
+          <span className="text-amber-600">
+            {" "}
+            · {data.paused} paused, budget used. Run Find emails again with a new budget to
+            continue.
+          </span>
+        )}
+      </p>
+      {used != null && (
+        <div className="mt-1 h-1.5 w-56 overflow-hidden rounded-full bg-secondary">
+          <div
+            className={used >= 100 ? "h-full bg-amber-500" : "h-full bg-brand"}
+            style={{ width: `${used}%` }}
+          />
         </div>
       )}
     </div>

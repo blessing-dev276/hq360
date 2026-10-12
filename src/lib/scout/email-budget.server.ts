@@ -4,11 +4,16 @@ import { PerplexityError } from "@/lib/perplexity/agent.server";
 import type { AuthorContactResult } from "./perplexity-contact.server";
 export const emailDb = () => supabaseAdmin as SupabaseClient;
 export type EmailTarget = { authorId: string; bookId: string };
-export async function createEmailRun(owner: string, targets: EmailTarget[]) {
+/** budgetUsd: optional spending limit for the run (null/undefined = no limit). */
+export async function createEmailRun(
+  owner: string,
+  targets: EmailTarget[],
+  budgetUsd?: number | null,
+) {
   const unique = [...new Map(targets.map((t) => [t.authorId, t])).values()];
   const { data, error } = await emailDb()
     .from("scout_email_runs")
-    .insert({ owner, targets: unique })
+    .insert({ owner, targets: unique, budget_usd: budgetUsd ?? null })
     .select("id,budget_usd,accounted_usd,targets")
     .single();
   if (error) throw new PerplexityError("Could not create email search run.", 503);
@@ -46,8 +51,20 @@ export async function reserveEmailPass(
   });
   if (error)
     throw new PerplexityError("Could not register search request; no new search was started.", 503);
-  if (!data)
+  if (!data) {
+    // Tell "budget used" apart from a stopped run: 402 pauses the author.
+    const { data: run } = await emailDb()
+      .from("scout_email_runs")
+      .select("status, budget_usd")
+      .eq("id", runId)
+      .maybeSingle();
+    if (run?.status === "running" && run.budget_usd != null)
+      throw new PerplexityError(
+        `Budget of $${Number(run.budget_usd).toFixed(2)} used. Free checks and saved results still apply.`,
+        402,
+      );
     throw new PerplexityError("Email search run is stopped, completed, or unavailable.", 409);
+  }
   return data as string;
 }
 export async function settleEmailPass(ticket: string, costUsd: number | null | undefined) {

@@ -72,13 +72,19 @@ export type AgentRequest = {
 };
 export function parseAgentResponse(raw: unknown) {
   const parsed = responseSchema.safeParse(raw);
-  if (!parsed.success || parsed.data.status !== "completed")
+  if (!parsed.success)
     throw new PerplexityError("Perplexity did not complete the research. Please retry.");
   const response = parsed.data;
   const messages = response.output
     .filter((item) => item.type === "message")
     .flatMap((item) => item.content ?? [])
     .filter((item) => item.type === "output_text");
+  // A run cut short (e.g. out of steps) is still usable if it wrote an answer.
+  if (
+    response.status !== "completed" &&
+    !(response.status === "incomplete" && messages.some((m) => m.text?.trim()))
+  )
+    throw new PerplexityError("Perplexity did not complete the research. Please retry.");
   const usage = (raw as { usage?: Record<string, unknown> } | null)?.usage ?? {};
   const num = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v : 0);
   return {

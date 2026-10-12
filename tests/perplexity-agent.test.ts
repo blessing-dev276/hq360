@@ -41,7 +41,17 @@ test("reads raw HTTP output messages, search/fetch evidence and URL annotations"
   expect(result.text).toBe("Answer");
   expect(result.sources).toHaveLength(2);
   expect(result.citations).toHaveLength(1);
-  expect(() => parseAgentResponse({ ...response, status: "incomplete" })).toThrow();
+  // A run cut short is still usable when it wrote an answer…
+  expect(parseAgentResponse({ ...response, status: "incomplete" }).text).toBe("Answer");
+  // …but not when it wrote nothing, or failed outright.
+  expect(() =>
+    parseAgentResponse({
+      ...response,
+      status: "incomplete",
+      output: response.output.filter((o) => o.type !== "message"),
+    }),
+  ).toThrow();
+  expect(() => parseAgentResponse({ ...response, status: "failed" })).toThrow();
 });
 test("requires a server key and uses the documented endpoint and tools", async () => {
   delete process.env.PERPLEXITY_API_KEY;

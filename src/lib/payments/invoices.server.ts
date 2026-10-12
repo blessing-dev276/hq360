@@ -181,6 +181,10 @@ export async function createInvoice(input: z.infer<typeof invoiceSchema>) {
       {
         ...base,
         id: balanceId,
+        // Only one invoice may point at a quote; the deposit carries the link
+        // and the balance is tied to it through installment_group.
+        source_quote_id: null,
+        source_package_index: null,
         amount_minor: input.amount_minor - half(input.amount_minor),
         bank_transfer_amount_minor: bank ? bank - half(bank) : bank,
         due_date: balance_due_date ?? addDays(input.due_date, 30),

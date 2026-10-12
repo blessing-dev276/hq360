@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
-import { canFindContacts, canSeeAuthor, resolveScoutAccess } from "@/lib/scout/owner.server";
+import { canFindContacts, visibleAuthors, resolveScoutAccess } from "@/lib/scout/owner.server";
 import { asScoutDb } from "@/lib/scout/db";
 import {
   checkEmailRun,
@@ -70,9 +70,13 @@ export async function emailRunsHandler(request: Request) {
       await finishEmailRun(body.id, access.owner, body.action === "stop" ? "stopped" : "completed");
       return json({ ok: true });
     }
-    for (const target of body.targets)
-      if (!(await canSeeAuthor(asScoutDb(emailDb()), access.owner, target.authorId)))
-        return json({ message: "Author not found." }, 404);
+    const visible = await visibleAuthors(
+      asScoutDb(emailDb()),
+      access.owner,
+      body.targets.map((t) => t.authorId),
+    );
+    if (body.targets.some((t) => !visible.has(t.authorId)))
+      return json({ message: "Author not found." }, 404);
     return json({ run: await createEmailRun(access.owner, body.targets, body.budgetUsd) });
   } catch (error) {
     if (error instanceof z.ZodError || error instanceof SyntaxError)

@@ -71,6 +71,8 @@ export function useEmailSearch() {
   const [lastRunId, setLastRunId] = useState<string | null>(null);
   const [revision, setRevision] = useState(0);
   const [runError, setRunError] = useState("");
+  // True from the click until the run is created, so the button reacts at once.
+  const [starting, setStarting] = useState(false);
   const creating = useRef(false);
   const runIdRef = useRef("");
   const set = (id: string, value: EmailSearch) =>
@@ -90,6 +92,7 @@ export function useEmailSearch() {
     ) => {
       if (!targets.length || creating.current) return;
       creating.current = true;
+      setStarting(true);
       setRunError("");
       let runId: string;
       try {
@@ -110,8 +113,10 @@ export function useEmailSearch() {
       } catch (error) {
         setRunError(error instanceof Error ? error.message : "Could not start search run.");
         creating.current = false;
+        setStarting(false);
         return;
       }
+      setStarting(false);
 
       stopRef.current = false;
       setState((current) => {
@@ -154,6 +159,7 @@ export function useEmailSearch() {
     lastRunId,
     revision,
     runError,
+    starting,
     run: run && { total: run.ids.length, startedAt: run.startedAt },
     runResults: run
       ? run.ids.map((id) => state[id] ?? { status: "idle" as const, emails: [] })

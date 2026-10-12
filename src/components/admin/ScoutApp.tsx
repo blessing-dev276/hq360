@@ -1400,20 +1400,27 @@ function AuthorScout({
                 {canFindEmail && (
                   <button
                     type="button"
-                    disabled={Boolean(emails.run) || detailLoading || !emailTargets.length}
+                    disabled={
+                      Boolean(emails.run) ||
+                      emails.starting ||
+                      detailLoading ||
+                      !emailTargets.length
+                    }
                     onClick={findAllEmails}
                     className="inline-flex h-11 items-center gap-2 rounded-xl border border-brand/50 px-4 text-sm font-semibold text-brand hover:bg-brand/10 disabled:opacity-50"
                   >
-                    {emails.run ? (
+                    {emails.run || emails.starting ? (
                       <Loader2 className="size-4 animate-spin" />
                     ) : (
                       <Mail className="size-4" />
                     )}
-                    {emails.run
-                      ? "Finding emails…"
-                      : emailTargets.length
-                        ? `Find all emails (${emailTargets.length})`
-                        : "All emails searched"}
+                    {emails.starting
+                      ? "Starting…"
+                      : emails.run
+                        ? "Finding emails…"
+                        : emailTargets.length
+                          ? `Find all emails (${emailTargets.length})`
+                          : "All emails searched"}
                   </button>
                 )}
                 <button

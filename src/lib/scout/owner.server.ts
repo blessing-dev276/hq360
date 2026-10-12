@@ -178,3 +178,30 @@ export function presenceFor(
   const name = (o: string) => p.names.get(o) ?? "Another expert";
   return { scouted: scouted.map(name), generated: generated.map(name) };
 }
+
+/** canSeeAuthor for many authors at once: two queries, not two per author. */
+export async function visibleAuthors(db: Db, owner: string, authorIds: string[]) {
+  const ids = [...new Set(authorIds)];
+  const seen = new Set<string>();
+  // Chunk to keep the request URL short.
+  for (let i = 0; i < ids.length; i += 150) {
+    const chunk = ids.slice(i, i + 150);
+    const [prospects, books] = await Promise.all([
+      db
+        .from("scout_prospects")
+        .select("scout_author_id")
+        .eq("owner", owner)
+        .in("scout_author_id", chunk),
+      db
+        .from("scout_discovered_books")
+        .select("scout_author_id, scout_batch_books!inner(scout_batches!inner(owner))")
+        .in("scout_author_id", chunk)
+        .eq("scout_batch_books.scout_batches.owner", owner),
+    ]);
+    if (prospects.error) throw prospects.error;
+    if (books.error) throw books.error;
+    for (const row of [...(prospects.data ?? []), ...(books.data ?? [])])
+      seen.add((row as { scout_author_id: string }).scout_author_id);
+  }
+  return seen;
+}

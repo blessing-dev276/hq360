@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { api } from "./shared";
 import { TraineesAdmin, type Fetcher } from "./Library";
+import { ContentEditor } from "./ContentPlaybook";
 
 const AUTHORS = [
   "Margaret Doyle",
@@ -39,13 +40,14 @@ const REACTIONS = [
 const SHOW_MAX = 200;
 
 type Row = Record<string, string | boolean | number | null> & { id: string };
-type Section = "trainees" | "key" | "bank" | "hints" | "feedback" | "model" | "weak";
+type Section = "trainees" | "content" | "key" | "bank" | "hints" | "feedback" | "model" | "weak";
 
 /** Trainer area: trainees plus every editable part of the Author Engine. */
 export function TrainerTools({ fetcher = api as Fetcher }: { fetcher?: Fetcher }) {
   const [section, setSection] = useState<Section>("trainees");
   const tabs: [Section, string][] = [
     ["trainees", "Trainees"],
+    ["content", "Playbook content"],
     ["key", "AI key"],
     ["bank", "Response bank"],
     ["hints", "Hints"],
@@ -69,6 +71,7 @@ export function TrainerTools({ fetcher = api as Fetcher }: { fetcher?: Fetcher }
         ))}
       </div>
       {section === "trainees" ? <TraineesAdmin fetcher={fetcher} /> : null}
+      {section === "content" ? <ContentEditor fetcher={fetcher} /> : null}
       {section === "key" ? <TrainerKey fetcher={fetcher} /> : null}
       {section === "bank" ? <BankEditor fetcher={fetcher} /> : null}
       {section === "hints" ? (

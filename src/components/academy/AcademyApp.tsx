@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   BookOpen,
   History,
+  Library,
   LogOut,
   MessagesSquare,
   PlayCircle,
@@ -15,8 +16,9 @@ import { PracticeRoom } from "./PracticeRoom";
 import { Demos, MyChats } from "./Library";
 import { TrainerTools } from "./TrainerTools";
 import { TrainerReveal, type ReelTrainer } from "./TrainerReveal";
+import { ContentLibrary, TodaysLessonStrip } from "./ContentPlaybook";
 
-type Tab = "playbook" | "practice" | "chats" | "demos" | "admin";
+type Tab = "playbook" | "business" | "practice" | "chats" | "demos" | "admin";
 
 export function AcademyApp() {
   const [state, setState] = useState<"loading" | "signin" | "ready">("loading");
@@ -24,6 +26,7 @@ export function AcademyApp() {
   const [tab, setTab] = useState<Tab>("playbook");
   const [resume, setResume] = useState<Session | null>(null);
   const [version, setVersion] = useState(0);
+  const [focus, setFocus] = useState<string | null>(null);
   const [recovery, setRecovery] = useState(false);
   const [reveal, setReveal] = useState<{ pool: ReelTrainer[]; winner: ReelTrainer } | null>(null);
 
@@ -78,6 +81,7 @@ export function AcademyApp() {
 
   const tabs: [Tab, string, LucideIcon][] = [
     ["playbook", "Playbook", BookOpen],
+    ["business", "Business Playbook", Library],
     ["practice", "Practice", MessagesSquare],
     ["chats", "My chats", History],
     ["demos", "Demos", PlayCircle],
@@ -152,7 +156,20 @@ export function AcademyApp() {
       ) : null}
       {state === "ready" && viewer && !recovery ? (
         <main>
-          {tab === "playbook" ? <Playbook onPractice={() => go("practice")} /> : null}
+          {tab === "playbook" ? (
+            <>
+              <div className="asa-wrap">
+                <TodaysLessonStrip
+                  onOpen={(record) => {
+                    setFocus(record.id);
+                    go("business");
+                  }}
+                />
+              </div>
+              <Playbook onPractice={() => go("practice")} />
+            </>
+          ) : null}
+          {tab === "business" ? <ContentLibrary focus={focus} /> : null}
           {tab === "practice" ? <PracticeRoom initial={resume} onChanged={bump} /> : null}
           {tab === "chats" ? (
             <MyChats

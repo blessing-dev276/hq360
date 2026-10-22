@@ -50,6 +50,7 @@
     "@tanstack/react-router-devtools": "^1.167.2",
     "@tanstack/react-start": "^1.168.60",
     "@tanstack/router-plugin": "^1.168.23",
+    "bcryptjs": "^3.0.2",
     "cheerio": "^1.2.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

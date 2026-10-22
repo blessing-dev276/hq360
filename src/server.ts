@@ -45,6 +45,9 @@ function isH3SwallowedErrorBody(body: string): boolean {
   }
 }
 
+const isTrackerPath = (pathname: string) =>
+  pathname.startsWith("/track/") || pathname.startsWith("/api/track/");
+
 function withCachePolicy(request: Request, response: Response): Response {
   const pathname = new URL(request.url).pathname;
   const privateResponse =
@@ -53,6 +56,7 @@ function withCachePolicy(request: Request, response: Response): Response {
     pathname.startsWith("/author-audit") ||
     pathname.startsWith("/api/private-audit") ||
     pathname.startsWith("/api/admin/") ||
+    isTrackerPath(pathname) ||
     response.headers.has("set-cookie") ||
     response.status >= 400;
   const isDocument = response.headers.get("content-type")?.includes("text/html");
@@ -60,10 +64,13 @@ function withCachePolicy(request: Request, response: Response): Response {
     pathname === "/admin" ||
     pathname.startsWith("/author-audit") ||
     pathname.startsWith("/api/") ||
+    isTrackerPath(pathname) ||
     response.status >= 400;
   if (!privateResponse && !isDocument && !excludeFromIndex) return response;
   const headers = new Headers(response.headers);
-  if (excludeFromIndex) headers.set("x-robots-tag", "noindex");
+  // Client tracking pages are private: never indexed, links never followed.
+  if (excludeFromIndex)
+    headers.set("x-robots-tag", isTrackerPath(pathname) ? "noindex, nofollow" : "noindex");
   // Documents revalidate so a new deploy never points at stale route chunks.
   // Form actions, sessions and failures must never enter a shared cache.
   headers.set("cache-control", privateResponse ? "private, no-store" : "no-cache");

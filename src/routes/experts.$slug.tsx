@@ -17,6 +17,7 @@ type PortfolioItem = {
   title: string;
   description: string | null;
   image_url: string | null;
+  video_url?: string | null;
   external_link: string | null;
   service_slugs: string[];
   audience_slugs: string[];
@@ -151,7 +152,11 @@ function PortfolioCard({ item }: { item: PortfolioItem }) {
   const long = (item.description?.length ?? 0) > DESCRIPTION_PREVIEW;
   return (
     <article className="hqd-card hqd-work-card">
-      {item.image_url && <img src={item.image_url} alt="" loading="lazy" />}
+      {item.image_url ? (
+        <img src={item.image_url} alt="" loading="lazy" />
+      ) : item.video_url ? (
+        <video src={item.video_url} controls playsInline preload="metadata" />
+      ) : null}
       <div className="hqd-card-body">
         <h3>{item.title}</h3>
         {item.description && (

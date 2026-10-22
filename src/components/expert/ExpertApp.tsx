@@ -17,8 +17,13 @@ import {
   UserRound,
   type LucideIcon,
   GraduationCap,
+  ListChecks,
   Lock,
+  Sparkles,
 } from "lucide-react";
+import { ClientTrackers } from "./ClientTrackers";
+import { AiSettings } from "./AiSettings";
+import { TrackerPortfolioDrafts } from "./TrackerPortfolioDrafts";
 import { NoAccess } from "./NoAccess";
 import { cn } from "@/lib/utils";
 import { getSupabase } from "@/integrations/supabase/lazy";
@@ -38,7 +43,15 @@ import { TrainerTools } from "@/components/academy/TrainerTools";
 import "@/components/academy/academy.css";
 import "@/components/admin/admin-workspace.css";
 
-type Tab = "dashboard" | "profile" | "portfolio" | "leads" | "academy" | ExpertFeature;
+type Tab =
+  | "dashboard"
+  | "profile"
+  | "portfolio"
+  | "leads"
+  | "trackers"
+  | "ai"
+  | "academy"
+  | ExpertFeature;
 type NavItem = { id: Tab; label: string; icon: LucideIcon; description: string };
 
 const CORE: NavItem[] = [
@@ -65,6 +78,18 @@ const CORE: NavItem[] = [
     label: "Leads & Projects",
     icon: BriefcaseBusiness,
     description: "Your own clients — from Scouting saves and your referral link to delivery.",
+  },
+  {
+    id: "trackers",
+    label: "Client tracking",
+    icon: ListChecks,
+    description: "Private, passcode protected progress pages for each client.",
+  },
+  {
+    id: "ai",
+    label: "Settings, AI",
+    icon: Sparkles,
+    description: "Your own AI key for drafting tracker updates. AI only drafts; you approve.",
   },
 ];
 /** Tools an admin can grant by role; locked ones show as "Coming soon". */
@@ -252,8 +277,13 @@ export function ExpertApp() {
             <ExpertProfileEditor />
           ) : current.id === "leads" ? (
             <LeadsWorkspace scope="expert" />
+          ) : current.id === "trackers" ? (
+            <ClientTrackers />
+          ) : current.id === "ai" ? (
+            <AiSettings />
           ) : current.id === "portfolio" ? (
             <>
+              <TrackerPortfolioDrafts />
               <ExpertPortfolio />
               <ExpertTestimonials />
               <ExpertReviews />

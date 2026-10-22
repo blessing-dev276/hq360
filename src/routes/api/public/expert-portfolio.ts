@@ -29,7 +29,7 @@ export const Route = createFileRoute("/api/public/expert-portfolio")({
           if (!expert) return json({ ok: true, items: [] });
           const { data, error } = await expertPortfolioItems()
             .select(
-              "id, title, description, image_url, external_link, service_slugs, audience_slugs, source:portfolio_items(title, description, media_url, thumbnail_url, external_link)",
+              "id, title, description, image_url, video_url, external_link, service_slugs, audience_slugs, source:portfolio_items(title, description, media_url, thumbnail_url, external_link)",
             )
             .eq("expert_id", expert.id)
             .eq("status", "approved")

@@ -6,13 +6,14 @@ import { db, type Actor } from "./service.server";
 // the expert id so one expert's ciphertext cannot be opened as another's.
 // The plain key exists only in server memory for the length of one request.
 
-export const AI_PROVIDERS = ["anthropic", "openai", "google"] as const;
+export const AI_PROVIDERS = ["anthropic", "openai", "google", "perplexity"] as const;
 export type AiProvider = (typeof AI_PROVIDERS)[number];
 
 const KEY_PATTERNS: Record<AiProvider, RegExp> = {
   anthropic: /^sk-ant-[A-Za-z0-9_-]{20,}$/,
   openai: /^sk-[A-Za-z0-9_-]{20,}$/,
   google: /^AIza[A-Za-z0-9_-]{30,}$/,
+  perplexity: /^pplx-[A-Za-z0-9_-]{12,}$/,
 };
 export function validProviderKey(provider: AiProvider, key: string) {
   return KEY_PATTERNS[provider].test(key.trim());

@@ -70,10 +70,12 @@ import { Route as ToolsIndexRouteImport } from './routes/tools/index'
 import { Route as ToolsToolRouteImport } from './routes/tools/$tool'
 import { Route as ToolsAuthorVisibilityAuditRouteImport } from './routes/tools/author-visibility-audit'
 import { Route as ToolsWebsiteAuditRouteImport } from './routes/tools/website-audit'
+import { Route as TrackSlugRouteImport } from './routes/track.$slug'
 import { Route as WorkIndexRouteImport } from './routes/work.index'
 import { Route as WorkSlugRouteImport } from './routes/work.$slug'
 import { Route as ApiAcademyAssignRouteImport } from './routes/api/academy/assign'
 import { Route as ApiAcademyCoachRouteImport } from './routes/api/academy/coach'
+import { Route as ApiAcademyContentRouteImport } from './routes/api/academy/content'
 import { Route as ApiAcademyDemosRouteImport } from './routes/api/academy/demos'
 import { Route as ApiAcademyFeedbackRouteImport } from './routes/api/academy/feedback'
 import { Route as ApiAcademyHintRouteImport } from './routes/api/academy/hint'
@@ -123,6 +125,7 @@ import { Route as ApiAdminTestimonialsRouteImport } from './routes/api/admin/tes
 import { Route as ApiAdminUploadRouteImport } from './routes/api/admin/upload'
 import { Route as ApiAdminUploadUrlRouteImport } from './routes/api/admin/upload-url'
 import { Route as ApiAdminVisitorsRouteImport } from './routes/api/admin/visitors'
+import { Route as ApiExpertAiKeyRouteImport } from './routes/api/expert/ai-key'
 import { Route as ApiExpertInviteRouteImport } from './routes/api/expert/invite'
 import { Route as ApiExpertInvoiceRequestsRouteImport } from './routes/api/expert/invoice-requests'
 import { Route as ApiExpertLeadsRouteImport } from './routes/api/expert/leads'
@@ -137,6 +140,8 @@ import { Route as ApiExpertReviewsRouteImport } from './routes/api/expert/review
 import { Route as ApiExpertSessionRouteImport } from './routes/api/expert/session'
 import { Route as ApiExpertSignupRouteImport } from './routes/api/expert/signup'
 import { Route as ApiExpertTestimonialsRouteImport } from './routes/api/expert/testimonials'
+import { Route as ApiExpertTrackerPortfolioRouteImport } from './routes/api/expert/tracker-portfolio'
+import { Route as ApiExpertTrackersRouteImport } from './routes/api/expert/trackers'
 import { Route as ApiExpertVideoUrlRouteImport } from './routes/api/expert/video-url'
 import { Route as ApiNotificationsDispatchRouteImport } from './routes/api/notifications/dispatch'
 import { Route as ApiPayTokenRouteImport } from './routes/api/pay/$token'
@@ -160,10 +165,12 @@ import { Route as ApiPublicTestimonialsRouteImport } from './routes/api/public/t
 import { Route as ApiPublicVisitRouteImport } from './routes/api/public/visit'
 import { Route as ApiPublicVoiceMessageRouteImport } from './routes/api/public/voice-message'
 import { Route as ApiScoutVerifyEmailsRouteImport } from './routes/api/scout/verify-emails'
+import { Route as ApiTrackSlugRouteImport } from './routes/api/track/$slug'
 import { Route as AuthorAuditAuthorBookRouteImport } from './routes/author-audit.$author.$book'
 import { Route as InsightsAnswersSlugRouteImport } from './routes/insights.answers.$slug'
 import { Route as InsightsGuidesSlugRouteImport } from './routes/insights.guides.$slug'
 import { Route as ApiAcademyAdminContentRouteImport } from './routes/api/academy/admin.content'
+import { Route as ApiAcademyAdminPlaybookRouteImport } from './routes/api/academy/admin.playbook'
 import { Route as ApiAcademyAdminTraineesRouteImport } from './routes/api/academy/admin.trainees'
 import { Route as ApiAcademyDemosIdRouteImport } from './routes/api/academy/demos.$id'
 import { Route as ApiAcademySessionsIdRouteImport } from './routes/api/academy/sessions.$id'
@@ -193,11 +200,14 @@ import { Route as ApiAdminTestimonialsReorderRouteImport } from './routes/api/ad
 import { Route as ApiExpertPortfolioIdRouteImport } from './routes/api/expert/portfolio.$id'
 import { Route as ApiExpertReviewsIdRouteImport } from './routes/api/expert/reviews.$id'
 import { Route as ApiExpertTestimonialsIdRouteImport } from './routes/api/expert/testimonials.$id'
+import { Route as ApiExpertTrackersIdRouteImport } from './routes/api/expert/trackers.$id'
 import { Route as ApiPayTokenReceiptRouteImport } from './routes/api/pay/$token/receipt'
 import { Route as ApiPaymentsFlutterwaveWebhookRouteImport } from './routes/api/payments/flutterwave/webhook'
 import { Route as ApiPaymentsNowpaymentsIpnRouteImport } from './routes/api/payments/nowpayments/ipn'
 import { Route as ApiPaymentsPaystackWebhookRouteImport } from './routes/api/payments/paystack/webhook'
+import { Route as ApiPublicPortfolioMediaItemIdRouteImport } from './routes/api/public/portfolio-media.$itemId'
 import { Route as ApiStaffPaymentReceiptsIdRouteImport } from './routes/api/staff/payment-receipts/$id'
+import { Route as ApiTrackSlugUnlockRouteImport } from './routes/api/track/$slug.unlock'
 import { Route as ApiAdminAuthorAuditsIdBulkImportRouteImport } from './routes/api/admin/author-audits.$id.bulk-import'
 import { Route as ApiAdminAuthorAuditsIdCommercialRouteImport } from './routes/api/admin/author-audits.$id.commercial'
 import { Route as ApiAdminAuthorAuditsIdComparablesRouteImport } from './routes/api/admin/author-audits.$id.comparables'
@@ -218,6 +228,7 @@ import { Route as ApiAdminScoutAuthorsIdResearchWebsiteRouteImport } from './rou
 import { Route as ApiAdminScoutBatchesIdExportRouteImport } from './routes/api/admin/scout-batches.$id.export'
 import { Route as ApiAdminScoutBatchesIdScoutRouteImport } from './routes/api/admin/scout-batches.$id.scout'
 import { Route as ApiStaffPaymentReceiptsIdImageRouteImport } from './routes/api/staff/payment-receipts/$id/image'
+import { Route as ApiTrackSlugFileFileIdRouteImport } from './routes/api/track/$slug.file.$fileId'
 import { Route as ApiAdminAuthorAuditsIdComparablesComparableIdRouteImport } from './routes/api/admin/author-audits.$id.comparables.$comparableId'
 import { Route as ApiAdminAuthorAuditsIdEvidenceAssetsAssetIdRouteImport } from './routes/api/admin/author-audits.$id.evidence-assets.$assetId'
 import { Route as ApiAdminAuthorAuditsIdFindingsFindingIdRouteImport } from './routes/api/admin/author-audits.$id.findings.$findingId'
@@ -533,6 +544,11 @@ const ToolsWebsiteAuditRoute = ToolsWebsiteAuditRouteImport.update({
   path: '/tools/website-audit',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TrackSlugRoute = TrackSlugRouteImport.update({
+  id: '/track/$slug',
+  path: '/track/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const WorkIndexRoute = WorkIndexRouteImport.update({
   id: '/work/',
   path: '/work/',
@@ -551,6 +567,11 @@ const ApiAcademyAssignRoute = ApiAcademyAssignRouteImport.update({
 const ApiAcademyCoachRoute = ApiAcademyCoachRouteImport.update({
   id: '/api/academy/coach',
   path: '/api/academy/coach',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAcademyContentRoute = ApiAcademyContentRouteImport.update({
+  id: '/api/academy/content',
+  path: '/api/academy/content',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiAcademyDemosRoute = ApiAcademyDemosRouteImport.update({
@@ -809,6 +830,11 @@ const ApiAdminVisitorsRoute = ApiAdminVisitorsRouteImport.update({
   path: '/api/admin/visitors',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiExpertAiKeyRoute = ApiExpertAiKeyRouteImport.update({
+  id: '/api/expert/ai-key',
+  path: '/api/expert/ai-key',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiExpertInviteRoute = ApiExpertInviteRouteImport.update({
   id: '/api/expert/invite',
   path: '/api/expert/invite',
@@ -879,6 +905,17 @@ const ApiExpertSignupRoute = ApiExpertSignupRouteImport.update({
 const ApiExpertTestimonialsRoute = ApiExpertTestimonialsRouteImport.update({
   id: '/api/expert/testimonials',
   path: '/api/expert/testimonials',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiExpertTrackerPortfolioRoute =
+  ApiExpertTrackerPortfolioRouteImport.update({
+    id: '/api/expert/tracker-portfolio',
+    path: '/api/expert/tracker-portfolio',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiExpertTrackersRoute = ApiExpertTrackersRouteImport.update({
+  id: '/api/expert/trackers',
+  path: '/api/expert/trackers',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiExpertVideoUrlRoute = ApiExpertVideoUrlRouteImport.update({
@@ -1000,6 +1037,11 @@ const ApiScoutVerifyEmailsRoute = ApiScoutVerifyEmailsRouteImport.update({
   path: '/api/scout/verify-emails',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiTrackSlugRoute = ApiTrackSlugRouteImport.update({
+  id: '/api/track/$slug',
+  path: '/api/track/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthorAuditAuthorBookRoute = AuthorAuditAuthorBookRouteImport.update({
   id: '/author-audit/$author/$book',
   path: '/author-audit/$author/$book',
@@ -1018,6 +1060,11 @@ const InsightsGuidesSlugRoute = InsightsGuidesSlugRouteImport.update({
 const ApiAcademyAdminContentRoute = ApiAcademyAdminContentRouteImport.update({
   id: '/api/academy/admin/content',
   path: '/api/academy/admin/content',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAcademyAdminPlaybookRoute = ApiAcademyAdminPlaybookRouteImport.update({
+  id: '/api/academy/admin/playbook',
+  path: '/api/academy/admin/playbook',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiAcademyAdminTraineesRoute = ApiAcademyAdminTraineesRouteImport.update({
@@ -1174,6 +1221,11 @@ const ApiExpertTestimonialsIdRoute = ApiExpertTestimonialsIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => ApiExpertTestimonialsRoute,
 } as any)
+const ApiExpertTrackersIdRoute = ApiExpertTrackersIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ApiExpertTrackersRoute,
+} as any)
 const ApiPayTokenReceiptRoute = ApiPayTokenReceiptRouteImport.update({
   id: '/receipt',
   path: '/receipt',
@@ -1197,12 +1249,23 @@ const ApiPaymentsPaystackWebhookRoute =
     path: '/api/payments/paystack/webhook',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicPortfolioMediaItemIdRoute =
+  ApiPublicPortfolioMediaItemIdRouteImport.update({
+    id: '/api/public/portfolio-media/$itemId',
+    path: '/api/public/portfolio-media/$itemId',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiStaffPaymentReceiptsIdRoute =
   ApiStaffPaymentReceiptsIdRouteImport.update({
     id: '/api/staff/payment-receipts/$id',
     path: '/api/staff/payment-receipts/$id',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiTrackSlugUnlockRoute = ApiTrackSlugUnlockRouteImport.update({
+  id: '/unlock',
+  path: '/unlock',
+  getParentRoute: () => ApiTrackSlugRoute,
+} as any)
 const ApiAdminAuthorAuditsIdBulkImportRoute =
   ApiAdminAuthorAuditsIdBulkImportRouteImport.update({
     id: '/bulk-import',
@@ -1322,6 +1385,11 @@ const ApiStaffPaymentReceiptsIdImageRoute =
     path: '/image',
     getParentRoute: () => ApiStaffPaymentReceiptsIdRoute,
   } as any)
+const ApiTrackSlugFileFileIdRoute = ApiTrackSlugFileFileIdRouteImport.update({
+  id: '/file/$fileId',
+  path: '/file/$fileId',
+  getParentRoute: () => ApiTrackSlugRoute,
+} as any)
 const ApiAdminAuthorAuditsIdComparablesComparableIdRoute =
   ApiAdminAuthorAuditsIdComparablesComparableIdRouteImport.update({
     id: '/$comparableId',
@@ -1420,6 +1488,7 @@ export interface FileRoutesByFullPath {
   '/tools/$tool': typeof ToolsToolRoute
   '/tools/author-visibility-audit': typeof ToolsAuthorVisibilityAuditRoute
   '/tools/website-audit': typeof ToolsWebsiteAuditRoute
+  '/track/$slug': typeof TrackSlugRoute
   '/work/$slug': typeof WorkSlugRoute
   '/author-audit/': typeof AuthorAuditIndexRoute
   '/blog/': typeof BlogIndexRoute
@@ -1431,6 +1500,7 @@ export interface FileRoutesByFullPath {
   '/work/': typeof WorkIndexRoute
   '/api/academy/assign': typeof ApiAcademyAssignRoute
   '/api/academy/coach': typeof ApiAcademyCoachRoute
+  '/api/academy/content': typeof ApiAcademyContentRoute
   '/api/academy/demos': typeof ApiAcademyDemosRouteWithChildren
   '/api/academy/feedback': typeof ApiAcademyFeedbackRoute
   '/api/academy/hint': typeof ApiAcademyHintRoute
@@ -1480,6 +1550,7 @@ export interface FileRoutesByFullPath {
   '/api/admin/upload': typeof ApiAdminUploadRoute
   '/api/admin/upload-url': typeof ApiAdminUploadUrlRoute
   '/api/admin/visitors': typeof ApiAdminVisitorsRoute
+  '/api/expert/ai-key': typeof ApiExpertAiKeyRoute
   '/api/expert/invite': typeof ApiExpertInviteRoute
   '/api/expert/invoice-requests': typeof ApiExpertInvoiceRequestsRoute
   '/api/expert/leads': typeof ApiExpertLeadsRoute
@@ -1494,6 +1565,8 @@ export interface FileRoutesByFullPath {
   '/api/expert/session': typeof ApiExpertSessionRoute
   '/api/expert/signup': typeof ApiExpertSignupRoute
   '/api/expert/testimonials': typeof ApiExpertTestimonialsRouteWithChildren
+  '/api/expert/tracker-portfolio': typeof ApiExpertTrackerPortfolioRoute
+  '/api/expert/trackers': typeof ApiExpertTrackersRouteWithChildren
   '/api/expert/video-url': typeof ApiExpertVideoUrlRoute
   '/api/notifications/dispatch': typeof ApiNotificationsDispatchRoute
   '/api/pay/$token': typeof ApiPayTokenRouteWithChildren
@@ -1517,10 +1590,12 @@ export interface FileRoutesByFullPath {
   '/api/public/visit': typeof ApiPublicVisitRoute
   '/api/public/voice-message': typeof ApiPublicVoiceMessageRoute
   '/api/scout/verify-emails': typeof ApiScoutVerifyEmailsRoute
+  '/api/track/$slug': typeof ApiTrackSlugRouteWithChildren
   '/author-audit/$author/$book': typeof AuthorAuditAuthorBookRoute
   '/insights/answers/$slug': typeof InsightsAnswersSlugRoute
   '/insights/guides/$slug': typeof InsightsGuidesSlugRoute
   '/api/academy/admin/content': typeof ApiAcademyAdminContentRoute
+  '/api/academy/admin/playbook': typeof ApiAcademyAdminPlaybookRoute
   '/api/academy/admin/trainees': typeof ApiAcademyAdminTraineesRoute
   '/api/academy/demos/$id': typeof ApiAcademyDemosIdRoute
   '/api/academy/sessions/$id': typeof ApiAcademySessionsIdRoute
@@ -1550,11 +1625,14 @@ export interface FileRoutesByFullPath {
   '/api/expert/portfolio/$id': typeof ApiExpertPortfolioIdRoute
   '/api/expert/reviews/$id': typeof ApiExpertReviewsIdRoute
   '/api/expert/testimonials/$id': typeof ApiExpertTestimonialsIdRoute
+  '/api/expert/trackers/$id': typeof ApiExpertTrackersIdRoute
   '/api/pay/$token/receipt': typeof ApiPayTokenReceiptRoute
   '/api/payments/flutterwave/webhook': typeof ApiPaymentsFlutterwaveWebhookRoute
   '/api/payments/nowpayments/ipn': typeof ApiPaymentsNowpaymentsIpnRoute
   '/api/payments/paystack/webhook': typeof ApiPaymentsPaystackWebhookRoute
+  '/api/public/portfolio-media/$itemId': typeof ApiPublicPortfolioMediaItemIdRoute
   '/api/staff/payment-receipts/$id': typeof ApiStaffPaymentReceiptsIdRouteWithChildren
+  '/api/track/$slug/unlock': typeof ApiTrackSlugUnlockRoute
   '/api/admin/author-audits/$id/bulk-import': typeof ApiAdminAuthorAuditsIdBulkImportRoute
   '/api/admin/author-audits/$id/commercial': typeof ApiAdminAuthorAuditsIdCommercialRoute
   '/api/admin/author-audits/$id/comparables': typeof ApiAdminAuthorAuditsIdComparablesRouteWithChildren
@@ -1575,6 +1653,7 @@ export interface FileRoutesByFullPath {
   '/api/admin/scout-batches/$id/export': typeof ApiAdminScoutBatchesIdExportRoute
   '/api/admin/scout-batches/$id/scout': typeof ApiAdminScoutBatchesIdScoutRoute
   '/api/staff/payment-receipts/$id/image': typeof ApiStaffPaymentReceiptsIdImageRoute
+  '/api/track/$slug/file/$fileId': typeof ApiTrackSlugFileFileIdRoute
   '/api/admin/author-audits/$id/comparables/$comparableId': typeof ApiAdminAuthorAuditsIdComparablesComparableIdRoute
   '/api/admin/author-audits/$id/evidence-assets/$assetId': typeof ApiAdminAuthorAuditsIdEvidenceAssetsAssetIdRoute
   '/api/admin/author-audits/$id/findings/$findingId': typeof ApiAdminAuthorAuditsIdFindingsFindingIdRoute
@@ -1638,6 +1717,7 @@ export interface FileRoutesByTo {
   '/tools/$tool': typeof ToolsToolRoute
   '/tools/author-visibility-audit': typeof ToolsAuthorVisibilityAuditRoute
   '/tools/website-audit': typeof ToolsWebsiteAuditRoute
+  '/track/$slug': typeof TrackSlugRoute
   '/work/$slug': typeof WorkSlugRoute
   '/author-audit': typeof AuthorAuditIndexRoute
   '/blog': typeof BlogIndexRoute
@@ -1649,6 +1729,7 @@ export interface FileRoutesByTo {
   '/work': typeof WorkIndexRoute
   '/api/academy/assign': typeof ApiAcademyAssignRoute
   '/api/academy/coach': typeof ApiAcademyCoachRoute
+  '/api/academy/content': typeof ApiAcademyContentRoute
   '/api/academy/demos': typeof ApiAcademyDemosRouteWithChildren
   '/api/academy/feedback': typeof ApiAcademyFeedbackRoute
   '/api/academy/hint': typeof ApiAcademyHintRoute
@@ -1698,6 +1779,7 @@ export interface FileRoutesByTo {
   '/api/admin/upload': typeof ApiAdminUploadRoute
   '/api/admin/upload-url': typeof ApiAdminUploadUrlRoute
   '/api/admin/visitors': typeof ApiAdminVisitorsRoute
+  '/api/expert/ai-key': typeof ApiExpertAiKeyRoute
   '/api/expert/invite': typeof ApiExpertInviteRoute
   '/api/expert/invoice-requests': typeof ApiExpertInvoiceRequestsRoute
   '/api/expert/leads': typeof ApiExpertLeadsRoute
@@ -1712,6 +1794,8 @@ export interface FileRoutesByTo {
   '/api/expert/session': typeof ApiExpertSessionRoute
   '/api/expert/signup': typeof ApiExpertSignupRoute
   '/api/expert/testimonials': typeof ApiExpertTestimonialsRouteWithChildren
+  '/api/expert/tracker-portfolio': typeof ApiExpertTrackerPortfolioRoute
+  '/api/expert/trackers': typeof ApiExpertTrackersRouteWithChildren
   '/api/expert/video-url': typeof ApiExpertVideoUrlRoute
   '/api/notifications/dispatch': typeof ApiNotificationsDispatchRoute
   '/api/pay/$token': typeof ApiPayTokenRouteWithChildren
@@ -1735,10 +1819,12 @@ export interface FileRoutesByTo {
   '/api/public/visit': typeof ApiPublicVisitRoute
   '/api/public/voice-message': typeof ApiPublicVoiceMessageRoute
   '/api/scout/verify-emails': typeof ApiScoutVerifyEmailsRoute
+  '/api/track/$slug': typeof ApiTrackSlugRouteWithChildren
   '/author-audit/$author/$book': typeof AuthorAuditAuthorBookRoute
   '/insights/answers/$slug': typeof InsightsAnswersSlugRoute
   '/insights/guides/$slug': typeof InsightsGuidesSlugRoute
   '/api/academy/admin/content': typeof ApiAcademyAdminContentRoute
+  '/api/academy/admin/playbook': typeof ApiAcademyAdminPlaybookRoute
   '/api/academy/admin/trainees': typeof ApiAcademyAdminTraineesRoute
   '/api/academy/demos/$id': typeof ApiAcademyDemosIdRoute
   '/api/academy/sessions/$id': typeof ApiAcademySessionsIdRoute
@@ -1768,11 +1854,14 @@ export interface FileRoutesByTo {
   '/api/expert/portfolio/$id': typeof ApiExpertPortfolioIdRoute
   '/api/expert/reviews/$id': typeof ApiExpertReviewsIdRoute
   '/api/expert/testimonials/$id': typeof ApiExpertTestimonialsIdRoute
+  '/api/expert/trackers/$id': typeof ApiExpertTrackersIdRoute
   '/api/pay/$token/receipt': typeof ApiPayTokenReceiptRoute
   '/api/payments/flutterwave/webhook': typeof ApiPaymentsFlutterwaveWebhookRoute
   '/api/payments/nowpayments/ipn': typeof ApiPaymentsNowpaymentsIpnRoute
   '/api/payments/paystack/webhook': typeof ApiPaymentsPaystackWebhookRoute
+  '/api/public/portfolio-media/$itemId': typeof ApiPublicPortfolioMediaItemIdRoute
   '/api/staff/payment-receipts/$id': typeof ApiStaffPaymentReceiptsIdRouteWithChildren
+  '/api/track/$slug/unlock': typeof ApiTrackSlugUnlockRoute
   '/api/admin/author-audits/$id/bulk-import': typeof ApiAdminAuthorAuditsIdBulkImportRoute
   '/api/admin/author-audits/$id/commercial': typeof ApiAdminAuthorAuditsIdCommercialRoute
   '/api/admin/author-audits/$id/comparables': typeof ApiAdminAuthorAuditsIdComparablesRouteWithChildren
@@ -1793,6 +1882,7 @@ export interface FileRoutesByTo {
   '/api/admin/scout-batches/$id/export': typeof ApiAdminScoutBatchesIdExportRoute
   '/api/admin/scout-batches/$id/scout': typeof ApiAdminScoutBatchesIdScoutRoute
   '/api/staff/payment-receipts/$id/image': typeof ApiStaffPaymentReceiptsIdImageRoute
+  '/api/track/$slug/file/$fileId': typeof ApiTrackSlugFileFileIdRoute
   '/api/admin/author-audits/$id/comparables/$comparableId': typeof ApiAdminAuthorAuditsIdComparablesComparableIdRoute
   '/api/admin/author-audits/$id/evidence-assets/$assetId': typeof ApiAdminAuthorAuditsIdEvidenceAssetsAssetIdRoute
   '/api/admin/author-audits/$id/findings/$findingId': typeof ApiAdminAuthorAuditsIdFindingsFindingIdRoute
@@ -1857,6 +1947,7 @@ export interface FileRoutesById {
   '/tools/$tool': typeof ToolsToolRoute
   '/tools/author-visibility-audit': typeof ToolsAuthorVisibilityAuditRoute
   '/tools/website-audit': typeof ToolsWebsiteAuditRoute
+  '/track/$slug': typeof TrackSlugRoute
   '/work/$slug': typeof WorkSlugRoute
   '/author-audit/': typeof AuthorAuditIndexRoute
   '/blog/': typeof BlogIndexRoute
@@ -1868,6 +1959,7 @@ export interface FileRoutesById {
   '/work/': typeof WorkIndexRoute
   '/api/academy/assign': typeof ApiAcademyAssignRoute
   '/api/academy/coach': typeof ApiAcademyCoachRoute
+  '/api/academy/content': typeof ApiAcademyContentRoute
   '/api/academy/demos': typeof ApiAcademyDemosRouteWithChildren
   '/api/academy/feedback': typeof ApiAcademyFeedbackRoute
   '/api/academy/hint': typeof ApiAcademyHintRoute
@@ -1917,6 +2009,7 @@ export interface FileRoutesById {
   '/api/admin/upload': typeof ApiAdminUploadRoute
   '/api/admin/upload-url': typeof ApiAdminUploadUrlRoute
   '/api/admin/visitors': typeof ApiAdminVisitorsRoute
+  '/api/expert/ai-key': typeof ApiExpertAiKeyRoute
   '/api/expert/invite': typeof ApiExpertInviteRoute
   '/api/expert/invoice-requests': typeof ApiExpertInvoiceRequestsRoute
   '/api/expert/leads': typeof ApiExpertLeadsRoute
@@ -1931,6 +2024,8 @@ export interface FileRoutesById {
   '/api/expert/session': typeof ApiExpertSessionRoute
   '/api/expert/signup': typeof ApiExpertSignupRoute
   '/api/expert/testimonials': typeof ApiExpertTestimonialsRouteWithChildren
+  '/api/expert/tracker-portfolio': typeof ApiExpertTrackerPortfolioRoute
+  '/api/expert/trackers': typeof ApiExpertTrackersRouteWithChildren
   '/api/expert/video-url': typeof ApiExpertVideoUrlRoute
   '/api/notifications/dispatch': typeof ApiNotificationsDispatchRoute
   '/api/pay/$token': typeof ApiPayTokenRouteWithChildren
@@ -1954,10 +2049,12 @@ export interface FileRoutesById {
   '/api/public/visit': typeof ApiPublicVisitRoute
   '/api/public/voice-message': typeof ApiPublicVoiceMessageRoute
   '/api/scout/verify-emails': typeof ApiScoutVerifyEmailsRoute
+  '/api/track/$slug': typeof ApiTrackSlugRouteWithChildren
   '/author-audit/$author/$book': typeof AuthorAuditAuthorBookRoute
   '/insights/answers/$slug': typeof InsightsAnswersSlugRoute
   '/insights/guides/$slug': typeof InsightsGuidesSlugRoute
   '/api/academy/admin/content': typeof ApiAcademyAdminContentRoute
+  '/api/academy/admin/playbook': typeof ApiAcademyAdminPlaybookRoute
   '/api/academy/admin/trainees': typeof ApiAcademyAdminTraineesRoute
   '/api/academy/demos/$id': typeof ApiAcademyDemosIdRoute
   '/api/academy/sessions/$id': typeof ApiAcademySessionsIdRoute
@@ -1987,11 +2084,14 @@ export interface FileRoutesById {
   '/api/expert/portfolio/$id': typeof ApiExpertPortfolioIdRoute
   '/api/expert/reviews/$id': typeof ApiExpertReviewsIdRoute
   '/api/expert/testimonials/$id': typeof ApiExpertTestimonialsIdRoute
+  '/api/expert/trackers/$id': typeof ApiExpertTrackersIdRoute
   '/api/pay/$token/receipt': typeof ApiPayTokenReceiptRoute
   '/api/payments/flutterwave/webhook': typeof ApiPaymentsFlutterwaveWebhookRoute
   '/api/payments/nowpayments/ipn': typeof ApiPaymentsNowpaymentsIpnRoute
   '/api/payments/paystack/webhook': typeof ApiPaymentsPaystackWebhookRoute
+  '/api/public/portfolio-media/$itemId': typeof ApiPublicPortfolioMediaItemIdRoute
   '/api/staff/payment-receipts/$id': typeof ApiStaffPaymentReceiptsIdRouteWithChildren
+  '/api/track/$slug/unlock': typeof ApiTrackSlugUnlockRoute
   '/api/admin/author-audits/$id/bulk-import': typeof ApiAdminAuthorAuditsIdBulkImportRoute
   '/api/admin/author-audits/$id/commercial': typeof ApiAdminAuthorAuditsIdCommercialRoute
   '/api/admin/author-audits/$id/comparables': typeof ApiAdminAuthorAuditsIdComparablesRouteWithChildren
@@ -2012,6 +2112,7 @@ export interface FileRoutesById {
   '/api/admin/scout-batches/$id/export': typeof ApiAdminScoutBatchesIdExportRoute
   '/api/admin/scout-batches/$id/scout': typeof ApiAdminScoutBatchesIdScoutRoute
   '/api/staff/payment-receipts/$id/image': typeof ApiStaffPaymentReceiptsIdImageRoute
+  '/api/track/$slug/file/$fileId': typeof ApiTrackSlugFileFileIdRoute
   '/api/admin/author-audits/$id/comparables/$comparableId': typeof ApiAdminAuthorAuditsIdComparablesComparableIdRoute
   '/api/admin/author-audits/$id/evidence-assets/$assetId': typeof ApiAdminAuthorAuditsIdEvidenceAssetsAssetIdRoute
   '/api/admin/author-audits/$id/findings/$findingId': typeof ApiAdminAuthorAuditsIdFindingsFindingIdRoute
@@ -2077,6 +2178,7 @@ export interface FileRouteTypes {
     | '/tools/$tool'
     | '/tools/author-visibility-audit'
     | '/tools/website-audit'
+    | '/track/$slug'
     | '/work/$slug'
     | '/author-audit/'
     | '/blog/'
@@ -2088,6 +2190,7 @@ export interface FileRouteTypes {
     | '/work/'
     | '/api/academy/assign'
     | '/api/academy/coach'
+    | '/api/academy/content'
     | '/api/academy/demos'
     | '/api/academy/feedback'
     | '/api/academy/hint'
@@ -2137,6 +2240,7 @@ export interface FileRouteTypes {
     | '/api/admin/upload'
     | '/api/admin/upload-url'
     | '/api/admin/visitors'
+    | '/api/expert/ai-key'
     | '/api/expert/invite'
     | '/api/expert/invoice-requests'
     | '/api/expert/leads'
@@ -2151,6 +2255,8 @@ export interface FileRouteTypes {
     | '/api/expert/session'
     | '/api/expert/signup'
     | '/api/expert/testimonials'
+    | '/api/expert/tracker-portfolio'
+    | '/api/expert/trackers'
     | '/api/expert/video-url'
     | '/api/notifications/dispatch'
     | '/api/pay/$token'
@@ -2174,10 +2280,12 @@ export interface FileRouteTypes {
     | '/api/public/visit'
     | '/api/public/voice-message'
     | '/api/scout/verify-emails'
+    | '/api/track/$slug'
     | '/author-audit/$author/$book'
     | '/insights/answers/$slug'
     | '/insights/guides/$slug'
     | '/api/academy/admin/content'
+    | '/api/academy/admin/playbook'
     | '/api/academy/admin/trainees'
     | '/api/academy/demos/$id'
     | '/api/academy/sessions/$id'
@@ -2207,11 +2315,14 @@ export interface FileRouteTypes {
     | '/api/expert/portfolio/$id'
     | '/api/expert/reviews/$id'
     | '/api/expert/testimonials/$id'
+    | '/api/expert/trackers/$id'
     | '/api/pay/$token/receipt'
     | '/api/payments/flutterwave/webhook'
     | '/api/payments/nowpayments/ipn'
     | '/api/payments/paystack/webhook'
+    | '/api/public/portfolio-media/$itemId'
     | '/api/staff/payment-receipts/$id'
+    | '/api/track/$slug/unlock'
     | '/api/admin/author-audits/$id/bulk-import'
     | '/api/admin/author-audits/$id/commercial'
     | '/api/admin/author-audits/$id/comparables'
@@ -2232,6 +2343,7 @@ export interface FileRouteTypes {
     | '/api/admin/scout-batches/$id/export'
     | '/api/admin/scout-batches/$id/scout'
     | '/api/staff/payment-receipts/$id/image'
+    | '/api/track/$slug/file/$fileId'
     | '/api/admin/author-audits/$id/comparables/$comparableId'
     | '/api/admin/author-audits/$id/evidence-assets/$assetId'
     | '/api/admin/author-audits/$id/findings/$findingId'
@@ -2295,6 +2407,7 @@ export interface FileRouteTypes {
     | '/tools/$tool'
     | '/tools/author-visibility-audit'
     | '/tools/website-audit'
+    | '/track/$slug'
     | '/work/$slug'
     | '/author-audit'
     | '/blog'
@@ -2306,6 +2419,7 @@ export interface FileRouteTypes {
     | '/work'
     | '/api/academy/assign'
     | '/api/academy/coach'
+    | '/api/academy/content'
     | '/api/academy/demos'
     | '/api/academy/feedback'
     | '/api/academy/hint'
@@ -2355,6 +2469,7 @@ export interface FileRouteTypes {
     | '/api/admin/upload'
     | '/api/admin/upload-url'
     | '/api/admin/visitors'
+    | '/api/expert/ai-key'
     | '/api/expert/invite'
     | '/api/expert/invoice-requests'
     | '/api/expert/leads'
@@ -2369,6 +2484,8 @@ export interface FileRouteTypes {
     | '/api/expert/session'
     | '/api/expert/signup'
     | '/api/expert/testimonials'
+    | '/api/expert/tracker-portfolio'
+    | '/api/expert/trackers'
     | '/api/expert/video-url'
     | '/api/notifications/dispatch'
     | '/api/pay/$token'
@@ -2392,10 +2509,12 @@ export interface FileRouteTypes {
     | '/api/public/visit'
     | '/api/public/voice-message'
     | '/api/scout/verify-emails'
+    | '/api/track/$slug'
     | '/author-audit/$author/$book'
     | '/insights/answers/$slug'
     | '/insights/guides/$slug'
     | '/api/academy/admin/content'
+    | '/api/academy/admin/playbook'
     | '/api/academy/admin/trainees'
     | '/api/academy/demos/$id'
     | '/api/academy/sessions/$id'
@@ -2425,11 +2544,14 @@ export interface FileRouteTypes {
     | '/api/expert/portfolio/$id'
     | '/api/expert/reviews/$id'
     | '/api/expert/testimonials/$id'
+    | '/api/expert/trackers/$id'
     | '/api/pay/$token/receipt'
     | '/api/payments/flutterwave/webhook'
     | '/api/payments/nowpayments/ipn'
     | '/api/payments/paystack/webhook'
+    | '/api/public/portfolio-media/$itemId'
     | '/api/staff/payment-receipts/$id'
+    | '/api/track/$slug/unlock'
     | '/api/admin/author-audits/$id/bulk-import'
     | '/api/admin/author-audits/$id/commercial'
     | '/api/admin/author-audits/$id/comparables'
@@ -2450,6 +2572,7 @@ export interface FileRouteTypes {
     | '/api/admin/scout-batches/$id/export'
     | '/api/admin/scout-batches/$id/scout'
     | '/api/staff/payment-receipts/$id/image'
+    | '/api/track/$slug/file/$fileId'
     | '/api/admin/author-audits/$id/comparables/$comparableId'
     | '/api/admin/author-audits/$id/evidence-assets/$assetId'
     | '/api/admin/author-audits/$id/findings/$findingId'
@@ -2513,6 +2636,7 @@ export interface FileRouteTypes {
     | '/tools/$tool'
     | '/tools/author-visibility-audit'
     | '/tools/website-audit'
+    | '/track/$slug'
     | '/work/$slug'
     | '/author-audit/'
     | '/blog/'
@@ -2524,6 +2648,7 @@ export interface FileRouteTypes {
     | '/work/'
     | '/api/academy/assign'
     | '/api/academy/coach'
+    | '/api/academy/content'
     | '/api/academy/demos'
     | '/api/academy/feedback'
     | '/api/academy/hint'
@@ -2573,6 +2698,7 @@ export interface FileRouteTypes {
     | '/api/admin/upload'
     | '/api/admin/upload-url'
     | '/api/admin/visitors'
+    | '/api/expert/ai-key'
     | '/api/expert/invite'
     | '/api/expert/invoice-requests'
     | '/api/expert/leads'
@@ -2587,6 +2713,8 @@ export interface FileRouteTypes {
     | '/api/expert/session'
     | '/api/expert/signup'
     | '/api/expert/testimonials'
+    | '/api/expert/tracker-portfolio'
+    | '/api/expert/trackers'
     | '/api/expert/video-url'
     | '/api/notifications/dispatch'
     | '/api/pay/$token'
@@ -2610,10 +2738,12 @@ export interface FileRouteTypes {
     | '/api/public/visit'
     | '/api/public/voice-message'
     | '/api/scout/verify-emails'
+    | '/api/track/$slug'
     | '/author-audit/$author/$book'
     | '/insights/answers/$slug'
     | '/insights/guides/$slug'
     | '/api/academy/admin/content'
+    | '/api/academy/admin/playbook'
     | '/api/academy/admin/trainees'
     | '/api/academy/demos/$id'
     | '/api/academy/sessions/$id'
@@ -2643,11 +2773,14 @@ export interface FileRouteTypes {
     | '/api/expert/portfolio/$id'
     | '/api/expert/reviews/$id'
     | '/api/expert/testimonials/$id'
+    | '/api/expert/trackers/$id'
     | '/api/pay/$token/receipt'
     | '/api/payments/flutterwave/webhook'
     | '/api/payments/nowpayments/ipn'
     | '/api/payments/paystack/webhook'
+    | '/api/public/portfolio-media/$itemId'
     | '/api/staff/payment-receipts/$id'
+    | '/api/track/$slug/unlock'
     | '/api/admin/author-audits/$id/bulk-import'
     | '/api/admin/author-audits/$id/commercial'
     | '/api/admin/author-audits/$id/comparables'
@@ -2668,6 +2801,7 @@ export interface FileRouteTypes {
     | '/api/admin/scout-batches/$id/export'
     | '/api/admin/scout-batches/$id/scout'
     | '/api/staff/payment-receipts/$id/image'
+    | '/api/track/$slug/file/$fileId'
     | '/api/admin/author-audits/$id/comparables/$comparableId'
     | '/api/admin/author-audits/$id/evidence-assets/$assetId'
     | '/api/admin/author-audits/$id/findings/$findingId'
@@ -2732,6 +2866,7 @@ export interface RootRouteChildren {
   ToolsToolRoute: typeof ToolsToolRoute
   ToolsAuthorVisibilityAuditRoute: typeof ToolsAuthorVisibilityAuditRoute
   ToolsWebsiteAuditRoute: typeof ToolsWebsiteAuditRoute
+  TrackSlugRoute: typeof TrackSlugRoute
   WorkSlugRoute: typeof WorkSlugRoute
   AuthorAuditIndexRoute: typeof AuthorAuditIndexRoute
   BlogIndexRoute: typeof BlogIndexRoute
@@ -2743,6 +2878,7 @@ export interface RootRouteChildren {
   WorkIndexRoute: typeof WorkIndexRoute
   ApiAcademyAssignRoute: typeof ApiAcademyAssignRoute
   ApiAcademyCoachRoute: typeof ApiAcademyCoachRoute
+  ApiAcademyContentRoute: typeof ApiAcademyContentRoute
   ApiAcademyDemosRoute: typeof ApiAcademyDemosRouteWithChildren
   ApiAcademyFeedbackRoute: typeof ApiAcademyFeedbackRoute
   ApiAcademyHintRoute: typeof ApiAcademyHintRoute
@@ -2792,6 +2928,7 @@ export interface RootRouteChildren {
   ApiAdminUploadRoute: typeof ApiAdminUploadRoute
   ApiAdminUploadUrlRoute: typeof ApiAdminUploadUrlRoute
   ApiAdminVisitorsRoute: typeof ApiAdminVisitorsRoute
+  ApiExpertAiKeyRoute: typeof ApiExpertAiKeyRoute
   ApiExpertInviteRoute: typeof ApiExpertInviteRoute
   ApiExpertInvoiceRequestsRoute: typeof ApiExpertInvoiceRequestsRoute
   ApiExpertLeadsRoute: typeof ApiExpertLeadsRoute
@@ -2806,6 +2943,8 @@ export interface RootRouteChildren {
   ApiExpertSessionRoute: typeof ApiExpertSessionRoute
   ApiExpertSignupRoute: typeof ApiExpertSignupRoute
   ApiExpertTestimonialsRoute: typeof ApiExpertTestimonialsRouteWithChildren
+  ApiExpertTrackerPortfolioRoute: typeof ApiExpertTrackerPortfolioRoute
+  ApiExpertTrackersRoute: typeof ApiExpertTrackersRouteWithChildren
   ApiExpertVideoUrlRoute: typeof ApiExpertVideoUrlRoute
   ApiNotificationsDispatchRoute: typeof ApiNotificationsDispatchRoute
   ApiPayTokenRoute: typeof ApiPayTokenRouteWithChildren
@@ -2828,16 +2967,19 @@ export interface RootRouteChildren {
   ApiPublicVisitRoute: typeof ApiPublicVisitRoute
   ApiPublicVoiceMessageRoute: typeof ApiPublicVoiceMessageRoute
   ApiScoutVerifyEmailsRoute: typeof ApiScoutVerifyEmailsRoute
+  ApiTrackSlugRoute: typeof ApiTrackSlugRouteWithChildren
   AuthorAuditAuthorBookRoute: typeof AuthorAuditAuthorBookRoute
   InsightsAnswersSlugRoute: typeof InsightsAnswersSlugRoute
   InsightsGuidesSlugRoute: typeof InsightsGuidesSlugRoute
   ApiAcademyAdminContentRoute: typeof ApiAcademyAdminContentRoute
+  ApiAcademyAdminPlaybookRoute: typeof ApiAcademyAdminPlaybookRoute
   ApiAcademyAdminTraineesRoute: typeof ApiAcademyAdminTraineesRoute
   ApiAdminScoutAudienceLeadsIdRoute: typeof ApiAdminScoutAudienceLeadsIdRoute
   ApiAdminScoutAuthorsIdRoute: typeof ApiAdminScoutAuthorsIdRouteWithChildren
   ApiPaymentsFlutterwaveWebhookRoute: typeof ApiPaymentsFlutterwaveWebhookRoute
   ApiPaymentsNowpaymentsIpnRoute: typeof ApiPaymentsNowpaymentsIpnRoute
   ApiPaymentsPaystackWebhookRoute: typeof ApiPaymentsPaystackWebhookRoute
+  ApiPublicPortfolioMediaItemIdRoute: typeof ApiPublicPortfolioMediaItemIdRoute
   ApiStaffPaymentReceiptsIdRoute: typeof ApiStaffPaymentReceiptsIdRouteWithChildren
 }
 
@@ -3270,6 +3412,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ToolsWebsiteAuditRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/track/$slug': {
+      id: '/track/$slug'
+      path: '/track/$slug'
+      fullPath: '/track/$slug'
+      preLoaderRoute: typeof TrackSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/work/': {
       id: '/work/'
       path: '/work'
@@ -3296,6 +3445,13 @@ declare module '@tanstack/react-router' {
       path: '/api/academy/coach'
       fullPath: '/api/academy/coach'
       preLoaderRoute: typeof ApiAcademyCoachRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/academy/content': {
+      id: '/api/academy/content'
+      path: '/api/academy/content'
+      fullPath: '/api/academy/content'
+      preLoaderRoute: typeof ApiAcademyContentRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/academy/demos': {
@@ -3641,6 +3797,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAdminVisitorsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/expert/ai-key': {
+      id: '/api/expert/ai-key'
+      path: '/api/expert/ai-key'
+      fullPath: '/api/expert/ai-key'
+      preLoaderRoute: typeof ApiExpertAiKeyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/expert/invite': {
       id: '/api/expert/invite'
       path: '/api/expert/invite'
@@ -3737,6 +3900,20 @@ declare module '@tanstack/react-router' {
       path: '/api/expert/testimonials'
       fullPath: '/api/expert/testimonials'
       preLoaderRoute: typeof ApiExpertTestimonialsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/expert/tracker-portfolio': {
+      id: '/api/expert/tracker-portfolio'
+      path: '/api/expert/tracker-portfolio'
+      fullPath: '/api/expert/tracker-portfolio'
+      preLoaderRoute: typeof ApiExpertTrackerPortfolioRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/expert/trackers': {
+      id: '/api/expert/trackers'
+      path: '/api/expert/trackers'
+      fullPath: '/api/expert/trackers'
+      preLoaderRoute: typeof ApiExpertTrackersRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/expert/video-url': {
@@ -3900,6 +4077,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiScoutVerifyEmailsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/track/$slug': {
+      id: '/api/track/$slug'
+      path: '/api/track/$slug'
+      fullPath: '/api/track/$slug'
+      preLoaderRoute: typeof ApiTrackSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/author-audit/$author/$book': {
       id: '/author-audit/$author/$book'
       path: '/author-audit/$author/$book'
@@ -3926,6 +4110,13 @@ declare module '@tanstack/react-router' {
       path: '/api/academy/admin/content'
       fullPath: '/api/academy/admin/content'
       preLoaderRoute: typeof ApiAcademyAdminContentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/academy/admin/playbook': {
+      id: '/api/academy/admin/playbook'
+      path: '/api/academy/admin/playbook'
+      fullPath: '/api/academy/admin/playbook'
+      preLoaderRoute: typeof ApiAcademyAdminPlaybookRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/academy/admin/trainees': {
@@ -4131,6 +4322,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiExpertTestimonialsIdRouteImport
       parentRoute: typeof ApiExpertTestimonialsRoute
     }
+    '/api/expert/trackers/$id': {
+      id: '/api/expert/trackers/$id'
+      path: '/$id'
+      fullPath: '/api/expert/trackers/$id'
+      preLoaderRoute: typeof ApiExpertTrackersIdRouteImport
+      parentRoute: typeof ApiExpertTrackersRoute
+    }
     '/api/pay/$token/receipt': {
       id: '/api/pay/$token/receipt'
       path: '/receipt'
@@ -4159,12 +4357,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPaymentsPaystackWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/portfolio-media/$itemId': {
+      id: '/api/public/portfolio-media/$itemId'
+      path: '/api/public/portfolio-media/$itemId'
+      fullPath: '/api/public/portfolio-media/$itemId'
+      preLoaderRoute: typeof ApiPublicPortfolioMediaItemIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/staff/payment-receipts/$id': {
       id: '/api/staff/payment-receipts/$id'
       path: '/api/staff/payment-receipts/$id'
       fullPath: '/api/staff/payment-receipts/$id'
       preLoaderRoute: typeof ApiStaffPaymentReceiptsIdRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/api/track/$slug/unlock': {
+      id: '/api/track/$slug/unlock'
+      path: '/unlock'
+      fullPath: '/api/track/$slug/unlock'
+      preLoaderRoute: typeof ApiTrackSlugUnlockRouteImport
+      parentRoute: typeof ApiTrackSlugRoute
     }
     '/api/admin/author-audits/$id/bulk-import': {
       id: '/api/admin/author-audits/$id/bulk-import'
@@ -4305,6 +4517,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/staff/payment-receipts/$id/image'
       preLoaderRoute: typeof ApiStaffPaymentReceiptsIdImageRouteImport
       parentRoute: typeof ApiStaffPaymentReceiptsIdRoute
+    }
+    '/api/track/$slug/file/$fileId': {
+      id: '/api/track/$slug/file/$fileId'
+      path: '/file/$fileId'
+      fullPath: '/api/track/$slug/file/$fileId'
+      preLoaderRoute: typeof ApiTrackSlugFileFileIdRouteImport
+      parentRoute: typeof ApiTrackSlugRoute
     }
     '/api/admin/author-audits/$id/comparables/$comparableId': {
       id: '/api/admin/author-audits/$id/comparables/$comparableId'
@@ -4762,6 +4981,17 @@ const ApiExpertTestimonialsRouteWithChildren =
     ApiExpertTestimonialsRouteChildren,
   )
 
+interface ApiExpertTrackersRouteChildren {
+  ApiExpertTrackersIdRoute: typeof ApiExpertTrackersIdRoute
+}
+
+const ApiExpertTrackersRouteChildren: ApiExpertTrackersRouteChildren = {
+  ApiExpertTrackersIdRoute: ApiExpertTrackersIdRoute,
+}
+
+const ApiExpertTrackersRouteWithChildren =
+  ApiExpertTrackersRoute._addFileChildren(ApiExpertTrackersRouteChildren)
+
 interface ApiPayTokenRouteChildren {
   ApiPayTokenReceiptRoute: typeof ApiPayTokenReceiptRoute
 }
@@ -4772,6 +5002,20 @@ const ApiPayTokenRouteChildren: ApiPayTokenRouteChildren = {
 
 const ApiPayTokenRouteWithChildren = ApiPayTokenRoute._addFileChildren(
   ApiPayTokenRouteChildren,
+)
+
+interface ApiTrackSlugRouteChildren {
+  ApiTrackSlugUnlockRoute: typeof ApiTrackSlugUnlockRoute
+  ApiTrackSlugFileFileIdRoute: typeof ApiTrackSlugFileFileIdRoute
+}
+
+const ApiTrackSlugRouteChildren: ApiTrackSlugRouteChildren = {
+  ApiTrackSlugUnlockRoute: ApiTrackSlugUnlockRoute,
+  ApiTrackSlugFileFileIdRoute: ApiTrackSlugFileFileIdRoute,
+}
+
+const ApiTrackSlugRouteWithChildren = ApiTrackSlugRoute._addFileChildren(
+  ApiTrackSlugRouteChildren,
 )
 
 interface ApiAdminScoutAuthorsIdRouteChildren {
@@ -4864,6 +5108,7 @@ const rootRouteChildren: RootRouteChildren = {
   ToolsToolRoute: ToolsToolRoute,
   ToolsAuthorVisibilityAuditRoute: ToolsAuthorVisibilityAuditRoute,
   ToolsWebsiteAuditRoute: ToolsWebsiteAuditRoute,
+  TrackSlugRoute: TrackSlugRoute,
   WorkSlugRoute: WorkSlugRoute,
   AuthorAuditIndexRoute: AuthorAuditIndexRoute,
   BlogIndexRoute: BlogIndexRoute,
@@ -4875,6 +5120,7 @@ const rootRouteChildren: RootRouteChildren = {
   WorkIndexRoute: WorkIndexRoute,
   ApiAcademyAssignRoute: ApiAcademyAssignRoute,
   ApiAcademyCoachRoute: ApiAcademyCoachRoute,
+  ApiAcademyContentRoute: ApiAcademyContentRoute,
   ApiAcademyDemosRoute: ApiAcademyDemosRouteWithChildren,
   ApiAcademyFeedbackRoute: ApiAcademyFeedbackRoute,
   ApiAcademyHintRoute: ApiAcademyHintRoute,
@@ -4925,6 +5171,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAdminUploadRoute: ApiAdminUploadRoute,
   ApiAdminUploadUrlRoute: ApiAdminUploadUrlRoute,
   ApiAdminVisitorsRoute: ApiAdminVisitorsRoute,
+  ApiExpertAiKeyRoute: ApiExpertAiKeyRoute,
   ApiExpertInviteRoute: ApiExpertInviteRoute,
   ApiExpertInvoiceRequestsRoute: ApiExpertInvoiceRequestsRoute,
   ApiExpertLeadsRoute: ApiExpertLeadsRoute,
@@ -4939,6 +5186,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiExpertSessionRoute: ApiExpertSessionRoute,
   ApiExpertSignupRoute: ApiExpertSignupRoute,
   ApiExpertTestimonialsRoute: ApiExpertTestimonialsRouteWithChildren,
+  ApiExpertTrackerPortfolioRoute: ApiExpertTrackerPortfolioRoute,
+  ApiExpertTrackersRoute: ApiExpertTrackersRouteWithChildren,
   ApiExpertVideoUrlRoute: ApiExpertVideoUrlRoute,
   ApiNotificationsDispatchRoute: ApiNotificationsDispatchRoute,
   ApiPayTokenRoute: ApiPayTokenRouteWithChildren,
@@ -4961,16 +5210,19 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicVisitRoute: ApiPublicVisitRoute,
   ApiPublicVoiceMessageRoute: ApiPublicVoiceMessageRoute,
   ApiScoutVerifyEmailsRoute: ApiScoutVerifyEmailsRoute,
+  ApiTrackSlugRoute: ApiTrackSlugRouteWithChildren,
   AuthorAuditAuthorBookRoute: AuthorAuditAuthorBookRoute,
   InsightsAnswersSlugRoute: InsightsAnswersSlugRoute,
   InsightsGuidesSlugRoute: InsightsGuidesSlugRoute,
   ApiAcademyAdminContentRoute: ApiAcademyAdminContentRoute,
+  ApiAcademyAdminPlaybookRoute: ApiAcademyAdminPlaybookRoute,
   ApiAcademyAdminTraineesRoute: ApiAcademyAdminTraineesRoute,
   ApiAdminScoutAudienceLeadsIdRoute: ApiAdminScoutAudienceLeadsIdRoute,
   ApiAdminScoutAuthorsIdRoute: ApiAdminScoutAuthorsIdRouteWithChildren,
   ApiPaymentsFlutterwaveWebhookRoute: ApiPaymentsFlutterwaveWebhookRoute,
   ApiPaymentsNowpaymentsIpnRoute: ApiPaymentsNowpaymentsIpnRoute,
   ApiPaymentsPaystackWebhookRoute: ApiPaymentsPaystackWebhookRoute,
+  ApiPublicPortfolioMediaItemIdRoute: ApiPublicPortfolioMediaItemIdRoute,
   ApiStaffPaymentReceiptsIdRoute: ApiStaffPaymentReceiptsIdRouteWithChildren,
 }
 export const routeTree = rootRouteImport

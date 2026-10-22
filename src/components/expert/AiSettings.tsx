@@ -17,6 +17,7 @@ const PROVIDERS = [
   ["anthropic", "Anthropic (Claude)"],
   ["openai", "OpenAI"],
   ["google", "Google (Gemini)"],
+  ["perplexity", "Perplexity"],
 ] as const;
 
 /** Settings, AI: the expert's own key. It is never sent back to the browser;
@@ -84,8 +85,8 @@ export function AiSettings({ admin = false }: { admin?: boolean }) {
           <h2>AI assisted updates</h2>
           <p>
             {admin
-              ? "Admin's own Anthropic, OpenAI or Google key, used when you draft updates on any expert's tracker. Experts' keys are never used by admin."
-              : "Use your own Anthropic, OpenAI or Google key to draft tracker updates. Your provider account pays for your requests."}{" "}
+              ? "One shared admin key for tracker AI. It is used anywhere the admin drafts an update, and experts' keys are never used by admin."
+              : "Set one provider key here for your tracker AI actions. It is reused anywhere you use AI in your workspace."}{" "}
             AI only writes drafts: you approve everything before a client sees it.
           </p>
         </div>

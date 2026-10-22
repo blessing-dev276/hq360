@@ -14,6 +14,7 @@ export const DEFAULT_MODELS: Record<AiProvider, string> = {
   anthropic: process.env.AI_MODEL_ANTHROPIC || "claude-sonnet-5-5",
   openai: process.env.AI_MODEL_OPENAI || "gpt-5-mini",
   google: process.env.AI_MODEL_GOOGLE || "gemini-2.5-flash",
+  perplexity: process.env.AI_MODEL_PERPLEXITY || "sonar",
 };
 
 export const SYSTEM_RULES = `You write short updates that an HQ360 expert sends to an author client about their project.
@@ -105,7 +106,7 @@ export async function callProvider(call: ProviderCall, fetcher: typeof fetch = f
         ],
       }),
     });
-  } else {
+  } else if (call.provider === "google") {
     response = await fetcher(
       `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(call.model)}:generateContent`,
       {
@@ -118,6 +119,19 @@ export async function callProvider(call: ProviderCall, fetcher: typeof fetch = f
         }),
       },
     );
+  } else {
+    response = await fetcher("https://api.perplexity.ai/chat/completions", {
+      method: "POST",
+      headers: { "content-type": "application/json", authorization: `Bearer ${call.apiKey}` },
+      body: JSON.stringify({
+        model: call.model,
+        response_format: { type: "json_object" },
+        messages: [
+          { role: "system", content: call.system },
+          { role: "user", content: call.user },
+        ],
+      }),
+    });
   }
   if (response.status === 401 || response.status === 403)
     throw new TrackerError("Your AI provider rejected the key. Replace it in Settings, AI.", 409);
@@ -130,6 +144,12 @@ export async function callProvider(call: ProviderCall, fetcher: typeof fetch = f
       outputTokens: body.usage?.output_tokens ?? 0,
     };
   if (call.provider === "openai")
+    return {
+      text: body.choices?.[0]?.message?.content ?? "",
+      inputTokens: body.usage?.prompt_tokens ?? 0,
+      outputTokens: body.usage?.completion_tokens ?? 0,
+    };
+  if (call.provider === "perplexity")
     return {
       text: body.choices?.[0]?.message?.content ?? "",
       inputTokens: body.usage?.prompt_tokens ?? 0,

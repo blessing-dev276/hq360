@@ -7,7 +7,7 @@ function json(body: unknown, status = 200) {
 
 const saveSchema = z
   .object({
-    provider: z.enum(["anthropic", "openai", "google"]),
+    provider: z.enum(["anthropic", "openai", "google", "perplexity"]),
     apiKey: z.string().trim().min(20).max(512),
   })
   .strict();

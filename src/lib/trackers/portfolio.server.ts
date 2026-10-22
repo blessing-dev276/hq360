@@ -1,4 +1,4 @@
-import { db, ownedTracker, TrackerError } from "./service.server";
+import { db, own, ownedTracker, TrackerError, type Actor } from "./service.server";
 
 // Auto portfolio. The database refuses any entry without client consent and
 // a Complete, Portfolio ready item, and deletes entries when consent goes.
@@ -43,8 +43,10 @@ export function portfolioEntry(source: PortfolioSource) {
 }
 
 /** Create or refresh entries for every eligible item; drafts unless auto publish is on. */
-export async function syncTrackerPortfolio(expertId: string, trackerId: string) {
-  const tracker = await ownedTracker(expertId, trackerId);
+export async function syncTrackerPortfolio(actor: Actor, trackerId: string) {
+  const tracker = await ownedTracker(actor, trackerId);
+  // Entries always go on the tracker owner's profile, also when admin acts.
+  const expertId = tracker.expert_id;
   const [{ data: items }, { data: files }, { data: profile }, { data: existing }] = await Promise.all([
     db()
       .from("tracker_items")
@@ -79,11 +81,11 @@ export async function syncTrackerPortfolio(expertId: string, trackerId: string) 
 }
 
 export async function setConsent(
-  expertId: string,
+  actor: Actor,
   trackerId: string,
   input: { consent: boolean; method?: string; allowsNaming?: boolean },
 ) {
-  await ownedTracker(expertId, trackerId);
+  await ownedTracker(actor, trackerId);
   if (input.consent && !input.method?.trim())
     throw new TrackerError("Say how the client gave consent, for example 'Email, 20 Oct 2026'.", 400);
   const { error } = await db()
@@ -99,33 +101,36 @@ export async function setConsent(
         : // Withdrawal: the database trigger deletes this tracker's entries immediately.
           { portfolio_consent: false, consent_allows_naming: false },
     )
-    .eq("id", trackerId)
-    .eq("expert_id", expertId);
+    .eq("id", trackerId);
   if (error) throw new TrackerError("Could not save consent.", 503);
-  if (input.consent) await syncTrackerPortfolio(expertId, trackerId);
+  if (input.consent) await syncTrackerPortfolio(actor, trackerId);
 }
 
-export async function portfolioDrafts(expertId: string) {
+export async function portfolioDrafts(actor: Actor) {
   const [{ data, error }, { data: profile }] = await Promise.all([
     db()
       .from("expert_portfolio_items")
-      .select("id, title, description, image_url, video_url, status, source_tracker_item_id, created_at")
-      .eq("expert_id", expertId)
+      .select("id, expert_id, title, description, image_url, video_url, status, source_tracker_item_id, created_at")
+      .match(own(actor))
       .not("source_tracker_item_id", "is", null)
       .order("created_at", { ascending: false }),
-    db().from("expert_profiles").select("portfolio_auto_publish").eq("id", expertId).maybeSingle(),
+    // Auto publish is each expert's own setting; admin sees all entries instead.
+    actor.role === "expert"
+      ? db().from("expert_profiles").select("portfolio_auto_publish").eq("id", actor.expertId).maybeSingle()
+      : Promise.resolve({ data: null }),
   ]);
   if (error) throw new TrackerError("Could not load portfolio entries.", 503);
-  return { items: data ?? [], autoPublish: Boolean(profile?.portfolio_auto_publish) };
+  const setting = profile as { portfolio_auto_publish?: boolean } | null;
+  return { items: data ?? [], autoPublish: Boolean(setting?.portfolio_auto_publish), admin: actor.role === "admin" };
 }
 
 /** One click approval. The guard trigger re-checks consent at this moment too. */
-export async function approvePortfolioEntry(expertId: string, entryId: string) {
+export async function approvePortfolioEntry(actor: Actor, entryId: string) {
   const { data, error } = await db()
     .from("expert_portfolio_items")
-    .update({ status: "approved", reviewed_at: new Date().toISOString(), reviewed_by: "expert" })
+    .update({ status: "approved", reviewed_at: new Date().toISOString(), reviewed_by: actor.role })
     .eq("id", entryId)
-    .eq("expert_id", expertId)
+    .match(own(actor))
     .eq("status", "draft")
     .not("source_tracker_item_id", "is", null)
     .select("id")

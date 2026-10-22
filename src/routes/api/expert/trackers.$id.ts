@@ -85,13 +85,10 @@ const patchSchema = z
   .partial()
   .strict();
 
-async function gate(request: Request, write: boolean): Promise<string | Response> {
-  const { isExpertRequest } = await import("@/lib/expert-auth.server");
-  const expertId = await isExpertRequest(request, { profileWrite: true });
-  if (!expertId) return json({ error: "Unauthorized" }, 401);
-  if (write && request.headers.get("origin") !== new URL(request.url).origin)
-    return json({ error: "Invalid origin" }, 403);
-  return expertId;
+/** Experts act on their own trackers; admin (x-hq360-actor: admin) on any. */
+async function gate(request: Request, write: boolean) {
+  const { trackerActor } = await import("@/lib/trackers/actor.server");
+  return trackerActor(request, write);
 }
 
 async function fail(error: unknown) {
@@ -104,29 +101,29 @@ export const Route = createFileRoute("/api/expert/trackers/$id")({
   server: {
     handlers: {
       GET: async ({ request, params }) => {
-        const expertId = await gate(request, false);
-        if (expertId instanceof Response) return expertId;
+        const actor = await gate(request, false);
+        if (actor instanceof Response) return actor;
         if (!id.safeParse(params.id).success) return json({ error: "Not found" }, 404);
         try {
           const s = await import("@/lib/trackers/service.server");
-          return json(await s.trackerDetail(expertId, params.id));
+          return json(await s.trackerDetail(actor, params.id));
         } catch (e) {
           return fail(e);
         }
       },
       PATCH: async ({ request, params }) => {
-        const expertId = await gate(request, true);
-        if (expertId instanceof Response) return expertId;
+        const actor = await gate(request, true);
+        if (actor instanceof Response) return actor;
         const parsed = patchSchema.safeParse(await request.json().catch(() => null));
         if (!parsed.success || !id.safeParse(params.id).success)
           return json({ error: "Check the tracker details." }, 400);
         try {
           const s = await import("@/lib/trackers/service.server");
           const patch = { ...parsed.data, ...(parsed.data.client_email === "" ? { client_email: null } : {}) };
-          await s.updateTracker(expertId, params.id, patch as Parameters<typeof s.updateTracker>[2]);
+          await s.updateTracker(actor, params.id, patch as Parameters<typeof s.updateTracker>[2]);
           if (parsed.data.status === "archived") {
             const p = await import("@/lib/trackers/portfolio.server");
-            await p.syncTrackerPortfolio(expertId, params.id);
+            await p.syncTrackerPortfolio(actor, params.id);
           }
           return json({ ok: true });
         } catch (e) {
@@ -134,19 +131,19 @@ export const Route = createFileRoute("/api/expert/trackers/$id")({
         }
       },
       DELETE: async ({ request, params }) => {
-        const expertId = await gate(request, true);
-        if (expertId instanceof Response) return expertId;
+        const actor = await gate(request, true);
+        if (actor instanceof Response) return actor;
         try {
           const s = await import("@/lib/trackers/service.server");
-          await s.deleteTracker(expertId, params.id);
+          await s.deleteTracker(actor, params.id);
           return json({ ok: true });
         } catch (e) {
           return fail(e);
         }
       },
       POST: async ({ request, params }) => {
-        const expertId = await gate(request, true);
-        if (expertId instanceof Response) return expertId;
+        const actor = await gate(request, true);
+        if (actor instanceof Response) return actor;
         const parsed = actionSchema.safeParse(await request.json().catch(() => null));
         if (!parsed.success || !id.safeParse(params.id).success)
           return json({ error: parsed.success ? "Not found" : (parsed.error.issues[0]?.message ?? "Check your details.") }, 400);
@@ -156,57 +153,57 @@ export const Route = createFileRoute("/api/expert/trackers/$id")({
           const s = await import("@/lib/trackers/service.server");
           switch (body.action) {
             case "preview":
-              return json({ page: await s.workingSnapshot(expertId, trackerId) });
+              return json({ page: await s.workingSnapshot(actor, trackerId) });
             case "addItem":
-              return json({ item: await s.addItem(expertId, trackerId, body) });
+              return json({ item: await s.addItem(actor, trackerId, body) });
             case "updateItem": {
-              const item = await s.updateItem(expertId, trackerId, body.itemId, body.patch);
+              const item = await s.updateItem(actor, trackerId, body.itemId, body.patch);
               const touchesPortfolio = ["status", "portfolio_ready", "portfolio_blurb", "title"].some(
                 (key) => key in body.patch,
               );
               if (touchesPortfolio) {
                 const p = await import("@/lib/trackers/portfolio.server");
-                await p.syncTrackerPortfolio(expertId, trackerId);
+                await p.syncTrackerPortfolio(actor, trackerId);
               }
               return json({ item });
             }
             case "deleteItem":
-              await s.deleteItem(expertId, trackerId, body.itemId);
+              await s.deleteItem(actor, trackerId, body.itemId);
               return json({ ok: true });
             case "reorder":
-              await s.reorderItems(expertId, trackerId, body.itemIds);
+              await s.reorderItems(actor, trackerId, body.itemIds);
               return json({ ok: true });
             case "addLog":
-              return json({ entry: await s.addLogEntry(expertId, trackerId, body) });
+              return json({ entry: await s.addLogEntry(actor, trackerId, body) });
             case "deleteLog":
-              await s.deleteLogEntry(expertId, trackerId, body.entryId);
+              await s.deleteLogEntry(actor, trackerId, body.entryId);
               return json({ ok: true });
             case "resetPasscode": {
               const { validPasscode } = await import("@/lib/trackers/security.server");
               if (body.passcode && !validPasscode(body.passcode))
                 return json({ error: "A passcode needs 6 to 64 letters and numbers." }, 400);
               // Shown once. It cannot be read back later, only reset again.
-              return json({ passcode: await s.resetPasscode(expertId, trackerId, body.passcode) });
+              return json({ passcode: await s.resetPasscode(actor, trackerId, body.passcode) });
             }
             case "publish":
-              return json(await s.publishTracker(expertId, trackerId, body.notify));
+              return json(await s.publishTracker(actor, trackerId, body.notify));
             case "uploadUrl":
               return json(
-                await s.createFileUpload(expertId, trackerId, {
+                await s.createFileUpload(actor, trackerId, {
                   ...body,
                   kind: fileKind(body.contentType, body.filename),
                 }),
               );
             case "deleteFile":
-              await s.deleteFile(expertId, trackerId, body.fileId);
+              await s.deleteFile(actor, trackerId, body.fileId);
               return json({ ok: true });
             case "saveTemplate":
-              return json({ template: await s.saveTemplate(expertId, trackerId, body.name) });
+              return json({ template: await s.saveTemplate(actor, trackerId, body.name) });
             case "aiDraft": {
               const ai = await import("@/lib/trackers/ai.server");
               const keys = await import("@/lib/trackers/ai-keys.server");
               const draft = await ai.runAiAction(
-                expertId,
+                actor,
                 trackerId,
                 body.kind,
                 { notes: body.notes, text: body.text, itemId: body.itemId },
@@ -216,19 +213,19 @@ export const Route = createFileRoute("/api/expert/trackers/$id")({
             }
             case "approveDraft": {
               const ai = await import("@/lib/trackers/ai.server");
-              const output = await ai.approveDraft(expertId, trackerId, body.draftId, body.edited);
+              const output = await ai.approveDraft(actor, trackerId, body.draftId, body.edited);
               const p = await import("@/lib/trackers/portfolio.server");
-              await p.syncTrackerPortfolio(expertId, trackerId);
+              await p.syncTrackerPortfolio(actor, trackerId);
               return json({ output });
             }
             case "discardDraft": {
               const ai = await import("@/lib/trackers/ai.server");
-              await ai.discardDraft(expertId, trackerId, body.draftId);
+              await ai.discardDraft(actor, trackerId, body.draftId);
               return json({ ok: true });
             }
             case "consent": {
               const p = await import("@/lib/trackers/portfolio.server");
-              await p.setConsent(expertId, trackerId, body);
+              await p.setConsent(actor, trackerId, body);
               return json({ ok: true });
             }
           }

@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { STATUS_LABEL, type ItemStatus } from "./core";
 import type { AiProvider } from "./ai-keys.server";
-import { addLogEntry, db, ownedTracker, TrackerError, updateItem } from "./service.server";
+import { addLogEntry, authorOf, db, ownedTracker, TrackerError, updateItem, type Actor } from "./service.server";
 
 // AI assisted tracker updates with the expert's own key. Every result is a
 // draft in tracker_ai_drafts. Nothing here writes to items, the log or the
@@ -193,21 +193,22 @@ export async function contextFor(
 }
 
 export type AiDeps = {
-  loadKey: (expertId: string) => Promise<{ provider: AiProvider; key: string } | null>;
+  loadKey: (actor: Actor) => Promise<{ provider: AiProvider; key: string } | null>;
   call: (call: ProviderCall) => Promise<ProviderResult>;
 };
 
-/** Runs one AI action for this expert's own tracker with this expert's own key. */
+/** Runs one AI action with the actor's own key: an expert on their own tracker,
+ *  or admin (any tracker) with admin's key. Nobody ever uses an expert's key but that expert. */
 export async function runAiAction(
-  expertId: string,
+  actor: Actor,
   trackerId: string,
   action: AiAction,
   input: { notes?: string; text?: string; itemId?: string },
   deps: AiDeps,
 ) {
   // Ownership first: an expert's key can never be spent on someone else's tracker.
-  const tracker = await ownedTracker(expertId, trackerId);
-  const credential = await deps.loadKey(expertId);
+  const tracker = await ownedTracker(actor, trackerId);
+  const credential = await deps.loadKey(actor);
   if (!credential) throw new TrackerError("Add your own API key in Settings, AI first.", 409);
   const context = await contextFor(action, trackerId, input, {
     allowed: tracker.consent_allows_naming,
@@ -235,21 +236,22 @@ export async function runAiAction(
         input: (input.notes ?? input.text ?? "").slice(0, 8000),
         output,
         status: "pending",
-        created_by: expertId,
+        created_by: authorOf(actor),
+        created_by_admin: actor.role === "admin",
       })
       .select("id, item_id, action, input, output, status, created_at")
       .maybeSingle();
     if (error || !data) throw new TrackerError("Could not save the draft.", 503);
-    await logUsage(expertId, trackerId, action, credential.provider, model, result, true);
+    await logUsage(actor, trackerId, action, credential.provider, model, result, true);
     return data;
   } catch (error) {
-    await logUsage(expertId, trackerId, action, credential.provider, model, result, false);
+    await logUsage(actor, trackerId, action, credential.provider, model, result, false);
     throw error;
   }
 }
 
 async function logUsage(
-  expertId: string,
+  actor: Actor,
   trackerId: string,
   action: AiAction,
   provider: AiProvider,
@@ -260,7 +262,8 @@ async function logUsage(
   await db()
     .from("expert_ai_usage")
     .insert({
-      expert_id: expertId,
+      expert_id: authorOf(actor),
+      actor: actor.role,
       tracker_id: trackerId,
       action,
       provider,
@@ -271,19 +274,19 @@ async function logUsage(
     });
 }
 
-export async function aiUsage(expertId: string) {
+export async function aiUsage(actor: Actor) {
   const { data, error } = await db()
     .from("expert_ai_usage")
     .select("created_at, tracker_id, action, provider, model, input_tokens, output_tokens, ok")
-    .eq("expert_id", expertId)
+    .match(actor.role === "expert" ? { expert_id: actor.expertId } : { actor: "admin" })
     .order("created_at", { ascending: false })
     .limit(200);
   if (error) throw new TrackerError("Could not load your AI usage.", 503);
   return data ?? [];
 }
 
-async function ownedDraft(expertId: string, trackerId: string, draftId: string) {
-  await ownedTracker(expertId, trackerId);
+async function ownedDraft(actor: Actor, trackerId: string, draftId: string) {
+  await ownedTracker(actor, trackerId);
   const { data } = await db()
     .from("tracker_ai_drafts")
     .select("id, item_id, action, output, status")
@@ -298,32 +301,32 @@ async function ownedDraft(expertId: string, trackerId: string, draftId: string) 
 /** A person approves (optionally after editing). The change goes into the
  *  working copy only; the client sees it after the expert publishes. */
 export async function approveDraft(
-  expertId: string,
+  actor: Actor,
   trackerId: string,
   draftId: string,
   edited?: Record<string, string>,
 ) {
-  const draft = await ownedDraft(expertId, trackerId, draftId);
+  const draft = await ownedDraft(actor, trackerId, draftId);
   const output = { ...draft.output, ...(edited ?? {}) };
   if (draft.action === "draft_update") {
-    if (output.log_entry) await addLogEntry(expertId, trackerId, { text: output.log_entry, source: "ai" });
+    if (output.log_entry) await addLogEntry(actor, trackerId, { text: output.log_entry, source: "ai" });
     if (draft.item_id && output.description)
-      await updateItem(expertId, trackerId, draft.item_id, { description: output.description });
+      await updateItem(actor, trackerId, draft.item_id, { description: output.description });
   } else if (draft.action === "friendly_rewrite" && draft.item_id && output.text) {
-    await updateItem(expertId, trackerId, draft.item_id, { description: output.text });
+    await updateItem(actor, trackerId, draft.item_id, { description: output.text });
   } else if (draft.action === "portfolio_blurb" && draft.item_id && output.text) {
-    await updateItem(expertId, trackerId, draft.item_id, { portfolio_blurb: output.text });
+    await updateItem(actor, trackerId, draft.item_id, { portfolio_blurb: output.text });
   }
   const { error } = await db()
     .from("tracker_ai_drafts")
-    .update({ status: "approved", approved_by: expertId, approved_at: new Date().toISOString(), output })
+    .update({ status: "approved", approved_by: authorOf(actor), approved_by_admin: actor.role === "admin", approved_at: new Date().toISOString(), output })
     .eq("id", draftId)
     .eq("status", "pending");
   if (error) throw new TrackerError("Could not approve the draft.", 503);
   return output;
 }
 
-export async function discardDraft(expertId: string, trackerId: string, draftId: string) {
-  await ownedDraft(expertId, trackerId, draftId);
+export async function discardDraft(actor: Actor, trackerId: string, draftId: string) {
+  await ownedDraft(actor, trackerId, draftId);
   await db().from("tracker_ai_drafts").update({ status: "discarded" }).eq("id", draftId);
 }

@@ -1,5 +1,5 @@
 import { createCipheriv, createDecipheriv, hkdfSync, randomBytes } from "node:crypto";
-import { db } from "./service.server";
+import { db, type Actor } from "./service.server";
 
 // Each expert's own AI provider key. AES-256-GCM with a server held master
 // key (AI_KEY_MASTER_KEY, else derived from the service role key), bound to
@@ -44,12 +44,21 @@ export function decryptAiKey(expertId: string, stored: string, secret?: string) 
 
 export const lastFour = (key: string) => key.trim().slice(-4);
 
+/** Experts keep their key in expert_ai_credentials; admin has its own row in
+ *  admin_ai_credentials. Each owner's ciphertext is bound to that owner. */
+function keyStore(actor: Actor) {
+  return actor.role === "expert"
+    ? { table: "expert_ai_credentials", column: "expert_id", id: actor.expertId }
+    : { table: "admin_ai_credentials", column: "id", id: "admin" };
+}
+
 /** What the browser may know: provider, last four characters, when saved. */
-export async function aiKeyStatus(expertId: string) {
+export async function aiKeyStatus(actor: Actor) {
+  const store = keyStore(actor);
   const { data, error } = await db()
-    .from("expert_ai_credentials")
+    .from(store.table)
     .select("provider, last_four, updated_at")
-    .eq("expert_id", expertId)
+    .eq(store.column, store.id)
     .maybeSingle();
   if (error) throw new Error("AI settings are unavailable.");
   return data
@@ -57,35 +66,38 @@ export async function aiKeyStatus(expertId: string) {
     : { configured: false as const };
 }
 
-export async function saveAiKey(expertId: string, provider: AiProvider, key: string) {
+export async function saveAiKey(actor: Actor, provider: AiProvider, key: string) {
+  const store = keyStore(actor);
   const { error } = await db()
-    .from("expert_ai_credentials")
+    .from(store.table)
     .upsert(
       {
-        expert_id: expertId,
+        [store.column]: store.id,
         provider,
-        encrypted_key: encryptAiKey(expertId, key.trim()),
+        encrypted_key: encryptAiKey(store.id, key.trim()),
         last_four: lastFour(key),
         updated_at: new Date().toISOString(),
       },
-      { onConflict: "expert_id" },
+      { onConflict: store.column },
     );
   if (error) throw new Error("Could not save your key.");
 }
 
-export async function deleteAiKey(expertId: string) {
-  const { error } = await db().from("expert_ai_credentials").delete().eq("expert_id", expertId);
+export async function deleteAiKey(actor: Actor) {
+  const store = keyStore(actor);
+  const { error } = await db().from(store.table).delete().eq(store.column, store.id);
   if (error) throw new Error("Could not remove your key.");
 }
 
-/** Server only. Loads this expert's key and no one else's; there is no fallback key. */
-export async function loadAiKey(expertId: string): Promise<{ provider: AiProvider; key: string } | null> {
+/** Server only. Loads this actor's own key and no one else's; there is no fallback key. */
+export async function loadAiKey(actor: Actor): Promise<{ provider: AiProvider; key: string } | null> {
+  const store = keyStore(actor);
   const { data, error } = await db()
-    .from("expert_ai_credentials")
+    .from(store.table)
     .select("provider, encrypted_key")
-    .eq("expert_id", expertId)
+    .eq(store.column, store.id)
     .maybeSingle();
   if (error) throw new Error("AI settings are unavailable.");
   if (!data) return null;
-  return { provider: data.provider as AiProvider, key: decryptAiKey(expertId, data.encrypted_key as string) };
+  return { provider: data.provider as AiProvider, key: decryptAiKey(store.id, data.encrypted_key as string) };
 }

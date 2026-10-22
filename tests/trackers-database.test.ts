@@ -29,6 +29,7 @@ beforeAll(async () => {
     "20261020090100_academy_daily_lessons_seed.sql",
     "20261020100000_expert_ai_keys.sql",
     "20261020110000_tracker_auto_portfolio.sql",
+    "20261022090000_tracker_admin_access.sql",
   ])
     await migration(name);
   expert = (await db.query<{ id: string }>("insert into expert_profiles(email) values ('e@example.com') returning id")).rows[0]!.id;
@@ -233,5 +234,43 @@ describe("phase 3: auto portfolio needs consent", () => {
       if (change === "delete") await db.query("delete from client_trackers where id=$1", [tracker]);
       expect(await entries(item)).toBe(0);
     }
+  });
+});
+
+describe("admin access", () => {
+  test("admin approvals are recorded as admin; an approval still needs a time", async () => {
+    const id = await newTracker("admin-ab12");
+    const draft = (
+      await db.query<{ id: string }>(
+        `insert into tracker_ai_drafts(tracker_id, action, input, output, created_by_admin) values ($1,'draft_update','n','{"log_entry":"x"}',true) returning id`,
+        [id],
+      )
+    ).rows[0]!.id;
+    await expect(db.query("update tracker_ai_drafts set status='approved', approved_by_admin=true where id=$1", [draft])).rejects.toThrow();
+    await db.query("update tracker_ai_drafts set status='approved', approved_by_admin=true, approved_at=now() where id=$1", [draft]);
+  });
+
+  test("usage rows belong to exactly one of an expert or admin", async () => {
+    const insert = "insert into expert_ai_usage(expert_id, actor, action, provider, model) values ($1,$2,'progress_summary','anthropic','m')";
+    await db.query(insert, [null, "admin"]);
+    await db.query(insert, [expert, "expert"]);
+    await expect(db.query(insert, [null, "expert"])).rejects.toThrow();
+    await expect(db.query(insert, [expert, "admin"])).rejects.toThrow();
+  });
+
+  test("admin's AI key is a single encrypted row, closed to browsers", async () => {
+    await expect(
+      db.query("insert into admin_ai_credentials(id, provider, encrypted_key, last_four) values ('other','openai','v1.x','1234')"),
+    ).rejects.toThrow();
+    await db.query("insert into admin_ai_credentials(provider, encrypted_key, last_four) values ('openai','v1.x','1234')");
+    for (const role of ["anon", "authenticated"]) {
+      await db.exec(`set role ${role}`);
+      await expect(db.query("select * from admin_ai_credentials")).rejects.toThrow();
+      await db.exec("reset role");
+    }
+  });
+
+  test("admin templates have no expert", async () => {
+    await db.query("insert into tracker_templates(name) values ('Admin premium package')");
   });
 });

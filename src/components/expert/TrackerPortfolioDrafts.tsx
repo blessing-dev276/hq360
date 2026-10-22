@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { AlertCircle } from "lucide-react";
+import { actorHeaders, setTrackerAdminMode } from "./tracker-actor";
 
 type Entry = {
   id: string;
@@ -12,13 +13,14 @@ type Entry = {
 
 /** Portfolio entries made from client trackers (with client consent). Drafts
  *  go live with one click, or straight away when auto publish is on. */
-export function TrackerPortfolioDrafts() {
+export function TrackerPortfolioDrafts({ admin = false }: { admin?: boolean }) {
+  setTrackerAdminMode(admin);
   const [entries, setEntries] = useState<Entry[] | null>(null);
   const [autoPublish, setAutoPublish] = useState(false);
   const [error, setError] = useState("");
 
   const load = useCallback(async () => {
-    const response = await fetch("/api/expert/tracker-portfolio");
+    const response = await fetch("/api/expert/tracker-portfolio", { headers: actorHeaders() });
     const data = await response.json().catch(() => ({}));
     if (!response.ok) return setError(data.error || "Could not load entries.");
     setEntries(data.items);
@@ -32,7 +34,7 @@ export function TrackerPortfolioDrafts() {
     setError("");
     const response = await fetch("/api/expert/tracker-portfolio", {
       method: "POST",
-      headers: { "content-type": "application/json" },
+      headers: actorHeaders({ "content-type": "application/json" }),
       body: JSON.stringify(body),
     });
     const data = await response.json().catch(() => ({}));
@@ -45,16 +47,16 @@ export function TrackerPortfolioDrafts() {
     <section className="admin-content-panel" style={{ marginTop: "1.5rem" }}>
       <div className="admin-panel-heading" style={{ padding: "0 0 1rem" }}>
         <div>
-          <h2>From your client trackers</h2>
+          <h2>{admin ? "Portfolio entries from client trackers" : "From your client trackers"}</h2>
           <p>
             Completed items you marked Portfolio ready, from clients who agreed to portfolio use. Withdrawn consent
             removes an entry at once.
           </p>
         </div>
-        <label style={{ display: "inline-flex", gap: 6, alignItems: "center" }}>
+        {!admin && (<label style={{ display: "inline-flex", gap: 6, alignItems: "center" }}>
           <input type="checkbox" checked={autoPublish} onChange={(e) => void post({ action: "autoPublish", value: e.target.checked })} />
           Auto publish new entries
-        </label>
+        </label>)}
       </div>
       {error && (
         <div className="admin-alert" role="alert">

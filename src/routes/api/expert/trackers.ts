@@ -13,39 +13,48 @@ const createSchema = z
     packageName: z.string().trim().max(120),
     passcode: z.string().trim().max(64).optional(),
     templateId: z.string().uuid().optional(),
+    // Admin only: which expert owns the new tracker.
+    expertId: z.string().uuid().optional(),
   })
   .strict();
 
-/** Client trackers: list (with views this week) and create. */
+/** Client trackers: list (with views this week) and create. Experts see their
+ *  own; admin (x-hq360-actor: admin) sees every expert's. */
 export const Route = createFileRoute("/api/expert/trackers")({
   server: {
     handlers: {
       GET: async ({ request }) => {
-        const { isExpertRequest } = await import("@/lib/expert-auth.server");
-        const expertId = await isExpertRequest(request, { profileWrite: true });
-        if (!expertId) return json({ error: "Unauthorized" }, 401);
+        const { trackerActor } = await import("@/lib/trackers/actor.server");
+        const actor = await trackerActor(request, false);
+        if (actor instanceof Response) return actor;
         const { listTrackers, listTemplates, TrackerError } = await import("@/lib/trackers/service.server");
         try {
-          const [trackers, templates] = await Promise.all([listTrackers(expertId), listTemplates(expertId)]);
-          return json({ trackers, templates });
+          const [trackers, templates] = await Promise.all([listTrackers(actor), listTemplates(actor)]);
+          return json({ trackers, templates, admin: actor.role === "admin" });
         } catch (error) {
           return json({ error: error instanceof TrackerError ? error.message : "Could not load trackers." }, 503);
         }
       },
       POST: async ({ request }) => {
-        const { isExpertRequest } = await import("@/lib/expert-auth.server");
-        const expertId = await isExpertRequest(request, { profileWrite: true });
-        if (!expertId) return json({ error: "Unauthorized" }, 401);
-        if (request.headers.get("origin") !== new URL(request.url).origin)
-          return json({ error: "Invalid origin" }, 403);
+        const { trackerActor } = await import("@/lib/trackers/actor.server");
+        const actor = await trackerActor(request, true);
+        if (actor instanceof Response) return actor;
         const parsed = createSchema.safeParse(await request.json().catch(() => null));
         if (!parsed.success) return json({ error: "Add the client's name and a valid email." }, 400);
         const { createTracker, TrackerError } = await import("@/lib/trackers/service.server");
         const { validPasscode } = await import("@/lib/trackers/security.server");
         if (parsed.data.passcode && !validPasscode(parsed.data.passcode))
           return json({ error: "A passcode needs 6 to 64 letters and numbers." }, 400);
+        // Experts always own what they create; only admin chooses an owner.
+        const input = actor.role === "admin" ? parsed.data : { ...parsed.data, expertId: undefined };
+        if (actor.role === "admin" && input.expertId) {
+          const { expertProfiles } = await import("@/lib/expert-auth.server");
+          const { data } = await expertProfiles().select("status").eq("id", input.expertId).maybeSingle();
+          if ((data as { status?: string } | null)?.status !== "approved")
+            return json({ error: "Choose an approved expert." }, 400);
+        }
         try {
-          const created = await createTracker(expertId, parsed.data);
+          const created = await createTracker(actor, input);
           return json(created, 201);
         } catch (error) {
           if (error instanceof TrackerError) return json({ error: error.message }, error.status);

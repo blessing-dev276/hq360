@@ -20,6 +20,8 @@ import {
   Users,
   MessageSquareQuote,
   ScanSearch,
+  ListChecks,
+  Sparkles,
   CreditCard,
   ArrowUpRight,
   LogOut,
@@ -37,6 +39,10 @@ import { AdminDashboard } from "./AdminDashboard";
 import { NotificationBell } from "./NotificationBell";
 import { PanelThemeToggle } from "./PanelThemeToggle";
 import { LeadsAdmin } from "./LeadsAdmin";
+import { ClientTrackers } from "@/components/expert/ClientTrackers";
+import { AiSettings } from "@/components/expert/AiSettings";
+import { TrackerPortfolioDrafts } from "@/components/expert/TrackerPortfolioDrafts";
+import "@/components/trackers/tracker-page.css";
 import "./admin-workspace.css";
 
 /* ------------------------------------------------------------------ types */
@@ -167,7 +173,9 @@ type Tab =
   | "visitors"
   | "quotes"
   | "proposals"
-  | "academy";
+  | "academy"
+  | "trackers"
+  | "trackerAi";
 type WorkView = "cases" | "gallery";
 const SALES_TABS: Tab[] = ["payments", "quotes", "proposals"];
 const NAV = [
@@ -240,6 +248,18 @@ const NAV = [
     description: "Manage experts — accounts, profiles, portfolios and what they can access.",
   },
   {
+    id: "trackers",
+    label: "Client tracking",
+    icon: ListChecks,
+    description: "Every expert's client progress pages, plus portfolio entries made from them.",
+  },
+  {
+    id: "trackerAi",
+    label: "Settings, AI",
+    icon: Sparkles,
+    description: "Admin's own AI key for drafting tracker updates. Experts' keys are never used.",
+  },
+  {
     id: "visitors",
     label: "Visitors",
     icon: Globe2,
@@ -284,6 +304,8 @@ export function AdminApp({ initialTab = "overview" }: { initialTab?: Tab }) {
             "payments",
             "experts",
             "academy",
+            "trackers",
+            "trackerAi",
             "visitors",
             "projects",
             "work",
@@ -385,6 +407,13 @@ export function AdminApp({ initialTab = "overview" }: { initialTab?: Tab }) {
             <AcademyControlCenter />
           ) : tab === "experts" ? (
             <ExpertsAdmin />
+          ) : tab === "trackers" ? (
+            <>
+              <ClientTrackers admin />
+              <TrackerPortfolioDrafts admin />
+            </>
+          ) : tab === "trackerAi" ? (
+            <AiSettings admin />
           ) : tab === "visitors" ? (
             <VisitorsAdmin />
           ) : tab === "audits" ? (

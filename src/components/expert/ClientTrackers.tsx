@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { AlertCircle, ArrowDown, ArrowUp, CircleCheck, Copy, Eye, GripVertical, Sparkles, Trash2 } from "lucide-react";
 import { ITEM_STATUSES, STATUS_LABEL, type ClientSnapshot, type ItemBlocks, type ItemStatus } from "@/lib/trackers/core";
 import { TrackerView } from "@/components/trackers/TrackerView";
+import { actorHeaders, setTrackerAdminMode } from "./tracker-actor";
 
 type TrackerSummary = {
   id: string;
@@ -14,6 +15,8 @@ type TrackerSummary = {
   updated_at: string;
   viewsThisWeek: number;
   lastViewedAt: string | null;
+  /** The owning expert (shown to admin). */
+  expert?: { full_name: string | null; email: string | null } | null;
 };
 type Template = { id: string; name: string; package_name: string };
 type Item = {
@@ -60,7 +63,7 @@ type Detail = {
 async function call<T = Record<string, unknown>>(url: string, method = "GET", body?: unknown): Promise<T> {
   const response = await fetch(url, {
     method,
-    headers: body === undefined ? undefined : { "content-type": "application/json" },
+    headers: actorHeaders(body === undefined ? {} : { "content-type": "application/json" }),
     body: body === undefined ? undefined : JSON.stringify(body),
   });
   const data = await response.json().catch(() => ({}));
@@ -136,7 +139,9 @@ function OneTimePasscode({ url, passcode, onDone }: { url: string; passcode: str
   );
 }
 
-export function ClientTrackers() {
+/** `admin`: used inside the admin panel, where every expert's trackers show. */
+export function ClientTrackers({ admin = false }: { admin?: boolean }) {
+  setTrackerAdminMode(admin);
   const [trackers, setTrackers] = useState<TrackerSummary[] | null>(null);
   const [templates, setTemplates] = useState<Template[]>([]);
   const [openId, setOpenId] = useState<string | null>(null);
@@ -185,6 +190,7 @@ export function ClientTrackers() {
       {created && <OneTimePasscode {...created} onDone={() => setCreated(null)} />}
       {creating && (
         <CreateTracker
+          admin={admin}
           templates={templates}
           onCancel={() => setCreating(false)}
           onCreated={(result) => {
@@ -208,6 +214,7 @@ export function ClientTrackers() {
             <thead>
               <tr>
                 <th scope="col">Client</th>
+                {admin && <th scope="col">Expert</th>}
                 <th scope="col">Project</th>
                 <th scope="col">Progress</th>
                 <th scope="col">Last update</th>
@@ -225,6 +232,7 @@ export function ClientTrackers() {
                     <br />
                     <small>{t.status === "live" ? "Live" : t.status === "draft" ? "Draft" : "Archived"}</small>
                   </td>
+                  {admin && <td>{t.expert?.full_name || t.expert?.email || "—"}</td>}
                   <td>{t.project_title || "—"}</td>
                   <td>{t.progress}%</td>
                   <td>{relativeTime(t.updated_at)}</td>
@@ -247,10 +255,12 @@ export function ClientTrackers() {
 }
 
 function CreateTracker({
+  admin,
   templates,
   onCancel,
   onCreated,
 }: {
+  admin: boolean;
   templates: Template[];
   onCancel: () => void;
   onCreated: (result: { tracker: { id: string }; url: string; passcode: string }) => void;
@@ -258,6 +268,22 @@ function CreateTracker({
   const [form, setForm] = useState({ clientName: "", clientEmail: "", projectTitle: "", packageName: "", passcode: "", templateId: "" });
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  // Admin creates trackers on behalf of an approved expert, who then owns them.
+  const [experts, setExperts] = useState<{ id: string; label: string }[]>([]);
+  const [expertId, setExpertId] = useState("");
+  useEffect(() => {
+    if (!admin) return;
+    fetch("/api/admin/experts")
+      .then((r) => r.json())
+      .then((data: { experts?: { id: string; full_name: string | null; email: string; status: string; is_guest?: boolean }[] }) =>
+        setExperts(
+          (data.experts ?? [])
+            .filter((e) => e.status === "approved" && !e.is_guest)
+            .map((e) => ({ id: e.id, label: e.full_name ? `${e.full_name} (${e.email})` : e.email })),
+        ),
+      )
+      .catch(() => setError("Could not load the experts list."));
+  }, [admin]);
   async function submit(event: FormEvent) {
     event.preventDefault();
     setBusy(true);
@@ -270,6 +296,7 @@ function CreateTracker({
         packageName: form.packageName,
         ...(form.passcode ? { passcode: form.passcode } : {}),
         ...(form.templateId ? { templateId: form.templateId } : {}),
+        ...(admin ? { expertId } : {}),
       });
       onCreated(result);
     } catch (e) {
@@ -288,6 +315,19 @@ function CreateTracker({
     <form className="admin-invoice-form" onSubmit={submit} style={{ marginBottom: "1.5rem" }}>
       <Alerts error={error} notice="" />
       <div className="admin-form-grid" style={{ display: "grid", gap: 12, gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))" }}>
+        {admin && (
+          <label className="admin-field">
+            <span>Expert who owns this tracker</span>
+            <select required value={expertId} onChange={(e) => setExpertId(e.target.value)}>
+              <option value="">Choose an expert</option>
+              {experts.map((e) => (
+                <option key={e.id} value={e.id}>
+                  {e.label}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
         {field("clientName", "Client name", { required: true, maxLength: 120 })}
         {field("clientEmail", "Client email", { type: "email", maxLength: 254 })}
         {field("projectTitle", "Project or book title", { maxLength: 200 })}

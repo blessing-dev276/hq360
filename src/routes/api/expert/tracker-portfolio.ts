@@ -17,30 +17,32 @@ export const Route = createFileRoute("/api/expert/tracker-portfolio")({
   server: {
     handlers: {
       GET: async ({ request }) => {
-        const { isExpertRequest } = await import("@/lib/expert-auth.server");
-        const expertId = await isExpertRequest(request, { profileWrite: true });
-        if (!expertId) return json({ error: "Unauthorized" }, 401);
+        const { trackerActor } = await import("@/lib/trackers/actor.server");
+        const actor = await trackerActor(request, false);
+        if (actor instanceof Response) return actor;
         try {
           const p = await import("@/lib/trackers/portfolio.server");
-          return json(await p.portfolioDrafts(expertId));
+          return json(await p.portfolioDrafts(actor));
         } catch {
           return json({ error: "Could not load portfolio entries." }, 503);
         }
       },
       POST: async ({ request }) => {
-        const { isExpertRequest } = await import("@/lib/expert-auth.server");
-        const expertId = await isExpertRequest(request, { profileWrite: true });
-        if (!expertId) return json({ error: "Unauthorized" }, 401);
-        if (request.headers.get("origin") !== new URL(request.url).origin)
-          return json({ error: "Invalid origin" }, 403);
+        const { trackerActor } = await import("@/lib/trackers/actor.server");
+        const actor = await trackerActor(request, true);
+        if (actor instanceof Response) return actor;
         const parsed = schema.safeParse(await request.json().catch(() => null));
         if (!parsed.success) return json({ error: "Invalid request." }, 400);
         const { TrackerError, deleteTemplate } = await import("@/lib/trackers/service.server");
         try {
           const p = await import("@/lib/trackers/portfolio.server");
-          if (parsed.data.action === "approve") await p.approvePortfolioEntry(expertId, parsed.data.id);
-          else if (parsed.data.action === "autoPublish") await p.setAutoPublish(expertId, parsed.data.value);
-          else await deleteTemplate(expertId, parsed.data.id);
+          if (parsed.data.action === "approve") await p.approvePortfolioEntry(actor, parsed.data.id);
+          else if (parsed.data.action === "autoPublish") {
+            // Auto publish is an expert's own setting.
+            if (actor.role !== "expert") return json({ error: "Only the expert can change this." }, 403);
+            await p.setAutoPublish(actor.expertId, parsed.data.value);
+          }
+          else await deleteTemplate(actor, parsed.data.id);
           return json({ ok: true });
         } catch (error) {
           if (error instanceof TrackerError) return json({ error: error.message }, error.status);

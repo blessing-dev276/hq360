@@ -15,9 +15,23 @@ import { generatePasscode, hashPasscode, trackerSlug } from "./security.server";
 
 // Database work for client trackers. Every expert query is scoped by
 // expert_id, so one expert can never read or change another expert's tracker.
+// Admin may act on every tracker.
 
 // The generated Database type does not include the tracker tables yet.
 export const db = () => supabaseAdmin as unknown as SupabaseClient;
+
+export type Actor = { role: "admin" } | { role: "expert"; expertId: string };
+export const expertActor = (expertId: string): Actor => ({ role: "expert", expertId });
+/** Row filter: experts see only their own rows; admin sees all. */
+export const own = (actor: Actor): Record<string, string> =>
+  actor.role === "expert" ? { expert_id: actor.expertId } : {};
+/** Expert id to record as author; admin actions have none. */
+export const authorOf = (actor: Actor) => (actor.role === "expert" ? actor.expertId : null);
+/** Templates: each expert has their own; admin's have no expert. */
+function templateScope<Q>(query: Q, actor: Actor): Q {
+  const q = query as unknown as { eq: (c: string, v: string) => Q; is: (c: string, v: null) => Q };
+  return actor.role === "expert" ? q.eq("expert_id", actor.expertId) : q.is("expert_id", null);
+}
 export const BUCKET = "tracker-files";
 
 export class TrackerError extends Error {
@@ -58,12 +72,12 @@ export function siteUrl() {
 }
 export const trackerUrl = (slug: string) => `${siteUrl()}/track/${slug}`;
 
-export async function ownedTracker(expertId: string, id: string): Promise<TrackerRow> {
+export async function ownedTracker(actor: Actor, id: string): Promise<TrackerRow> {
   const { data, error } = await db()
     .from("client_trackers")
     .select(TRACKER_FIELDS)
     .eq("id", id)
-    .eq("expert_id", expertId)
+    .match(own(actor))
     .maybeSingle();
   if (error) throw new TrackerError("Could not load this tracker.", 503);
   if (!data) throw new TrackerError("Tracker not found.", 404);
@@ -77,11 +91,12 @@ async function touch(id: string) {
 const weekAgo = () => new Date(Date.now() - 7 * 86400_000).toISOString();
 
 /** Trackers list: client, project, progress, last update, views this week, link. */
-export async function listTrackers(expertId: string) {
+export async function listTrackers(actor: Actor) {
   const { data: trackers, error } = await db()
     .from("client_trackers")
-    .select(TRACKER_FIELDS)
-    .eq("expert_id", expertId)
+    // Admin sees every expert's trackers, so the owner's name comes along.
+    .select(`${TRACKER_FIELDS}, expert:expert_profiles(full_name, email)`)
+    .match(own(actor))
     .order("updated_at", { ascending: false });
   if (error) throw new TrackerError("Could not load your trackers.", 503);
   const ids = (trackers ?? []).map((t) => t.id as string);
@@ -99,15 +114,15 @@ export async function listTrackers(expertId: string) {
   ]);
   const since = weekAgo();
   return (trackers as TrackerRow[]).map((tracker) => {
-    const own = (events.data ?? []).filter((e) => e.tracker_id === tracker.id);
+    const seen = (events.data ?? []).filter((e) => e.tracker_id === tracker.id);
     return {
       ...tracker,
       url: trackerUrl(tracker.slug),
       progress: overallProgress(
         (items.data ?? []).filter((i) => i.tracker_id === tracker.id) as TrackerItemRow[],
       ),
-      viewsThisWeek: own.filter((e) => e.event === "open" && e.created_at >= since).length,
-      lastViewedAt: own.find((e) => e.event === "unlock")?.created_at ?? null,
+      viewsThisWeek: seen.filter((e) => e.event === "open" && e.created_at >= since).length,
+      lastViewedAt: seen.find((e) => e.event === "unlock")?.created_at ?? null,
     };
   });
 }
@@ -120,7 +135,7 @@ export type TemplateItem = {
 };
 
 export async function createTracker(
-  expertId: string,
+  actor: Actor,
   input: {
     clientName: string;
     clientEmail: string;
@@ -129,16 +144,18 @@ export async function createTracker(
     passcode?: string;
     slugSuffix?: string;
     templateId?: string;
+    /** Admin only: the expert who will own the tracker. */
+    expertId?: string;
   },
 ) {
+  const ownerId = actor.role === "expert" ? actor.expertId : input.expertId;
+  if (!ownerId) throw new TrackerError("Choose the expert this tracker belongs to.", 400);
   let items: TemplateItem[] = [];
   if (input.templateId) {
-    const { data } = await db()
-      .from("tracker_templates")
-      .select("items, package_name")
-      .eq("id", input.templateId)
-      .eq("expert_id", expertId)
-      .maybeSingle();
+    const { data } = await templateScope(
+      db().from("tracker_templates").select("items, package_name").eq("id", input.templateId),
+      actor,
+    ).maybeSingle();
     if (!data) throw new TrackerError("Template not found.", 404);
     items = (data.items ?? []) as TemplateItem[];
     if (!input.packageName) input.packageName = (data.package_name as string) ?? "";
@@ -150,7 +167,7 @@ export async function createTracker(
     const { data, error } = await db()
       .from("client_trackers")
       .insert({
-        expert_id: expertId,
+        expert_id: ownerId,
         client_name: input.clientName,
         client_email: input.clientEmail || null,
         project_title: input.projectTitle,
@@ -182,8 +199,8 @@ export async function createTracker(
   throw new TrackerError("Could not find a free link. Please try again.", 503);
 }
 
-export async function trackerDetail(expertId: string, id: string) {
-  const tracker = await ownedTracker(expertId, id);
+export async function trackerDetail(actor: Actor, id: string) {
+  const tracker = await ownedTracker(actor, id);
   const [items, files, log, drafts, hashRow] = await Promise.all([
     db().from("tracker_items").select(ITEM_FIELDS).eq("tracker_id", id).order("position"),
     db()
@@ -219,37 +236,37 @@ export async function trackerDetail(expertId: string, id: string) {
 }
 
 export async function updateTracker(
-  expertId: string,
+  actor: Actor,
   id: string,
   patch: Partial<Pick<TrackerRow, "client_name" | "client_email" | "project_title" | "package_name" | "status">>,
 ) {
-  await ownedTracker(expertId, id);
+  await ownedTracker(actor, id);
   if (patch.status === "live")
     throw new TrackerError("Use Publish to make the page live.", 400);
   const { error } = await db()
     .from("client_trackers")
     .update({ ...patch, updated_at: new Date().toISOString() })
     .eq("id", id)
-    .eq("expert_id", expertId);
+    .match(own(actor));
   if (error) throw new TrackerError("Could not save the tracker.", 503);
 }
 
-export async function deleteTracker(expertId: string, id: string) {
-  await ownedTracker(expertId, id);
+export async function deleteTracker(actor: Actor, id: string) {
+  await ownedTracker(actor, id);
   const { data: files } = await db().from("tracker_files").select("storage_key").eq("tracker_id", id);
   // Deleting the tracker cascades to items, and from items to portfolio entries.
-  const { error } = await db().from("client_trackers").delete().eq("id", id).eq("expert_id", expertId);
+  const { error } = await db().from("client_trackers").delete().eq("id", id).match(own(actor));
   if (error) throw new TrackerError("Could not delete the tracker.", 503);
   const keys = (files ?? []).map((f) => f.storage_key as string);
   if (keys.length) await db().storage.from(BUCKET).remove(keys);
 }
 
 export async function addItem(
-  expertId: string,
+  actor: Actor,
   trackerId: string,
   input: { title: string; description?: string; is_free_bonus?: boolean },
 ) {
-  await ownedTracker(expertId, trackerId);
+  await ownedTracker(actor, trackerId);
   const { data: last } = await db()
     .from("tracker_items")
     .select("position")
@@ -285,13 +302,12 @@ export type ItemPatch = Partial<{
 }>;
 
 export async function updateItem(
-  expertId: string,
+  actor: Actor,
   trackerId: string,
   itemId: string,
   patch: ItemPatch,
-  authorId = expertId,
 ) {
-  await ownedTracker(expertId, trackerId);
+  await ownedTracker(actor, trackerId);
   const { data: current } = await db()
     .from("tracker_items")
     .select(ITEM_FIELDS)
@@ -318,7 +334,7 @@ export async function updateItem(
   if (status === "done" && current.status !== "done") {
     await db()
       .from("tracker_log_entries")
-      .insert({ tracker_id: trackerId, text: completionLogText(data.title as string), author_id: authorId });
+      .insert({ tracker_id: trackerId, text: completionLogText(data.title as string), author_id: authorOf(actor) });
   }
   await touch(trackerId);
   return data;
@@ -329,8 +345,8 @@ export function completionLogText(title: string) {
   return `${clean.charAt(0).toUpperCase()}${clean.slice(1)} completed.`;
 }
 
-export async function deleteItem(expertId: string, trackerId: string, itemId: string) {
-  await ownedTracker(expertId, trackerId);
+export async function deleteItem(actor: Actor, trackerId: string, itemId: string) {
+  await ownedTracker(actor, trackerId);
   const { data: files } = await db().from("tracker_files").select("storage_key").eq("item_id", itemId);
   const { error } = await db().from("tracker_items").delete().eq("id", itemId).eq("tracker_id", trackerId);
   if (error) throw new TrackerError("Could not delete the item.", 503);
@@ -339,8 +355,8 @@ export async function deleteItem(expertId: string, trackerId: string, itemId: st
   await touch(trackerId);
 }
 
-export async function reorderItems(expertId: string, trackerId: string, ids: string[]) {
-  await ownedTracker(expertId, trackerId);
+export async function reorderItems(actor: Actor, trackerId: string, ids: string[]) {
+  await ownedTracker(actor, trackerId);
   const results = await Promise.all(
     ids.map((id, position) =>
       db().from("tracker_items").update({ position }).eq("id", id).eq("tracker_id", trackerId),
@@ -351,11 +367,11 @@ export async function reorderItems(expertId: string, trackerId: string, ids: str
 }
 
 export async function addLogEntry(
-  expertId: string,
+  actor: Actor,
   trackerId: string,
   input: { text: string; date?: string; source?: "manual" | "ai" },
 ) {
-  await ownedTracker(expertId, trackerId);
+  await ownedTracker(actor, trackerId);
   const { data, error } = await db()
     .from("tracker_log_entries")
     .insert({
@@ -363,7 +379,7 @@ export async function addLogEntry(
       text: input.text,
       entry_date: input.date || new Date().toISOString().slice(0, 10),
       source: input.source ?? "manual",
-      author_id: expertId,
+      author_id: authorOf(actor),
     })
     .select("id, entry_date, text, source, created_at")
     .maybeSingle();
@@ -372,8 +388,8 @@ export async function addLogEntry(
   return data;
 }
 
-export async function deleteLogEntry(expertId: string, trackerId: string, entryId: string) {
-  await ownedTracker(expertId, trackerId);
+export async function deleteLogEntry(actor: Actor, trackerId: string, entryId: string) {
+  await ownedTracker(actor, trackerId);
   const { error } = await db()
     .from("tracker_log_entries")
     .delete()
@@ -384,8 +400,8 @@ export async function deleteLogEntry(expertId: string, trackerId: string, entryI
 
 /** Set a chosen passcode (e.g. keep an existing one) or generate WORD-1234.
  *  Returns it once; afterwards it can only be reset, never read back. */
-export async function resetPasscode(expertId: string, trackerId: string, chosen?: string) {
-  await ownedTracker(expertId, trackerId);
+export async function resetPasscode(actor: Actor, trackerId: string, chosen?: string) {
+  await ownedTracker(actor, trackerId);
   const passcode = chosen?.trim() || generatePasscode();
   const passcode_hash = await hashPasscode(passcode);
   const { data: row } = await db()
@@ -401,11 +417,12 @@ export async function resetPasscode(expertId: string, trackerId: string, chosen?
       updated_at: new Date().toISOString(),
     })
     .eq("id", trackerId)
-    .eq("expert_id", expertId);
+    .match(own(actor));
   if (error) throw new TrackerError("Could not reset the passcode.", 503);
   return passcode;
 }
 
+/** The tracker's owner is the contact on the client page, even when admin publishes. */
 async function expertContact(expertId: string) {
   const { data } = await db()
     .from("expert_profiles")
@@ -416,13 +433,13 @@ async function expertContact(expertId: string) {
 }
 
 /** The snapshot as it would look if published now (Preview as client). */
-export async function workingSnapshot(expertId: string, trackerId: string): Promise<ClientSnapshot> {
-  const tracker = await ownedTracker(expertId, trackerId);
+export async function workingSnapshot(actor: Actor, trackerId: string): Promise<ClientSnapshot> {
+  const tracker = await ownedTracker(actor, trackerId);
   const [items, files, log, expert] = await Promise.all([
     db().from("tracker_items").select(ITEM_FIELDS).eq("tracker_id", trackerId),
     db().from("tracker_files").select("id, item_id, kind, filename, size, position").eq("tracker_id", trackerId),
     db().from("tracker_log_entries").select("id, entry_date, text, created_at").eq("tracker_id", trackerId),
-    expertContact(expertId),
+    expertContact(tracker.expert_id),
   ]);
   if (items.error || files.error || log.error) throw new TrackerError("Could not build the page.", 503);
   return buildSnapshot({
@@ -435,21 +452,21 @@ export async function workingSnapshot(expertId: string, trackerId: string): Prom
 }
 
 /** Publishing is the only way content reaches the client page. */
-export async function publishTracker(expertId: string, trackerId: string, notify: boolean) {
-  const tracker = await ownedTracker(expertId, trackerId);
+export async function publishTracker(actor: Actor, trackerId: string, notify: boolean) {
+  const tracker = await ownedTracker(actor, trackerId);
   const { data: pending } = await db()
     .from("tracker_ai_drafts")
     .select("id")
     .eq("tracker_id", trackerId)
     .eq("status", "pending")
     .limit(1);
-  const snapshot = await workingSnapshot(expertId, trackerId);
+  const snapshot = await workingSnapshot(actor, trackerId);
   const publishedAt = new Date().toISOString();
   const { error } = await db()
     .from("client_trackers")
     .update({ published_snapshot: snapshot, published_at: publishedAt, status: "live", updated_at: publishedAt })
     .eq("id", trackerId)
-    .eq("expert_id", expertId);
+    .match(own(actor));
   if (error)
     throw new TrackerError(
       error.code === "23514" ? "Set a passcode before publishing." : "Could not publish.",
@@ -470,11 +487,11 @@ export async function publishTracker(expertId: string, trackerId: string, notify
 }
 
 export async function createFileUpload(
-  expertId: string,
+  actor: Actor,
   trackerId: string,
   input: { itemId: string; filename: string; contentType: string; size: number; kind: TrackerFileRow["kind"] },
 ) {
-  await ownedTracker(expertId, trackerId);
+  const tracker = await ownedTracker(actor, trackerId);
   const { data: item } = await db()
     .from("tracker_items")
     .select("id")
@@ -484,7 +501,7 @@ export async function createFileUpload(
   if (!item) throw new TrackerError("Item not found.", 404);
   const safeName = input.filename.replace(/[^\w.\- ]+/g, "_").slice(-120);
   const extension = safeName.includes(".") ? safeName.slice(safeName.lastIndexOf(".")) : "";
-  const storage_key = `${expertId}/${trackerId}/${crypto.randomUUID()}${extension.toLowerCase()}`;
+  const storage_key = `${tracker.expert_id}/${trackerId}/${crypto.randomUUID()}${extension.toLowerCase()}`;
   const { data: upload, error: uploadError } = await db()
     .storage.from(BUCKET)
     .createSignedUploadUrl(storage_key);
@@ -512,8 +529,8 @@ export async function createFileUpload(
   return { file: data, uploadUrl: new URL(upload.signedUrl, base).href };
 }
 
-export async function deleteFile(expertId: string, trackerId: string, fileId: string) {
-  await ownedTracker(expertId, trackerId);
+export async function deleteFile(actor: Actor, trackerId: string, fileId: string) {
+  await ownedTracker(actor, trackerId);
   const { data } = await db()
     .from("tracker_files")
     .select("storage_key")
@@ -574,19 +591,18 @@ export function summariseViews(events: ViewEvent[], now: Date) {
   };
 }
 
-export async function listTemplates(expertId: string) {
-  const { data, error } = await db()
-    .from("tracker_templates")
-    .select("id, name, package_name, items, created_at")
-    .eq("expert_id", expertId)
-    .order("name");
+export async function listTemplates(actor: Actor) {
+  const { data, error } = await templateScope(
+    db().from("tracker_templates").select("id, name, package_name, items, created_at"),
+    actor,
+  ).order("name");
   if (error) throw new TrackerError("Could not load templates.", 503);
   return data ?? [];
 }
 
 /** Save this tracker's items (not their progress or files) as a reusable package. */
-export async function saveTemplate(expertId: string, trackerId: string, name: string) {
-  const tracker = await ownedTracker(expertId, trackerId);
+export async function saveTemplate(actor: Actor, trackerId: string, name: string) {
+  const tracker = await ownedTracker(actor, trackerId);
   const { data: items } = await db()
     .from("tracker_items")
     .select("title, description, is_free_bonus, blocks")
@@ -605,18 +621,18 @@ export async function saveTemplate(expertId: string, trackerId: string, name: st
   });
   const { data, error } = await db()
     .from("tracker_templates")
-    .insert({ expert_id: expertId, name, package_name: tracker.package_name, items: templateItems })
+    // Admin's templates have no expert.
+    .insert({ expert_id: authorOf(actor), name, package_name: tracker.package_name, items: templateItems })
     .select("id, name, package_name, items, created_at")
     .maybeSingle();
   if (error || !data) throw new TrackerError("Could not save the template.", 503);
   return data;
 }
 
-export async function deleteTemplate(expertId: string, templateId: string) {
-  const { error } = await db()
-    .from("tracker_templates")
-    .delete()
-    .eq("id", templateId)
-    .eq("expert_id", expertId);
+export async function deleteTemplate(actor: Actor, templateId: string) {
+  const { error } = await templateScope(
+    db().from("tracker_templates").delete().eq("id", templateId),
+    actor,
+  );
   if (error) throw new TrackerError("Could not delete the template.", 503);
 }

@@ -13,6 +13,7 @@ dashboard. Code lives in `src/lib/trackers/`, `src/lib/academy/content.ts`,
    - `20261020090100_academy_daily_lessons_seed.sql`: the 11 daily lessons from Author Playbook chapter 26
    - `20261020100000_expert_ai_keys.sql`: phase 2
    - `20261020110000_tracker_auto_portfolio.sql`: phase 3
+   - `20261022090000_tracker_admin_access.sql`: admin access (admin key, admin templates, admin approvals)
 3. Set `AI_KEY_MASTER_KEY` (see `.env.example`) before any expert saves a key.
 4. `bun test tests/trackers-*.test.ts`, `bun run lint`, `bun run build` (the build regenerates `src/routeTree.gen.ts` for the new routes).
 5. Hugh migration, below.
@@ -45,3 +46,14 @@ HUGH_PASSCODE='<Hugh's current passcode>' bun --env-file=.env scripts/seed-hugh-
 | AI only drafts | AI writes only to `tracker_ai_drafts`; a person approves (into the working copy), then publishes |
 | No invented figures | Prompt rules, plus a check that rejects any number or quote not in the expert's input |
 | Portfolio needs consent | DB trigger refuses entries without consent and a Complete, Portfolio ready item; withdrawing consent, archiving, reopening or deleting removes entries immediately; media goes through a proxy that rechecks consent on every request |
+
+## Admin access
+
+Admin has every expert feature, in the admin panel:
+
+- **Client tracking** (`/admin#trackers`): every expert's trackers, with an Expert column. Admin can open, edit, publish, reset passcodes, archive and delete any tracker. A new tracker always belongs to an approved expert, whom admin picks; that expert stays the client's contact and gets the view notifications. Admin has its own templates.
+- **Portfolio entries from trackers** (same page): admin sees and approves every expert's drafts. Consent rules still apply. Auto publish stays each expert's own setting.
+- **Settings, AI** (`/admin#trackerAi`): admin's own key in `admin_ai_credentials`, encrypted the same way. Admin's AI drafts use only that key, never an expert's. Usage rows and approvals are recorded as admin.
+- **Academy content**: already available under Admin → Academy → Trainer tools → Playbook content.
+
+The admin panel calls the same APIs with the header `x-hq360-actor: admin`. The server accepts it only with a valid admin session (`trackerActor` in `src/lib/trackers/actor.server.ts`).

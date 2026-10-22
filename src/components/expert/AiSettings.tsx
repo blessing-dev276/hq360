@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { AlertCircle, CircleCheck, KeyRound } from "lucide-react";
+import { actorHeaders, setTrackerAdminMode } from "./tracker-actor";
 
 type Usage = {
   created_at: string;
@@ -20,7 +21,8 @@ const PROVIDERS = [
 
 /** Settings, AI: the expert's own key. It is never sent back to the browser;
  *  after saving only the last four characters are shown. */
-export function AiSettings() {
+export function AiSettings({ admin = false }: { admin?: boolean }) {
+  setTrackerAdminMode(admin);
   const [status, setStatus] = useState<Status | null>(null);
   const [provider, setProvider] = useState<string>("anthropic");
   const [apiKey, setApiKey] = useState("");
@@ -29,7 +31,7 @@ export function AiSettings() {
   const [busy, setBusy] = useState(false);
 
   const load = useCallback(async () => {
-    const response = await fetch("/api/expert/ai-key");
+    const response = await fetch("/api/expert/ai-key", { headers: actorHeaders() });
     const data = await response.json().catch(() => ({}));
     if (response.ok) setStatus(data);
     else setError(data.error || "Could not load AI settings.");
@@ -46,7 +48,7 @@ export function AiSettings() {
     try {
       const response = await fetch("/api/expert/ai-key", {
         method: "PUT",
-        headers: { "content-type": "application/json" },
+        headers: actorHeaders({ "content-type": "application/json" }),
         body: JSON.stringify({ provider, apiKey }),
       });
       const data = await response.json().catch(() => ({}));
@@ -63,7 +65,7 @@ export function AiSettings() {
 
   async function remove() {
     if (!window.confirm("Delete your AI key? AI drafting stops until you add a new one.")) return;
-    const response = await fetch("/api/expert/ai-key", { method: "DELETE" });
+    const response = await fetch("/api/expert/ai-key", { method: "DELETE", headers: actorHeaders() });
     if (response.ok) {
       setNotice("Key deleted.");
       await load();
@@ -81,8 +83,10 @@ export function AiSettings() {
         <div>
           <h2>AI assisted updates</h2>
           <p>
-            Use your own Anthropic, OpenAI or Google key to draft tracker updates. Your provider account pays for
-            your requests. AI only writes drafts: you approve everything before a client sees it.
+            {admin
+              ? "Admin's own Anthropic, OpenAI or Google key, used when you draft updates on any expert's tracker. Experts' keys are never used by admin."
+              : "Use your own Anthropic, OpenAI or Google key to draft tracker updates. Your provider account pays for your requests."}{" "}
+            AI only writes drafts: you approve everything before a client sees it.
           </p>
         </div>
       </div>

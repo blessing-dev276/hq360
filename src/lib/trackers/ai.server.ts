@@ -134,7 +134,7 @@ export async function callProvider(call: ProviderCall, fetcher: typeof fetch = f
     });
   }
   if (response.status === 401 || response.status === 403)
-    throw new TrackerError("Your AI provider rejected the key. Replace it in Settings, AI.", 409);
+    throw new TrackerError("Your AI provider rejected the key. Replace it in Settings → AI keys.", 409);
   if (!response.ok) throw new TrackerError("The AI provider did not answer. Please try again.", 502);
   const body = (await response.json().catch(() => ({}))) as Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
   if (call.provider === "anthropic")
@@ -229,7 +229,7 @@ export async function runAiAction(
   // Ownership first: an expert's key can never be spent on someone else's tracker.
   const tracker = await ownedTracker(actor, trackerId);
   const credential = await deps.loadKey(actor);
-  if (!credential) throw new TrackerError("Add your own API key in Settings, AI first.", 409);
+  if (!credential) throw new TrackerError("Add a Perplexity key in Settings → AI keys first.", 409);
   const context = await contextFor(action, trackerId, input, {
     allowed: tracker.consent_allows_naming,
     clientName: tracker.client_name,

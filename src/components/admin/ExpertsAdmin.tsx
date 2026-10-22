@@ -2327,13 +2327,12 @@ function GuestOverview({
   );
 }
 
-/** Admin can set, replace or remove an expert's Perplexity key. The key is
- *  encrypted on the server and never shown again. */
+/** Status of an expert's Perplexity key. Experts set it in their own Settings;
+ *  admin can only remove it (e.g. if it leaked). */
 function ExpertKeyCard({ expertId }: { expertId: string }) {
   const [state, setState] = useState<{ configured: boolean; updatedAt: string | null } | null>(
     null,
   );
-  const [value, setValue] = useState("");
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const url = `/api/admin/experts/${expertId}/perplexity-key`;
@@ -2343,21 +2342,16 @@ function ExpertKeyCard({ expertId }: { expertId: string }) {
       .then((d) => setState({ configured: !!d.configured, updatedAt: d.updatedAt ?? null }))
       .catch(() => setMessage("Could not load the key settings."));
   }, [url]);
-  async function save(method: "PUT" | "DELETE") {
-    if (method === "DELETE" && !window.confirm("Remove this expert's Perplexity key?")) return;
+  async function remove() {
+    if (!window.confirm("Remove this expert's Perplexity key?")) return;
     setBusy(true);
     setMessage("");
-    const res = await fetch(url, {
-      method,
-      headers: { "content-type": "application/json" },
-      ...(method === "PUT" ? { body: JSON.stringify({ apiKey: value.trim() }) } : {}),
-    }).catch(() => null);
+    const res = await fetch(url, { method: "DELETE" }).catch(() => null);
     const data = await res?.json().catch(() => ({}));
     setBusy(false);
-    if (!res?.ok) return setMessage(data?.error || "Could not save the key.");
-    setState({ configured: !!data.configured, updatedAt: data.updatedAt ?? null });
-    setValue("");
-    setMessage(method === "PUT" ? "Key saved." : "Key removed.");
+    if (!res?.ok) return setMessage(data?.error || "Could not remove the key.");
+    setState({ configured: false, updatedAt: null });
+    setMessage("Key removed.");
   }
   return (
     <DrawerCard
@@ -2368,33 +2362,14 @@ function ExpertKeyCard({ expertId }: { expertId: string }) {
           ? "Loading…"
           : state.configured
             ? `Saved${state.updatedAt ? ` ${new Date(state.updatedAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}` : ""}. Used for this expert's author email search${" "}and, if they're an Academy trainer, the Practice Room. The key is encrypted and can't be viewed.`
-            : "No key saved. Add one so this expert's author email searches (and Academy Practice Room, if they're a trainer) use their own Perplexity account."
+            : "No key saved. The expert adds their own Perplexity key in Settings → AI keys."
       }
     >
-      <div className="admin-invoice-form" style={{ width: "100%" }}>
-        <label>
-          {state?.configured ? "Replace key" : "Key"}
-          <input
-            type="password"
-            autoComplete="off"
-            placeholder="pplx-…"
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
-          />
-        </label>
-      </div>
-      <button
-        className="admin-button admin-button-primary"
-        disabled={busy || !value.trim()}
-        onClick={() => void save("PUT")}
-      >
-        <KeyRound size={15} /> {busy ? "Saving…" : state?.configured ? "Replace key" : "Save key"}
-      </button>
       {state?.configured && (
         <button
           className="admin-button text-destructive"
           disabled={busy}
-          onClick={() => void save("DELETE")}
+          onClick={() => void remove()}
         >
           <Trash2 size={15} /> Remove
         </button>

@@ -70,7 +70,6 @@ export const Route = createFileRoute("/api/expert/perplexity-settings")({
   server: {
     handlers: {
       GET: ({ request }) => perplexitySettings(request),
-      PUT: ({ request }) => perplexitySettings(request),
       DELETE: ({ request }) => perplexitySettings(request),
     },
   },

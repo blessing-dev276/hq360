@@ -54,7 +54,7 @@ test("admin saved key takes priority and removal restores environment fallback",
     expect(await adminKeyForResearch(async () => key)).toBe(key);
     expect(await adminKeyForResearch(async () => null)).toBe("pplx-server-placeholder");
     delete process.env.PERPLEXITY_API_KEY;
-    await expect(adminKeyForResearch(async () => null)).rejects.toThrow("Email search settings");
+    await expect(adminKeyForResearch(async () => null)).rejects.toThrow("Settings → AI keys");
   } finally {
     if (previous === undefined) delete process.env.PERPLEXITY_API_KEY;
     else process.env.PERPLEXITY_API_KEY = previous;

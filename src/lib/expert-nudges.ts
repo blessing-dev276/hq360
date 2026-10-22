@@ -102,10 +102,10 @@ export const NUDGES: Nudge[] = [
   {
     key: "perplexity_key",
     label: "Add your Perplexity API key",
-    tab: "scout",
+    tab: "settings",
     title: "Your email search is running on vibes",
     lines: [
-      "You haven't added your Perplexity API key, so finding author emails is basically guesswork. Add it under Scouting → Email search settings and let the robots work.",
+      "You haven't added your Perplexity API key, so finding author emails is basically guesswork. Add it in Settings → AI keys and let the robots work.",
       "No Perplexity key means no author email search, which means a very quiet outreach day. Add your key and unlock the good stuff.",
     ],
   },

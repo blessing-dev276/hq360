@@ -43,12 +43,19 @@ type Row = Record<string, string | boolean | number | null> & { id: string };
 type Section = "trainees" | "content" | "key" | "bank" | "hints" | "feedback" | "model" | "weak";
 
 /** Trainer area: trainees plus every editable part of the Author Engine. */
-export function TrainerTools({ fetcher = api as Fetcher }: { fetcher?: Fetcher }) {
+export function TrainerTools({
+  fetcher = api as Fetcher,
+  keyInSettings = false,
+}: {
+  fetcher?: Fetcher;
+  /** Inside the Expert workspace the key is managed in Settings → AI keys. */
+  keyInSettings?: boolean;
+}) {
   const [section, setSection] = useState<Section>("trainees");
   const tabs: [Section, string][] = [
     ["trainees", "Trainees"],
     ["content", "Playbook content"],
-    ["key", "AI key"],
+    ...(keyInSettings ? [] : [["key", "Settings · AI key"] as [Section, string]]),
     ["bank", "Response bank"],
     ["hints", "Hints"],
     ["feedback", "Feedback lines"],

@@ -55,7 +55,6 @@ export const Route = createFileRoute("/api/admin/experts/$id/perplexity-key")({
   server: {
     handlers: {
       GET: ({ request, params }) => handle(request, params.id),
-      PUT: ({ request, params }) => handle(request, params.id),
       DELETE: ({ request, params }) => handle(request, params.id),
     },
   },

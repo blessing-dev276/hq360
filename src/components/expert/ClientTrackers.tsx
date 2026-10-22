@@ -378,8 +378,10 @@ function TrackerEditor({ id, onBack }: { id: string; onBack: () => void }) {
   }, [id]);
   useEffect(() => {
     void load();
-    call<{ configured: boolean }>("/api/expert/ai-key")
-      .then((data) => setAiReady(Boolean(data.configured)))
+    call<{ perplexity?: { configured: boolean }; other?: { configured: boolean } }>(
+      "/api/expert/ai-key",
+    )
+      .then((data) => setAiReady(Boolean(data.perplexity?.configured || data.other?.configured)))
       .catch(() => setAiReady(false));
   }, [load]);
 

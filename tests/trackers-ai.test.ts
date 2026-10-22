@@ -87,7 +87,19 @@ describe("key storage", () => {
     expect(row.last_four).toBe("1111");
     const status = await keys.aiKeyStatus(A);
     expect(JSON.stringify(status)).not.toContain(KEY_A);
-    expect(status).toMatchObject({ configured: true, provider: "anthropic", lastFour: "1111" });
+    expect(status.other).toMatchObject({ configured: true, provider: "anthropic", lastFour: "1111" });
+  });
+
+  test("a Perplexity key is saved where Scouting and the Academy read it, and wins", async () => {
+    const PPLX = "pplx-" + "p".repeat(40);
+    await keys.saveAiKey(A, "anthropic", KEY_A);
+    await keys.saveAiKey(A, "perplexity", PPLX);
+    expect(fake.tables.expert_perplexity_credentials![0]).toMatchObject({ expert_id: EXPERT_A });
+    expect(fake.tables.expert_perplexity_credentials![0]!.encrypted_key).not.toContain(PPLX);
+    expect((await keys.aiKeyStatus(A)).perplexity.configured).toBe(true);
+    expect(await keys.loadAiKey(A)).toEqual({ provider: "perplexity", key: PPLX });
+    await keys.deleteAiKey(A, "perplexity");
+    expect(await keys.loadAiKey(A)).toEqual({ provider: "anthropic", key: KEY_A });
   });
 
   test("provider key formats are checked", () => {
@@ -127,7 +139,7 @@ describe("provider requests run on the server with the key only in a header", ()
     const fetcher = (async () => new Response("no", { status: 401 })) as unknown as typeof fetch;
     await expect(
       ai.callProvider({ provider: "openai", apiKey: KEY_A, model: "m", system: "s", user: "u" }, fetcher),
-    ).rejects.toThrow("Replace it in Settings, AI");
+    ).rejects.toThrow("Replace it in Settings → AI keys");
   });
 });
 
@@ -164,7 +176,7 @@ describe("AI assisted updates", () => {
     await expect(ai.runAiAction(A, TRACKER_B, "draft_update", notes, deps)).rejects.toThrow("Tracker not found");
     expect(loaded).toEqual([]);
     // Expert B has no key of their own and never borrows one.
-    await expect(ai.runAiAction(B, TRACKER_B, "progress_summary", {}, deps)).rejects.toThrow("Add your own API key");
+    await expect(ai.runAiAction(B, TRACKER_B, "progress_summary", {}, deps)).rejects.toThrow("Add a Perplexity key in Settings");
     expect(p.seen.keys).toEqual([]);
     await ai.runAiAction(A, TRACKER_A, "draft_update", notes, deps);
     expect(loaded).toEqual([EXPERT_B, EXPERT_A]);
@@ -234,7 +246,10 @@ describe("admin", () => {
     expect(fake.tables.admin_ai_credentials![0]).toMatchObject({ id: "admin", last_four: "aaaa" });
     expect(fake.tables.expert_ai_credentials ?? []).toHaveLength(0);
     expect(fake.tables.admin_ai_credentials![0]!.encrypted_key).not.toContain(ADMIN_KEY);
-    expect(await keys.aiKeyStatus(A)).toEqual({ configured: false });
+    expect(await keys.aiKeyStatus(A)).toMatchObject({
+      perplexity: { configured: false },
+      other: { configured: false },
+    });
   });
 
   test("admin can draft on any expert's tracker, with admin's key only", async () => {

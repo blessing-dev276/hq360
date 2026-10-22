@@ -19,10 +19,10 @@ import {
   GraduationCap,
   ListChecks,
   Lock,
-  Sparkles,
+  Settings,
 } from "lucide-react";
 import { ClientTrackers } from "./ClientTrackers";
-import { AiSettings } from "./AiSettings";
+import { SettingsPage } from "@/components/settings/SettingsPage";
 import { TrackerPortfolioDrafts } from "./TrackerPortfolioDrafts";
 import { NoAccess } from "./NoAccess";
 import { cn } from "@/lib/utils";
@@ -49,7 +49,7 @@ type Tab =
   | "portfolio"
   | "leads"
   | "trackers"
-  | "ai"
+  | "settings"
   | "academy"
   | ExpertFeature;
 type NavItem = { id: Tab; label: string; icon: LucideIcon; description: string };
@@ -85,13 +85,13 @@ const CORE: NavItem[] = [
     icon: ListChecks,
     description: "Private, passcode protected progress pages for each client.",
   },
-  {
-    id: "ai",
-    label: "Settings, AI",
-    icon: Sparkles,
-    description: "Your own AI key for drafting tracker updates. AI only drafts; you approve.",
-  },
 ];
+const SETTINGS: NavItem = {
+  id: "settings",
+  label: "Settings",
+  icon: Settings,
+  description: "Your AI keys, used everywhere in your workspace, plus account and appearance.",
+};
 /** Tools an admin can grant by role; locked ones show as "Coming soon". */
 const TOOLS: (NavItem & { id: ExpertFeature })[] = [
   {
@@ -125,6 +125,7 @@ export function ExpertApp() {
   const [logoutError, setLogoutError] = useState("");
   const [refreshKey, setRefreshKey] = useState(0);
   const [salesView, setSalesView] = useState<SalesView>("proposals");
+  const [email, setEmail] = useState<string>();
 
   const unlocked = TOOLS.filter((t) => permissions.includes(t.id));
   const locked = guest ? [] : TOOLS.filter((t) => !permissions.includes(t.id));
@@ -142,13 +143,14 @@ export function ExpertApp() {
   ];
   // Experts see every tool; ones they lack open a "not on the list" page.
   const lockedNav: NavItem[] = guest ? [] : [...locked, ...(academyTrainer ? [] : [academyItem])];
-  const allNav = [...nav, ...lockedNav];
+  const allNav = [...nav, ...lockedNav, SETTINGS];
 
   useEffect(() => {
     fetch("/api/expert/profile")
       .then((r) => r.json())
       .then((data) => {
         setPermissions(data.profile?.permissions ?? []);
+        setEmail(data.profile?.email ?? undefined);
         setRole(data.profile?.role ?? "contributor");
         setAcademyTrainer(Boolean(data.profile?.academy_trainer));
         if (data.profile?.is_guest) {
@@ -223,6 +225,14 @@ export function ExpertApp() {
           ))}
         </nav>
         <div className="admin-sidebar-bottom">
+          <button
+            onClick={() => navigate("settings")}
+            className={cn("admin-nav-item", tab === "settings" && "active")}
+            aria-current={tab === "settings" ? "page" : undefined}
+          >
+            <Settings size={18} />
+            <span>Settings</span>
+          </button>
           {!guest && (
             <a href="/experts" target="_blank" rel="noreferrer" className="admin-nav-item">
               <UserRound size={18} />
@@ -264,7 +274,9 @@ export function ExpertApp() {
           </div>
         </header>
         <div className="admin-page" key={refreshKey}>
-          {isLocked ? (
+          {current.id === "settings" ? (
+            <SettingsPage guest={guest} email={email} onSignOut={() => void signOut()} />
+          ) : isLocked ? (
             <NoAccess tool={current.id} label={current.label} />
           ) : guest && nav.length === 0 ? (
             <div className="admin-empty">
@@ -279,8 +291,6 @@ export function ExpertApp() {
             <LeadsWorkspace scope="expert" />
           ) : current.id === "trackers" ? (
             <ClientTrackers />
-          ) : current.id === "ai" ? (
-            <AiSettings />
           ) : current.id === "portfolio" ? (
             <>
               <TrackerPortfolioDrafts />
@@ -290,7 +300,7 @@ export function ExpertApp() {
             </>
           ) : current.id === "academy" ? (
             <div className="asa" style={{ background: "transparent", minHeight: 0 }}>
-              <TrainerTools />
+              <TrainerTools keyInSettings />
             </div>
           ) : current.id === "scout" ? (
             <>

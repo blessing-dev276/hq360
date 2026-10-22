@@ -21,7 +21,7 @@ import {
   MessageSquareQuote,
   ScanSearch,
   ListChecks,
-  Sparkles,
+  Settings,
   CreditCard,
   ArrowUpRight,
   LogOut,
@@ -40,7 +40,7 @@ import { NotificationBell } from "./NotificationBell";
 import { PanelThemeToggle } from "./PanelThemeToggle";
 import { LeadsAdmin } from "./LeadsAdmin";
 import { ClientTrackers } from "@/components/expert/ClientTrackers";
-import { AiSettings } from "@/components/expert/AiSettings";
+import { SettingsPage } from "@/components/settings/SettingsPage";
 import { TrackerPortfolioDrafts } from "@/components/expert/TrackerPortfolioDrafts";
 import "@/components/trackers/tracker-page.css";
 import "./admin-workspace.css";
@@ -175,7 +175,7 @@ type Tab =
   | "proposals"
   | "academy"
   | "trackers"
-  | "trackerAi";
+  | "settings";
 type WorkView = "cases" | "gallery";
 const SALES_TABS: Tab[] = ["payments", "quotes", "proposals"];
 const NAV = [
@@ -254,10 +254,10 @@ const NAV = [
     description: "Every expert's client progress pages, plus portfolio entries made from them.",
   },
   {
-    id: "trackerAi",
-    label: "Settings, AI",
-    icon: Sparkles,
-    description: "Admin's own AI key for drafting tracker updates. Experts' keys are never used.",
+    id: "settings",
+    label: "Settings",
+    icon: Settings,
+    description: "AI keys used across the workspace, your account and appearance.",
   },
   {
     id: "visitors",
@@ -289,6 +289,15 @@ export function AdminApp({ initialTab = "overview" }: { initialTab?: Tab }) {
     setTab(value);
     window.location.hash = value;
   }
+  async function signOut() {
+    try {
+      const result = await fetch("/api/admin/session", { method: "DELETE" });
+      if (!result.ok) throw new Error();
+      window.location.assign("/admin");
+    } catch {
+      setLogoutError("Could not sign out. Please try again.");
+    }
+  }
   return (
     <div className="admin-workspace">
       <aside className="admin-sidebar">
@@ -305,7 +314,6 @@ export function AdminApp({ initialTab = "overview" }: { initialTab?: Tab }) {
             "experts",
             "academy",
             "trackers",
-            "trackerAi",
             "visitors",
             "projects",
             "work",
@@ -329,22 +337,19 @@ export function AdminApp({ initialTab = "overview" }: { initialTab?: Tab }) {
         </nav>
 
         <div className="admin-sidebar-bottom">
+          <button
+            onClick={() => navigate("settings")}
+            className={cn("admin-nav-item", tab === "settings" && "active")}
+            aria-current={tab === "settings" ? "page" : undefined}
+          >
+            <Settings size={18} />
+            <span>Settings</span>
+          </button>
           <a href="/" target="_blank" rel="noreferrer" className="admin-nav-item">
             <ArrowUpRight size={18} />
             View website
           </a>
-          <button
-            className="admin-nav-item"
-            onClick={async () => {
-              try {
-                const result = await fetch("/api/admin/session", { method: "DELETE" });
-                if (!result.ok) throw new Error();
-                window.location.assign("/admin");
-              } catch {
-                setLogoutError("Could not sign out. Please try again.");
-              }
-            }}
-          >
+          <button className="admin-nav-item" onClick={() => void signOut()}>
             <LogOut size={18} />
             Sign out
           </button>
@@ -412,8 +417,8 @@ export function AdminApp({ initialTab = "overview" }: { initialTab?: Tab }) {
               <ClientTrackers admin />
               <TrackerPortfolioDrafts admin />
             </>
-          ) : tab === "trackerAi" ? (
-            <AiSettings admin />
+          ) : tab === "settings" ? (
+            <SettingsPage admin onSignOut={() => void signOut()} />
           ) : tab === "visitors" ? (
             <VisitorsAdmin />
           ) : tab === "audits" ? (

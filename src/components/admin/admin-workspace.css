@@ -2103,3 +2103,87 @@ html[data-panel-theme="light"] .admin-topbar {
   background: rgb(255 255 255 / 0.92);
   box-shadow: 0 1px 0 rgb(17 20 22 / 0.04);
 }
+
+/* ---------- Settings ---------- */
+.settings-page {
+  display: grid;
+  gap: 20px;
+}
+.settings-tabs {
+  justify-self: start;
+  flex-wrap: wrap;
+}
+.settings-tabs button,
+.settings-page .admin-segmented button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.settings-body {
+  display: grid;
+  gap: 16px;
+  max-width: 760px;
+}
+.settings-card {
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 18px 20px;
+  display: grid;
+  gap: 12px;
+  background: rgb(var(--ink-rgb) / 0.02);
+}
+.settings-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.settings-card h3 {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0;
+}
+.settings-muted {
+  font-size: 12px;
+  color: var(--muted-foreground);
+  line-height: 1.6;
+  margin: 0;
+}
+.settings-muted a {
+  color: var(--brand-strong);
+  text-decoration: underline;
+}
+.settings-strong {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 550;
+  margin: 0;
+}
+.settings-badge {
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--secondary);
+  color: var(--muted-foreground);
+}
+.settings-badge.on {
+  background: var(--brand-wash);
+  color: var(--brand-strong);
+}
+.settings-form {
+  gap: 12px;
+  max-width: 520px;
+}
+.settings-form select {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-size: 12px;
+  background: var(--background);
+  color: var(--foreground);
+  width: 100%;
+}

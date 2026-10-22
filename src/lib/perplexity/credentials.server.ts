@@ -53,14 +53,14 @@ export async function loadAdminKey(): Promise<string | null> {
   try {
     return decryptExpertKey("admin", data.encrypted_key);
   } catch {
-    throw new PerplexityError("Replace the admin key in Scouting → Email search settings.", 503);
+    throw new PerplexityError("Replace the admin key in Settings → AI keys.", 503);
   }
 }
 export async function adminKeyForResearch(load = loadAdminKey) {
   const key = (await load()) || process.env.PERPLEXITY_API_KEY?.trim();
   if (!key)
     throw new PerplexityError(
-      "Add a Perplexity API key in Scouting → Email search settings or set PERPLEXITY_API_KEY on the server.",
+      "Add a Perplexity API key in Settings → AI keys or set PERPLEXITY_API_KEY on the server.",
       503,
     );
   return key;
@@ -80,7 +80,7 @@ export async function loadExpertKey(expertId: string): Promise<string | null> {
     return decryptExpertKey(expertId, data.encrypted_key);
   } catch {
     throw new PerplexityError(
-      "Your saved key could not be opened. Replace it in Scouting → Email search settings.",
+      "Your saved key could not be opened. Replace it in Settings → AI keys.",
       503,
     );
   }
@@ -90,7 +90,7 @@ export async function keyForSearch(access: StaffAccess, load = loadExpertKey) {
   const key = await load(access.expertId);
   if (!key)
     throw new PerplexityError(
-      "Add your own Perplexity API key in Scouting → Email search settings to search for author emails. Your Perplexity account pays for your searches.",
+      "Add your own Perplexity API key in Settings → AI keys to search for author emails. Your Perplexity account pays for your searches.",
       409,
     );
   return key;

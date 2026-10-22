@@ -167,7 +167,7 @@ export async function runAgent(
     }
     if (response.status === 401 || response.status === 403)
       throw new PerplexityError(
-        "Perplexity authentication failed. Check your key in Scouting → Email search settings, and ensure the Perplexity account has API access.",
+        "Perplexity authentication failed. Check your key in Settings → AI keys, and ensure the Perplexity account has API access.",
         503,
         undefined,
         response.status,

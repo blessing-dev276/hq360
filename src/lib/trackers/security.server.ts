@@ -45,7 +45,7 @@ const SLUG_ALPHABET = "abcdefghjkmnpqrstuvwxyz23456789";
 export function clientSlugBase(name: string) {
   const base = name
     .normalize("NFKD")
-    .replace(/[Ì€-Í¯]/g, "")
+    .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")

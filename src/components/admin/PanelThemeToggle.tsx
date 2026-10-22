@@ -17,6 +17,23 @@ function apply(choice: Choice) {
   document.documentElement.setAttribute("data-panel-theme", theme);
 }
 
+export type PanelTheme = Choice;
+export function readPanelTheme(): Choice {
+  try {
+    return (localStorage.getItem(KEY) as Choice) || "system";
+  } catch {
+    return "system";
+  }
+}
+export function setPanelTheme(choice: Choice) {
+  apply(choice);
+  try {
+    localStorage.setItem(KEY, choice);
+  } catch {
+    // Storage blocked: the choice still applies for this visit.
+  }
+}
+
 const NEXT: Record<Choice, Choice> = { system: "light", light: "dark", dark: "system" };
 const LABEL: Record<Choice, string> = {
   system: "Theme: matches your computer",

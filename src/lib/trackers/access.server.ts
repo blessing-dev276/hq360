@@ -91,8 +91,8 @@ export async function trackerPage(request: Request, slug: string) {
   if (!tracker?.published_snapshot) return json(NOT_FOUND, 404);
   const unlocked = isUnlocked(request.headers.get("cookie") ?? "", tracker.id, tracker.passcode_version);
   if (!unlocked) {
-    const lockedUntil = await lockedUntil(request, tracker.id);
-    return json({ locked: true, lockedUntil }, 200);
+    const until = await lockedUntil(request, tracker.id);
+    return json({ locked: true, lockedUntil: until }, 200);
   }
   await record(request, tracker, "open");
   await notifyFirstOpen(tracker);

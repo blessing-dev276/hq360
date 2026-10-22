@@ -179,6 +179,7 @@ export async function createTracker(
       .maybeSingle();
     if (error?.code === "23505") continue; // slug taken: draw new random characters
     if (error || !data) throw new TrackerError("Could not create the tracker.", 503);
+    await storePasscode(data.id as string, passcode);
     if (items.length) {
       await db()
         .from("tracker_items")
@@ -193,7 +194,6 @@ export async function createTracker(
           })),
         );
     }
-    // The plain passcode is returned once so the expert can send it; never stored.
     return { tracker: data as TrackerRow, passcode, url: trackerUrl(slug) };
   }
   throw new TrackerError("Could not find a free link. Please try again.", 503);
@@ -220,12 +220,15 @@ export async function trackerDetail(actor: Actor, id: string) {
       .eq("tracker_id", id)
       .eq("status", "pending")
       .order("created_at", { ascending: false }),
-    db().from("client_trackers").select("passcode_hash").eq("id", id).maybeSingle(),
+    db().from("client_trackers").select("passcode_hash, passcode_encrypted").eq("id", id).maybeSingle(),
   ]);
+  const stored = hashRow.data?.passcode_encrypted as string | null | undefined;
   if (items.error || files.error || log.error)
     throw new TrackerError("Could not load this tracker.", 503);
   return {
-    tracker: { ...tracker, url: trackerUrl(tracker.slug), hasPasscode: Boolean(hashRow.data?.passcode_hash) },
+    tracker: { ...tracker, url: trackerUrl(tracker.slug), hasPasscode: Boolean(hashRow.data?.passcode_hash),
+      passcode: stored ? await readPasscode(id, stored) : null,
+    },
     items: items.data ?? [],
     files: files.data ?? [],
     log: log.data ?? [],
@@ -398,8 +401,24 @@ export async function deleteLogEntry(actor: Actor, trackerId: string, entryId: s
   if (error) throw new TrackerError("Could not delete the update.", 503);
 }
 
-/** Set a chosen passcode (e.g. keep an existing one) or generate WORD-1234.
- *  Returns it once; afterwards it can only be reset, never read back. */
+/** Encrypted copy so the owner can see the passcode until it is replaced. */
+async function storePasscode(trackerId: string, passcode: string) {
+  const { encryptAiKey } = await import("./ai-keys.server");
+  await db()
+    .from("client_trackers")
+    .update({ passcode_encrypted: encryptAiKey(`tracker:${trackerId}`, passcode) })
+    .eq("id", trackerId);
+}
+async function readPasscode(trackerId: string, stored: string) {
+  const { decryptAiKey } = await import("./ai-keys.server");
+  try {
+    return decryptAiKey(`tracker:${trackerId}`, stored);
+  } catch {
+    return null;
+  }
+}
+
+/** Set a chosen passcode (e.g. keep an existing one) or generate WORD-1234. */
 export async function resetPasscode(actor: Actor, trackerId: string, chosen?: string) {
   await ownedTracker(actor, trackerId);
   const passcode = chosen?.trim() || generatePasscode();
@@ -419,6 +438,7 @@ export async function resetPasscode(actor: Actor, trackerId: string, chosen?: st
     .eq("id", trackerId)
     .match(own(actor));
   if (error) throw new TrackerError("Could not reset the passcode.", 503);
+  await storePasscode(trackerId, passcode);
   return passcode;
 }
 

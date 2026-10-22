@@ -40,6 +40,7 @@ import { NotificationBell } from "./NotificationBell";
 import { PanelThemeToggle } from "./PanelThemeToggle";
 import { LeadsAdmin } from "./LeadsAdmin";
 import { ClientTrackers } from "@/components/expert/ClientTrackers";
+import { ClientTrackingModes } from "@/components/expert/TrackerAssistant";
 import { SettingsPage } from "@/components/settings/SettingsPage";
 import { TrackerPortfolioDrafts } from "@/components/expert/TrackerPortfolioDrafts";
 import "@/components/trackers/tracker-page.css";
@@ -413,10 +414,15 @@ export function AdminApp({ initialTab = "overview" }: { initialTab?: Tab }) {
           ) : tab === "experts" ? (
             <ExpertsAdmin />
           ) : tab === "trackers" ? (
-            <>
-              <ClientTrackers admin />
-              <TrackerPortfolioDrafts admin />
-            </>
+            <ClientTrackingModes
+              admin
+              manual={() => (
+                <>
+                  <ClientTrackers admin />
+                  <TrackerPortfolioDrafts admin />
+                </>
+              )}
+            />
           ) : tab === "settings" ? (
             <SettingsPage admin onSignOut={() => void signOut()} />
           ) : tab === "visitors" ? (

@@ -23,10 +23,10 @@ type Usage = {
   ok: boolean;
 };
 type KeyStatus = {
-  perplexity: { configured: boolean; updatedAt: string | null };
+  perplexity: { configured: boolean; updatedAt: string | null; masked: string | null };
   other:
     | { configured: false }
-    | { configured: true; provider: string; lastFour: string; updatedAt: string };
+    | { configured: true; provider: string; lastFour: string; masked: string; updatedAt: string };
   usage: Usage[];
 };
 type Section = "ai" | "account" | "appearance";
@@ -113,6 +113,51 @@ function Card({ title, badge, children }: { title: string; badge?: ReactNode; ch
         {badge}
       </div>
       {children}
+    </div>
+  );
+}
+
+/** The saved key, masked; Show fetches the full key from the server on demand. */
+function SavedKey({
+  masked,
+  which,
+  headers,
+}: {
+  masked: string;
+  which: "perplexity" | "other";
+  headers: () => Record<string, string>;
+}) {
+  const [full, setFull] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+  async function fetchKey() {
+    const response = await fetch(`/api/expert/ai-key?reveal=${which}`, { headers: headers() });
+    const data = await response.json().catch(() => ({}));
+    return (data.key as string | null) ?? null;
+  }
+  return (
+    <div className="settings-key">
+      <span className="settings-muted">Current key</span>
+      <code>{full ?? masked}</code>
+      <button
+        type="button"
+        className="admin-button"
+        onClick={async () => setFull(full ? null : await fetchKey())}
+      >
+        {full ? "Hide" : "Show"}
+      </button>
+      <button
+        type="button"
+        className="admin-button"
+        onClick={async () => {
+          const key = full ?? (await fetchKey());
+          if (!key) return;
+          await navigator.clipboard.writeText(key);
+          setCopied(true);
+          window.setTimeout(() => setCopied(false), 1500);
+        }}
+      >
+        {copied ? "Copied" : "Copy"}
+      </button>
     </div>
   );
 }
@@ -218,6 +263,7 @@ function AiKeys({ admin, guest }: { admin: boolean; guest: boolean }) {
           </a>
           .
         </p>
+        {pplx?.masked && <SavedKey key={pplx.masked} masked={pplx.masked} which="perplexity" headers={headers} />}
         <form
           className="admin-invoice-form settings-form"
           onSubmit={(e) => void save(e, "perplexity", pplxKey, () => setPplxKey(""))}
@@ -266,6 +312,9 @@ function AiKeys({ admin, guest }: { admin: boolean; guest: boolean }) {
           <p className="settings-muted">
             Only used for Client tracking drafts when no Perplexity key is saved.
           </p>
+          {other?.configured && (
+            <SavedKey key={other.masked} masked={other.masked} which="other" headers={headers} />
+          )}
           <form
             className="admin-invoice-form settings-form"
             onSubmit={(e) => void save(e, provider, otherKey, () => setOtherKey(""))}

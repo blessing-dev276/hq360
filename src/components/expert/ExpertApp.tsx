@@ -22,6 +22,7 @@ import {
   Settings,
 } from "lucide-react";
 import { ClientTrackers } from "./ClientTrackers";
+import { ClientTrackingModes } from "@/components/expert/TrackerAssistant";
 import { SettingsPage } from "@/components/settings/SettingsPage";
 import { TrackerPortfolioDrafts } from "./TrackerPortfolioDrafts";
 import { NoAccess } from "./NoAccess";
@@ -290,7 +291,7 @@ export function ExpertApp() {
           ) : current.id === "leads" ? (
             <LeadsWorkspace scope="expert" />
           ) : current.id === "trackers" ? (
-            <ClientTrackers />
+            <ClientTrackingModes manual={() => <ClientTrackers />} />
           ) : current.id === "portfolio" ? (
             <>
               <TrackerPortfolioDrafts />

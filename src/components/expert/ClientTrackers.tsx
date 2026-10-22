@@ -52,6 +52,7 @@ type Detail = {
     consent_allows_naming: boolean;
     published_at: string | null;
     hasPasscode: boolean;
+    passcode: string | null;
   };
   items: Item[];
   files: FileRow[];
@@ -123,8 +124,7 @@ function OneTimePasscode({ url, passcode, onDone }: { url: string; passcode: str
   return (
     <div className="admin-notice" role="status" style={{ display: "block" }}>
       <p style={{ margin: "0 0 8px" }}>
-        <b>Send these to your client.</b> The passcode is shown only now. It is stored as a secure hash, so you
-        can reset it later but never read it back.
+        <b>Send these to your client.</b> You can see this passcode on the tracker until you replace it.
       </p>
       <p style={{ margin: "4px 0", wordBreak: "break-all" }}>
         Link: <code>{url}</code> <CopyButton text={url} label="Copy link" />
@@ -505,10 +505,27 @@ function TrackerEditor({ id, onBack }: { id: string; onBack: () => void }) {
 
       <div className="admin-setup" style={{ display: "grid", gap: 8, marginBottom: 16 }}>
         <p style={{ margin: 0, wordBreak: "break-all" }}>
-          <b>Link:</b> <code>{tracker.url}</code> <CopyButton text={tracker.url} label="Copy link" />
+          <b>Link:</b> <code>{tracker.url}</code> <CopyButton text={tracker.url} label="Copy link" />{" "}
+          {tracker.published_at ? (
+            <a href={tracker.url} target="_blank" rel="noreferrer" className="admin-button">
+              Open
+            </a>
+          ) : (
+            <small>Publish once to make the link work.</small>
+          )}
         </p>
         <p style={{ margin: 0 }}>
-          <b>Passcode:</b> {tracker.hasPasscode ? "set (stored as a secure hash, cannot be shown)" : "not set"}{" "}
+          <b>Passcode:</b>{" "}
+          {tracker.passcode ? (
+            <>
+              <code style={{ fontSize: "1.1em" }}>{tracker.passcode}</code>{" "}
+              <CopyButton text={tracker.passcode} label="Copy passcode" />
+            </>
+          ) : tracker.hasPasscode ? (
+            "set before passcodes were kept visible. Replace it once to see it here."
+          ) : (
+            "not set"
+          )}{" "}
           <button
             type="button"
             className="admin-button"
@@ -519,7 +536,7 @@ function TrackerEditor({ id, onBack }: { id: string; onBack: () => void }) {
               if (result) setPasscode(result.passcode as string);
             }}
           >
-            Reset passcode
+            Replace passcode
           </button>
         </p>
       </div>

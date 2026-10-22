@@ -32,6 +32,9 @@ async function aiKeySettings(request: Request) {
   const keys = await import("@/lib/trackers/ai-keys.server");
   try {
     if (request.method === "GET") {
+      const reveal = new URL(request.url).searchParams.get("reveal");
+      if (reveal === "perplexity" || reveal === "other")
+        return json({ key: await keys.revealKey(actor, reveal) });
       const { aiUsage } = await import("@/lib/trackers/ai.server");
       const usage = await aiUsage(actor).catch(() => []);
       return json({ ...(await keys.aiKeyStatus(actor)), usage });

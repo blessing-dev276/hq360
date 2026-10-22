@@ -14,6 +14,7 @@ const chatSchema = z
       )
       .min(1)
       .max(60),
+    images: z.array(z.string().max(7_500_000)).max(4).optional(),
   })
   .strict();
 
@@ -30,7 +31,7 @@ export const Route = createFileRoute("/api/expert/tracker-agent")({
         const { chat } = await import("@/lib/trackers/agent.server");
         const { TrackerError } = await import("@/lib/trackers/service.server");
         try {
-          return json(await chat(actor, parsed.data.messages, parsed.data.model));
+          return json(await chat(actor, parsed.data.messages, parsed.data.model, parsed.data.images ?? []));
         } catch (error) {
           if (error instanceof TrackerError) return json({ error: error.message }, error.status);
           return json({ error: "The assistant is unavailable. Please try again." }, 503);

@@ -1,10 +1,46 @@
-import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent, type ReactNode } from "react";
-import { ArrowUp, Bot, CircleAlert, CircleCheck, Copy, RotateCcw } from "lucide-react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type FormEvent,
+  type KeyboardEvent,
+  type ReactNode,
+} from "react";
+import {
+  ArrowUp,
+  Bot,
+  CircleAlert,
+  CircleCheck,
+  Copy,
+  ImagePlus,
+  RotateCcw,
+  X,
+} from "lucide-react";
 import { AGENT_MODELS, DEFAULT_AGENT_MODEL } from "@/lib/trackers/agent-models";
 import { actorHeaders, setTrackerAdminMode } from "./tracker-actor";
 
 type Result = { ok: boolean; text: string; link?: string; passcode?: string };
-type Message = { role: "user" | "assistant"; content: string; results?: Result[]; error?: boolean };
+type Message = {
+  role: "user" | "assistant";
+  content: string;
+  results?: Result[];
+  error?: boolean;
+  /** Screenshot previews; kept in memory only, not in browser storage. */
+  images?: string[];
+  imageCount?: number;
+};
+
+const MAX_IMAGES = 4;
+/** Shrinks a screenshot so it uploads fast and stays well under 5 MB. */
+async function toDataUrl(file: File): Promise<string> {
+  const bitmap = await createImageBitmap(file);
+  const scale = Math.min(1, 2000 / Math.max(bitmap.width, bitmap.height));
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.round(bitmap.width * scale);
+  canvas.height = Math.round(bitmap.height * scale);
+  canvas.getContext("2d")!.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+  return canvas.toDataURL("image/jpeg", 0.85);
+}
 
 const STORE = (admin: boolean) => `hq360-tracker-assistant-${admin ? "admin" : "expert"}`;
 const MODEL_STORE = "hq360-tracker-assistant-model";
@@ -12,6 +48,7 @@ const SUGGESTIONS = [
   "Create a tracker for Jane Doe, book launch project, with items: cover design, Amazon listing, 10 reader reviews",
   "Show me the link and passcode for my latest tracker",
   "Mark the cover design as done and post an update to the client",
+  "Here's a screenshot of the latest ranking — update the tracker with it",
 ];
 
 function load<T>(key: string, fallback: T): T {
@@ -47,7 +84,7 @@ function CopyChip({ text, label }: { text: string; label: string }) {
   );
 }
 
-/** Auto mode: chat with the assistant to create and edit client trackers. */
+/** AI Assistant: chat (with screenshots) to create and edit client trackers. */
 export function TrackerAssistant({
   admin = false,
   onChanged,
@@ -60,7 +97,25 @@ export function TrackerAssistant({
   const [model, setModel] = useState<string>(DEFAULT_AGENT_MODEL);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
+  const [images, setImages] = useState<string[]>([]);
+  const [dragging, setDragging] = useState(false);
+  const [attachError, setAttachError] = useState("");
   const end = useRef<HTMLDivElement>(null);
+  const picker = useRef<HTMLInputElement>(null);
+
+  async function attach(files: File[]) {
+    setAttachError("");
+    const pictures = files.filter((f) => /^image\/(png|jpeg|webp|gif)$/.test(f.type));
+    if (files.length && !pictures.length) return setAttachError("Only images can be attached.");
+    const room = MAX_IMAGES - images.length;
+    if (pictures.length > room) setAttachError(`Up to ${MAX_IMAGES} screenshots per message.`);
+    try {
+      const added = await Promise.all(pictures.slice(0, Math.max(room, 0)).map(toDataUrl));
+      setImages((current) => [...current, ...added].slice(0, MAX_IMAGES));
+    } catch {
+      setAttachError("Could not read that image.");
+    }
+  }
 
   useEffect(() => {
     setMessages(load<Message[]>(STORE(admin), []));
@@ -72,15 +127,25 @@ export function TrackerAssistant({
 
   function update(next: Message[]) {
     setMessages(next);
-    save(STORE(admin), next.slice(-60));
+    save(
+      STORE(admin),
+      next
+        .slice(-60)
+        .map(({ images: shots, ...m }) => (shots?.length ? { ...m, imageCount: shots.length } : m)),
+    );
   }
 
   async function send(text: string) {
-    const content = text.trim();
+    const shots = images;
+    const content = text.trim() || (shots.length ? "Here is a screenshot." : "");
     if (!content || busy) return;
-    const history = [...messages, { role: "user" as const, content }];
+    const history: Message[] = [
+      ...messages,
+      { role: "user", content, ...(shots.length ? { images: shots } : {}) },
+    ];
     update(history);
     setInput("");
+    setImages([]);
     setBusy(true);
     try {
       const response = await fetch("/api/expert/tracker-agent", {
@@ -88,12 +153,17 @@ export function TrackerAssistant({
         headers: actorHeaders({ "content-type": "application/json" }),
         body: JSON.stringify({
           model,
+          ...(shots.length ? { images: shots } : {}),
           // Results are folded into the text so the assistant remembers links and ids.
           messages: history.map((m) => ({
             role: m.role,
-            content: m.results?.length
-              ? `${m.content}\n[Results: ${m.results.map((r) => `${r.ok ? "OK" : "FAILED"} ${r.text}${r.link ? ` link ${r.link}` : ""}`).join("; ")}]`
-              : m.content,
+            content:
+              (m.images?.length || m.imageCount
+                ? `[${m.images?.length ?? m.imageCount} screenshot(s) attached] `
+                : "") +
+              (m.results?.length
+                ? `${m.content}\n[Results: ${m.results.map((r) => `${r.ok ? "OK" : "FAILED"} ${r.text}${r.link ? ` link ${r.link}` : ""}`).join("; ")}]`
+                : m.content),
           })),
         }),
       });
@@ -104,7 +174,11 @@ export function TrackerAssistant({
     } catch (e) {
       update([
         ...history,
-        { role: "assistant", content: e instanceof Error ? e.message : "Something went wrong.", error: true },
+        {
+          role: "assistant",
+          content: e instanceof Error ? e.message : "Something went wrong.",
+          error: true,
+        },
       ]);
     } finally {
       setBusy(false);
@@ -123,11 +197,12 @@ export function TrackerAssistant({
       <div className="ta-head">
         <div>
           <h2>
-            <Bot size={16} aria-hidden="true" /> Tracker assistant
+            <Bot size={16} aria-hidden="true" /> AI Assistant
           </h2>
           <p className="settings-muted">
-            Tell it what you need: create trackers, add items, post updates, publish, get links and
-            passcodes. It uses your Perplexity key from Settings.
+            Tell it what you need, or paste a screenshot: it reads rankings, dashboards, reviews and
+            client messages, then creates trackers, updates items, posts updates, publishes and
+            gives you links and passcodes. It uses your Perplexity key from Settings.
           </p>
         </div>
         <div className="ta-controls">
@@ -148,7 +223,12 @@ export function TrackerAssistant({
             </select>
           </label>
           {messages.length > 0 && (
-            <button type="button" className="admin-button" onClick={() => update([])} disabled={busy}>
+            <button
+              type="button"
+              className="admin-button"
+              onClick={() => update([])}
+              disabled={busy}
+            >
               <RotateCcw size={13} aria-hidden="true" /> New chat
             </button>
           )}
@@ -168,6 +248,15 @@ export function TrackerAssistant({
         )}
         {messages.map((m, i) => (
           <div key={i} className={`ta-msg ta-${m.role}${m.error ? " ta-error" : ""}`}>
+            {m.images?.length ? (
+              <div className="ta-shots">
+                {m.images.map((src, k) => (
+                  <img key={k} src={src} alt={`Screenshot ${k + 1}`} />
+                ))}
+              </div>
+            ) : m.imageCount ? (
+              <small className="settings-muted">{m.imageCount} screenshot(s) attached</small>
+            ) : null}
             <div className="ta-bubble">{m.content}</div>
             {m.results?.map((r, j) => (
               <div key={j} className={`ta-result ${r.ok ? "" : "ta-result-fail"}`}>
@@ -205,31 +294,96 @@ export function TrackerAssistant({
         <div ref={end} />
       </div>
 
+      {attachError && (
+        <p className="settings-muted" role="alert">
+          {attachError}
+        </p>
+      )}
       <form
-        className="ta-composer"
+        className={`ta-composer${dragging ? " ta-dragging" : ""}`}
         onSubmit={(e: FormEvent) => {
           e.preventDefault();
           void send(input);
         }}
+        onDragOver={(e) => {
+          e.preventDefault();
+          setDragging(true);
+        }}
+        onDragLeave={() => setDragging(false)}
+        onDrop={(e) => {
+          e.preventDefault();
+          setDragging(false);
+          void attach([...e.dataTransfer.files]);
+        }}
       >
-        <textarea
-          rows={2}
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={onKey}
-          placeholder="Message the tracker assistant… (Enter to send, Shift+Enter for a new line)"
-          aria-label="Message"
-          maxLength={8000}
-        />
-        <button className="ta-send" disabled={busy || !input.trim()} aria-label="Send">
-          <ArrowUp size={18} />
-        </button>
+        {images.length > 0 && (
+          <div className="ta-pending">
+            {images.map((src, k) => (
+              <span key={k} className="ta-thumb">
+                <img src={src} alt={`Screenshot ${k + 1} to send`} />
+                <button
+                  type="button"
+                  aria-label={`Remove screenshot ${k + 1}`}
+                  onClick={() => setImages((current) => current.filter((_, i) => i !== k))}
+                >
+                  <X size={12} />
+                </button>
+              </span>
+            ))}
+          </div>
+        )}
+        <div className="ta-row">
+          <input
+            ref={picker}
+            type="file"
+            accept="image/png,image/jpeg,image/webp,image/gif"
+            multiple
+            hidden
+            onChange={(e) => {
+              void attach([...(e.target.files ?? [])]);
+              e.target.value = "";
+            }}
+          />
+          <button
+            type="button"
+            className="ta-attach"
+            aria-label="Attach screenshot"
+            title="Attach screenshot (or paste / drag it here)"
+            onClick={() => picker.current?.click()}
+            disabled={busy || images.length >= MAX_IMAGES}
+          >
+            <ImagePlus size={18} />
+          </button>
+          <textarea
+            rows={2}
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={onKey}
+            onPaste={(e) => {
+              const files = [...e.clipboardData.files];
+              if (files.length) {
+                e.preventDefault();
+                void attach(files);
+              }
+            }}
+            placeholder="Message the AI Assistant, or paste a screenshot… (Enter to send)"
+            aria-label="Message"
+            maxLength={8000}
+          />
+          <button
+            className="ta-send"
+            disabled={busy || (!input.trim() && !images.length)}
+            aria-label="Send"
+          >
+            <ArrowUp size={18} />
+          </button>
+        </div>
       </form>
     </section>
   );
 }
 
-/** Client tracking: Auto (assistant chat) or Manual (the full editor). */
+/** Client tracking: AI Assistant (chat) or Manual (the full editor). */
 export function ClientTrackingModes({
   admin = false,
   manual,
@@ -247,10 +401,22 @@ export function ClientTrackingModes({
   return (
     <div className="ta-modes">
       <div className="admin-segmented" role="tablist" aria-label="Client tracking mode">
-        <button type="button" role="tab" aria-selected={mode === "auto"} className={mode === "auto" ? "active" : ""} onClick={() => choose("auto")}>
-          Auto · Assistant
+        <button
+          type="button"
+          role="tab"
+          aria-selected={mode === "auto"}
+          className={mode === "auto" ? "active" : ""}
+          onClick={() => choose("auto")}
+        >
+          AI Assistant
         </button>
-        <button type="button" role="tab" aria-selected={mode === "manual"} className={mode === "manual" ? "active" : ""} onClick={() => choose("manual")}>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={mode === "manual"}
+          className={mode === "manual" ? "active" : ""}
+          onClick={() => choose("manual")}
+        >
           Manual
         </button>
       </div>

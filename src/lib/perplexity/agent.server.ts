@@ -58,8 +58,11 @@ const responseSchema = z.object({
       .passthrough(),
   ),
 });
+export type AgentInputPart =
+  | { type: "input_text"; text: string }
+  | { type: "input_image"; image_url: string };
 export type AgentRequest = {
-  input: string;
+  input: string | { type: "message"; role: "user"; content: AgentInputPart[] }[];
   instructions: string;
   model?: string;
   max_steps?: number;

@@ -9,6 +9,43 @@ import type { Actor } from "./service.server";
 // through the same service functions (and ownership checks) as the manual UI.
 
 export type ChatMessage = { role: "user" | "assistant"; content: string };
+/** data:image/(png|jpeg|webp);base64,... screenshots sent with the latest message. */
+export type ChatImage = string;
+
+const IMAGE_TYPES: Record<string, string> = { "image/png": "png", "image/jpeg": "jpg", "image/webp": "webp" };
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+
+/** Stores screenshots privately for the length of one request and returns short-lived links. */
+async function stageImages(actor: Actor, images: ChatImage[]) {
+  const { randomUUID } = await import("node:crypto");
+  const owner = actor.role === "expert" ? actor.expertId : "admin";
+  const keys: string[] = [];
+  const urls: string[] = [];
+  try {
+    for (const image of images) {
+      const match = /^data:(image\/(?:png|jpeg|webp));base64,([A-Za-z0-9+/=]+)$/.exec(image);
+      if (!match) throw new svc.TrackerError("Screenshots must be PNG, JPEG or WebP images.", 400);
+      const bytes = Buffer.from(match[2]!, "base64");
+      if (bytes.length > MAX_IMAGE_BYTES)
+        throw new svc.TrackerError("Each screenshot must be under 5 MB.", 400);
+      const key = `assistant/${owner}/${randomUUID()}.${IMAGE_TYPES[match[1]!]}`;
+      const storage = svc.db().storage.from(svc.BUCKET);
+      const { error } = await storage.upload(key, bytes, { contentType: match[1]!, upsert: false });
+      if (error) throw new svc.TrackerError("Could not read the screenshot. Please try again.", 503);
+      keys.push(key);
+      const signed = await storage.createSignedUrl(key, 600);
+      if (signed.error || !signed.data) throw new svc.TrackerError("Could not read the screenshot.", 503);
+      urls.push(signed.data.signedUrl);
+    }
+  } catch (e) {
+    await removeImages(keys);
+    throw e;
+  }
+  return { keys, urls };
+}
+async function removeImages(keys: string[]) {
+  if (keys.length) await svc.db().storage.from(svc.BUCKET).remove(keys).catch(() => {});
+}
 export type ActionResult = {
   ok: boolean;
   text: string;
@@ -140,7 +177,9 @@ Rules:
 - After changing a tracker's content, add a publish action unless the expert says not to. New trackers are published automatically.
 - Never claim results the client did not give: no invented numbers, rankings, reviews or quotes in items or updates.
 - Never delete anything unless the expert clearly asked.
-- If the expert only asks a question, answer it with no actions.`;
+- If the expert only asks a question, answer it with no actions.
+
+Screenshots: the expert may attach screenshots (for example a ranking list, sales dashboard, reviews page, chat with the client, a checklist or a brief). Read them carefully. Describe what you see that matters in "reply", then turn it into actions when the expert asks (or clearly wants) the tracker updated: e.g. mark items done or set progress, add an update quoting exactly what the screenshot shows, or create a tracker and items from a brief. Use only facts visible in the screenshot or given by the expert; if something is unreadable or unclear, say so instead of guessing.`;
 
 async function context(actor: Actor) {
   const trackers = (await svc.listTrackers(actor)).slice(0, 30);
@@ -288,6 +327,7 @@ export async function chat(
   actor: Actor,
   messages: ChatMessage[],
   model: string,
+  images: ChatImage[] = [],
   deps: { run?: typeof runAgent; key?: (a: Actor) => Promise<string> } = {},
 ) {
   const chosen = isAgentModel(model) ? model : DEFAULT_AGENT_MODEL;
@@ -296,13 +336,26 @@ export async function chat(
     .slice(-20)
     .map((m) => `${m.role === "user" ? "EXPERT" : "ASSISTANT"}: ${m.content.slice(0, 4000)}`)
     .join("\n\n");
+  const prompt = `${await context(actor)}\n\nCONVERSATION\n${transcript}\n\n${images.length ? `The last EXPERT message has ${images.length} screenshot(s) attached. ` : ""}Answer the last EXPERT message.`;
+  const staged = images.length ? await stageImages(actor, images) : { keys: [], urls: [] };
   let response;
   try {
     response = await (deps.run ?? runAgent)(
       {
         model: chosen,
         instructions: INSTRUCTIONS,
-        input: `${await context(actor)}\n\nCONVERSATION\n${transcript}\n\nAnswer the last EXPERT message.`,
+        input: staged.urls.length
+          ? [
+              {
+                type: "message",
+                role: "user",
+                content: [
+                  { type: "input_text", text: prompt },
+                  ...staged.urls.map((url) => ({ type: "input_image" as const, image_url: url })),
+                ],
+              },
+            ]
+          : prompt,
         tools: [],
         max_steps: 1,
         max_output_tokens: 4000,
@@ -315,8 +368,16 @@ export async function chat(
       { apiKey: key },
     );
   } catch (e) {
-    if (e instanceof PerplexityError) throw new svc.TrackerError(e.message, e.status);
+    if (e instanceof PerplexityError)
+      throw new svc.TrackerError(
+        staged.urls.length && e.upstreamStatus === 400
+          ? "This model could not read the screenshot. Pick another model (GPT, Claude or Gemini) and try again."
+          : e.message,
+        e.status,
+      );
     throw e;
+  } finally {
+    await removeImages(staged.keys);
   }
   const { reply, actions } = parseModelJson(response.text);
   const state = { created: null as string | null };

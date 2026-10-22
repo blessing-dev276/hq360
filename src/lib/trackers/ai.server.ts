@@ -67,6 +67,7 @@ export function unsupportedClaims(output: string, input: string) {
 }
 
 export type ProviderCall = {
+  plainText?: boolean;
   provider: AiProvider;
   apiKey: string;
   model: string;
@@ -99,7 +100,7 @@ export async function callProvider(call: ProviderCall, fetcher: typeof fetch = f
       headers: { "content-type": "application/json", authorization: `Bearer ${call.apiKey}` },
       body: JSON.stringify({
         model: call.model,
-        response_format: { type: "json_object" },
+        ...(call.plainText ? {} : { response_format: { type: "json_object" } }),
         messages: [
           { role: "system", content: call.system },
           { role: "user", content: call.user },
@@ -115,7 +116,7 @@ export async function callProvider(call: ProviderCall, fetcher: typeof fetch = f
         body: JSON.stringify({
           systemInstruction: { parts: [{ text: call.system }] },
           contents: [{ role: "user", parts: [{ text: call.user }] }],
-          generationConfig: { responseMimeType: "application/json", maxOutputTokens: 800 },
+          generationConfig: { ...(call.plainText ? {} : { responseMimeType: "application/json" }), maxOutputTokens: 800 },
         }),
       },
     );
@@ -125,7 +126,7 @@ export async function callProvider(call: ProviderCall, fetcher: typeof fetch = f
       headers: { "content-type": "application/json", authorization: `Bearer ${call.apiKey}` },
       body: JSON.stringify({
         model: call.model,
-        response_format: { type: "json_object" },
+        ...(call.plainText ? {} : { response_format: { type: "json_object" } }),
         messages: [
           { role: "system", content: call.system },
           { role: "user", content: call.user },
@@ -216,6 +217,46 @@ export type AiDeps = {
   loadKey: (actor: Actor) => Promise<{ provider: AiProvider; key: string } | null>;
   call: (call: ProviderCall) => Promise<ProviderResult>;
 };
+
+export async function chatHistory(actor: Actor, trackerId: string) {
+  await ownedTracker(actor, trackerId);
+  const { data, error } = await db().from("tracker_ai_messages")
+    .select("id, conversation_id, role, content, created_at")
+    .eq("tracker_id", trackerId).order("created_at", { ascending: true }).limit(500);
+  if (error) throw new TrackerError("Could not load AI chat history.", 503);
+  return data ?? [];
+}
+
+export async function chatWithTracker(actor: Actor, trackerId: string, conversationId: string, message: string) {
+  const tracker = await ownedTracker(actor, trackerId);
+  const { loadAiKey } = await import("./ai-keys.server");
+  const credential = await loadAiKey(actor);
+  if (!credential) throw new TrackerError("Add an AI key in Settings first.", 409);
+  const { data: history, error: historyError } = await db().from("tracker_ai_messages")
+    .select("role, content").eq("tracker_id", trackerId).eq("conversation_id", conversationId)
+    .order("created_at", { ascending: true }).limit(40);
+  if (historyError) throw new TrackerError("Could not load this conversation.", 503);
+  const context = await contextFor("progress_summary", trackerId, {}, {
+    allowed: tracker.consent_allows_naming, clientName: tracker.client_name, projectTitle: tracker.project_title,
+  });
+  const exchange = (history ?? []).map((entry) => `${entry.role === "user" ? "Expert" : "Assistant"}: ${entry.content}`).join("\n\n");
+  const result = await callProvider({ provider: credential.provider, apiKey: credential.key,
+    model: DEFAULT_MODELS[credential.provider],
+    system: `${SYSTEM_RULES}\nFor this conversation, reply in plain text. You are helping the expert plan and write updates. Your replies are private and never published automatically.`,
+    user: `Current tracker facts:\n${context}\n\nPrevious conversation:\n${exchange}\n\nExpert: ${message}\nAssistant:`,
+    plainText: true,
+  });
+  const reply = result.text.trim().slice(0, 8000);
+  if (!reply) throw new TrackerError("The assistant returned an empty reply. Please try again.", 502);
+  const claims = unsupportedClaims(reply, `${context}\n${exchange}\n${message}`);
+  if (claims.figures.length) throw new TrackerError("The assistant included an unsupported figure. Please retry.", 422);
+  const { error } = await db().from("tracker_ai_messages").insert([
+    { tracker_id: trackerId, conversation_id: conversationId, role: "user", content: message },
+    { tracker_id: trackerId, conversation_id: conversationId, role: "assistant", content: reply },
+  ]);
+  if (error) throw new TrackerError("Could not save the conversation.", 503);
+  return { reply };
+}
 
 /** Runs one AI action with the actor's own key: an expert on their own tracker,
  *  or admin (any tracker) with admin's key. Nobody ever uses an expert's key but that expert. */

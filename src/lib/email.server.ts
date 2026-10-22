@@ -10,11 +10,13 @@
 
 export type EmailMessage = {
   to: string;
+  from?: string;
   subject: string;
   /** Plain-text body. HTML is derived from this if `html` is omitted. */
   text: string;
   html?: string;
   replyTo?: string;
+  idempotencyKey?: string;
   /** File bytes encoded as base64 for Resend. */
   attachments?: { filename: string; content: string; content_type: string }[];
 };
@@ -41,9 +43,10 @@ async function sendViaResend(msg: EmailMessage): Promise<EmailResult> {
       headers: {
         Authorization: `Bearer ${apiKey}`,
         "content-type": "application/json",
+        ...(msg.idempotencyKey ? { "Idempotency-Key": msg.idempotencyKey } : {}),
       },
       body: JSON.stringify({
-        from: fromAddress(),
+        from: msg.from || fromAddress(),
         to: [msg.to],
         subject: msg.subject,
         text: msg.text,

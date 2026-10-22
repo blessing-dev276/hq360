@@ -65,6 +65,7 @@ const actionSchema = z.discriminatedUnion("action", [
     edited: z.record(z.string().trim().min(1).max(1500)).optional(),
   }),
   z.object({ action: z.literal("discardDraft"), draftId: id }),
+  z.object({ action: z.literal("aiChat"), conversationId: id, message: z.string().trim().min(1).max(4000) }),
   // Phase 3: client consent for portfolio use.
   z.object({
     action: z.literal("consent"),
@@ -106,7 +107,9 @@ export const Route = createFileRoute("/api/expert/trackers/$id")({
         if (!id.safeParse(params.id).success) return json({ error: "Not found" }, 404);
         try {
           const s = await import("@/lib/trackers/service.server");
-          return json(await s.trackerDetail(actor, params.id));
+          const detail = await s.trackerDetail(actor, params.id);
+          const ai = await import("@/lib/trackers/ai.server");
+          return json({ ...detail, chatHistory: await ai.chatHistory(actor, params.id) });
         } catch (e) {
           return fail(e);
         }
@@ -210,6 +213,10 @@ export const Route = createFileRoute("/api/expert/trackers/$id")({
                 { loadKey: keys.loadAiKey, call: (call) => ai.callProvider(call) },
               );
               return json({ draft });
+            }
+            case "aiChat": {
+              const ai = await import("@/lib/trackers/ai.server");
+              return json(await ai.chatWithTracker(actor, trackerId, body.conversationId, body.message));
             }
             case "approveDraft": {
               const ai = await import("@/lib/trackers/ai.server");

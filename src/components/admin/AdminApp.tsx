@@ -1,3 +1,4 @@
+import { AuthorOutreach } from "./AuthorOutreach";
 import { PerplexitySettings } from "@/components/expert/PerplexitySettings";
 import { QuotesWorkspace } from "@/components/quotes/QuotesWorkspace";
 import { ProposalsWorkspace } from "@/components/proposals/ProposalsWorkspace";
@@ -15,6 +16,7 @@ import { ExpertsAdmin } from "@/components/admin/ExpertsAdmin";
 import { VisitorsAdmin } from "@/components/admin/VisitorsAdmin";
 
 import {
+  Mail,
   LayoutDashboard,
   BriefcaseBusiness,
   Users,
@@ -162,6 +164,7 @@ function UploadField({
 /* ------------------------------------------------------------------- root */
 
 type Tab =
+  | "outreach"
   | "scout"
   | "projects"
   | "overview"
@@ -180,6 +183,12 @@ type Tab =
 type WorkView = "cases" | "gallery";
 const SALES_TABS: Tab[] = ["payments", "quotes", "proposals"];
 const NAV = [
+  {
+    id: "outreach",
+    label: "Author Outreach",
+    icon: Mail,
+    description: "Personal, branded emails for authors, sent through Resend.",
+  },
   {
     id: "scout",
     label: "Scouting",
@@ -310,6 +319,7 @@ export function AdminApp({ initialTab = "overview" }: { initialTab?: Tab }) {
           {[
             "overview",
             "scout",
+            "outreach",
             "audits",
             "payments",
             "experts",
@@ -387,7 +397,9 @@ export function AdminApp({ initialTab = "overview" }: { initialTab?: Tab }) {
           </div>
         </header>
         <div className="admin-page" key={refreshKey}>
-          {tab === "scout" ? (
+          {tab === "outreach" ? (
+            <AuthorOutreach />
+          ) : tab === "scout" ? (
             <>
               <PerplexitySettings admin />
               <ScoutApp canFindEmail maxAuthors={1000} />

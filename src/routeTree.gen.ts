@@ -90,6 +90,8 @@ import { Route as ApiAdminAcademyRouteImport } from './routes/api/admin/academy'
 import { Route as ApiAdminAcademyControlRouteImport } from './routes/api/admin/academy-control'
 import { Route as ApiAdminAuthorAuditLeadsRouteImport } from './routes/api/admin/author-audit-leads'
 import { Route as ApiAdminAuthorAuditsRouteImport } from './routes/api/admin/author-audits'
+import { Route as ApiAdminAuthorEmailRouteImport } from './routes/api/admin/author-email'
+import { Route as ApiAdminAuthorOutreachRouteImport } from './routes/api/admin/author-outreach'
 import { Route as ApiAdminCaseStudiesRouteImport } from './routes/api/admin/case-studies'
 import { Route as ApiAdminExpertGuestsRouteImport } from './routes/api/admin/expert-guests'
 import { Route as ApiAdminExpertPortfolioRouteImport } from './routes/api/admin/expert-portfolio'
@@ -140,6 +142,7 @@ import { Route as ApiExpertReviewsRouteImport } from './routes/api/expert/review
 import { Route as ApiExpertSessionRouteImport } from './routes/api/expert/session'
 import { Route as ApiExpertSignupRouteImport } from './routes/api/expert/signup'
 import { Route as ApiExpertTestimonialsRouteImport } from './routes/api/expert/testimonials'
+import { Route as ApiExpertTrackerAgentRouteImport } from './routes/api/expert/tracker-agent'
 import { Route as ApiExpertTrackerPortfolioRouteImport } from './routes/api/expert/tracker-portfolio'
 import { Route as ApiExpertTrackersRouteImport } from './routes/api/expert/trackers'
 import { Route as ApiExpertVideoUrlRouteImport } from './routes/api/expert/video-url'
@@ -645,6 +648,16 @@ const ApiAdminAuthorAuditsRoute = ApiAdminAuthorAuditsRouteImport.update({
   path: '/api/admin/author-audits',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAdminAuthorEmailRoute = ApiAdminAuthorEmailRouteImport.update({
+  id: '/api/admin/author-email',
+  path: '/api/admin/author-email',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminAuthorOutreachRoute = ApiAdminAuthorOutreachRouteImport.update({
+  id: '/api/admin/author-outreach',
+  path: '/api/admin/author-outreach',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAdminCaseStudiesRoute = ApiAdminCaseStudiesRouteImport.update({
   id: '/api/admin/case-studies',
   path: '/api/admin/case-studies',
@@ -905,6 +918,11 @@ const ApiExpertSignupRoute = ApiExpertSignupRouteImport.update({
 const ApiExpertTestimonialsRoute = ApiExpertTestimonialsRouteImport.update({
   id: '/api/expert/testimonials',
   path: '/api/expert/testimonials',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiExpertTrackerAgentRoute = ApiExpertTrackerAgentRouteImport.update({
+  id: '/api/expert/tracker-agent',
+  path: '/api/expert/tracker-agent',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiExpertTrackerPortfolioRoute =
@@ -1515,6 +1533,8 @@ export interface FileRoutesByFullPath {
   '/api/admin/academy-control': typeof ApiAdminAcademyControlRoute
   '/api/admin/author-audit-leads': typeof ApiAdminAuthorAuditLeadsRoute
   '/api/admin/author-audits': typeof ApiAdminAuthorAuditsRouteWithChildren
+  '/api/admin/author-email': typeof ApiAdminAuthorEmailRoute
+  '/api/admin/author-outreach': typeof ApiAdminAuthorOutreachRoute
   '/api/admin/case-studies': typeof ApiAdminCaseStudiesRouteWithChildren
   '/api/admin/expert-guests': typeof ApiAdminExpertGuestsRoute
   '/api/admin/expert-portfolio': typeof ApiAdminExpertPortfolioRouteWithChildren
@@ -1565,6 +1585,7 @@ export interface FileRoutesByFullPath {
   '/api/expert/session': typeof ApiExpertSessionRoute
   '/api/expert/signup': typeof ApiExpertSignupRoute
   '/api/expert/testimonials': typeof ApiExpertTestimonialsRouteWithChildren
+  '/api/expert/tracker-agent': typeof ApiExpertTrackerAgentRoute
   '/api/expert/tracker-portfolio': typeof ApiExpertTrackerPortfolioRoute
   '/api/expert/trackers': typeof ApiExpertTrackersRouteWithChildren
   '/api/expert/video-url': typeof ApiExpertVideoUrlRoute
@@ -1744,6 +1765,8 @@ export interface FileRoutesByTo {
   '/api/admin/academy-control': typeof ApiAdminAcademyControlRoute
   '/api/admin/author-audit-leads': typeof ApiAdminAuthorAuditLeadsRoute
   '/api/admin/author-audits': typeof ApiAdminAuthorAuditsRouteWithChildren
+  '/api/admin/author-email': typeof ApiAdminAuthorEmailRoute
+  '/api/admin/author-outreach': typeof ApiAdminAuthorOutreachRoute
   '/api/admin/case-studies': typeof ApiAdminCaseStudiesRouteWithChildren
   '/api/admin/expert-guests': typeof ApiAdminExpertGuestsRoute
   '/api/admin/expert-portfolio': typeof ApiAdminExpertPortfolioRouteWithChildren
@@ -1794,6 +1817,7 @@ export interface FileRoutesByTo {
   '/api/expert/session': typeof ApiExpertSessionRoute
   '/api/expert/signup': typeof ApiExpertSignupRoute
   '/api/expert/testimonials': typeof ApiExpertTestimonialsRouteWithChildren
+  '/api/expert/tracker-agent': typeof ApiExpertTrackerAgentRoute
   '/api/expert/tracker-portfolio': typeof ApiExpertTrackerPortfolioRoute
   '/api/expert/trackers': typeof ApiExpertTrackersRouteWithChildren
   '/api/expert/video-url': typeof ApiExpertVideoUrlRoute
@@ -1974,6 +1998,8 @@ export interface FileRoutesById {
   '/api/admin/academy-control': typeof ApiAdminAcademyControlRoute
   '/api/admin/author-audit-leads': typeof ApiAdminAuthorAuditLeadsRoute
   '/api/admin/author-audits': typeof ApiAdminAuthorAuditsRouteWithChildren
+  '/api/admin/author-email': typeof ApiAdminAuthorEmailRoute
+  '/api/admin/author-outreach': typeof ApiAdminAuthorOutreachRoute
   '/api/admin/case-studies': typeof ApiAdminCaseStudiesRouteWithChildren
   '/api/admin/expert-guests': typeof ApiAdminExpertGuestsRoute
   '/api/admin/expert-portfolio': typeof ApiAdminExpertPortfolioRouteWithChildren
@@ -2024,6 +2050,7 @@ export interface FileRoutesById {
   '/api/expert/session': typeof ApiExpertSessionRoute
   '/api/expert/signup': typeof ApiExpertSignupRoute
   '/api/expert/testimonials': typeof ApiExpertTestimonialsRouteWithChildren
+  '/api/expert/tracker-agent': typeof ApiExpertTrackerAgentRoute
   '/api/expert/tracker-portfolio': typeof ApiExpertTrackerPortfolioRoute
   '/api/expert/trackers': typeof ApiExpertTrackersRouteWithChildren
   '/api/expert/video-url': typeof ApiExpertVideoUrlRoute
@@ -2205,6 +2232,8 @@ export interface FileRouteTypes {
     | '/api/admin/academy-control'
     | '/api/admin/author-audit-leads'
     | '/api/admin/author-audits'
+    | '/api/admin/author-email'
+    | '/api/admin/author-outreach'
     | '/api/admin/case-studies'
     | '/api/admin/expert-guests'
     | '/api/admin/expert-portfolio'
@@ -2255,6 +2284,7 @@ export interface FileRouteTypes {
     | '/api/expert/session'
     | '/api/expert/signup'
     | '/api/expert/testimonials'
+    | '/api/expert/tracker-agent'
     | '/api/expert/tracker-portfolio'
     | '/api/expert/trackers'
     | '/api/expert/video-url'
@@ -2434,6 +2464,8 @@ export interface FileRouteTypes {
     | '/api/admin/academy-control'
     | '/api/admin/author-audit-leads'
     | '/api/admin/author-audits'
+    | '/api/admin/author-email'
+    | '/api/admin/author-outreach'
     | '/api/admin/case-studies'
     | '/api/admin/expert-guests'
     | '/api/admin/expert-portfolio'
@@ -2484,6 +2516,7 @@ export interface FileRouteTypes {
     | '/api/expert/session'
     | '/api/expert/signup'
     | '/api/expert/testimonials'
+    | '/api/expert/tracker-agent'
     | '/api/expert/tracker-portfolio'
     | '/api/expert/trackers'
     | '/api/expert/video-url'
@@ -2663,6 +2696,8 @@ export interface FileRouteTypes {
     | '/api/admin/academy-control'
     | '/api/admin/author-audit-leads'
     | '/api/admin/author-audits'
+    | '/api/admin/author-email'
+    | '/api/admin/author-outreach'
     | '/api/admin/case-studies'
     | '/api/admin/expert-guests'
     | '/api/admin/expert-portfolio'
@@ -2713,6 +2748,7 @@ export interface FileRouteTypes {
     | '/api/expert/session'
     | '/api/expert/signup'
     | '/api/expert/testimonials'
+    | '/api/expert/tracker-agent'
     | '/api/expert/tracker-portfolio'
     | '/api/expert/trackers'
     | '/api/expert/video-url'
@@ -2893,6 +2929,8 @@ export interface RootRouteChildren {
   ApiAdminAcademyControlRoute: typeof ApiAdminAcademyControlRoute
   ApiAdminAuthorAuditLeadsRoute: typeof ApiAdminAuthorAuditLeadsRoute
   ApiAdminAuthorAuditsRoute: typeof ApiAdminAuthorAuditsRouteWithChildren
+  ApiAdminAuthorEmailRoute: typeof ApiAdminAuthorEmailRoute
+  ApiAdminAuthorOutreachRoute: typeof ApiAdminAuthorOutreachRoute
   ApiAdminCaseStudiesRoute: typeof ApiAdminCaseStudiesRouteWithChildren
   ApiAdminExpertGuestsRoute: typeof ApiAdminExpertGuestsRoute
   ApiAdminExpertPortfolioRoute: typeof ApiAdminExpertPortfolioRouteWithChildren
@@ -2943,6 +2981,7 @@ export interface RootRouteChildren {
   ApiExpertSessionRoute: typeof ApiExpertSessionRoute
   ApiExpertSignupRoute: typeof ApiExpertSignupRoute
   ApiExpertTestimonialsRoute: typeof ApiExpertTestimonialsRouteWithChildren
+  ApiExpertTrackerAgentRoute: typeof ApiExpertTrackerAgentRoute
   ApiExpertTrackerPortfolioRoute: typeof ApiExpertTrackerPortfolioRoute
   ApiExpertTrackersRoute: typeof ApiExpertTrackersRouteWithChildren
   ApiExpertVideoUrlRoute: typeof ApiExpertVideoUrlRoute
@@ -3552,6 +3591,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAdminAuthorAuditsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/admin/author-email': {
+      id: '/api/admin/author-email'
+      path: '/api/admin/author-email'
+      fullPath: '/api/admin/author-email'
+      preLoaderRoute: typeof ApiAdminAuthorEmailRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/author-outreach': {
+      id: '/api/admin/author-outreach'
+      path: '/api/admin/author-outreach'
+      fullPath: '/api/admin/author-outreach'
+      preLoaderRoute: typeof ApiAdminAuthorOutreachRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/admin/case-studies': {
       id: '/api/admin/case-studies'
       path: '/api/admin/case-studies'
@@ -3900,6 +3953,13 @@ declare module '@tanstack/react-router' {
       path: '/api/expert/testimonials'
       fullPath: '/api/expert/testimonials'
       preLoaderRoute: typeof ApiExpertTestimonialsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/expert/tracker-agent': {
+      id: '/api/expert/tracker-agent'
+      path: '/api/expert/tracker-agent'
+      fullPath: '/api/expert/tracker-agent'
+      preLoaderRoute: typeof ApiExpertTrackerAgentRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/expert/tracker-portfolio': {
@@ -5135,6 +5195,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAdminAcademyControlRoute: ApiAdminAcademyControlRoute,
   ApiAdminAuthorAuditLeadsRoute: ApiAdminAuthorAuditLeadsRoute,
   ApiAdminAuthorAuditsRoute: ApiAdminAuthorAuditsRouteWithChildren,
+  ApiAdminAuthorEmailRoute: ApiAdminAuthorEmailRoute,
+  ApiAdminAuthorOutreachRoute: ApiAdminAuthorOutreachRoute,
   ApiAdminCaseStudiesRoute: ApiAdminCaseStudiesRouteWithChildren,
   ApiAdminExpertGuestsRoute: ApiAdminExpertGuestsRoute,
   ApiAdminExpertPortfolioRoute: ApiAdminExpertPortfolioRouteWithChildren,
@@ -5186,6 +5248,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiExpertSessionRoute: ApiExpertSessionRoute,
   ApiExpertSignupRoute: ApiExpertSignupRoute,
   ApiExpertTestimonialsRoute: ApiExpertTestimonialsRouteWithChildren,
+  ApiExpertTrackerAgentRoute: ApiExpertTrackerAgentRoute,
   ApiExpertTrackerPortfolioRoute: ApiExpertTrackerPortfolioRoute,
   ApiExpertTrackersRoute: ApiExpertTrackersRouteWithChildren,
   ApiExpertVideoUrlRoute: ApiExpertVideoUrlRoute,

@@ -43,6 +43,7 @@ type Views = {
   engagement: Record<string, { plays: number; downloads: number }>;
 };
 type Detail = {
+  chatHistory: { id: string; conversation_id: string; role: "user" | "assistant"; content: string; created_at: string }[];
   tracker: TrackerSummary & {
     client_email: string | null;
     slug: string;
@@ -368,6 +369,9 @@ function TrackerEditor({ id, onBack }: { id: string; onBack: () => void }) {
   const [logText, setLogText] = useState("");
   const [dragId, setDragId] = useState<string | null>(null);
   const [aiReady, setAiReady] = useState(false);
+  const [conversationId, setConversationId] = useState<string | null>(null);
+  const [chatText, setChatText] = useState("");
+  const [chatBusy, setChatBusy] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -410,6 +414,19 @@ function TrackerEditor({ id, onBack }: { id: string; onBack: () => void }) {
       </section>
     );
   const { tracker, items, files, log, drafts, views } = detail;
+  const conversations = [...new Set((detail.chatHistory ?? []).map((entry) => entry.conversation_id))].reverse();
+  const selectedConversation = conversationId ?? conversations[0] ?? null;
+  const chatMessages = (detail.chatHistory ?? []).filter((entry) => entry.conversation_id === selectedConversation);
+
+  async function sendChat(event: FormEvent) {
+    event.preventDefault();
+    if (!chatText.trim() || chatBusy) return;
+    const nextId = selectedConversation ?? crypto.randomUUID();
+    setChatBusy(true);
+    const result = await act({ action: "aiChat", conversationId: nextId, message: chatText.trim() });
+    if (result) { setConversationId(nextId); setChatText(""); }
+    setChatBusy(false);
+  }
 
   async function reorder(ids: string[]) {
     await act({ action: "reorder", itemIds: ids });
@@ -614,6 +631,26 @@ function TrackerEditor({ id, onBack }: { id: string; onBack: () => void }) {
         <button className="admin-button">Add item</button>
       </form>
 
+      <section className="admin-setup" style={{ marginBottom: 24 }} aria-label="Tracker AI assistant">
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+          <div><h3 style={{ margin: 0 }}><Sparkles size={18} aria-hidden="true" /> Project companion</h3>
+            <p style={{ margin: "6px 0" }}>Explore ideas, refine an update, or pick up a previous conversation. Chats stay private.</p></div>
+          <button type="button" className="admin-button" onClick={() => { setConversationId(crypto.randomUUID()); setChatText(""); }}>New conversation</button>
+        </div>
+        {conversations.length > 0 && <label className="admin-field"><span>Conversation history</span>
+          <select value={selectedConversation ?? ""} onChange={(e) => setConversationId(e.target.value)}>
+            {conversationId && !conversations.includes(conversationId) && <option value={conversationId}>New conversation</option>}
+            {conversations.map((id) => { const first = detail.chatHistory.find((entry) => entry.conversation_id === id); return <option key={id} value={id}>{first?.content.slice(0, 65) || "Conversation"}</option>; })}
+          </select></label>}
+        <div aria-live="polite" style={{ display: "grid", gap: 10, margin: "16px 0", maxHeight: 420, overflowY: "auto" }}>
+          {chatMessages.length ? chatMessages.map((entry) => <div key={entry.id} style={{ padding: 12, borderRadius: 14, background: entry.role === "user" ? "var(--admin-accent-soft, #fff1e6)" : "var(--admin-surface, #f5f5f5)", maxWidth: "88%", justifySelf: entry.role === "user" ? "end" : "start", whiteSpace: "pre-wrap" }}><small>{entry.role === "user" ? "You" : "Project companion"} · {new Date(entry.created_at).toLocaleString()}</small><p style={{ margin: "6px 0 0" }}>{entry.content}</p></div>) : <p>Start with a question about this project, or ask for a fresh way to explain progress to your client.</p>}
+        </div>
+        <form onSubmit={(e) => void sendChat(e)} style={{ display: "grid", gap: 8 }}>
+          <label className="admin-field"><span>Message</span><textarea rows={3} maxLength={4000} value={chatText} onChange={(e) => setChatText(e.target.value)} placeholder="How can I explain the next milestone clearly?" /></label>
+          <button className="admin-button admin-button-primary" disabled={!aiReady || chatBusy || !chatText.trim()}>{chatBusy ? "Thinking…" : "Send message"}</button>
+          {!aiReady && <p>Set an AI key in Settings to start chatting.</p>}
+        </form>
+      </section>
       {drafts.length > 0 && <DraftReview drafts={drafts} items={items} act={act} />}
 
       <h3>Updates log</h3>

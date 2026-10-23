@@ -13,7 +13,9 @@ import {
   CircleAlert,
   CircleCheck,
   Copy,
+  History,
   ImagePlus,
+  Trash2,
   RotateCcw,
   X,
 } from "lucide-react";
@@ -38,6 +40,8 @@ type Message = {
   images?: string[];
   imageCount?: number;
 };
+
+type ChatSummary = { id: string; title: string; updated_at: string };
 
 const MAX_IMAGES = 4;
 /** Shrinks a screenshot so it uploads fast and stays well under 5 MB. */
@@ -147,8 +151,17 @@ export function TrackerAssistant({
 
   // Mirrors messages so a send fired straight after mount sees the loaded history.
   const latest = useRef<Message[]>([]);
+  // Each conversation has an id; it is saved to the account so history follows
+  // you across devices. The open chat is also kept in this browser.
+  const chatId = useRef("");
+  const [history, setHistory] = useState<ChatSummary[] | null>(null);
+  const [showHistory, setShowHistory] = useState(false);
+  const [historyError, setHistoryError] = useState("");
+  const syncTimer = useRef<number | undefined>(undefined);
   useEffect(() => {
     latest.current = load<Message[]>(STORE(admin), []);
+    chatId.current = load<string>(`${STORE(admin)}-id`, "") || crypto.randomUUID();
+    save(`${STORE(admin)}-id`, chatId.current);
     setMessages(latest.current);
     setModel(load<string>(MODEL_STORE, DEFAULT_AGENT_MODEL));
   }, [admin]);
@@ -168,12 +181,81 @@ export function TrackerAssistant({
   function update(next: Message[]) {
     latest.current = next;
     setMessages(next);
-    save(
-      STORE(admin),
-      next
-        .slice(-60)
-        .map(({ images: shots, ...m }) => (shots?.length ? { ...m, imageCount: shots.length } : m)),
-    );
+    const stored = next
+      .slice(-60)
+      .map(({ images: shots, ...m }) => (shots?.length ? { ...m, imageCount: shots.length } : m));
+    save(STORE(admin), stored);
+    if (!stored.length) return;
+    // Save to the account shortly after the chat settles.
+    window.clearTimeout(syncTimer.current);
+    const id = chatId.current;
+    syncTimer.current = window.setTimeout(() => {
+      const first = stored.find((m) => m.role === "user")?.content ?? "New chat";
+      void fetch("/api/expert/assistant-chats", {
+        method: "PUT",
+        headers: actorHeaders({ "content-type": "application/json" }),
+        body: JSON.stringify({
+          id,
+          title: first.replace(/\s+/g, " ").trim().slice(0, 80) || "New chat",
+          messages: stored,
+        }),
+      }).catch(() => {});
+    }, 800);
+  }
+
+  function newChat() {
+    window.clearTimeout(syncTimer.current);
+    // Flush the current chat before switching.
+    if (latest.current.length) update(latest.current);
+    chatId.current = crypto.randomUUID();
+    save(`${STORE(admin)}-id`, chatId.current);
+    latest.current = [];
+    setMessages([]);
+    save(STORE(admin), []);
+    setShowHistory(false);
+  }
+
+  async function openHistory() {
+    if (showHistory) return setShowHistory(false);
+    setShowHistory(true);
+    setHistoryError("");
+    try {
+      const r = await fetch("/api/expert/assistant-chats", { headers: actorHeaders() });
+      const data = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(data.error || "Chat history is unavailable.");
+      setHistory(data.chats ?? []);
+    } catch (e) {
+      setHistory([]);
+      setHistoryError((e as Error).message);
+    }
+  }
+
+  async function openChat(id: string) {
+    try {
+      const r = await fetch(`/api/expert/assistant-chats?id=${id}`, { headers: actorHeaders() });
+      const data = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(data.error || "Could not open that chat.");
+      window.clearTimeout(syncTimer.current);
+      chatId.current = id;
+      save(`${STORE(admin)}-id`, id);
+      latest.current = data.chat.messages as Message[];
+      setMessages(latest.current);
+      save(STORE(admin), latest.current);
+      setShowHistory(false);
+    } catch (e) {
+      setHistoryError((e as Error).message);
+    }
+  }
+
+  async function deleteChat(id: string) {
+    if (!window.confirm("Delete this chat from your history?")) return;
+    const r = await fetch(`/api/expert/assistant-chats?id=${id}`, {
+      method: "DELETE",
+      headers: actorHeaders(),
+    }).catch(() => null);
+    if (!r?.ok) return setHistoryError("Could not delete that chat.");
+    setHistory((list) => (list ?? []).filter((c) => c.id !== id));
+    if (id === chatId.current) newChat();
   }
 
   async function send(text: string) {
@@ -271,18 +353,68 @@ export function TrackerAssistant({
               ))}
             </select>
           </label>
+          <button
+            type="button"
+            className={`admin-button${showHistory ? " active" : ""}`}
+            onClick={() => void openHistory()}
+            aria-expanded={showHistory}
+            disabled={busy}
+          >
+            <History size={13} aria-hidden="true" /> History
+          </button>
           {messages.length > 0 && (
-            <button
-              type="button"
-              className="admin-button"
-              onClick={() => update([])}
-              disabled={busy}
-            >
+            <button type="button" className="admin-button" onClick={newChat} disabled={busy}>
               <RotateCcw size={13} aria-hidden="true" /> New chat
             </button>
           )}
         </div>
       </div>
+
+      {showHistory && (
+        <div className="ta-history" role="region" aria-label="Chat history">
+          {historyError && (
+            <p className="settings-muted" role="alert">
+              {historyError}
+            </p>
+          )}
+          {history === null ? (
+            <p className="settings-muted">Loading your chats…</p>
+          ) : history.length === 0 ? (
+            !historyError && <p className="settings-muted">No saved chats yet.</p>
+          ) : (
+            <ul>
+              {history.map((c) => (
+                <li key={c.id} className={c.id === chatId.current ? "current" : ""}>
+                  <button
+                    type="button"
+                    className="ta-history-open"
+                    onClick={() => void openChat(c.id)}
+                  >
+                    <strong>{c.title}</strong>
+                    <small>
+                      {new Date(c.updated_at).toLocaleString("en-GB", {
+                        day: "numeric",
+                        month: "short",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                      {c.id === chatId.current ? " · open now" : ""}
+                    </small>
+                  </button>
+                  <button
+                    type="button"
+                    className="ta-history-delete"
+                    aria-label={`Delete chat: ${c.title}`}
+                    onClick={() => void deleteChat(c.id)}
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
 
       <div className="ta-thread" aria-live="polite">
         {messages.length === 0 && (

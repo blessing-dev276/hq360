@@ -129,6 +129,7 @@ import { Route as ApiAdminUploadRouteImport } from './routes/api/admin/upload'
 import { Route as ApiAdminUploadUrlRouteImport } from './routes/api/admin/upload-url'
 import { Route as ApiAdminVisitorsRouteImport } from './routes/api/admin/visitors'
 import { Route as ApiExpertAiKeyRouteImport } from './routes/api/expert/ai-key'
+import { Route as ApiExpertAssistantChatsRouteImport } from './routes/api/expert/assistant-chats'
 import { Route as ApiExpertInviteRouteImport } from './routes/api/expert/invite'
 import { Route as ApiExpertInvoiceRequestsRouteImport } from './routes/api/expert/invoice-requests'
 import { Route as ApiExpertLeadsRouteImport } from './routes/api/expert/leads'
@@ -852,6 +853,11 @@ const ApiAdminVisitorsRoute = ApiAdminVisitorsRouteImport.update({
 const ApiExpertAiKeyRoute = ApiExpertAiKeyRouteImport.update({
   id: '/api/expert/ai-key',
   path: '/api/expert/ai-key',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiExpertAssistantChatsRoute = ApiExpertAssistantChatsRouteImport.update({
+  id: '/api/expert/assistant-chats',
+  path: '/api/expert/assistant-chats',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiExpertInviteRoute = ApiExpertInviteRouteImport.update({
@@ -1578,6 +1584,7 @@ export interface FileRoutesByFullPath {
   '/api/admin/upload-url': typeof ApiAdminUploadUrlRoute
   '/api/admin/visitors': typeof ApiAdminVisitorsRoute
   '/api/expert/ai-key': typeof ApiExpertAiKeyRoute
+  '/api/expert/assistant-chats': typeof ApiExpertAssistantChatsRoute
   '/api/expert/invite': typeof ApiExpertInviteRoute
   '/api/expert/invoice-requests': typeof ApiExpertInvoiceRequestsRoute
   '/api/expert/leads': typeof ApiExpertLeadsRoute
@@ -1811,6 +1818,7 @@ export interface FileRoutesByTo {
   '/api/admin/upload-url': typeof ApiAdminUploadUrlRoute
   '/api/admin/visitors': typeof ApiAdminVisitorsRoute
   '/api/expert/ai-key': typeof ApiExpertAiKeyRoute
+  '/api/expert/assistant-chats': typeof ApiExpertAssistantChatsRoute
   '/api/expert/invite': typeof ApiExpertInviteRoute
   '/api/expert/invoice-requests': typeof ApiExpertInvoiceRequestsRoute
   '/api/expert/leads': typeof ApiExpertLeadsRoute
@@ -2045,6 +2053,7 @@ export interface FileRoutesById {
   '/api/admin/upload-url': typeof ApiAdminUploadUrlRoute
   '/api/admin/visitors': typeof ApiAdminVisitorsRoute
   '/api/expert/ai-key': typeof ApiExpertAiKeyRoute
+  '/api/expert/assistant-chats': typeof ApiExpertAssistantChatsRoute
   '/api/expert/invite': typeof ApiExpertInviteRoute
   '/api/expert/invoice-requests': typeof ApiExpertInvoiceRequestsRoute
   '/api/expert/leads': typeof ApiExpertLeadsRoute
@@ -2280,6 +2289,7 @@ export interface FileRouteTypes {
     | '/api/admin/upload-url'
     | '/api/admin/visitors'
     | '/api/expert/ai-key'
+    | '/api/expert/assistant-chats'
     | '/api/expert/invite'
     | '/api/expert/invoice-requests'
     | '/api/expert/leads'
@@ -2513,6 +2523,7 @@ export interface FileRouteTypes {
     | '/api/admin/upload-url'
     | '/api/admin/visitors'
     | '/api/expert/ai-key'
+    | '/api/expert/assistant-chats'
     | '/api/expert/invite'
     | '/api/expert/invoice-requests'
     | '/api/expert/leads'
@@ -2746,6 +2757,7 @@ export interface FileRouteTypes {
     | '/api/admin/upload-url'
     | '/api/admin/visitors'
     | '/api/expert/ai-key'
+    | '/api/expert/assistant-chats'
     | '/api/expert/invite'
     | '/api/expert/invoice-requests'
     | '/api/expert/leads'
@@ -2980,6 +2992,7 @@ export interface RootRouteChildren {
   ApiAdminUploadUrlRoute: typeof ApiAdminUploadUrlRoute
   ApiAdminVisitorsRoute: typeof ApiAdminVisitorsRoute
   ApiExpertAiKeyRoute: typeof ApiExpertAiKeyRoute
+  ApiExpertAssistantChatsRoute: typeof ApiExpertAssistantChatsRoute
   ApiExpertInviteRoute: typeof ApiExpertInviteRoute
   ApiExpertInvoiceRequestsRoute: typeof ApiExpertInvoiceRequestsRoute
   ApiExpertLeadsRoute: typeof ApiExpertLeadsRoute
@@ -3875,6 +3888,13 @@ declare module '@tanstack/react-router' {
       path: '/api/expert/ai-key'
       fullPath: '/api/expert/ai-key'
       preLoaderRoute: typeof ApiExpertAiKeyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/expert/assistant-chats': {
+      id: '/api/expert/assistant-chats'
+      path: '/api/expert/assistant-chats'
+      fullPath: '/api/expert/assistant-chats'
+      preLoaderRoute: typeof ApiExpertAssistantChatsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/expert/invite': {
@@ -5255,6 +5275,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAdminUploadUrlRoute: ApiAdminUploadUrlRoute,
   ApiAdminVisitorsRoute: ApiAdminVisitorsRoute,
   ApiExpertAiKeyRoute: ApiExpertAiKeyRoute,
+  ApiExpertAssistantChatsRoute: ApiExpertAssistantChatsRoute,
   ApiExpertInviteRoute: ApiExpertInviteRoute,
   ApiExpertInvoiceRequestsRoute: ApiExpertInvoiceRequestsRoute,
   ApiExpertLeadsRoute: ApiExpertLeadsRoute,

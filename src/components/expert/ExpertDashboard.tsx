@@ -251,8 +251,8 @@ export function ExpertDashboard({ onNavigate }: { onNavigate: (tab: Page) => voi
   ];
 
   return (
-    <div className="hqd-dash">
-      <section className="hqd-hero xd-hero">
+    <div className="wsd-dash">
+      <section className="wsd-hero xd-hero">
         <div className="xd-who">
           {profile.photo_url ? (
             <img src={profile.photo_url} alt="" className="xd-avatar" />
@@ -281,7 +281,7 @@ export function ExpertDashboard({ onNavigate }: { onNavigate: (tab: Page) => voi
         </div>
         <button
           type="button"
-          className="hqd-ask"
+          className="wsd-ask"
           onClick={() => openAssistant("What should I focus on today?")}
         >
           <span className="siri-orb" aria-hidden="true" />
@@ -297,7 +297,7 @@ export function ExpertDashboard({ onNavigate }: { onNavigate: (tab: Page) => voi
         {stats.map(({ label, value, detail, icon: Icon, to }) => (
           <button
             type="button"
-            className="admin-stat hqd-stat"
+            className="admin-stat wsd-stat"
             key={label}
             onClick={() => onNavigate(to)}
           >
@@ -402,7 +402,7 @@ export function ExpertDashboard({ onNavigate }: { onNavigate: (tab: Page) => voi
             <p>Everything you can use, and what you can unlock.</p>
           </div>
         </div>
-        <div className="hqd-areas">
+        <div className="wsd-areas">
           {(
             [
               {
@@ -431,7 +431,7 @@ export function ExpertDashboard({ onNavigate }: { onNavigate: (tab: Page) => voi
               <button
                 type="button"
                 key={key}
-                className={`hqd-area${locked ? " xd-locked" : ""}`}
+                className={`wsd-area${locked ? " xd-locked" : ""}`}
                 onClick={() => onNavigate(key)}
               >
                 <span className="admin-action-icon">
@@ -461,7 +461,7 @@ export function ExpertDashboard({ onNavigate }: { onNavigate: (tab: Page) => voi
           {!trackers ? (
             <GlassLoading label="Loading trackers…" variant="table" rows={3} />
           ) : trackers.length ? (
-            <ul className="hqd-trackers">
+            <ul className="wsd-trackers">
               {trackers.slice(0, 6).map((t) => (
                 <li key={t.id}>
                   <span>
@@ -471,7 +471,7 @@ export function ExpertDashboard({ onNavigate }: { onNavigate: (tab: Page) => voi
                       {t.published_at ? `${t.viewsThisWeek} views this week` : "Not published"}
                     </small>
                   </span>
-                  <span className="hqd-progress" aria-label={`${t.progress}% complete`}>
+                  <span className="wsd-progress" aria-label={`${t.progress}% complete`}>
                     <span style={{ width: `${t.progress}%` }} />
                   </span>
                   <small className="admin-numeric">{t.progress}%</small>

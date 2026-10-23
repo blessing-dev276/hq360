@@ -117,7 +117,7 @@ function greeting() {
 function VisitorBars({ daily }: { daily: Visitors["daily"] }) {
   const max = Math.max(1, ...daily.map((d) => d.visitors));
   return (
-    <div className="hqd-bars" role="img" aria-label="Daily website visitors, last 14 days">
+    <div className="wsd-bars" role="img" aria-label="Daily website visitors, last 14 days">
       {daily.map((d, i) => (
         <span
           key={d.date}
@@ -379,8 +379,8 @@ export function AdminDashboard({ onNavigate }: { onNavigate: (tab: Tab) => void 
   const attentionCount = attention.reduce((n, a) => n + a.count, 0);
 
   return (
-    <div className="hqd-dash">
-      <section className="hqd-hero">
+    <div className="wsd-dash">
+      <section className="wsd-hero">
         <div>
           <p className="admin-eyebrow">
             {new Date().toLocaleDateString("en-GB", {
@@ -400,7 +400,7 @@ export function AdminDashboard({ onNavigate }: { onNavigate: (tab: Tab) => void 
         </div>
         <button
           type="button"
-          className="hqd-ask"
+          className="wsd-ask"
           onClick={() => openAssistant("What needs my attention today?")}
         >
           <span className="siri-orb" aria-hidden="true" />
@@ -416,7 +416,7 @@ export function AdminDashboard({ onNavigate }: { onNavigate: (tab: Tab) => void 
         {kpis.map(({ label, value, detail, icon: Icon, tab }) => (
           <button
             type="button"
-            className="admin-stat hqd-stat"
+            className="admin-stat wsd-stat"
             key={label}
             onClick={() => onNavigate(tab)}
           >
@@ -484,7 +484,7 @@ export function AdminDashboard({ onNavigate }: { onNavigate: (tab: Tab) => void 
             ) : daily.length ? (
               <>
                 <VisitorBars daily={daily} />
-                <div className="hqd-mini-stats">
+                <div className="wsd-mini-stats">
                   <span>
                     <strong>{data.visitors?.visitors ?? 0}</strong> visitors
                   </span>
@@ -510,9 +510,9 @@ export function AdminDashboard({ onNavigate }: { onNavigate: (tab: Tab) => void 
             <p>Every area of HQ360, with what's happening in each.</p>
           </div>
         </div>
-        <div className="hqd-areas">
+        <div className="wsd-areas">
           {areas.map(({ tab, icon: Icon, title, metric, note, source }) => (
-            <button type="button" key={title} className="hqd-area" onClick={() => onNavigate(tab)}>
+            <button type="button" key={title} className="wsd-area" onClick={() => onNavigate(tab)}>
               <span className="admin-action-icon">
                 <Icon size={18} />
               </span>
@@ -521,7 +521,7 @@ export function AdminDashboard({ onNavigate }: { onNavigate: (tab: Tab) => void 
                 <Skeleton width="60%" height={10} />
               ) : (
                 <>
-                  <span className="hqd-area-metric hq-fade-in">
+                  <span className="wsd-area-metric hq-fade-in">
                     {source === null ? "—" : metric}
                   </span>
                   <small className="hq-fade-in">{note}</small>
@@ -599,7 +599,7 @@ export function AdminDashboard({ onNavigate }: { onNavigate: (tab: Tab) => void 
             {!data ? (
               <GlassLoading label="Loading trackers…" variant="table" rows={4} />
             ) : trackers.length ? (
-              <ul className="hqd-trackers">
+              <ul className="wsd-trackers">
                 {trackers.slice(0, 5).map((t) => (
                   <li key={t.id}>
                     <span>
@@ -608,7 +608,7 @@ export function AdminDashboard({ onNavigate }: { onNavigate: (tab: Tab) => void 
                         {t.published_at ? `${t.viewsThisWeek} views this week` : "Not published"}
                       </small>
                     </span>
-                    <span className="hqd-progress" aria-label={`${t.progress}% complete`}>
+                    <span className="wsd-progress" aria-label={`${t.progress}% complete`}>
                       <span style={{ width: `${t.progress}%` }} />
                     </span>
                     <small className="admin-numeric">{t.progress}%</small>

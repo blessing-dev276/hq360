@@ -436,7 +436,7 @@ export function OutreachCampaign({ spec }: { spec: CampaignSpec }) {
               value={state.prompt}
               onChange={(e) => update({ prompt: e.target.value })}
               placeholder="Paste the prompt you use to write personalised author emails…"
-              maxLength={12000}
+              maxLength={20000}
             />
           </label>
           <label>

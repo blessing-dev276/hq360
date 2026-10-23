@@ -544,7 +544,12 @@ export function TrackerAssistant({
           <textarea
             rows={2}
             value={input}
-            onChange={(e) => setInput(e.target.value)}
+            onChange={(e) => {
+              setInput(e.target.value);
+              // Grow with the text (up to a cap), so long prompts stay readable.
+              e.target.style.height = "auto";
+              e.target.style.height = `${Math.min(e.target.scrollHeight, 320)}px`;
+            }}
             onKeyDown={onKey}
             onPaste={(e) => {
               const files = [...e.clipboardData.files];
@@ -555,7 +560,7 @@ export function TrackerAssistant({
             }}
             placeholder="Message the AI Assistant, or paste a screenshot… (Enter to send)"
             aria-label="Message"
-            maxLength={8000}
+            maxLength={20000}
           />
           <button
             className="ta-send"

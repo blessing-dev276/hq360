@@ -385,7 +385,11 @@ export async function chat(
   const key = await (deps.key ?? perplexityKey)(actor);
   const transcript = messages
     .slice(-20)
-    .map((m) => `${m.role === "user" ? "EXPERT" : "ASSISTANT"}: ${m.content.slice(0, 4000)}`)
+    // The latest message is sent in full (e.g. a long outreach prompt); older ones are trimmed.
+    .map(
+      (m, i, all) =>
+        `${m.role === "user" ? "EXPERT" : "ASSISTANT"}: ${m.content.slice(0, i === all.length - 1 ? 20000 : 4000)}`,
+    )
     .join("\n\n");
   const prompt = `${await context(actor)}\n\nCONVERSATION\n${transcript}\n\n${images.length ? `The last EXPERT message has ${images.length} screenshot(s) attached. ` : ""}Answer the last EXPERT message.`;
   const staged = images.length ? await stageImages(actor, images) : { keys: [], urls: [] };

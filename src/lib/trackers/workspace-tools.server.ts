@@ -74,7 +74,7 @@ export const workspaceActionSchemas = [
     type: z.literal("start_outreach_campaign"),
     genre: z.string().trim().min(2).max(120),
     count: z.number().int().min(1).max(50),
-    prompt: z.string().trim().max(12000).optional(),
+    prompt: z.string().trim().max(20000).optional(),
     sender_name: z.string().trim().max(100).optional(),
   }),
   z.object({

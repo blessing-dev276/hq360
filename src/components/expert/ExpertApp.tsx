@@ -12,7 +12,6 @@ import {
   FileText,
   Images,
   LayoutDashboard,
-  LogOut,
   ScanSearch,
   UserRound,
   type LucideIcon,
@@ -41,6 +40,7 @@ import { ExpertAuditLink } from "./ExpertAuditLink";
 import { ExpertInvoiceRequests } from "./ExpertInvoiceRequests";
 import { LeadsWorkspace } from "@/components/admin/LeadsAdmin";
 import { TrainerTools } from "@/components/academy/TrainerTools";
+import { WorkspaceFooter } from "@/components/admin/WorkspaceFooter";
 import "@/components/academy/academy.css";
 import "@/components/admin/admin-workspace.css";
 
@@ -230,31 +230,14 @@ export function ExpertApp() {
             </button>
           ))}
         </nav>
-        <div className="admin-sidebar-bottom">
-          <button
-            onClick={() => navigate("settings")}
-            className={cn("admin-nav-item", tab === "settings" && "active")}
-            aria-current={tab === "settings" ? "page" : undefined}
-          >
-            <Settings size={18} />
-            <span>Settings</span>
-          </button>
-          {!guest && (
-            <a href="/experts" target="_blank" rel="noreferrer" className="admin-nav-item">
-              <UserRound size={18} />
-              Experts directory
-            </a>
-          )}
-          <a href="/academy" target="_blank" rel="noreferrer" className="admin-nav-item">
-            <GraduationCap size={18} />
-            Academy
-          </a>
-          <button className="admin-nav-item" onClick={() => void signOut()}>
-            <LogOut size={18} />
-            Sign out
-          </button>
-          {logoutError && <p role="alert">{logoutError}</p>}
-        </div>
+        <WorkspaceFooter
+          role="expert"
+          email={email}
+          settingsActive={tab === "settings"}
+          onSettings={() => navigate("settings")}
+          onSignOut={() => void signOut()}
+          logoutError={logoutError}
+        />
       </aside>
       <div className="admin-main">
         <header className="admin-topbar">

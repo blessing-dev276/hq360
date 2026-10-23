@@ -25,8 +25,6 @@ import {
   ListChecks,
   Settings,
   CreditCard,
-  ArrowUpRight,
-  LogOut,
   UserCheck,
   Globe2,
   ReceiptText,
@@ -45,6 +43,7 @@ import { ClientTrackers } from "@/components/expert/ClientTrackers";
 import { AssistantDrawer, ClientTrackingModes } from "@/components/expert/TrackerAssistant";
 import { SettingsPage } from "@/components/settings/SettingsPage";
 import { TrackerPortfolioDrafts } from "@/components/expert/TrackerPortfolioDrafts";
+import { WorkspaceFooter } from "./WorkspaceFooter";
 import "@/components/trackers/tracker-page.css";
 import "./admin-workspace.css";
 
@@ -347,25 +346,13 @@ export function AdminApp({ initialTab = "overview" }: { initialTab?: Tab }) {
           )}
         </nav>
 
-        <div className="admin-sidebar-bottom">
-          <button
-            onClick={() => navigate("settings")}
-            className={cn("admin-nav-item", tab === "settings" && "active")}
-            aria-current={tab === "settings" ? "page" : undefined}
-          >
-            <Settings size={18} />
-            <span>Settings</span>
-          </button>
-          <a href="/" target="_blank" rel="noreferrer" className="admin-nav-item">
-            <ArrowUpRight size={18} />
-            View website
-          </a>
-          <button className="admin-nav-item" onClick={() => void signOut()}>
-            <LogOut size={18} />
-            Sign out
-          </button>
-          {logoutError && <p role="alert">{logoutError}</p>}
-        </div>
+        <WorkspaceFooter
+          role="admin"
+          settingsActive={tab === "settings"}
+          onSettings={() => navigate("settings")}
+          onSignOut={() => void signOut()}
+          logoutError={logoutError}
+        />
       </aside>
       <div className="admin-main">
         <header className="admin-topbar">

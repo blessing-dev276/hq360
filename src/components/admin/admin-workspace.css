@@ -127,13 +127,74 @@
 }
 .admin-sidebar-bottom {
   margin-top: auto;
-  padding-top: 32px;
+  padding-top: 16px;
   border-top: 1px solid var(--border);
   margin-inline: -4px;
   padding-inline: 4px;
 }
-.admin-sidebar-bottom {
-  padding-top: 18px;
+.admin-sidebar-identity {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 2px 8px 16px;
+}
+.admin-sidebar-avatar {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  border-radius: 11px;
+  background: var(--brand-wash);
+  color: var(--brand-strong);
+  font-size: 13px;
+  font-weight: 700;
+}
+.admin-sidebar-identity-copy {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+.admin-sidebar-identity-copy strong {
+  color: var(--foreground);
+  font-size: 12px;
+  font-weight: 600;
+}
+.admin-sidebar-identity-copy small {
+  overflow: hidden;
+  color: var(--dim);
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.admin-sidebar-section-label {
+  padding: 0 12px;
+  margin: 0 0 8px;
+  color: var(--dim);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+}
+.admin-sidebar-external {
+  margin-left: auto;
+  color: var(--dim);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.admin-sidebar-bottom a:hover .admin-sidebar-external,
+.admin-sidebar-bottom a:focus-visible .admin-sidebar-external {
+  opacity: 1;
+}
+.admin-sidebar-signout {
+  border-top: 1px solid var(--border);
+  margin-top: 10px;
+  padding-top: 10px;
+}
+.admin-sidebar-error {
+  padding: 2px 12px;
+  color: #ff9d81;
+  font-size: 11px;
 }
 .admin-main {
   flex: 1;
@@ -894,20 +955,32 @@
     display: none;
   }
   .admin-sidebar-bottom {
-    position: absolute;
-    top: 15px;
-    right: 15px;
-    padding: 0;
-    margin: 0;
-    border: 0;
+    position: static;
+    margin: 12px 0 0;
+    padding: 12px 0 0;
+    border-top: 1px solid var(--border);
     display: flex;
-    gap: 5px;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .admin-sidebar-identity,
+  .admin-sidebar-section-label {
+    display: none;
   }
   .admin-sidebar-bottom .admin-nav-item {
     width: auto;
-    font-size: 10px;
+    font-size: 11px;
     gap: 5px;
-    padding: 8px;
+    padding: 9px;
+    margin: 0;
+  }
+  .admin-sidebar-external {
+    display: none;
+  }
+  .admin-sidebar-signout {
+    border: 0;
+    margin: 0;
+    padding: 0;
   }
   .admin-topbar {
     position: static;

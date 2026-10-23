@@ -127,7 +127,6 @@ export function ExpertApp() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [salesView, setSalesView] = useState<SalesView>("proposals");
   const [email, setEmail] = useState<string>();
-  const [publicProfileSlug, setPublicProfileSlug] = useState<string>();
 
   const unlocked = TOOLS.filter((t) => permissions.includes(t.id));
   const locked = TOOLS.filter((t) => !permissions.includes(t.id));
@@ -158,7 +157,6 @@ export function ExpertApp() {
       .then((data) => {
         setPermissions(data.profile?.permissions ?? []);
         setEmail(data.profile?.email ?? undefined);
-        setPublicProfileSlug(data.profile?.is_public ? data.profile?.slug : undefined);
         setRole(data.profile?.role ?? "contributor");
         setAcademyTrainer(Boolean(data.profile?.academy_trainer));
         if (data.profile?.is_guest) {
@@ -234,14 +232,8 @@ export function ExpertApp() {
         </nav>
         <WorkspaceFooter
           role="expert"
-          email={email}
-          guest={guest}
-          academyTrainer={academyTrainer}
-          publicProfileSlug={publicProfileSlug}
-          activePage={tab === "academy" || tab === "profile" ? tab : undefined}
           settingsActive={tab === "settings"}
           onSettings={() => navigate("settings")}
-          onNavigate={(page) => navigate(page === "academy" ? "academy" : "profile")}
           onSignOut={() => void signOut()}
           logoutError={logoutError}
         />

@@ -348,10 +348,8 @@ export function AdminApp({ initialTab = "overview" }: { initialTab?: Tab }) {
 
         <WorkspaceFooter
           role="admin"
-          activePage={tab === "experts" || tab === "academy" ? tab : undefined}
           settingsActive={tab === "settings"}
           onSettings={() => navigate("settings")}
-          onNavigate={(page) => navigate(page === "profile" ? "experts" : page)}
           onSignOut={() => void signOut()}
           logoutError={logoutError}
         />

@@ -74,6 +74,8 @@ export type ActionResult = {
   passcode?: string;
   /** A workspace page the UI should open. */
   open?: string;
+  /** An outreach campaign for the UI to run (admin only). */
+  campaign?: import("./workspace-tools.server").Campaign;
 };
 
 const id = z.string().uuid();

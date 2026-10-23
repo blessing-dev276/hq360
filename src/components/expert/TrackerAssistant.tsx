@@ -17,10 +17,18 @@ import {
   RotateCcw,
   X,
 } from "lucide-react";
+import { OutreachCampaign, type CampaignSpec } from "@/components/admin/OutreachCampaign";
 import { AGENT_MODELS, DEFAULT_AGENT_MODEL } from "@/lib/trackers/agent-models";
 import { actorHeaders, setTrackerAdminMode } from "./tracker-actor";
 
-type Result = { ok: boolean; text: string; link?: string; passcode?: string; open?: string };
+type Result = {
+  ok: boolean;
+  text: string;
+  link?: string;
+  passcode?: string;
+  open?: string;
+  campaign?: CampaignSpec;
+};
 type Message = {
   role: "user" | "assistant";
   content: string;
@@ -50,6 +58,10 @@ const WORKSPACE_SUGGESTIONS = [
   "Which leads have follow-ups due, and what should I say to each?",
   "Add a lead: Jane Doe, jane@example.com, wants a book launch, follow up Friday",
   "Draft a proposal for Jane Doe's book launch",
+];
+const ADMIN_WORKSPACE_SUGGESTIONS = [
+  "Scout 20 new Thriller authors, find their emails and draft my outreach to each",
+  ...WORKSPACE_SUGGESTIONS.slice(0, 3),
 ];
 const SUGGESTIONS = [
   "Create a tracker for Jane Doe, book launch project, with items: cover design, Amazon listing, 10 reader reviews",
@@ -276,7 +288,12 @@ export function TrackerAssistant({
         {messages.length === 0 && (
           <div className="ta-empty">
             <p>Try one of these:</p>
-            {(workspace ? WORKSPACE_SUGGESTIONS : SUGGESTIONS).map((s) => (
+            {(workspace
+              ? admin
+                ? ADMIN_WORKSPACE_SUGGESTIONS
+                : WORKSPACE_SUGGESTIONS
+              : SUGGESTIONS
+            ).map((s) => (
               <button key={s} type="button" className="ta-suggestion" onClick={() => void send(s)}>
                 {s}
               </button>
@@ -308,6 +325,7 @@ export function TrackerAssistant({
                       <CopyChip text={r.link} label="Copy link" />
                     </p>
                   )}
+                  {r.campaign && admin && <OutreachCampaign spec={r.campaign} />}
                   {r.passcode && (
                     <p className="ta-line">
                       Passcode <code>{r.passcode}</code>

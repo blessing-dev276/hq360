@@ -71,6 +71,13 @@ export const workspaceActionSchemas = [
     body: z.string().trim().max(20000).optional(),
   }),
   z.object({
+    type: z.literal("start_outreach_campaign"),
+    genre: z.string().trim().min(2).max(120),
+    count: z.number().int().min(1).max(50),
+    prompt: z.string().trim().max(12000).optional(),
+    sender_name: z.string().trim().max(100).optional(),
+  }),
+  z.object({
     type: z.literal("open_page"),
     page: z.enum([...new Set([...ADMIN_PAGES, ...EXPERT_PAGES])] as [string, ...string[]]),
   }),
@@ -97,6 +104,10 @@ export const WORKSPACE_SCHEMA_PROPS = {
   subtitle: { type: "string" },
   body: { type: "string" },
   page: { type: "string" },
+  genre: { type: "string" },
+  count: { type: "integer" },
+  prompt: { type: "string" },
+  sender_name: { type: "string" },
 };
 
 export const WORKSPACE_INSTRUCTIONS = `
@@ -108,10 +119,27 @@ Beyond trackers you can help across the whole HQ360 workspace:
 Stages: ${SALES_STAGES.join(", ")}. Project statuses: ${PROJECT_STATUSES.join(", ")}.
 Use WORKSPACE in CONTEXT to answer questions about leads, follow-ups, sales, proposals, quotes, audits and experts (summaries, what's due, what needs attention, drafting emails or messages). Only use lead_id values from WORKSPACE. You cannot send emails, take payments, approve experts or change access: say where in the workspace to do it and offer open_page.`;
 
+const CAMPAIGN_INSTRUCTIONS = `
+Author outreach campaigns (admin only):
+- start_outreach_campaign {genre, count (1-50), prompt?, sender_name?} scouts \`count\` new authors in a Reedsy Discovery genre into a new Scouting batch, finds their emails, then drafts one personalised email per author from the admin's outreach prompt. Nothing is sent: the admin reviews every draft and presses Send in the campaign card.
+- Before starting, make sure you know the genre, how many authors, and the admin's outreach prompt (the instructions they use to write personalised messages). If they have not given the prompt in this conversation, ask for it, and say they can also reply "use my saved prompt" (then send prompt empty and the card uses the saved one). Pass the prompt exactly as written. sender_name is the name signed under the email, if they give one.
+- Email research and drafting use the admin's Perplexity key and cost a little per author; mention it once when you start.`;
+
 export function workspaceInstructions(actor: Actor) {
   const pages = actor.role === "admin" ? ADMIN_PAGES : EXPERT_PAGES;
-  return WORKSPACE_INSTRUCTIONS.replace("PAGES", pages.join(", "));
+  return (
+    WORKSPACE_INSTRUCTIONS.replace("PAGES", pages.join(", ")) +
+    (actor.role === "admin" ? CAMPAIGN_INSTRUCTIONS : "")
+  );
 }
+
+export type Campaign = {
+  id: string;
+  genre: string;
+  count: number;
+  prompt: string;
+  senderName: string;
+};
 
 async function permissions(actor: Actor) {
   if (actor.role === "admin") return null;
@@ -256,7 +284,13 @@ export async function workspaceContext(actor: Actor) {
   return `WORKSPACE\n${lines.join("\n")}`;
 }
 
-export type WorkspaceResult = { ok: boolean; text: string; link?: string; open?: string };
+export type WorkspaceResult = {
+  ok: boolean;
+  text: string;
+  link?: string;
+  open?: string;
+  campaign?: Campaign;
+};
 
 export async function runWorkspaceAction(
   actor: Actor,
@@ -269,6 +303,22 @@ export async function runWorkspaceAction(
       if (!pages.includes(action.page))
         return { ok: false, text: "That page isn't in this workspace." };
       return { ok: true, text: `Opening ${action.page}.`, open: action.page };
+    }
+    case "start_outreach_campaign": {
+      if (actor.role !== "admin")
+        return { ok: false, text: "Outreach campaigns are available in the admin workspace." };
+      const { randomUUID } = await import("node:crypto");
+      return {
+        ok: true,
+        text: `Campaign ready: ${action.count} ${action.genre} authors. Follow the steps below; nothing is sent until you approve it.`,
+        campaign: {
+          id: randomUUID(),
+          genre: action.genre,
+          count: action.count,
+          prompt: action.prompt ?? "",
+          senderName: action.sender_name ?? "",
+        },
+      };
     }
     case "create_lead": {
       const { error } = await d.from("sales_leads").insert({

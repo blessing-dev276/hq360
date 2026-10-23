@@ -2584,8 +2584,7 @@ html[data-panel-theme="light"] .ta-drawer {
   border-color: rgb(255 255 255 / 0.7);
   background:
     radial-gradient(120% 60% at 100% 0%, rgb(139 92 246 / 0.16), transparent 60%),
-    radial-gradient(90% 50% at 0% 100%, rgb(255 90 0 / 0.14), transparent 60%),
-    #f7f7fa;
+    radial-gradient(90% 50% at 0% 100%, rgb(255 90 0 / 0.14), transparent 60%), #f7f7fa;
   --foreground: #1d1d1f;
   --muted-foreground: rgb(29 29 31 / 0.6);
   --border: rgb(0 0 0 / 0.08);
@@ -3045,5 +3044,155 @@ html[data-panel-theme="light"] .ta-drawer {
   }
   .xd-profile-actions {
     padding: 14px 16px 18px;
+  }
+}
+
+/* AI Assistant outreach campaign card */
+.ta-result > div:has(.oc) {
+  flex: 1;
+  min-width: 0;
+}
+.oc {
+  display: grid;
+  gap: 12px;
+  margin-top: 10px;
+  padding: 14px;
+  border-radius: 18px;
+  background: rgb(127 127 127 / 0.1);
+}
+.oc svg {
+  margin-top: 0;
+}
+.oc-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+.oc-steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 11px;
+}
+.oc-steps li {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgb(127 127 127 / 0.14);
+  color: var(--muted-foreground);
+}
+.oc-steps li.now {
+  background: linear-gradient(135deg, #ff5a00, #8b5cf6);
+  color: #fff;
+}
+.oc-steps li.done {
+  color: var(--foreground);
+}
+.oc-steps li.done::before {
+  content: "✓ ";
+}
+.oc-setup {
+  display: grid;
+  gap: 10px;
+}
+.oc-setup label {
+  display: grid;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.oc textarea,
+.oc input:not([type="checkbox"]) {
+  width: 100%;
+  padding: 9px 11px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--background);
+  color: var(--foreground);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 400;
+  resize: vertical;
+}
+.oc-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 12px;
+  color: var(--muted-foreground);
+}
+.oc-error {
+  color: oklch(0.65 0.17 30);
+}
+.oc-rows {
+  display: grid;
+  gap: 4px;
+  max-height: 340px;
+  overflow-y: auto;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.oc-rows li {
+  padding: 6px 8px;
+  border-radius: 12px;
+}
+.oc-rows li.open,
+.oc-rows li:hover {
+  background: rgb(127 127 127 / 0.1);
+}
+.oc-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.oc-who {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+  color: inherit;
+}
+.oc-who strong {
+  font-size: 13px;
+}
+.oc-who small,
+.oc-note {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+  color: var(--muted-foreground);
+}
+.oc-note {
+  display: block;
+  padding-left: 26px;
+  white-space: normal;
+}
+.oc-badge {
+  font-size: 11px;
+  color: var(--muted-foreground);
+}
+.oc-draft {
+  display: grid;
+  gap: 6px;
+  margin-top: 8px;
+}
+.oc-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+.oc-spin {
+  animation: oc-spin 0.9s linear infinite;
+}
+@keyframes oc-spin {
+  to {
+    transform: rotate(360deg);
   }
 }

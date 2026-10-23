@@ -103,6 +103,7 @@ import { Route as ApiAdminInvoiceRequestsRouteImport } from './routes/api/admin/
 import { Route as ApiAdminInvoicesRouteImport } from './routes/api/admin/invoices'
 import { Route as ApiAdminLeadsRouteImport } from './routes/api/admin/leads'
 import { Route as ApiAdminNotificationsRouteImport } from './routes/api/admin/notifications'
+import { Route as ApiAdminOutreachDraftRouteImport } from './routes/api/admin/outreach-draft'
 import { Route as ApiAdminPerplexitySettingsRouteImport } from './routes/api/admin/perplexity-settings'
 import { Route as ApiAdminPortfolioRouteImport } from './routes/api/admin/portfolio'
 import { Route as ApiAdminProposalsRouteImport } from './routes/api/admin/proposals'
@@ -712,6 +713,11 @@ const ApiAdminLeadsRoute = ApiAdminLeadsRouteImport.update({
 const ApiAdminNotificationsRoute = ApiAdminNotificationsRouteImport.update({
   id: '/api/admin/notifications',
   path: '/api/admin/notifications',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminOutreachDraftRoute = ApiAdminOutreachDraftRouteImport.update({
+  id: '/api/admin/outreach-draft',
+  path: '/api/admin/outreach-draft',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiAdminPerplexitySettingsRoute =
@@ -1546,6 +1552,7 @@ export interface FileRoutesByFullPath {
   '/api/admin/invoices': typeof ApiAdminInvoicesRouteWithChildren
   '/api/admin/leads': typeof ApiAdminLeadsRoute
   '/api/admin/notifications': typeof ApiAdminNotificationsRoute
+  '/api/admin/outreach-draft': typeof ApiAdminOutreachDraftRoute
   '/api/admin/perplexity-settings': typeof ApiAdminPerplexitySettingsRoute
   '/api/admin/portfolio': typeof ApiAdminPortfolioRouteWithChildren
   '/api/admin/proposals': typeof ApiAdminProposalsRouteWithChildren
@@ -1778,6 +1785,7 @@ export interface FileRoutesByTo {
   '/api/admin/invoices': typeof ApiAdminInvoicesRouteWithChildren
   '/api/admin/leads': typeof ApiAdminLeadsRoute
   '/api/admin/notifications': typeof ApiAdminNotificationsRoute
+  '/api/admin/outreach-draft': typeof ApiAdminOutreachDraftRoute
   '/api/admin/perplexity-settings': typeof ApiAdminPerplexitySettingsRoute
   '/api/admin/portfolio': typeof ApiAdminPortfolioRouteWithChildren
   '/api/admin/proposals': typeof ApiAdminProposalsRouteWithChildren
@@ -2011,6 +2019,7 @@ export interface FileRoutesById {
   '/api/admin/invoices': typeof ApiAdminInvoicesRouteWithChildren
   '/api/admin/leads': typeof ApiAdminLeadsRoute
   '/api/admin/notifications': typeof ApiAdminNotificationsRoute
+  '/api/admin/outreach-draft': typeof ApiAdminOutreachDraftRoute
   '/api/admin/perplexity-settings': typeof ApiAdminPerplexitySettingsRoute
   '/api/admin/portfolio': typeof ApiAdminPortfolioRouteWithChildren
   '/api/admin/proposals': typeof ApiAdminProposalsRouteWithChildren
@@ -2245,6 +2254,7 @@ export interface FileRouteTypes {
     | '/api/admin/invoices'
     | '/api/admin/leads'
     | '/api/admin/notifications'
+    | '/api/admin/outreach-draft'
     | '/api/admin/perplexity-settings'
     | '/api/admin/portfolio'
     | '/api/admin/proposals'
@@ -2477,6 +2487,7 @@ export interface FileRouteTypes {
     | '/api/admin/invoices'
     | '/api/admin/leads'
     | '/api/admin/notifications'
+    | '/api/admin/outreach-draft'
     | '/api/admin/perplexity-settings'
     | '/api/admin/portfolio'
     | '/api/admin/proposals'
@@ -2709,6 +2720,7 @@ export interface FileRouteTypes {
     | '/api/admin/invoices'
     | '/api/admin/leads'
     | '/api/admin/notifications'
+    | '/api/admin/outreach-draft'
     | '/api/admin/perplexity-settings'
     | '/api/admin/portfolio'
     | '/api/admin/proposals'
@@ -2942,6 +2954,7 @@ export interface RootRouteChildren {
   ApiAdminInvoicesRoute: typeof ApiAdminInvoicesRouteWithChildren
   ApiAdminLeadsRoute: typeof ApiAdminLeadsRoute
   ApiAdminNotificationsRoute: typeof ApiAdminNotificationsRoute
+  ApiAdminOutreachDraftRoute: typeof ApiAdminOutreachDraftRoute
   ApiAdminPerplexitySettingsRoute: typeof ApiAdminPerplexitySettingsRoute
   ApiAdminPortfolioRoute: typeof ApiAdminPortfolioRouteWithChildren
   ApiAdminProposalsRoute: typeof ApiAdminProposalsRouteWithChildren
@@ -3680,6 +3693,13 @@ declare module '@tanstack/react-router' {
       path: '/api/admin/notifications'
       fullPath: '/api/admin/notifications'
       preLoaderRoute: typeof ApiAdminNotificationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/outreach-draft': {
+      id: '/api/admin/outreach-draft'
+      path: '/api/admin/outreach-draft'
+      fullPath: '/api/admin/outreach-draft'
+      preLoaderRoute: typeof ApiAdminOutreachDraftRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/admin/perplexity-settings': {
@@ -5208,6 +5228,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAdminInvoicesRoute: ApiAdminInvoicesRouteWithChildren,
   ApiAdminLeadsRoute: ApiAdminLeadsRoute,
   ApiAdminNotificationsRoute: ApiAdminNotificationsRoute,
+  ApiAdminOutreachDraftRoute: ApiAdminOutreachDraftRoute,
   ApiAdminPerplexitySettingsRoute: ApiAdminPerplexitySettingsRoute,
   ApiAdminPortfolioRoute: ApiAdminPortfolioRouteWithChildren,
   ApiAdminProposalsRoute: ApiAdminProposalsRouteWithChildren,

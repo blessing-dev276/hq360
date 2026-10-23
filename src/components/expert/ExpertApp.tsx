@@ -22,7 +22,7 @@ import {
   Settings,
 } from "lucide-react";
 import { ClientTrackers } from "./ClientTrackers";
-import { ClientTrackingModes } from "@/components/expert/TrackerAssistant";
+import { AssistantDrawer, ClientTrackingModes } from "@/components/expert/TrackerAssistant";
 import { SettingsPage } from "@/components/settings/SettingsPage";
 import { TrackerPortfolioDrafts } from "./TrackerPortfolioDrafts";
 import { NoAccess } from "./NoAccess";
@@ -129,21 +129,26 @@ export function ExpertApp() {
   const [email, setEmail] = useState<string>();
 
   const unlocked = TOOLS.filter((t) => permissions.includes(t.id));
-  const locked = guest ? [] : TOOLS.filter((t) => !permissions.includes(t.id));
+  const locked = TOOLS.filter((t) => !permissions.includes(t.id));
   const academyItem: NavItem = {
     id: "academy",
     label: "Academy trainer",
     icon: GraduationCap,
     description: "Author Scout Academy: your trainees' progress, chats and the practice content.",
   };
+  // Guests only get the tools the admin granted (plus Leads with Scouting),
+  // but they see everything an expert sees: the rest opens a locked page.
+  const guestCore = CORE.filter((c) => c.id === "leads" && permissions.includes("scout"));
   const nav = [
-    ...(guest
-      ? [...CORE.filter((c) => c.id === "leads" && permissions.includes("scout")), ...unlocked]
-      : [...CORE, ...unlocked]),
+    ...(guest ? guestCore : CORE),
+    ...unlocked,
     ...(academyTrainer ? [academyItem] : []),
   ];
-  // Experts see every tool; ones they lack open a "not on the list" page.
-  const lockedNav: NavItem[] = guest ? [] : [...locked, ...(academyTrainer ? [] : [academyItem])];
+  const lockedNav: NavItem[] = [
+    ...(guest ? CORE.filter((c) => !guestCore.includes(c)) : []),
+    ...locked,
+    ...(academyTrainer ? [] : [academyItem]),
+  ];
   const allNav = [...nav, ...lockedNav, SETTINGS];
 
   useEffect(() => {
@@ -259,6 +264,22 @@ export function ExpertApp() {
             <p>{current.description}</p>
           </div>
           <div className="admin-account">
+            {guest ? (
+              <button
+                type="button"
+                className="admin-button ta-launch"
+                onClick={() => navigate("trackers")}
+                title="AI Assistant: experts only"
+              >
+                <Lock size={14} aria-hidden="true" /> <span>AI Assistant</span>
+              </button>
+            ) : (
+              <AssistantDrawer
+                onOpen={(page) => {
+                  if (nav.some((item) => item.id === page)) navigate(page as Tab);
+                }}
+              />
+            )}
             <PanelThemeToggle />
             <PanelRefreshButton onRefresh={() => setRefreshKey((k) => k + 1)} />
             <NotificationBell
@@ -278,12 +299,7 @@ export function ExpertApp() {
           {current.id === "settings" ? (
             <SettingsPage guest={guest} email={email} onSignOut={() => void signOut()} />
           ) : isLocked ? (
-            <NoAccess tool={current.id} label={current.label} />
-          ) : guest && nav.length === 0 ? (
-            <div className="admin-empty">
-              <h3>No tools yet</h3>
-              <p>HQ360 hasn't given you access to any tools right now.</p>
-            </div>
+            <NoAccess tool={current.id} label={current.label} guest={guest} />
           ) : current.id === "dashboard" ? (
             <ExpertDashboard onNavigate={navigate} />
           ) : current.id === "profile" ? (

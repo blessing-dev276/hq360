@@ -19,7 +19,7 @@ import {
 import { AGENT_MODELS, DEFAULT_AGENT_MODEL } from "@/lib/trackers/agent-models";
 import { actorHeaders, setTrackerAdminMode } from "./tracker-actor";
 
-type Result = { ok: boolean; text: string; link?: string; passcode?: string };
+type Result = { ok: boolean; text: string; link?: string; passcode?: string; open?: string };
 type Message = {
   role: "user" | "assistant";
   content: string;
@@ -44,6 +44,12 @@ async function toDataUrl(file: File): Promise<string> {
 
 const STORE = (admin: boolean) => `hq360-tracker-assistant-${admin ? "admin" : "expert"}`;
 const MODEL_STORE = "hq360-tracker-assistant-model";
+const WORKSPACE_SUGGESTIONS = [
+  "What needs my attention today?",
+  "Which leads have follow-ups due, and what should I say to each?",
+  "Add a lead: Jane Doe, jane@example.com, wants a book launch, follow up Friday",
+  "Draft a proposal for Jane Doe's book launch",
+];
 const SUGGESTIONS = [
   "Create a tracker for Jane Doe, book launch project, with items: cover design, Amazon listing, 10 reader reviews",
   "Show me the link and passcode for my latest tracker",
@@ -88,9 +94,18 @@ function CopyChip({ text, label }: { text: string; label: string }) {
 export function TrackerAssistant({
   admin = false,
   onChanged,
+  onOpen,
+  workspace = false,
+  prompt,
 }: {
   admin?: boolean;
   onChanged?: () => void;
+  /** Opens a workspace page when the assistant asks to (open_page). */
+  onOpen?: (page: string) => void;
+  /** Workspace-wide drawer: broader suggestions, compact layout. */
+  workspace?: boolean;
+  /** Sent once as soon as the chat is ready (e.g. from a dashboard button). */
+  prompt?: { text: string; at: number } | undefined;
 }) {
   setTrackerAdminMode(admin);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -117,15 +132,28 @@ export function TrackerAssistant({
     }
   }
 
+  // Mirrors messages so a send fired straight after mount sees the loaded history.
+  const latest = useRef<Message[]>([]);
   useEffect(() => {
-    setMessages(load<Message[]>(STORE(admin), []));
+    latest.current = load<Message[]>(STORE(admin), []);
+    setMessages(latest.current);
     setModel(load<string>(MODEL_STORE, DEFAULT_AGENT_MODEL));
   }, [admin]);
   useEffect(() => {
     end.current?.scrollIntoView({ block: "end" });
   }, [messages, busy]);
+  const asked = useRef(0);
+  useEffect(() => {
+    if (!prompt || asked.current === prompt.at) return;
+    asked.current = prompt.at;
+    // Wait a tick so the saved history has loaded before the prompt is appended.
+    const timer = window.setTimeout(() => void send(prompt.text), 0);
+    return () => window.clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [prompt]);
 
   function update(next: Message[]) {
+    latest.current = next;
     setMessages(next);
     save(
       STORE(admin),
@@ -140,7 +168,7 @@ export function TrackerAssistant({
     const content = text.trim() || (shots.length ? "Here is a screenshot." : "");
     if (!content || busy) return;
     const history: Message[] = [
-      ...messages,
+      ...latest.current,
       { role: "user", content, ...(shots.length ? { images: shots } : {}) },
     ];
     update(history);
@@ -170,7 +198,10 @@ export function TrackerAssistant({
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(data.error || "The assistant is unavailable.");
       update([...history, { role: "assistant", content: data.reply, results: data.results }]);
-      if ((data.results as Result[] | undefined)?.some((r) => r.ok)) onChanged?.();
+      const results = (data.results as Result[] | undefined) ?? [];
+      if (results.some((r) => r.ok)) onChanged?.();
+      const page = [...results].reverse().find((r) => r.ok && r.open)?.open;
+      if (page) onOpen?.(page);
     } catch (e) {
       update([
         ...history,
@@ -193,16 +224,16 @@ export function TrackerAssistant({
   }
 
   return (
-    <section className="admin-content-panel ta">
+    <section className={workspace ? "ta ta-workspace" : "admin-content-panel ta"}>
       <div className="ta-head">
         <div>
           <h2>
             <Bot size={16} aria-hidden="true" /> AI Assistant
           </h2>
           <p className="settings-muted">
-            Tell it what you need, or paste a screenshot: it reads rankings, dashboards, reviews and
-            client messages, then creates trackers, updates items, posts updates, publishes and
-            gives you links and passcodes. It uses your Perplexity key from Settings.
+            {workspace
+              ? "Ask about anything in your workspace, or tell it what to do: leads and follow-ups, draft proposals, client trackers, and it can take you to any page. Paste screenshots too. Uses your Perplexity key from Settings."
+              : "Tell it what you need, or paste a screenshot: it reads rankings, dashboards, reviews and client messages, then creates trackers, updates items, posts updates, publishes and gives you links and passcodes. It uses your Perplexity key from Settings."}
           </p>
         </div>
         <div className="ta-controls">
@@ -239,7 +270,7 @@ export function TrackerAssistant({
         {messages.length === 0 && (
           <div className="ta-empty">
             <p>Try one of these:</p>
-            {SUGGESTIONS.map((s) => (
+            {(workspace ? WORKSPACE_SUGGESTIONS : SUGGESTIONS).map((s) => (
               <button key={s} type="button" className="ta-suggestion" onClick={() => void send(s)}>
                 {s}
               </button>
@@ -426,5 +457,64 @@ export function ClientTrackingModes({
         <div key={refreshKey}>{manual(refreshKey)}</div>
       )}
     </div>
+  );
+}
+
+const OPEN_EVENT = "hq360:assistant";
+/** Opens the workspace AI Assistant from anywhere, optionally asking it something. */
+export function openAssistant(text?: string) {
+  window.dispatchEvent(new CustomEvent(OPEN_EVENT, { detail: text ?? "" }));
+}
+
+/** The AI Assistant as a slide-over available on every page of a workspace. */
+export function AssistantDrawer({
+  admin = false,
+  onOpen,
+}: {
+  admin?: boolean;
+  onOpen: (page: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [prompt, setPrompt] = useState<{ text: string; at: number }>();
+  useEffect(() => {
+    const onOpenEvent = (e: Event) => {
+      setOpen(true);
+      const text = (e as CustomEvent<string>).detail;
+      if (text) setPrompt({ text, at: Date.now() });
+    };
+    window.addEventListener(OPEN_EVENT, onOpenEvent);
+    return () => window.removeEventListener(OPEN_EVENT, onOpenEvent);
+  }, []);
+  useEffect(() => {
+    if (!open) return;
+    const close = (e: globalThis.KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    window.addEventListener("keydown", close);
+    return () => window.removeEventListener("keydown", close);
+  }, [open]);
+  return (
+    <>
+      <button
+        type="button"
+        className="admin-button ta-launch"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        title="AI Assistant"
+      >
+        <Bot size={15} aria-hidden="true" /> <span>AI Assistant</span>
+      </button>
+      {open && (
+        <div className="ta-drawer" role="dialog" aria-label="AI Assistant">
+          <button
+            type="button"
+            className="ta-drawer-close"
+            aria-label="Close assistant"
+            onClick={() => setOpen(false)}
+          >
+            <X size={16} />
+          </button>
+          <TrackerAssistant admin={admin} workspace onOpen={onOpen} prompt={prompt} />
+        </div>
+      )}
+    </>
   );
 }

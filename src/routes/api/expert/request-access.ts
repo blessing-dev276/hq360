@@ -6,6 +6,12 @@ const TOOL_LABELS: Record<string, string> = {
   scout: "Scouting",
   invoices: "Sales",
   academy: "Academy trainer",
+  // Guests can see (and ask for) the core expert workspace too.
+  dashboard: "Dashboard",
+  profile: "Expert profile",
+  portfolio: "Portfolio",
+  leads: "Leads & Projects",
+  trackers: "Client tracking + AI Assistant",
 };
 
 // An expert asks the admin for a tool they don't have yet. Lands in the admin
@@ -22,7 +28,19 @@ export const Route = createFileRoute("/api/expert/request-access")({
         const expertId = await isExpertRequest(request);
         if (!expertId) return json({ error: "Unauthorized" }, 401);
         const parsed = z
-          .object({ tool: z.enum(["audit", "scout", "invoices", "academy"]) })
+          .object({
+            tool: z.enum([
+              "audit",
+              "scout",
+              "invoices",
+              "academy",
+              "dashboard",
+              "profile",
+              "portfolio",
+              "leads",
+              "trackers",
+            ]),
+          })
           .safeParse(await request.json().catch(() => null));
         if (!parsed.success) return json({ error: "Unknown tool." }, 400);
         const label = TOOL_LABELS[parsed.data.tool]!;

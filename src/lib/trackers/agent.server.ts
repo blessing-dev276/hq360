@@ -3,8 +3,17 @@ import { runAgent, PerplexityError } from "@/lib/perplexity/agent.server";
 import { DEFAULT_AGENT_MODEL, isAgentModel } from "./agent-models";
 import * as svc from "./service.server";
 import type { Actor } from "./service.server";
+import {
+  runWorkspaceAction,
+  workspaceActionSchemas,
+  workspaceContext,
+  workspaceInstructions,
+  WORKSPACE_ACTION_TYPES,
+  WORKSPACE_SCHEMA_PROPS,
+  type WorkspaceAction,
+} from "./workspace-tools.server";
 
-// Client tracking assistant. The model never touches the database: it returns
+// HQ360 AI Assistant: client tracking plus workspace tools (workspace-tools.server.ts). The model never touches the database: it returns
 // a reply plus a list of actions, each action is validated here and run
 // through the same service functions (and ownership checks) as the manual UI.
 
@@ -12,7 +21,11 @@ export type ChatMessage = { role: "user" | "assistant"; content: string };
 /** data:image/(png|jpeg|webp);base64,... screenshots sent with the latest message. */
 export type ChatImage = string;
 
-const IMAGE_TYPES: Record<string, string> = { "image/png": "png", "image/jpeg": "jpg", "image/webp": "webp" };
+const IMAGE_TYPES: Record<string, string> = {
+  "image/png": "png",
+  "image/jpeg": "jpg",
+  "image/webp": "webp",
+};
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 
 /** Stores screenshots privately for the length of one request and returns short-lived links. */
@@ -31,10 +44,12 @@ async function stageImages(actor: Actor, images: ChatImage[]) {
       const key = `assistant/${owner}/${randomUUID()}.${IMAGE_TYPES[match[1]!]}`;
       const storage = svc.db().storage.from(svc.BUCKET);
       const { error } = await storage.upload(key, bytes, { contentType: match[1]!, upsert: false });
-      if (error) throw new svc.TrackerError("Could not read the screenshot. Please try again.", 503);
+      if (error)
+        throw new svc.TrackerError("Could not read the screenshot. Please try again.", 503);
       keys.push(key);
       const signed = await storage.createSignedUrl(key, 600);
-      if (signed.error || !signed.data) throw new svc.TrackerError("Could not read the screenshot.", 503);
+      if (signed.error || !signed.data)
+        throw new svc.TrackerError("Could not read the screenshot.", 503);
       urls.push(signed.data.signedUrl);
     }
   } catch (e) {
@@ -44,7 +59,12 @@ async function stageImages(actor: Actor, images: ChatImage[]) {
   return { keys, urls };
 }
 async function removeImages(keys: string[]) {
-  if (keys.length) await svc.db().storage.from(svc.BUCKET).remove(keys).catch(() => {});
+  if (keys.length)
+    await svc
+      .db()
+      .storage.from(svc.BUCKET)
+      .remove(keys)
+      .catch(() => {});
 }
 export type ActionResult = {
   ok: boolean;
@@ -52,6 +72,8 @@ export type ActionResult = {
   trackerId?: string;
   link?: string;
   passcode?: string;
+  /** A workspace page the UI should open. */
+  open?: string;
 };
 
 const id = z.string().uuid();
@@ -98,15 +120,23 @@ const actionSchema = z.discriminatedUnion("type", [
     type: z.literal("add_update"),
     tracker_id: trackerRef,
     text: short(1500),
-    date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+    date: z
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/)
+      .optional(),
   }),
-  z.object({ type: z.literal("publish"), tracker_id: trackerRef, notify_client: z.boolean().optional() }),
+  z.object({
+    type: z.literal("publish"),
+    tracker_id: trackerRef,
+    notify_client: z.boolean().optional(),
+  }),
   z.object({
     type: z.literal("replace_passcode"),
     tracker_id: trackerRef,
     passcode: z.string().trim().min(4).max(64).optional(),
   }),
   z.object({ type: z.literal("get_link"), tracker_id: trackerRef }),
+  ...workspaceActionSchemas,
 ]);
 type Action = z.infer<typeof actionSchema>;
 
@@ -131,6 +161,7 @@ const RESPONSE_SCHEMA = {
               "publish",
               "replace_passcode",
               "get_link",
+              ...WORKSPACE_ACTION_TYPES,
             ],
           },
           tracker_id: { type: "string" },
@@ -149,6 +180,7 @@ const RESPONSE_SCHEMA = {
           date: { type: "string" },
           passcode: { type: "string" },
           notify_client: { type: "boolean" },
+          ...WORKSPACE_SCHEMA_PROPS,
         },
         required: ["type"],
       },
@@ -157,7 +189,7 @@ const RESPONSE_SCHEMA = {
   required: ["reply", "actions"],
 };
 
-const INSTRUCTIONS = `You are the HQ360 Client tracking assistant. You help an expert manage private, passcode protected progress pages ("trackers") for their clients.
+const INSTRUCTIONS = `You are the HQ360 AI Assistant inside the HQ360 workspace. You help the user run their work: client tracking (private, passcode protected progress pages, "trackers"), leads, proposals, and questions about anything in their workspace.
 
 You answer with JSON only: {"reply": string, "actions": [...]}. "reply" is a short, friendly message to the expert in plain English. "actions" are changes you want made; the app runs them after you answer and shows the results (link, passcode, errors) to the expert, so do not invent links, passcodes or ids.
 
@@ -216,7 +248,8 @@ async function context(actor: Actor) {
       "\nYou are acting as the admin. create_tracker needs expert_id: the expert who owns the tracker. Experts:\n" +
       (data ?? []).map((e) => `- expert_id ${e.id}: ${e.full_name || e.email}`).join("\n");
   }
-  return `CONTEXT (today is ${new Date().toISOString().slice(0, 10)})\nTrackers:\n${lines.join("\n") || "(none yet)"}${experts}`;
+  const workspace = await workspaceContext(actor).catch(() => "WORKSPACE\n(unavailable right now)");
+  return `CONTEXT (today is ${new Date().toISOString().slice(0, 10)})\nTrackers:\n${lines.join("\n") || "(none yet)"}${experts}\n\n${workspace}`;
 }
 
 async function perplexityKey(actor: Actor) {
@@ -303,7 +336,10 @@ async function runAction(
       await svc.deleteItem(actor, t, action.item_id);
       return { ok: true, text: "Deleted an item.", trackerId: t };
     case "add_update":
-      await svc.addLogEntry(actor, t, { text: action.text, ...(action.date ? { date: action.date } : {}) });
+      await svc.addLogEntry(actor, t, {
+        text: action.text,
+        ...(action.date ? { date: action.date } : {}),
+      });
       return { ok: true, text: "Added a progress update.", trackerId: t };
     case "publish": {
       const result = await svc.publishTracker(actor, t, Boolean(action.notify_client));
@@ -316,10 +352,23 @@ async function runAction(
     }
     case "replace_passcode": {
       const passcode = await svc.resetPasscode(actor, t, action.passcode);
-      return { ok: true, text: "New passcode set.", trackerId: t, passcode, link: (await linkAndPasscode(actor, t)).link };
+      return {
+        ok: true,
+        text: "New passcode set.",
+        trackerId: t,
+        passcode,
+        link: (await linkAndPasscode(actor, t)).link,
+      };
     }
     case "get_link":
-      return { ok: true, text: "Link and passcode:", trackerId: t, ...(await linkAndPasscode(actor, t)) };
+      return {
+        ok: true,
+        text: "Link and passcode:",
+        trackerId: t,
+        ...(await linkAndPasscode(actor, t)),
+      };
+    default:
+      return runWorkspaceAction(actor, action satisfies WorkspaceAction);
   }
 }
 
@@ -343,7 +392,7 @@ export async function chat(
     response = await (deps.run ?? runAgent)(
       {
         model: chosen,
-        instructions: INSTRUCTIONS,
+        instructions: INSTRUCTIONS + "\n" + workspaceInstructions(actor),
         input: staged.urls.length
           ? [
               {
@@ -361,7 +410,7 @@ export async function chat(
         max_output_tokens: 4000,
         response_format: {
           type: "json_schema",
-          json_schema: { name: "tracker_assistant", schema: RESPONSE_SCHEMA },
+          json_schema: { name: "hq360_assistant", schema: RESPONSE_SCHEMA },
         },
       },
       fetch,

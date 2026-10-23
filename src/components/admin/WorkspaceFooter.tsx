@@ -1,11 +1,16 @@
-import { ArrowUpRight, GraduationCap, LogOut, Settings, UserRound } from "lucide-react";
+import { ArrowUpRight, GraduationCap, LogOut, Settings, UserRound, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type WorkspaceFooterProps = {
   role: "admin" | "expert";
   email?: string;
+  guest?: boolean;
+  academyTrainer?: boolean;
+  publicProfileSlug?: string;
+  activePage?: "experts" | "academy" | "profile";
   settingsActive: boolean;
   onSettings: () => void;
+  onNavigate?: (page: "experts" | "academy" | "profile") => void;
   onSignOut: () => void;
   logoutError?: string;
 };
@@ -13,16 +18,46 @@ type WorkspaceFooterProps = {
 export function WorkspaceFooter({
   role,
   email,
+  guest = false,
+  academyTrainer = false,
+  publicProfileSlug,
+  activePage,
   settingsActive,
   onSettings,
+  onNavigate,
   onSignOut,
   logoutError,
 }: WorkspaceFooterProps) {
-  const links = [
-    { href: "/experts", label: "Experts directory", icon: UserRound },
-    { href: "/academy", label: "Academy", icon: GraduationCap },
-    { href: "/", label: "View website", icon: ArrowUpRight },
-  ];
+  const workspaceLinks =
+    role === "admin"
+      ? [
+          { page: "experts" as const, label: "Manage experts", icon: Users },
+          { page: "academy" as const, label: "Manage Academy", icon: GraduationCap },
+        ]
+      : academyTrainer
+        ? [{ page: "academy" as const, label: "Trainer tools", icon: GraduationCap }]
+        : !guest && !publicProfileSlug
+          ? [{ page: "profile" as const, label: "Manage my profile", icon: UserRound }]
+          : [];
+  const externalLinks =
+    role === "admin"
+      ? [{ href: "/", label: "View website", icon: ArrowUpRight }]
+      : [
+          ...(publicProfileSlug
+            ? [
+                {
+                  href: `/experts/${encodeURIComponent(publicProfileSlug)}`,
+                  label: "View my profile",
+                  icon: UserRound,
+                },
+              ]
+            : []),
+          { href: "/experts", label: "Experts directory", icon: Users },
+          ...(!academyTrainer
+            ? [{ href: "/academy", label: "Explore Academy", icon: GraduationCap }]
+            : []),
+          { href: "/", label: "View website", icon: ArrowUpRight },
+        ];
 
   return (
     <div className="admin-sidebar-bottom">
@@ -45,7 +80,19 @@ export function WorkspaceFooter({
         <Settings size={18} aria-hidden="true" />
         <span>Settings</span>
       </button>
-      {links.map(({ href, label, icon: Icon }) => (
+      {workspaceLinks.map(({ page, label, icon: Icon }) => (
+        <button
+          key={page}
+          type="button"
+          onClick={() => onNavigate?.(page)}
+          className={cn("admin-nav-item", activePage === page && "active")}
+          aria-current={activePage === page ? "page" : undefined}
+        >
+          <Icon size={18} aria-hidden="true" />
+          <span>{label}</span>
+        </button>
+      ))}
+      {externalLinks.map(({ href, label, icon: Icon }) => (
         <a
           key={href}
           href={href}

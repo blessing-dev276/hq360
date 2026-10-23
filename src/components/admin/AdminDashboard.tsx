@@ -4,7 +4,6 @@ import { useEffect, useState, type ReactNode } from "react";
 import {
   ArrowRight,
   ArrowUpRight,
-  Bot,
   BriefcaseBusiness,
   CreditCard,
   FileText,
@@ -404,7 +403,7 @@ export function AdminDashboard({ onNavigate }: { onNavigate: (tab: Tab) => void 
           className="hqd-ask"
           onClick={() => openAssistant("What needs my attention today?")}
         >
-          <Bot size={18} aria-hidden="true" />
+          <span className="siri-orb" aria-hidden="true" />
           <span>
             <strong>Ask the AI Assistant</strong>
             <small>"What needs my attention today?"</small>

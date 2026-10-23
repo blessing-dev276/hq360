@@ -6,6 +6,7 @@ import {
   type KeyboardEvent,
   type ReactNode,
 } from "react";
+import { createPortal } from "react-dom";
 import {
   ArrowUp,
   Bot,
@@ -228,7 +229,12 @@ export function TrackerAssistant({
       <div className="ta-head">
         <div>
           <h2>
-            <Bot size={16} aria-hidden="true" /> AI Assistant
+            {workspace ? (
+              <span className={`siri-orb${busy ? " siri-orb-busy" : ""}`} aria-hidden="true" />
+            ) : (
+              <Bot size={16} aria-hidden="true" />
+            )}{" "}
+            AI Assistant
           </h2>
           <p className="settings-muted">
             {workspace
@@ -491,30 +497,64 @@ export function AssistantDrawer({
     window.addEventListener("keydown", close);
     return () => window.removeEventListener("keydown", close);
   }, [open]);
+  // The top bar uses backdrop-filter, which traps position: fixed children,
+  // so the panel renders at the workspace root (keeping its theme and styles).
+  // Resolved after mount so server and first client render match.
+  const [root, setRoot] = useState<HTMLElement | null>(null);
+  useEffect(() => {
+    setRoot(document.querySelector<HTMLElement>(".admin-workspace") ?? document.body);
+  }, []);
   return (
     <>
       <button
         type="button"
-        className="admin-button ta-launch"
+        className="ta-launch"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
         title="AI Assistant"
       >
-        <Bot size={15} aria-hidden="true" /> <span>AI Assistant</span>
+        <span className="siri-orb siri-orb-sm" aria-hidden="true" />
+        <span>AI Assistant</span>
       </button>
-      {open && (
-        <div className="ta-drawer" role="dialog" aria-label="AI Assistant">
+      {root &&
+        !open &&
+        createPortal(
           <button
             type="button"
-            className="ta-drawer-close"
-            aria-label="Close assistant"
-            onClick={() => setOpen(false)}
+            className="ta-fab"
+            aria-label="Open AI Assistant"
+            onClick={() => setOpen(true)}
           >
-            <X size={16} />
-          </button>
-          <TrackerAssistant admin={admin} workspace onOpen={onOpen} prompt={prompt} />
-        </div>
-      )}
+            <span className="siri-orb" aria-hidden="true" />
+          </button>,
+          root,
+        )}
+      {open &&
+        root &&
+        createPortal(
+          <div className="siri-layer">
+            <button
+              type="button"
+              className="siri-scrim"
+              aria-label="Close assistant"
+              tabIndex={-1}
+              onClick={() => setOpen(false)}
+            />
+            <div className="siri-glow" aria-hidden="true" />
+            <div className="ta-drawer" role="dialog" aria-modal="true" aria-label="AI Assistant">
+              <button
+                type="button"
+                className="ta-drawer-close"
+                aria-label="Close assistant"
+                onClick={() => setOpen(false)}
+              >
+                <X size={16} />
+              </button>
+              <TrackerAssistant admin={admin} workspace onOpen={onOpen} prompt={prompt} />
+            </div>
+          </div>,
+          root,
+        )}
     </>
   );
 }

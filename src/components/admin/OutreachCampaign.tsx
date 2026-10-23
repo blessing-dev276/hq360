@@ -113,7 +113,14 @@ function matchGenre(genres: Genre[], wanted: string) {
   );
 }
 
-export function OutreachCampaign({ spec }: { spec: CampaignSpec }) {
+export function OutreachCampaign({
+  spec,
+  pastedPrompt = "",
+}: {
+  spec: CampaignSpec;
+  /** The latest long message the admin pasted in the chat, used as the prompt. */
+  pastedPrompt?: string;
+}) {
   const [state, setState] = useState<State>(() => ({
     phase: "setup",
     prompt: spec.prompt,
@@ -141,11 +148,12 @@ export function OutreachCampaign({ spec }: { spec: CampaignSpec }) {
         }
       : {
           ...live.current,
-          prompt: spec.prompt || readText(PROMPT_STORE),
+          prompt: spec.prompt || pastedPrompt || readText(PROMPT_STORE),
           senderName: spec.senderName || readText(SENDER_STORE) || "HQ360",
         };
     live.current = next;
     setState(next);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [spec]);
 
   function update(patch: Partial<State> | ((s: State) => Partial<State>)) {

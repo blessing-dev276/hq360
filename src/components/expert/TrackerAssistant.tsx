@@ -457,7 +457,17 @@ export function TrackerAssistant({
                       <CopyChip text={r.link} label="Copy link" />
                     </p>
                   )}
-                  {r.campaign && admin && <OutreachCampaign spec={r.campaign} />}
+                  {r.campaign && admin && (
+                    <OutreachCampaign
+                      spec={r.campaign}
+                      pastedPrompt={
+                        messages
+                          .slice(0, i)
+                          .reverse()
+                          .find((x) => x.role === "user" && x.content.length >= 400)?.content ?? ""
+                      }
+                    />
+                  )}
                   {r.passcode && (
                     <p className="ta-line">
                       Passcode <code>{r.passcode}</code>

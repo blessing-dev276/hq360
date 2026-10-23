@@ -383,13 +383,18 @@ export async function chat(
 ) {
   const chosen = isAgentModel(model) ? model : DEFAULT_AGENT_MODEL;
   const key = await (deps.key ?? perplexityKey)(actor);
-  const transcript = messages
-    .slice(-20)
-    // The latest message is sent in full (e.g. a long outreach prompt); older ones are trimmed.
-    .map(
-      (m, i, all) =>
-        `${m.role === "user" ? "EXPERT" : "ASSISTANT"}: ${m.content.slice(0, i === all.length - 1 ? 20000 : 4000)}`,
-    )
+  const recent = messages.slice(-20);
+  let lastLong = -1;
+  recent.forEach((m, i) => {
+    if (m.role === "user" && m.content.length > 4000) lastLong = i;
+  });
+  const transcript = recent
+    // The latest message and the most recent long one (e.g. a pasted outreach
+    // prompt) are sent in full; other messages are trimmed.
+    .map((m, i, all) => {
+      const full = i === all.length - 1 || i === lastLong;
+      return `${m.role === "user" ? "EXPERT" : "ASSISTANT"}: ${m.content.slice(0, full ? 20000 : 4000)}`;
+    })
     .join("\n\n");
   const prompt = `${await context(actor)}\n\nCONVERSATION\n${transcript}\n\n${images.length ? `The last EXPERT message has ${images.length} screenshot(s) attached. ` : ""}Answer the last EXPERT message.`;
   const staged = images.length ? await stageImages(actor, images) : { keys: [], urls: [] };
@@ -444,7 +449,11 @@ export async function chat(
       ),
     );
     if (!parsed.success) {
-      results.push({ ok: false, text: "Skipped an action the assistant described incorrectly." });
+      const issue = parsed.error.issues[0];
+      results.push({
+        ok: false,
+        text: `Skipped an action the assistant described incorrectly${issue ? ` (${issue.path.join(".") || "action"}: ${issue.message})` : ""}. Try asking again.`,
+      });
       continue;
     }
     try {

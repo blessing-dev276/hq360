@@ -73,8 +73,8 @@ export const workspaceActionSchemas = [
   z.object({
     type: z.literal("start_outreach_campaign"),
     genre: z.string().trim().min(2).max(120),
-    count: z.number().int().min(1).max(50),
-    prompt: z.string().trim().max(20000).optional(),
+    // Models sometimes send numbers as strings.
+    count: z.coerce.number().int().min(1).max(50),
     sender_name: z.string().trim().max(100).optional(),
   }),
   z.object({
@@ -106,7 +106,6 @@ export const WORKSPACE_SCHEMA_PROPS = {
   page: { type: "string" },
   genre: { type: "string" },
   count: { type: "integer" },
-  prompt: { type: "string" },
   sender_name: { type: "string" },
 };
 
@@ -121,8 +120,8 @@ Use WORKSPACE in CONTEXT to answer questions about leads, follow-ups, sales, pro
 
 const CAMPAIGN_INSTRUCTIONS = `
 Author outreach campaigns (admin only):
-- start_outreach_campaign {genre, count (1-50), prompt?, sender_name?} scouts \`count\` new authors in a Reedsy Discovery genre into a new Scouting batch, finds their emails, then drafts one personalised email per author from the admin's outreach prompt. Nothing is sent: the admin reviews every draft and presses Send in the campaign card.
-- Before starting, make sure you know the genre, how many authors, and the admin's outreach prompt (the instructions they use to write personalised messages). If they have not given the prompt in this conversation, ask for it, and say they can also reply "use my saved prompt" (then send prompt empty and the card uses the saved one). Pass the prompt exactly as written. sender_name is the name signed under the email, if they give one.
+- start_outreach_campaign {genre, count (1-50), sender_name?} scouts \`count\` new authors in a Reedsy Discovery genre into a new Scouting batch, finds their emails, then drafts one personalised email per author from the admin's outreach prompt. Nothing is sent: the admin reviews every draft and presses Send in the campaign card.
+- Before starting, make sure you know the genre and how many authors. Never put the outreach prompt in the action: the campaign card picks up the long prompt the admin pasted in this chat automatically (or their saved prompt), and they can check or edit it in the card before starting. The pasted prompt may look shortened to you; that is expected, so never ask them to resend it. If they have not pasted one, start anyway: the card asks for it. sender_name is the name signed under the email, if they give one.
 - Email research and drafting use the admin's Perplexity key and cost a little per author; mention it once when you start.`;
 
 export function workspaceInstructions(actor: Actor) {
@@ -315,7 +314,7 @@ export async function runWorkspaceAction(
           id: randomUUID(),
           genre: action.genre,
           count: action.count,
-          prompt: action.prompt ?? "",
+          prompt: "",
           senderName: action.sender_name ?? "",
         },
       };

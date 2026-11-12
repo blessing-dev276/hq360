@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { fetchPublicContent } from "@/lib/public-content";
 import { toCaseStudyShape, type SerializedCaseStudy } from "@/lib/case-study-view";
 import { CASE_STUDIES, type CaseStudy } from "@/data/work";
+import { BOOK_COVER_PORTFOLIO } from "@/data/book-cover-portfolio";
 import { useExpertProof } from "@/lib/expert-proof";
 import { expertProof, buildAgencyProof, type PortfolioProof } from "@/lib/agency-work";
 
@@ -26,7 +27,7 @@ export function WorkArc() {
   // Work HQ360 experts added (approved), credited to them.
   const experts = useExpertProof();
   const withImages = [
-    ...buildAgencyProof(portfolio.data?.items ?? [], studies),
+    ...buildAgencyProof([...BOOK_COVER_PORTFOLIO, ...(portfolio.data?.items ?? [])], studies),
     ...expertProof(experts.data?.portfolio ?? []),
   ].filter((item) => item.image);
   // Show each actual project once, including when the collection is small.

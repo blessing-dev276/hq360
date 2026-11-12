@@ -13,6 +13,20 @@ export const AUTHOR_OFFERS = [
     capability: "writing-translation",
   },
   {
+    slug: "book-cover-design",
+    name: "Book Cover Design",
+    step: "Design",
+    situation: "I need a cover that fits my book and looks ready for publication.",
+    description:
+      "Create a distinctive front, spine and back cover for your chosen print or digital format.",
+    deliverables: [
+      "Cover direction based on genre and audience",
+      "Front, spine and back cover design as required",
+      "Final files prepared to agreed publishing specifications",
+    ],
+    capability: "brand-creative",
+  },
+  {
     slug: "book-formatting-publishing",
     name: "Book Formatting & Publishing Support",
     step: "Publish",

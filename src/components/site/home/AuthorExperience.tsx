@@ -1,6 +1,7 @@
 import { AUTHOR_OFFERS } from "@/data/author-offers";
 import { Section, SectionHeader, ButtonLink } from "../Primitives";
 import { AuthorOffers } from "../AuthorOffers";
+import { AgencyWork } from "../AgencyWork";
 import { FeaturedAuthor } from "../FeaturedAuthor";
 import { PortfolioStrip } from "../PortfolioStrip";
 import { TestimonialStrip } from "../TestimonialStrip";
@@ -22,7 +23,7 @@ export function AuthorExperience() {
         description="From your first draft to your next reader, we help you develop your book, prepare for publication and build an author platform."
         primary={{ label: "Start an author project", href: "#start-project" }}
         secondary={{ label: "Free visibility check", href: "/tools/author-visibility-audit" }}
-        highlights={["Writing & editing", "Publishing support", "Author platforms"]}
+        highlights={["Writing & editing", "Book cover design", "Author platforms"]}
       />
       <Section>
         <SectionHeader
@@ -33,6 +34,19 @@ export function AuthorExperience() {
       </Section>
       <FeaturedAuthor />
       <PortfolioStrip industry="authors" title="Selected author & publishing work" />
+      <Section tone="raised">
+        <SectionHeader
+          eyebrow="Cover portfolio"
+          title="Books designed to be seen."
+          intro="A selection of cover and interior designs across memoir, fiction, faith and fitness."
+        />
+        <AgencyWork service="book-cover-design" limit={4} />
+        <div className="mt-8">
+          <ButtonLink to="/services/book-cover-design" variant="secondary">
+            Explore book cover design
+          </ButtonLink>
+        </div>
+      </Section>
       <Section tone="raised">
         <SectionHeader
           eyebrow="Free Author Visibility Check"

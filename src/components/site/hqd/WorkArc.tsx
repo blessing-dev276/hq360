@@ -54,12 +54,17 @@ export function WorkArc() {
         let d = (((i - pos) % count) + count) % count;
         if (d > count / 2) d -= count;
         const abs = Math.abs(d);
+        const el = items[i]!;
+        if (abs > 4.8) {
+          el.style.visibility = "hidden";
+          el.style.transform = "none";
+          continue;
+        }
         const x = d * spacing;
         const z = Math.pow(abs, 1.5) * 16;
         const rotate = -d * 7.5;
-        const el = items[i]!;
+        el.style.visibility = "visible";
         el.style.transform = `translate(-50%, -50%) translate3d(${x.toFixed(1)}px, 0, ${z.toFixed(1)}px) rotateY(${rotate.toFixed(2)}deg)`;
-        el.style.opacity = abs > 4.8 ? "0" : "1";
         el.style.zIndex = String(100 + Math.round(abs * 10));
       }
     };

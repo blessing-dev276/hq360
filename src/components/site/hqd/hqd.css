@@ -1007,6 +1007,7 @@
   position: relative;
   height: clamp(20rem, 42vw, 30rem);
   margin-top: 3rem;
+  overflow: clip;
   perspective: 1400px;
   perspective-origin: 50% 50%;
   cursor: grab;

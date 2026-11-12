@@ -5,6 +5,7 @@ import { ArrowRight, ArrowUpRight, ChevronDown, LogOut, Menu, X } from "lucide-r
 import { Logo } from "@/components/Logo";
 import { ABOUT_MENU, CAPABILITY_MENU, CTAS, INDUSTRY_MENU, PRIMARY_NAV } from "@/config/brand";
 import "./SiteHeader.css";
+import "./marketing-hero.css";
 import { FREE_TOOLS } from "@/data/free-tools";
 
 type MenuKey = "industries" | "capabilities" | "about" | "resources";

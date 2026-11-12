@@ -1,5 +1,6 @@
+import { MarketingHero } from "@/components/site/MarketingHero";
 import { createFileRoute } from "@tanstack/react-router";
-import { Section, SectionHeader } from "@/components/site/Primitives";
+import { Section } from "@/components/site/Primitives";
 import { AgencyWork } from "@/components/site/AgencyWork";
 import { ExpertVoices } from "@/components/site/ExpertVoices";
 import { TestimonialStrip } from "@/components/site/TestimonialStrip";
@@ -27,15 +28,20 @@ export const Route = createFileRoute("/work/")({
 function WorkPage() {
   return (
     <>
-      <Section tone="hero">
-        <SectionHeader
-          as="h1"
-          eyebrow="Our work"
-          title="Selected projects, with the work explained"
-          intro="Explore published websites, author campaigns and publishing work. Filter by service or audience to find relevant examples."
-        />
-      </Section>
-      <Section>
+      <MarketingHero
+        eyebrow="Our work"
+        title={
+          <>
+            Ideas made real.
+            <br />
+            <em>Work that speaks.</em>
+          </>
+        }
+        description="Explore published websites, author campaigns and publishing work. Filter by service or audience to find relevant examples."
+        primary={{ label: "Explore projects", href: "#projects" }}
+        secondary={{ label: "Start a project", href: "/contact" }}
+      />
+      <Section id="projects">
         <AgencyWork filters />
         <ExpertVoices />
       </Section>

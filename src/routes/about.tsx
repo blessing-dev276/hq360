@@ -1,15 +1,12 @@
+import { MarketingHero } from "@/components/site/MarketingHero";
 import { createFileRoute } from "@tanstack/react-router";
-import teamGroup1 from "@/assets/team-group-hero.webp";
-import teamGroup2 from "@/assets/team-group-2.webp";
-import teamGroup3 from "@/assets/team-group-3.webp";
-import teamGroup4 from "@/assets/team-group-4.webp";
 import { AGENCY_PROCESS } from "@/data/agency";
 import { BRAND } from "@/config/brand";
 import { useExpertDirectory } from "@/lib/experts";
 import { buildSeo, breadcrumbSchema } from "@/lib/seo";
 import { Reveal } from "@/components/site/Reveal";
 import { CtaBand } from "@/components/site/CtaBand";
-import { Eyebrow, Grain, Num, PersonCard, Pill } from "@/components/site/hqd/Hqd";
+import { Eyebrow, Num, PersonCard, Pill } from "@/components/site/hqd/Hqd";
 import { ServiceCards } from "@/components/site/hqd/ServiceCards";
 
 export const Route = createFileRoute("/about")({
@@ -29,46 +26,24 @@ export const Route = createFileRoute("/about")({
   component: AboutPage,
 });
 
-const TEAM_GROUP_PHOTOS = [teamGroup1, teamGroup2, teamGroup3, teamGroup4];
-
 function AboutPage() {
   const { team } = useExpertDirectory();
 
   return (
     <>
-      <section className="hqd-page-hero">
-        <div className="hqd-page-panel">
-          <span className="hqd-hero-glow" aria-hidden="true" />
-          <div className="hqd-page-photo hqd-page-photo--wide" aria-hidden="true">
-            {TEAM_GROUP_PHOTOS.map((src, index) => (
-              <img
-                key={src}
-                src={src}
-                alt=""
-                decoding="async"
-                {...(index === 0
-                  ? { fetchPriority: "high" as const }
-                  : { loading: "lazy" as const })}
-              />
-            ))}
-          </div>
-          <span className="hqd-hero-shade" aria-hidden="true" />
-          <Grain />
-          <div className="hqd-page-inner">
-            <div>
-              <p className="hqd-hero-kicker">Websites · Apps · Systems · Content</p>
-              <h1 className="hqd-page-title">About</h1>
-            </div>
-            <div className="hqd-hero-aside">
-              <p className="hqd-lede">The team behind the work.</p>
-              <p>
-                Founded by Blessing Daniel, HQ360 is one connected team for your website, the
-                systems behind it and the words on it.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
+      <MarketingHero
+        eyebrow="About HQ360"
+        title={
+          <>
+            One team.
+            <br />
+            <em>Every angle.</em>
+          </>
+        }
+        description="Founded by Blessing Daniel, HQ360 is one connected team for your website, the systems behind it and the words on it."
+        primary={{ label: "Start a project", href: "/contact" }}
+        secondary={{ label: "Meet the team", href: "#team" }}
+      />
 
       <section className="hqd-section">
         <div className="hqd-wrap">
@@ -121,7 +96,7 @@ function AboutPage() {
         </div>
       </section>
 
-      <section id="team" className="hqd-section" style={{ paddingTop: 0, scrollMarginTop: "5rem" }}>
+      <section id="team" className="hqd-section" style={{ paddingTop: 0 }}>
         <div className="hqd-wrap">
           <Reveal className="hqd-split">
             <div>

@@ -1,3 +1,4 @@
+import { MarketingHero } from "@/components/site/MarketingHero";
 import { LoadingRegion, Skeleton } from "@/components/ui/skeleton";
 import { resolveExpertSlug } from "@/lib/expert-slug.functions";
 import { createFileRoute, redirect } from "@tanstack/react-router";
@@ -5,7 +6,7 @@ import { useLayoutEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowUpRight, Globe, Linkedin, MapPin } from "lucide-react";
 import { buildSeo } from "@/lib/seo";
-import { FALLBACK_TEAM, initials, useExpertDirectory, type PublicExpert } from "@/lib/experts";
+import { FALLBACK_TEAM, useExpertDirectory, type PublicExpert } from "@/lib/experts";
 import { fetchPublicContent } from "@/lib/public-content";
 import { getCoreService, getAudience } from "@/data/agency";
 import { Reveal } from "@/components/site/Reveal";
@@ -317,59 +318,28 @@ function ExpertProfilePage() {
 
   return (
     <div className="hqd dark">
-      <section className="hqd-page-hero">
-        <div className="hqd-page-panel">
-          <span className="hqd-hero-glow" aria-hidden="true" />
-          {person.photo ? (
-            <div className="hqd-page-photo" aria-hidden="true">
-              <img src={person.photo} alt="" fetchPriority="high" />
-            </div>
-          ) : (
-            <span className="hqd-page-initials" aria-hidden="true">
-              {initials(person.name)}
-            </span>
-          )}
-          <span className="hqd-hero-shade" aria-hidden="true" />
-          <Grain />
-          <div className="hqd-page-inner">
-            <div>
-              <p className="hqd-hero-kicker">{person.headline}</p>
-              <h1
-                className="hqd-page-title"
-                style={
-                  person.name.length > 14 ? { fontSize: "clamp(2.8rem, 8vw, 7rem)" } : undefined
-                }
-              >
-                {person.name}
-              </h1>
-              <span
-                className="hqd-chip"
-                style={{ position: "static", display: "inline-block", marginTop: "1.25rem" }}
-              >
-                {person.kind === "team" ? "HQ360 Team" : "Approved HQ360 expert"}
-              </span>
-            </div>
-            <div className="hqd-hero-aside">
-              <p className="hqd-lede">The person behind the work.</p>
-              <p
-                style={{
-                  display: "-webkit-box",
-                  WebkitLineClamp: 2,
-                  WebkitBoxOrient: "vertical",
-                  overflow: "hidden",
-                }}
-              >
-                {shortIntro(person)}
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
+      <MarketingHero
+        eyebrow={person.headline}
+        title={person.name}
+        description={shortIntro(person)}
+        primary={{ label: "Start a project", href: "/contact" }}
+        secondary={{ label: "About this expert", href: "#expert-bio" }}
+        highlights={person.specialties.slice(0, 3)}
+      />
 
-      <section className="hqd-section">
+      <section id="expert-bio" className="hqd-section">
         <div className="hqd-wrap">
           <Reveal className="hqd-split">
             <div>
+              {person.photo ? (
+                <img
+                  src={person.photo}
+                  alt={person.name}
+                  width={112}
+                  height={112}
+                  className="mb-6 size-28 rounded-full object-cover"
+                />
+              ) : null}
               <Eyebrow>Who {first} is</Eyebrow>
               <h2 className="hqd-h2">
                 Work with

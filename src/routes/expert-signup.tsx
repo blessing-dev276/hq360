@@ -1,3 +1,4 @@
+import { MarketingHero } from "@/components/site/MarketingHero";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
 import {
@@ -10,7 +11,7 @@ import {
   Users,
 } from "lucide-react";
 import { buildSeo } from "@/lib/seo";
-import { Eyebrow, Grain, Pill } from "@/components/site/hqd/Hqd";
+import { Eyebrow, Pill } from "@/components/site/hqd/Hqd";
 
 export const Route = createFileRoute("/expert-signup")({
   head: () =>
@@ -82,29 +83,21 @@ function BecomeAnExpert() {
 
   return (
     <div className="hqd dark">
-      <section className="hqd-page-hero">
-        <div className="hqd-page-panel" style={{ minHeight: "clamp(26rem, 60svh, 36rem)" }}>
-          <span className="hqd-hero-glow" aria-hidden="true" />
-          <span className="hqd-hero-shade" aria-hidden="true" />
-          <Grain />
-          <div className="hqd-page-inner">
-            <div>
-              <p className="hqd-hero-kicker">Join the HQ360 expert network</p>
-              <h1 className="hqd-page-title">
-                Become an
-                <br />
-                Expert.
-              </h1>
-            </div>
-            <div className="hqd-hero-aside">
-              <p className="hqd-lede">Do your best work, with a team behind you.</p>
-              <p>Apply in two minutes. We review every application before access is granted.</p>
-            </div>
-          </div>
-        </div>
-      </section>
+      <MarketingHero
+        eyebrow="Join the HQ360 expert network"
+        title={
+          <>
+            Do your best work.
+            <br />
+            <em>Build with us.</em>
+          </>
+        }
+        description="Apply to join our team of specialists. We review every application before access is granted."
+        primary={{ label: "Apply now", href: "#application" }}
+        secondary={{ label: "Meet the team", href: "/experts" }}
+      />
 
-      <section className="hqd-section">
+      <section id="application" className="hqd-section">
         <div className="hqd-wrap hqd-join">
           <div>
             <Eyebrow>What you get</Eyebrow>

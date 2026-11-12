@@ -1,9 +1,10 @@
+import { MarketingHero } from "@/components/site/MarketingHero";
 import { createFileRoute } from "@tanstack/react-router";
 import { ArrowUpRight } from "lucide-react";
 import { buildSeo } from "@/lib/seo";
-import { initials, useExpertDirectory } from "@/lib/experts";
+import { useExpertDirectory } from "@/lib/experts";
 import { Reveal } from "@/components/site/Reveal";
-import { Eyebrow, Grain, PersonCard, Pill } from "@/components/site/hqd/Hqd";
+import { Eyebrow, Grain, PersonCard } from "@/components/site/hqd/Hqd";
 
 export const Route = createFileRoute("/experts/")({
   head: () =>
@@ -17,46 +18,25 @@ export const Route = createFileRoute("/experts/")({
 });
 
 function ExpertsPage() {
-  const { team, experts, all, loading } = useExpertDirectory();
+  const { team, experts, loading } = useExpertDirectory();
 
   return (
     <div className="hqd dark">
-      <section className="hqd-page-hero">
-        <div className="hqd-page-panel">
-          <span className="hqd-hero-glow" aria-hidden="true" />
-          <span className="hqd-hero-shade" aria-hidden="true" />
-          <Grain />
-          <div className="hqd-page-inner">
-            <div>
-              <p className="hqd-hero-kicker">The people behind HQ360</p>
-              <h1 className="hqd-page-title">Experts</h1>
-              <div className="hqd-avatars" aria-hidden="true">
-                {all
-                  .slice(0, 7)
-                  .map((person) =>
-                    person.photo ? (
-                      <img key={person.slug} src={person.photo} alt="" />
-                    ) : (
-                      <span key={person.slug}>{initials(person.name)}</span>
-                    ),
-                  )}
-              </div>
-            </div>
-            <div className="hqd-hero-aside">
-              <p className="hqd-lede">Specialists you can actually talk to.</p>
-              <p>
-                A connected core team, plus independent writers, designers, developers and marketers
-                approved to work alongside us.
-              </p>
-              <div className="hqd-hero-actions">
-                <Pill to="/expert-signup">Become an Expert</Pill>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      <MarketingHero
+        eyebrow="The people behind HQ360"
+        title={
+          <>
+            Great work starts with
+            <br />
+            <em>the right people.</em>
+          </>
+        }
+        description="A connected core team, plus independent writers, designers, developers and marketers approved to work alongside us."
+        primary={{ label: "Meet our experts", href: "#experts" }}
+        secondary={{ label: "Become an expert", href: "/expert-signup" }}
+      />
 
-      <section className="hqd-section">
+      <section id="experts" className="hqd-section">
         <div className="hqd-wrap">
           <Reveal className="hqd-split">
             <div>

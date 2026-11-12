@@ -2290,3 +2290,56 @@ body:has(.hqd-site) {
   color: var(--hqd-muted);
   font-size: 0.8rem;
 }
+
+/* Public editorial, tool and legal pages share the calm marketing canvas.
+   Keep their breadcrumbs, metadata, forms and tool controls in place. */
+.hqd-site section.hqd-hero-section,
+.hqd-site .hqd-page-panel {
+  background: radial-gradient(ellipse at 50% 110%, rgb(255 90 0 / 0.15), transparent 48%), #090909;
+  border: 1px solid rgb(255 255 255 / 0.07);
+  border-radius: 0 0 24px 24px;
+  text-align: center;
+}
+.hqd-site section.hqd-hero-section {
+  margin: -96px 16px 0;
+  padding: 175px 24px 80px;
+}
+.hqd-site .hqd-hero-section > .hqd-hero-glow,
+.hqd-site .hqd-hero-section > .hqd-hero-shade,
+.hqd-site .hqd-hero-section > .hqd-grain {
+  display: none;
+}
+.hqd-site .hqd-hero-section h1 {
+  max-width: 980px;
+  margin-inline: auto;
+  font-family: var(--font-sans);
+  font-size: clamp(2.4rem, 5.7vw, 5.25rem);
+  font-weight: 400;
+  line-height: 1.12;
+  letter-spacing: -0.05em;
+}
+.hqd-site .hqd-hero-section :is(.max-w-3xl, .max-w-4xl, .max-w-5xl, .max-w-2xl) {
+  margin-inline: auto;
+}
+.hqd-site .hqd-hero-section :is(.hqd-intro, .text-muted-foreground) {
+  color: #aaa5a0;
+}
+.hqd-site .hqd-hero-section .hqd-eyebrow {
+  color: #c0b9b3;
+}
+.hqd-site .hqd-hero-section .hqd-eyebrow::before {
+  background: #ff773b;
+  box-shadow: none;
+}
+.hqd-site .hqd-hero-section .rule-brand {
+  margin-inline: auto;
+}
+.hqd-site .hqd-hero-section .flex.flex-wrap {
+  justify-content: center;
+}
+@media (max-width: 767px) {
+  .hqd-site section.hqd-hero-section {
+    margin: -84px 8px 0;
+    padding: 135px 20px 55px;
+  }
+}

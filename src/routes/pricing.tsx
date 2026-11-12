@@ -1,5 +1,6 @@
+import { MarketingHero } from "@/components/site/MarketingHero";
 import { createFileRoute } from "@tanstack/react-router";
-import { Section, SectionHeader, ButtonLink } from "@/components/site/Primitives";
+import { Section, SectionHeader } from "@/components/site/Primitives";
 import { FaqSection } from "@/components/site/FaqSection";
 import { CtaBand } from "@/components/site/CtaBand";
 import { Packages } from "@/components/site/hqd/Packages";
@@ -51,20 +52,20 @@ export const Route = createFileRoute("/pricing")({
 function PricingPage() {
   return (
     <>
-      <Section tone="hero">
-        <SectionHeader
-          as="h1"
-          eyebrow="Pricing"
-          title="Great work, fair prices."
-          intro={`Simple packages from ${lowest}, with a written scope before any work begins. No surprises, no hidden extras.`}
-        />
-        <div className="mt-9 flex flex-wrap gap-3">
-          <ButtonLink href="#packages">See packages</ButtonLink>
-          <ButtonLink to="/contact" variant="secondary">
-            Get a custom quote
-          </ButtonLink>
-        </div>
-      </Section>
+      <MarketingHero
+        eyebrow="Pricing"
+        title={
+          <>
+            Great work.
+            <br />
+            <em>Fair prices.</em>
+          </>
+        }
+        description={`Simple packages from ${lowest}, with a written scope before any work begins. No surprises, no hidden extras.`}
+        primary={{ label: "See packages", href: "#packages" }}
+        secondary={{ label: "Get a custom quote", href: "/contact" }}
+        highlights={["Clear deliverables", "One-time packages", "Written scope before we start"]}
+      />
       <Section id="packages">
         <Packages heading={false} />
       </Section>

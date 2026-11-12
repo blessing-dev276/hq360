@@ -6,7 +6,6 @@ import { useExpertProof } from "@/lib/expert-proof";
 import { toCaseStudyShape, type SerializedCaseStudy } from "@/lib/case-study-view";
 import { CASE_STUDIES, type CaseStudy } from "@/data/work";
 import { CORE_SERVICES, AUDIENCES } from "@/data/agency";
-import { BOOK_COVER_PORTFOLIO } from "@/data/book-cover-portfolio";
 import {
   buildAgencyProof,
   expertProof,
@@ -43,7 +42,7 @@ export function AgencyWork({
   // Work HQ360 experts added (approved), credited to them.
   const experts = useExpertProof();
   const items = [
-    ...buildAgencyProof([...BOOK_COVER_PORTFOLIO, ...(portfolio.data?.items ?? [])], studies),
+    ...buildAgencyProof(portfolio.data?.items ?? [], studies),
     ...expertProof(experts.data?.portfolio ?? []),
   ];
   const filtered = filterAgencyProof(items, service || chosenService, audience || chosenAudience);
@@ -139,7 +138,7 @@ export function AgencyWork({
                   src={item.image}
                   alt={item.title}
                   loading="lazy"
-                  className={`aspect-[16/10] w-full rounded-xl bg-secondary ${item.services.includes("book-cover-design") ? "object-contain" : "object-cover object-top"}`}
+                  className="aspect-[16/10] w-full rounded-xl bg-secondary object-cover object-top"
                 />
               ) : null}
               <p className="mt-5 text-xs font-semibold text-brand">

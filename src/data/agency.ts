@@ -179,47 +179,6 @@ export const CORE_SERVICES: CoreService[] = [
     ],
   },
   {
-    slug: "book-cover-design",
-    name: "Book Cover Design",
-    description:
-      "Distinctive front, spine and back covers, plus coordinated layouts for books and workbooks.",
-    audience:
-      "For authors, publishers and creators preparing a new title, a revised edition or a coordinated series.",
-    problems: [
-      "The cover does not communicate the book's subject or genre at a glance.",
-      "Front, spine and back designs feel inconsistent.",
-      "The finished design needs to meet the specifications of the chosen print or digital platform.",
-    ],
-    deliverables: [
-      "Visual direction based on your audience, genre and publishing brief",
-      "Front cover design with agreed revision rounds",
-      "Spine and back cover layout when required",
-      "Final files prepared to the agreed print or ebook specifications",
-    ],
-    projects: [
-      "Fiction and nonfiction book covers",
-      "Memoirs and faith-based titles",
-      "Fitness guides and workbooks",
-      "Book series and edition updates",
-    ],
-    scope:
-      "Format, trim size, page count, supplied copy and photography, illustration needs, number of concepts and revision rounds shape the quote. Print specifications and image licensing are confirmed before final delivery.",
-    faqs: [
-      {
-        q: "Can you design the back and spine too?",
-        a: "Yes. Share the final trim size, page count, back-cover copy and publisher or printer specifications so we can prepare a complete wraparound cover.",
-      },
-      {
-        q: "Can you design the pages inside the book?",
-        a: "Yes. Interior layout, workbook pages and ebook formatting can be included in the project scope.",
-      },
-      {
-        q: "Can you use my own photos or artwork?",
-        a: "Yes, provided the files are suitable for the intended format and you have the rights needed to use them.",
-      },
-    ],
-  },
-  {
     slug: "digital-marketing",
     name: "Digital Marketing",
     description:

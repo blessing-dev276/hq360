@@ -10,7 +10,7 @@ export const Route = createFileRoute("/services/")({
     buildSeo({
       title: "Services | HQ360 SPACE",
       description:
-        "Website development, mobile apps, automation and CRM, writing, book cover design and digital marketing.",
+        "Website development, mobile apps, automation and CRM, writing and editing, translation and localization.",
       path: "/services",
     }),
   component: () => (
@@ -21,7 +21,7 @@ export const Route = createFileRoute("/services/")({
         description="Start with one clear brief or combine services in an agreed project scope."
         primary={{ label: "Start a project", href: "/contact" }}
         secondary={{ label: "Explore our services", href: "#services" }}
-        highlights={["Websites & apps", "Systems & automation", "Books & content"]}
+        highlights={["Websites & apps", "Systems & automation", "Content & marketing"]}
       />
       <Section id="services" className="scroll-mt-28">
         <ServiceLinks />

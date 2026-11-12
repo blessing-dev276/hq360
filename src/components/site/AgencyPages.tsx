@@ -192,10 +192,7 @@ export function CoreServicePage({
           title="Relevant work"
           intro="Published examples that match this service. We keep gaps visible rather than presenting proposed work as a completed project."
         />
-        <AgencyWork
-          service={service.slug}
-          limit={service.slug === "book-cover-design" ? undefined : 4}
-        />
+        <AgencyWork service={service.slug} limit={4} />
         <ExpertVoices service={service.slug} />
       </Section>
       <Section>

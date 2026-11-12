@@ -1683,7 +1683,14 @@
 /* ================================================================ site-wide */
 
 body:has(.hqd-site) {
-  background: #0a0a0b;
+  /* Matches the footer so Safari's rubber-band overscroll past the end of the
+     page doesn't reveal a black band under it. */
+  background: var(--carbon);
+  overscroll-behavior-y: none;
+}
+html:has(.hqd-site) {
+  background: var(--carbon);
+  overscroll-behavior-y: none;
 }
 .hqd {
   color-scheme: dark;

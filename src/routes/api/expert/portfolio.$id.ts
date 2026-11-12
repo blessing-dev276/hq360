@@ -6,12 +6,13 @@ function json(body: unknown, status = 200) {
 }
 
 const FIELDS =
-  "id, title, description, image_url, external_link, service_slugs, audience_slugs, status, reviewed_at, created_at, updated_at";
+  "id, title, description, image_url, video_url, external_link, service_slugs, audience_slugs, status, reviewed_at, created_at, updated_at";
 
 const schema = z.object({
   title: z.string().trim().min(2).max(150),
   description: z.string().trim().max(600),
   image_url: z.string().trim().max(500),
+  video_url: z.string().trim().max(500).url().or(z.literal("")),
   external_link: z.string().trim().max(300).url().or(z.literal("")),
   service_slugs: z.array(z.string().trim().min(1).max(60)).max(10),
   audience_slugs: z.array(z.string().trim().min(1).max(60)).max(10),
@@ -40,6 +41,7 @@ export const Route = createFileRoute("/api/expert/portfolio/$id")({
             title: input.title,
             description: input.description || null,
             image_url: input.image_url || null,
+            video_url: input.video_url || null,
             external_link: input.external_link || null,
             service_slugs: [...new Set(input.service_slugs)],
             audience_slugs: [...new Set(input.audience_slugs)],

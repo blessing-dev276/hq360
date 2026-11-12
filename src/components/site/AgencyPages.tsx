@@ -58,8 +58,8 @@ function PriceCallout({
         </p>
         <p className="mt-1 text-sm text-muted-foreground">{note}</p>
       </div>
-      <ButtonLink to="/pricing" variant="secondary" className="ml-auto">
-        See all packages
+      <ButtonLink to="/contact" variant="secondary" className="ml-auto">
+        Request a quote
       </ButtonLink>
     </div>
   );

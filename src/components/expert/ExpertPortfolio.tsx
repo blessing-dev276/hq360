@@ -1,6 +1,6 @@
 import { GlassLoading } from "@/components/ui/glass-loading";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
-import { AlertCircle, CircleCheck, ImageUp, Pencil, Trash2 } from "lucide-react";
+import { AlertCircle, CircleCheck, ImageUp, Pencil, Trash2, Video } from "lucide-react";
 import { CORE_SERVICES, AUDIENCES } from "@/data/agency";
 
 type PortfolioItem = {
@@ -8,6 +8,7 @@ type PortfolioItem = {
   title: string;
   description: string | null;
   image_url: string | null;
+  video_url: string | null;
   external_link: string | null;
   service_slugs: string[];
   audience_slugs: string[];
@@ -19,6 +20,7 @@ const EMPTY_FORM = {
   title: "",
   description: "",
   external_link: "",
+  video_url: "",
   service_slugs: [] as string[],
   audience_slugs: [] as string[],
 };
@@ -36,7 +38,7 @@ export function ExpertPortfolio() {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [image, setImage] = useState("");
-  const [busy, setBusy] = useState<"" | "save" | "image">("");
+  const [busy, setBusy] = useState<"" | "save" | "image" | "video">("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState(EMPTY_FORM);
   const [showForm, setShowForm] = useState(false);
@@ -72,12 +74,38 @@ export function ExpertPortfolio() {
       title: item.title,
       description: item.description ?? "",
       external_link: item.external_link ?? "",
+      video_url: item.video_url ?? "",
       service_slugs: item.service_slugs,
       audience_slugs: item.audience_slugs,
     });
     setImage(item.image_url ?? "");
     setShowForm(true);
     setNotice("");
+  }
+
+  async function uploadVideo(file: File) {
+    setBusy("video");
+    setError("");
+    try {
+      const response = await fetch("/api/expert/video-url", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ contentType: file.type, size: file.size }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || "Could not prepare the video upload.");
+      const put = await fetch(data.uploadUrl, {
+        method: "PUT",
+        headers: { "content-type": file.type, "x-upsert": "false" },
+        body: file,
+      });
+      if (!put.ok) throw new Error("Could not upload your video.");
+      setForm((current) => ({ ...current, video_url: data.publicUrl }));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not upload your video.");
+    } finally {
+      setBusy("");
+    }
   }
 
   async function uploadImage(file: File) {
@@ -207,6 +235,38 @@ export function ExpertPortfolio() {
               />
             </label>
           </div>
+          <div className="admin-setup" style={{ marginBottom: 0 }}>
+            <span className="admin-action-icon" style={{ width: 64, height: 64 }}>
+              <Video size={20} />
+            </span>
+            <div>
+              <strong>Portfolio video</strong>
+              <p>Upload MP4, WebM or MOV up to 50 MB, or paste a hosted video link below.</p>
+            </div>
+            <label className="admin-button" style={{ cursor: "pointer" }}>
+              {busy === "video" ? "Uploading…" : form.video_url ? "Replace" : "Upload video"}
+              <input
+                type="file"
+                accept="video/mp4,video/webm,video/quicktime"
+                className="sr-only"
+                disabled={!!busy}
+                onChange={(event) => {
+                  const file = event.target.files?.[0];
+                  if (file) void uploadVideo(file);
+                  event.target.value = "";
+                }}
+              />
+            </label>
+          </div>
+          <label>
+            Video URL (optional)
+            <input
+              type="url"
+              placeholder="https://… (YouTube, Vimeo or direct video URL)"
+              value={form.video_url}
+              onChange={(e) => setForm((f) => ({ ...f, video_url: e.target.value }))}
+            />
+          </label>
           <label>
             Title
             <input

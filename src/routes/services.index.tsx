@@ -32,7 +32,7 @@ export const Route = createFileRoute("/services/")({
       <CtaBand
         title="Not sure where to start?"
         body="Send a short brief and we’ll recommend the simplest way forward."
-        secondary={{ label: "See pricing", to: "/pricing" }}
+        secondary={{ label: "Request a quote", to: "/contact" }}
       />
     </>
   ),

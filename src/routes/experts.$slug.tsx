@@ -144,6 +144,14 @@ function AboutText({ paragraphs }: { paragraphs: string[] }) {
 
 const DESCRIPTION_PREVIEW = 160;
 
+function embedVideoUrl(url: string) {
+  const youtube = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/))([\w-]+)/);
+  if (youtube?.[1]) return `https://www.youtube.com/embed/${youtube[1]}`;
+  const vimeo = url.match(/vimeo\.com\/(?:video\/)?(\d+)/);
+  if (vimeo?.[1]) return `https://player.vimeo.com/video/${vimeo[1]}`;
+  return null;
+}
+
 function PortfolioCard({ item }: { item: PortfolioItem }) {
   const [open, setOpen] = useState(false);
   const tags = [
@@ -151,12 +159,29 @@ function PortfolioCard({ item }: { item: PortfolioItem }) {
     ...item.audience_slugs.map((s) => getAudience(s)?.name),
   ].filter(Boolean) as string[];
   const long = (item.description?.length ?? 0) > DESCRIPTION_PREVIEW;
+  const embedUrl = item.video_url ? embedVideoUrl(item.video_url) : null;
   return (
     <article className="hqd-card hqd-work-card">
-      {item.image_url ? (
+      {item.video_url ? (
+        embedUrl ? (
+          <iframe
+            src={embedUrl}
+            title={`${item.title} video`}
+            loading="lazy"
+            allow="accelerometer; autoplay; encrypted-media; picture-in-picture"
+            allowFullScreen
+          />
+        ) : (
+          <video
+            src={item.video_url}
+            controls
+            playsInline
+            preload="metadata"
+            poster={item.image_url ?? undefined}
+          />
+        )
+      ) : item.image_url ? (
         <img src={item.image_url} alt="" loading="lazy" />
-      ) : item.video_url ? (
-        <video src={item.video_url} controls playsInline preload="metadata" />
       ) : null}
       <div className="hqd-card-body">
         <h3>{item.title}</h3>

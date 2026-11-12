@@ -26,6 +26,7 @@ import {
   UserPlus,
   UserRound,
   Users,
+  Video,
   UserX,
   X,
 } from "lucide-react";
@@ -73,6 +74,7 @@ type PortfolioItem = {
   title: string;
   description: string | null;
   image_url: string | null;
+  video_url: string | null;
   external_link: string | null;
   service_slugs: string[];
   audience_slugs: string[];
@@ -1619,6 +1621,7 @@ type ItemDraft = {
   title: string;
   description: string;
   image_url: string;
+  video_url: string;
   external_link: string;
   service_slugs: string[];
   audience_slugs: string[];
@@ -1627,6 +1630,7 @@ const EMPTY_ITEM: ItemDraft = {
   title: "",
   description: "",
   image_url: "",
+  video_url: "",
   external_link: "",
   service_slugs: [],
   audience_slugs: [],
@@ -1670,6 +1674,7 @@ function PortfolioTab({
                 title: editing.title,
                 description: editing.description ?? "",
                 image_url: editing.image_url ?? "",
+                video_url: editing.video_url ?? "",
                 external_link: editing.external_link ?? "",
                 service_slugs: editing.service_slugs,
                 audience_slugs: editing.audience_slugs,
@@ -1744,6 +1749,10 @@ function PortfolioTab({
                     flexShrink: 0,
                   }}
                 />
+              ) : item.video_url ? (
+                <span className="admin-action-icon" style={{ width: 64, height: 44 }}>
+                  <Video size={16} />
+                </span>
               ) : (
                 <span className="admin-action-icon" style={{ width: 64, height: 44 }}>
                   <Images size={16} />
@@ -1880,6 +1889,52 @@ function ItemForm({
           />
         </label>
       </div>
+      <div className="admin-setup" style={{ marginBottom: 0 }}>
+        <span className="admin-action-icon" style={{ width: 80, height: 54 }}>
+          <Video size={20} />
+        </span>
+        <div>
+          <strong>Video</strong>
+          <p>Upload MP4, WebM or MOV up to 50 MB, or paste a hosted link.</p>
+        </div>
+        <label className="admin-button" style={{ cursor: "pointer" }}>
+          {uploading ? "Uploading…" : d.video_url ? "Replace" : "Upload video"}
+          <input
+            type="file"
+            accept="video/mp4,video/webm,video/quicktime"
+            className="sr-only"
+            disabled={uploading}
+            onChange={async (e) => {
+              const file = e.target.files?.[0];
+              e.target.value = "";
+              if (!file) return;
+              if (file.size > 50_000_000) {
+                setUploadError("Video must be 50 MB or smaller.");
+                return;
+              }
+              setUploading(true);
+              setUploadError("");
+              try {
+                const { url } = await uploadAdminMedia(file, "portfolio");
+                setD((x) => ({ ...x, video_url: url }));
+              } catch (err) {
+                setUploadError(err instanceof Error ? err.message : "Upload failed.");
+              } finally {
+                setUploading(false);
+              }
+            }}
+          />
+        </label>
+      </div>
+      <label>
+        Video URL (optional)
+        <input
+          type="url"
+          placeholder="https://… (YouTube, Vimeo or direct video URL)"
+          value={d.video_url}
+          onChange={(e) => setD({ ...d, video_url: e.target.value })}
+        />
+      </label>
       <label>
         Title
         <input

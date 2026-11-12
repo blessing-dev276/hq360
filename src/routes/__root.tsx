@@ -18,6 +18,8 @@ import { SiteFooter } from "@/components/site/SiteFooter";
 import { CookieBanner } from "@/components/site/CookieBanner";
 import { VisitTracker } from "@/components/site/VisitTracker";
 import { DeferredWidgets } from "@/components/site/DeferredWidgets";
+import { ExpertSignupDialog } from "@/components/site/ExpertSignupDialog";
+import expertSignupCss from "../components/site/expert-signup-dialog.css?url";
 import { BRAND } from "@/config/brand";
 import { organizationSchema, serializeJsonLd } from "@/lib/seo";
 
@@ -57,6 +59,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "theme-color", content: "#111416" },
     ],
     links: [
+      { rel: "stylesheet", href: expertSignupCss },
       { rel: "stylesheet", href: appCss },
       { rel: "stylesheet", href: loadingCss },
       {
@@ -111,8 +114,8 @@ function RootComponent() {
   const privateAudit = useRouterState({
     select: (state) =>
       state.location.pathname === "/expert" ||
-      ["/author-audit", "/admin", "/scout", "/pay/", "/quote/", "/proposal/", "/academy"].some((path) =>
-        state.location.pathname.startsWith(path),
+      ["/author-audit", "/admin", "/scout", "/pay/", "/quote/", "/proposal/", "/academy"].some(
+        (path) => state.location.pathname.startsWith(path),
       ),
   });
 
@@ -137,6 +140,7 @@ function RootComponent() {
             <CookieBanner />
             <VisitTracker />
             <DeferredWidgets />
+            <ExpertSignupDialog />
           </>
         )}
       </div>

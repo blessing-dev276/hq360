@@ -1,0 +1,97 @@
+.expert-signup-dialog {
+  width: min(92vw, 34rem);
+  max-height: 92dvh;
+  margin: auto;
+  padding: 0;
+  border: 1px solid rgb(255 255 255 / 0.13);
+  border-radius: 1.25rem;
+  background: #111;
+  color: #f5f2ed;
+  box-shadow: 0 30px 90px rgb(0 0 0 / 0.7);
+}
+.expert-signup-dialog::backdrop {
+  background: rgb(0 0 0 / 0.78);
+  backdrop-filter: blur(7px);
+}
+.expert-signup-dialog form,
+.expert-signup-dialog__success {
+  display: grid;
+  gap: 1rem;
+  padding: clamp(1.5rem, 5vw, 2.5rem);
+}
+.expert-signup-dialog h2 {
+  margin: 0;
+  font: 600 clamp(2rem, 7vw, 3rem)/1 var(--font-display);
+  letter-spacing: -0.04em;
+}
+.expert-signup-dialog p {
+  color: rgb(245 242 237 / 0.65);
+  line-height: 1.6;
+}
+.expert-signup-dialog__eyebrow {
+  color: #ff8500 !important;
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.expert-signup-dialog label {
+  display: grid;
+  gap: 0.45rem;
+  color: rgb(245 242 237 / 0.78);
+  font-size: 0.82rem;
+}
+.expert-signup-dialog input {
+  min-height: 3rem;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid rgb(255 255 255 / 0.14);
+  border-radius: 0.65rem;
+  background: #191919;
+  color: #fff;
+  font: inherit;
+}
+.expert-signup-dialog input:focus {
+  outline: 2px solid #ff8500;
+  outline-offset: 2px;
+}
+.expert-signup-dialog button[type="submit"],
+.expert-signup-dialog__success button {
+  min-height: 3.1rem;
+  border: 0;
+  border-radius: 0.7rem;
+  background: #ff5a21;
+  color: #140a05;
+  font-weight: 700;
+  cursor: pointer;
+}
+.expert-signup-dialog small {
+  text-align: center;
+  color: rgb(245 242 237 / 0.55);
+}
+.expert-signup-dialog small a {
+  color: #ff9b67;
+}
+.expert-signup-dialog__close {
+  position: absolute;
+  top: 0.9rem;
+  right: 0.9rem;
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 1px solid rgb(255 255 255 / 0.12);
+  border-radius: 50%;
+  background: #1b1b1b;
+  color: #fff;
+  cursor: pointer;
+}
+.expert-signup-dialog__close svg {
+  width: 1rem;
+}
+.expert-signup-dialog__error {
+  color: #ff8a82 !important;
+}
+.expert-signup-dialog__success svg {
+  width: 2.5rem;
+  height: 2.5rem;
+  color: #ff8500;
+}

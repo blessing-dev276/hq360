@@ -9,7 +9,7 @@ import { Eyebrow, Grain, PersonCard } from "@/components/site/hqd/Hqd";
 export const Route = createFileRoute("/experts/")({
   head: () =>
     buildSeo({
-      title: "Our Experts | HQ360",
+      title: "Team & Experts | HQ360",
       description:
         "Meet the HQ360 team and the independent experts who build websites, apps, systems and content with us.",
       path: "/experts",

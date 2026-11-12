@@ -10,7 +10,7 @@ export const Route = createFileRoute("/api/admin/expert-portfolio")({
         const { expertPortfolioItems } = await import("@/lib/expert-auth.server");
         const { data, error } = await expertPortfolioItems()
           .select(
-            "id, expert_id, title, description, image_url, external_link, service_slugs, audience_slugs, status, created_at, reviewed_at, source_portfolio_item_id, expert_profiles(full_name, email, slug)",
+            "id, expert_id, title, description, image_url, video_url, external_link, service_slugs, audience_slugs, status, created_at, reviewed_at, source_portfolio_item_id, expert_profiles(full_name, email, slug)",
           )
           .order("created_at", { ascending: false });
         if (error)

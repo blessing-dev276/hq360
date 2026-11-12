@@ -6,31 +6,24 @@ import { PortfolioStrip } from "../PortfolioStrip";
 import { TestimonialStrip } from "../TestimonialStrip";
 import { TeamShowcase } from "../TeamShowcase";
 import { ProjectInquiryForm } from "../ProjectInquiryForm";
+import { MarketingHero } from "../MarketingHero";
 export function AuthorExperience() {
   return (
     <>
-      <Section tone="hero">
-        <div className="max-w-4xl">
-          <p className="text-sm font-semibold tracking-widest text-brand uppercase">
-            HQ360 / Authors & Publishers
-          </p>
-          <h1 className="mt-6 text-5xl leading-tight sm:text-6xl lg:text-7xl">
+      <MarketingHero
+        eyebrow="HQ360 / Authors & Publishers"
+        title={
+          <>
             Bring your book to life.
             <br />
             Help readers find it.
-          </h1>
-          <p className="mt-7 max-w-2xl text-lg text-muted-foreground">
-            From your first draft to your next reader, we help you develop your book, prepare for
-            publication and build an author platform.
-          </p>
-          <div className="mt-9 flex flex-wrap gap-4">
-            <ButtonLink href="#start-project">Start an Author Project</ButtonLink>
-            <ButtonLink to="/tools/author-visibility-audit" variant="secondary">
-              Free Visibility Check
-            </ButtonLink>
-          </div>
-        </div>
-      </Section>
+          </>
+        }
+        description="From your first draft to your next reader, we help you develop your book, prepare for publication and build an author platform."
+        primary={{ label: "Start an author project", href: "#start-project" }}
+        secondary={{ label: "Free visibility check", href: "/tools/author-visibility-audit" }}
+        highlights={["Writing & editing", "Publishing support", "Author platforms"]}
+      />
       <Section>
         <SectionHeader
           eyebrow="Choose your next step"

@@ -25,12 +25,12 @@
   overflow-x: clip;
 }
 
-.ind section {
+.ind section:not(.marketing-hero) {
   padding-block: var(--y);
   position: relative;
 }
 
-.ind h1,
+.ind h1:not(.marketing-hero__title),
 .ind h2,
 .ind h3 {
   font-family: var(--font-display);

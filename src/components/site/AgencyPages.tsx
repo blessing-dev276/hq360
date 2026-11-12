@@ -15,6 +15,7 @@ import { ProjectInquiryForm } from "./ProjectInquiryForm";
 import { FaqSection } from "./FaqSection";
 import { ExpertVoices } from "./ExpertVoices";
 import { AgencyWork } from "./AgencyWork";
+import { MarketingHero } from "./MarketingHero";
 
 /** Starting price per service, where one of the /pricing packages covers it.
  *  Mobile apps, writing/translation and digital marketing are scoped and
@@ -132,32 +133,20 @@ export function CoreServicePage({
         : [];
   return (
     <>
-      <Section tone="hero">
-        <SectionHeader
-          as="h1"
-          eyebrow="HQ360 / Services"
-          title={service.name}
-          intro={service.description}
-        />
-        <p className="mt-6 max-w-2xl text-muted-foreground">{service.audience}</p>
-        <div className="mt-8">
-          <ButtonLink href="#project-inquiry">Discuss {service.name.toLowerCase()}</ButtonLink>
-        </div>
-        {SERVICE_PRICE[service.slug] ? (
-          <PriceCallout
-            label="Starting from"
-            price={SERVICE_PRICE[service.slug]!}
-            note="One-time, with a written scope before any work begins."
-          />
-        ) : (
-          <PriceCallout
-            label="Pricing"
-            price="Custom quote"
-            note="Scoped and priced after a short brief — no fixed package covers this service."
-          />
-        )}
-      </Section>
-      <Section>
+      <MarketingHero
+        eyebrow="HQ360 / Services"
+        title={service.name}
+        description={service.description}
+        primary={{ label: "Discuss your project", href: "#project-inquiry" }}
+        secondary={{ label: "Explore the service", href: "#service-details" }}
+        highlights={[
+          "A clear project scope",
+          "A dedicated project lead",
+          "Built around your business",
+        ]}
+      />
+      <Section id="service-details" className="scroll-mt-28">
+        <p className="mb-10 max-w-2xl text-muted-foreground">{service.audience}</p>
         <div className="grid gap-12 lg:grid-cols-2">
           <div>
             <SectionHeader title="When this service helps" />
@@ -184,6 +173,19 @@ export function CoreServicePage({
           <h2 className="text-2xl">Common project types</h2>
           <p className="mt-4 text-muted-foreground">{service.projects.join(" · ")}</p>
         </div>
+        {SERVICE_PRICE[service.slug] ? (
+          <PriceCallout
+            label="Starting from"
+            price={SERVICE_PRICE[service.slug]!}
+            note="One-time, with a written scope before any work begins."
+          />
+        ) : (
+          <PriceCallout
+            label="Pricing"
+            price="Custom quote"
+            note="Scoped and priced after a short brief — no fixed package covers this service."
+          />
+        )}
       </Section>
       <Section tone="raised">
         <SectionHeader
@@ -243,31 +245,15 @@ export function CoreServicePage({
 export function AudiencePage({ audience }: { audience: Audience }) {
   return (
     <>
-      <Section tone="hero">
-        <SectionHeader
-          as="h1"
-          eyebrow={`HQ360 / ${audience.name}`}
-          title={audience.headline}
-          intro={audience.intro}
-        />
-        <div className="mt-8">
-          <ButtonLink href="#project-inquiry">
-            Start a project for {audience.name.toLowerCase()}
-          </ButtonLink>
-        </div>
-        {(() => {
-          const planName = AUDIENCE_PLAN[audience.slug];
-          const plan = PLANS.find((p) => p.name === planName);
-          return plan ? (
-            <PriceCallout
-              label={`Recommended package for ${audience.name.toLowerCase()}`}
-              price={plan.price}
-              note={plan.note}
-            />
-          ) : null;
-        })()}
-      </Section>
-      <Section>
+      <MarketingHero
+        eyebrow={`HQ360 / ${audience.name}`}
+        title={audience.headline}
+        description={audience.intro}
+        primary={{ label: "Start a project", href: "#project-inquiry" }}
+        secondary={{ label: "How we can help", href: "#audience-details" }}
+        highlights={["Built for your business", "One connected team", "A clear plan from day one"]}
+      />
+      <Section id="audience-details" className="scroll-mt-28">
         <SectionHeader title="Does this sound familiar?" />
         <ul className="mt-8 grid gap-7 md:grid-cols-3">
           {audience.needs.map((need) => (
@@ -296,6 +282,17 @@ export function AudiencePage({ audience }: { audience: Audience }) {
             </div>
           ))}
         </div>
+        {(() => {
+          const planName = AUDIENCE_PLAN[audience.slug];
+          const plan = PLANS.find((p) => p.name === planName);
+          return plan ? (
+            <PriceCallout
+              label={`Recommended package for ${audience.name.toLowerCase()}`}
+              price={plan.price}
+              note={plan.note}
+            />
+          ) : null;
+        })()}
       </Section>
       <Section tone="raised">
         <SectionHeader title="Relevant published work" />

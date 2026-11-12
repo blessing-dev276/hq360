@@ -1,13 +1,6 @@
-import {
-  useEffect,
-  useRef,
-  useState,
-  type KeyboardEvent,
-  type PointerEvent,
-  type ReactNode,
-} from "react";
+import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, ArrowUpRight, Check, Sparkles } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Check } from "lucide-react";
 import type { Industry } from "@/data/industries";
 import { capabilitiesFor } from "@/data/capabilities";
 import { PRINCIPLES } from "@/data/process";
@@ -15,6 +8,7 @@ import { Container } from "@/components/site/Primitives";
 import { FaqSection } from "@/components/site/FaqSection";
 import { ProjectInquiryForm } from "@/components/site/ProjectInquiryForm";
 import { PortfolioStrip } from "@/components/site/PortfolioStrip";
+import { MarketingHero } from "@/components/site/MarketingHero";
 import { getCaseStudy } from "@/data/work";
 import "./industry.css";
 
@@ -60,7 +54,17 @@ export function IndustryPage({
 
   return (
     <div className="ind">
-      <Hero industry={industry} caps={caps} />
+      <MarketingHero
+        eyebrow={industry.eyebrow}
+        title={industry.headline}
+        description={industry.subheadline}
+        primary={{ label: "Start a project", href: "#start" }}
+        secondary={{
+          label: "How we can help",
+          href: hidden("howWeHelp") ? "#industry-outcomes" : "#how-we-help",
+        }}
+        highlights={caps.slice(0, 3).map((capability) => capability.label)}
+      />
       <Outcome industry={industry} />
       <PainPoints industry={industry} />
       {!hidden("howWeHelp") ? <HowWeHelp industry={industry} caps={caps} /> : null}
@@ -75,100 +79,11 @@ export function IndustryPage({
   );
 }
 
-/* -------------------------------------------------------------- 1 · hero */
-
-function Hero({
-  industry,
-  caps,
-}: {
-  industry: Industry;
-  caps: ReturnType<typeof capabilitiesFor>;
-}) {
-  const orbit = useRef<HTMLDivElement>(null);
-  const frame = useRef(0);
-  const nodes = caps.slice(0, 4);
-  useEffect(() => () => cancelAnimationFrame(frame.current), []);
-
-  function move(e: PointerEvent<HTMLDivElement>) {
-    if (e.pointerType !== "mouse" || window.matchMedia("(prefers-reduced-motion: reduce)").matches)
-      return;
-    const el = e.currentTarget;
-    const { clientX, clientY } = e;
-    cancelAnimationFrame(frame.current);
-    frame.current = requestAnimationFrame(() => {
-      const b = el.getBoundingClientRect();
-      orbit.current?.style.setProperty("--px", `${((clientX - b.left) / b.width - 0.5) * 12}px`);
-      orbit.current?.style.setProperty("--py", `${((clientY - b.top) / b.height - 0.5) * 12}px`);
-    });
-  }
-  function reset() {
-    cancelAnimationFrame(frame.current);
-    orbit.current?.style.setProperty("--px", "0px");
-    orbit.current?.style.setProperty("--py", "0px");
-  }
-
-  return (
-    <section className="ind-hero hqd-hero-section">
-      <span className="hqd-hero-glow" aria-hidden="true" />
-      <span className="hqd-hero-shade" aria-hidden="true" />
-      <div className="ind-hero-grid" aria-hidden="true" />
-      <Container size="wide" className="relative z-10">
-        <nav aria-label="Breadcrumb" className="ind-crumb">
-          <Link to="/industries">Industries</Link>
-          <span aria-hidden="true">/</span>
-          <span>{industry.shortName}</span>
-        </nav>
-        <div className="ind-hero-layout">
-          <div className="ind-hero-copy">
-            <p className="ind-eyebrow">
-              <span /> {industry.eyebrow}
-            </p>
-            <h1>{industry.headline}</h1>
-            <p className="ind-hero-lede">{industry.subheadline}</p>
-            <div className="ind-actions">
-              <a href="#start" className="ind-btn ind-btn-primary">
-                {industry.cta.label} <ArrowUpRight aria-hidden="true" />
-              </a>
-              <Link to="/work" className="ind-btn ind-btn-ghost">
-                See the work <ArrowRight aria-hidden="true" />
-              </Link>
-            </div>
-          </div>
-          <div className="ind-orbit-wrap" onPointerMove={move} onPointerLeave={reset}>
-            <div
-              ref={orbit}
-              className="ind-orbit"
-              role="img"
-              aria-label={`${industry.shortName} growth system`}
-            >
-              <div className="ind-orbit-ring r-a" />
-              <div className="ind-orbit-ring r-b" />
-              <div className="ind-orbit-ring r-c" />
-              <div className="ind-orbit-core">
-                <Sparkles aria-hidden="true" />
-                <strong>{industry.shortName}</strong>
-                <span>connected growth</span>
-              </div>
-              {nodes.map((c, i) => (
-                <Link key={c.slug} to={c.path} className={`ind-orbit-node n-${i + 1}`}>
-                  <span>{num(i)}</span>
-                  {c.label}
-                </Link>
-              ))}
-              <span className="ind-orbit-spark" aria-hidden="true" />
-            </div>
-          </div>
-        </div>
-      </Container>
-    </section>
-  );
-}
-
 /* ----------------------------------------------------------- 2 · outcome */
 
 function Outcome({ industry }: { industry: Industry }) {
   return (
-    <section className="ind-outcome">
+    <section id="industry-outcomes" className="ind-outcome scroll-mt-28">
       <Container size="wide">
         <div className="ind-outcome-layout">
           <div className="ind-outcome-lead">
@@ -257,7 +172,7 @@ function HowWeHelp({
   caps: ReturnType<typeof capabilitiesFor>;
 }) {
   return (
-    <section className="ind-help">
+    <section id="how-we-help" className="ind-help scroll-mt-28">
       <Container size="wide">
         <div className="ind-section-head light">
           <p className="ind-eyebrow">

@@ -1,18 +1,16 @@
 import { Link } from "@tanstack/react-router";
-import { ArrowUpRight, Check, Mail, MessageCircle } from "lucide-react";
+import { ArrowUpRight, Mail, MessageCircle } from "lucide-react";
 import { AGENCY_PROCESS, AUDIENCES, CORE_SERVICES } from "@/data/agency";
 import { BRAND } from "@/config/brand";
 import { useExpertDirectory } from "@/lib/experts";
 import { Reveal } from "../Reveal";
 import { TestimonialStrip } from "../TestimonialStrip";
 import { ProjectInquiryForm } from "../ProjectInquiryForm";
-import { Eyebrow, Grain, Num, PersonCard, Pill, spotlight } from "../hqd/Hqd";
+import { Eyebrow, Grain, Num, PersonCard, Pill } from "../hqd/Hqd";
 import { HomeHero } from "../hqd/HomeHero";
 import { WorkArc } from "../hqd/WorkArc";
 import { Packages } from "../hqd/Packages";
 import { ServiceCards } from "../hqd/ServiceCards";
-
-const BAND_WORDS = ["Websites", "Mobile Apps", "Automation", "CRM", "Writing", "Translation"];
 
 export function HomeExperience() {
   const directory = useExpertDirectory();
@@ -20,22 +18,6 @@ export function HomeExperience() {
   return (
     <div className="hqd dark">
       <HomeHero />
-
-      <div className="hqd-marquee" aria-hidden="true">
-        {(["orange", "outline"] as const).map((tone) => (
-          <div key={tone} className={`hqd-band hqd-band--${tone}`}>
-            {[0, 1].map((copy) => (
-              <div key={copy}>
-                {BAND_WORDS.map((word) => (
-                  <span key={word}>
-                    {word} <i>✺</i>
-                  </span>
-                ))}
-              </div>
-            ))}
-          </div>
-        ))}
-      </div>
 
       <section className="hqd-section">
         <div className="hqd-wrap">
@@ -139,7 +121,7 @@ export function HomeExperience() {
         </div>
       </section>
 
-      <section id="work" className="hqd-section" style={{ paddingTop: 0, scrollMarginTop: "5rem" }}>
+      <section id="work" className="hqd-section" style={{ paddingTop: 0 }}>
         <div className="hqd-wrap">
           <Reveal className="hqd-arc-head">
             <Eyebrow>Behind the work</Eyebrow>
@@ -216,7 +198,7 @@ export function HomeExperience() {
       <section
         id="project-inquiry"
         className="hqd-section"
-        style={{ scrollMarginTop: "4rem", paddingBottom: "clamp(3rem, 6vw, 5rem)" }}
+        style={{ paddingBottom: "clamp(3rem, 6vw, 5rem)" }}
       >
         <div className="hqd-cta">
           <Grain />

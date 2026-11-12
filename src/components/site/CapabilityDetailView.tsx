@@ -2,8 +2,9 @@ import { Link } from "@tanstack/react-router";
 import type { Capability } from "@/data/capabilities";
 import { CAPABILITIES } from "@/data/capabilities";
 import { INDUSTRIES } from "@/data/industries";
-import { Container, Eyebrow, Section, SectionHeader } from "@/components/site/Primitives";
-import { OrbitGraphic } from "@/components/brand/OrbitGraphic";
+import { Section, SectionHeader } from "@/components/site/Primitives";
+import { MarketingHero } from "@/components/site/MarketingHero";
+import { inquiryHref } from "@/lib/inquiry-context";
 import { OutcomeCards } from "@/components/site/OutcomeCards";
 import { ProcessTimeline } from "@/components/site/ProcessTimeline";
 import { FaqSection } from "@/components/site/FaqSection";
@@ -23,47 +24,24 @@ export function CapabilityDetailView({ capability }: { capability: Capability })
 
   return (
     <>
-      <section className="hqd-hero-section">
-        <span className="hqd-hero-glow" aria-hidden="true" />
-        <span className="hqd-hero-shade" aria-hidden="true" />
-        <span
-          aria-hidden="true"
-          className="pointer-events-none absolute -right-24 -top-20 hidden h-[26rem] w-[26rem] text-white/10 lg:block"
-        >
-          <OrbitGraphic />
-        </span>
-        <Container className="relative">
-          <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground">
-            <Link to="/services" className="hover:text-brand">
-              Services
-            </Link>
-            <span aria-hidden="true"> / </span>
-            <span className="text-foreground">{capability.name}</span>
-          </nav>
-          <div className="mt-8 max-w-3xl">
-            <Eyebrow>Service</Eyebrow>
-            <h1 className="mt-4 text-4xl leading-[1.08] text-balance sm:text-5xl">
-              {capability.name}
-            </h1>
-            <div className="rule-brand mt-6" />
-            <p className="mt-6 text-lg leading-relaxed text-muted-foreground">
-              {capability.tagline}
-            </p>
-            <p className="mt-4 text-base leading-relaxed text-muted-foreground">
-              {capability.summary}
-            </p>
-            <Link
-              to={CTAS.primary.to}
-              className="mt-9 inline-flex items-center justify-center rounded-full bg-primary px-7 py-3.5 text-sm font-semibold text-primary-foreground transition-transform hover:-translate-y-0.5"
-            >
-              {CTAS.primary.label}
-            </Link>
-          </div>
-        </Container>
-      </section>
+      <MarketingHero
+        eyebrow="HQ360 / Services"
+        title={capability.name}
+        description={capability.tagline}
+        primary={{
+          label: "Start a project",
+          href: inquiryHref({ from: `/services/${capability.slug}` }),
+        }}
+        secondary={{ label: "Explore the service", href: "#service-details" }}
+        highlights={["Strategy through delivery", "One connected team", "A clear project scope"]}
+      />
 
-      <Section tone="raised">
-        <SectionHeader eyebrow="What you get" title="Outcomes, not tools" />
+      <Section id="service-details" tone="raised" className="scroll-mt-28">
+        <SectionHeader
+          eyebrow="What you get"
+          title="Outcomes, not tools"
+          intro={capability.summary}
+        />
         <div className="mt-10">
           <OutcomeCards items={capability.outcomes} />
         </div>

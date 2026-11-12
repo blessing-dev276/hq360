@@ -3,6 +3,7 @@ import { AUTHOR_OFFERS, type AuthorOffer } from "@/data/author-offers";
 import { Section, SectionHeader, ButtonLink } from "./Primitives";
 import { ProjectInquiryForm } from "./ProjectInquiryForm";
 import { TestimonialStrip } from "./TestimonialStrip";
+import { MarketingHero } from "./MarketingHero";
 export function AuthorOffers() {
   return (
     <div className="mt-10 grid gap-5 md:grid-cols-2">
@@ -27,15 +28,19 @@ export function AuthorOffers() {
 export function AuthorOfferPage({ offer }: { offer: AuthorOffer }) {
   return (
     <>
-      <Section tone="hero">
-        <SectionHeader
-          as="h1"
-          eyebrow="For authors & publishers"
-          title={offer.name}
-          intro={offer.description}
-        />
-      </Section>
-      <Section>
+      <MarketingHero
+        eyebrow="For authors & publishers"
+        title={offer.name}
+        description={offer.description}
+        primary={{ label: "Discuss your project", href: "#author-inquiry" }}
+        secondary={{ label: "Explore the service", href: "#service-details" }}
+        highlights={[
+          "Support for your next chapter",
+          "An agreed scope",
+          "Your voice, thoughtfully shaped",
+        ]}
+      />
+      <Section id="service-details" className="scroll-mt-28">
         <h2 className="text-2xl">What we can help you deliver</h2>
         <ul className="mt-5 space-y-3">
           {offer.deliverables.map((item) => (

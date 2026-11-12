@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Section, SectionHeader } from "@/components/site/Primitives";
+import { Section } from "@/components/site/Primitives";
+import { MarketingHero } from "@/components/site/MarketingHero";
 import { ServiceLinks } from "@/components/site/AgencyPages";
 import { Packages } from "@/components/site/hqd/Packages";
 import { CtaBand } from "@/components/site/CtaBand";
@@ -14,15 +15,15 @@ export const Route = createFileRoute("/services/")({
     }),
   component: () => (
     <>
-      <Section tone="hero">
-        <SectionHeader
-          as="h1"
-          eyebrow="Services"
-          title="Services for the work you need done"
-          intro="Start with one clear brief or combine services in an agreed project scope."
-        />
-      </Section>
-      <Section>
+      <MarketingHero
+        eyebrow="HQ360 / Services"
+        title="Services for the work you need done"
+        description="Start with one clear brief or combine services in an agreed project scope."
+        primary={{ label: "Start a project", href: "/contact" }}
+        secondary={{ label: "Explore our services", href: "#services" }}
+        highlights={["Websites & apps", "Systems & automation", "Content & marketing"]}
+      />
+      <Section id="services" className="scroll-mt-28">
         <ServiceLinks />
       </Section>
       <Section tone="raised">

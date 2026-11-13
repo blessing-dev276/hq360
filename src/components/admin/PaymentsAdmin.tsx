@@ -57,7 +57,7 @@ const PROVIDERS = [
   {
     value: "bank_transfer",
     label: "Bank transfer",
-    hint: "EUR only · SEPA / SEPA Instant from EEA banks · receipt confirmed manually",
+    hint: "USD checking or EUR SEPA · receipt confirmed manually",
   },
   { value: "nowpayments", label: "NOWPayments", hint: "Crypto checkout" },
   { value: "flutterwave", label: "Flutterwave", hint: "Card & bank checkout" },
@@ -89,6 +89,7 @@ export function PaymentsAdmin() {
   const [filter, setFilter] = useState("all");
   const [creating, setCreating] = useState(false);
   const [provider, setProvider] = useState<Invoice["provider"]>("bank_transfer");
+  const [bankSettlement, setBankSettlement] = useState<"USD" | "EUR">("USD");
   // "split" = 50% to start now, 50% on delivery (a linked balance draft).
   const [terms, setTerms] = useState<"full" | "split">("split");
   const [selected, setSelected] = useState<Invoice | null>(null);
@@ -179,7 +180,7 @@ export function PaymentsAdmin() {
     if (action === "confirm_bank") {
       reference = window
         .prompt(
-          `Confirm that ${money(invoice.bank_transfer_amount_minor ?? invoice.amount_minor, "EUR")} has arrived in your bank account for ${invoice.number}. Enter the bank transaction reference:`,
+          `Confirm that ${money(invoice.bank_transfer_amount_minor ?? invoice.amount_minor, invoice.bank_transfer_amount_minor ? "EUR" : invoice.currency)} has arrived in your bank account for ${invoice.number}. Enter the bank transaction reference:`,
         )
         ?.trim();
       if (!reference) return;
@@ -299,7 +300,7 @@ export function PaymentsAdmin() {
         amount_minor: Math.round(amount * 100),
         currency: "USD",
         bank_transfer_amount_minor:
-          provider === "bank_transfer"
+          provider === "bank_transfer" && bankSettlement === "EUR"
             ? Math.round(Number(form.get("bank_transfer_amount")) * 100)
             : undefined,
         due_date: form.get("due_date"),
@@ -417,6 +418,7 @@ export function PaymentsAdmin() {
             onClick={() => {
               createId.current = crypto.randomUUID();
               setProvider("bank_transfer");
+              setBankSettlement("USD");
               setError("");
               setNotice("");
               setCreating(true);
@@ -434,7 +436,7 @@ export function PaymentsAdmin() {
           <div>
             <strong>Your payment workspace is ready.</strong>
             <p>
-              EUR bank transfer invoices are ready to issue.{" "}
+              USD and EUR bank transfer invoices are ready to issue.{" "}
               {!setup.nowpayments.configured && !setup.flutterwave.configured
                 ? "Connect NOWPayments or Flutterwave to offer hosted checkout too."
                 : !setup.nowpayments.configured
@@ -929,6 +931,18 @@ export function PaymentsAdmin() {
               />
             </label>
             {provider === "bank_transfer" && (
+              <label>
+                Bank account
+                <select
+                  value={bankSettlement}
+                  onChange={(event) => setBankSettlement(event.target.value as "USD" | "EUR")}
+                >
+                  <option value="USD">USD checking account</option>
+                  <option value="EUR">EUR SEPA account</option>
+                </select>
+              </label>
+            )}
+            {provider === "bank_transfer" && bankSettlement === "EUR" && (
               <label>
                 {terms === "split"
                   ? "Total agreed transfer amount (EUR)"

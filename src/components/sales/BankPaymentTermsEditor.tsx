@@ -18,6 +18,9 @@ export function BankPaymentTermsEditor({
 }) {
   const [editing, setEditing] = useState(false);
   const [currency, setCurrency] = useState(terms.currency);
+  const [settlement, setSettlement] = useState<"USD" | "EUR">(
+    terms.bank_transfer_amount_minor ? "EUR" : "USD",
+  );
   const [amount, setAmount] = useState((terms.amount_minor / 100).toFixed(2));
   const [transferAmount, setTransferAmount] = useState(
     terms.bank_transfer_amount_minor ? (terms.bank_transfer_amount_minor / 100).toFixed(2) : "",
@@ -26,6 +29,7 @@ export function BankPaymentTermsEditor({
   const [error, setError] = useState("");
   useEffect(() => {
     setCurrency(terms.currency);
+    setSettlement(terms.bank_transfer_amount_minor ? "EUR" : "USD");
     setAmount((terms.amount_minor / 100).toFixed(2));
     setTransferAmount(
       terms.bank_transfer_amount_minor ? (terms.bank_transfer_amount_minor / 100).toFixed(2) : "",
@@ -34,12 +38,12 @@ export function BankPaymentTermsEditor({
   async function save(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const minor = Math.round(Number(amount) * 100);
-    const transferMinor = currency === "USD" ? Math.round(Number(transferAmount) * 100) : null;
+    const transferMinor =
+      currency === "USD" && settlement === "EUR" ? Math.round(Number(transferAmount) * 100) : null;
     if (
       !Number.isSafeInteger(minor) ||
       minor <= 0 ||
-      (currency === "USD" &&
-        (!Number.isSafeInteger(transferMinor) || !transferMinor || transferMinor <= 0))
+      (transferMinor !== null && (!Number.isSafeInteger(transferMinor) || transferMinor <= 0))
     ) {
       setError("Enter a valid invoice amount and EUR transfer amount.");
       return;
@@ -101,6 +105,18 @@ export function BankPaymentTermsEditor({
           </label>
           {currency === "USD" && (
             <label>
+              Bank account
+              <select
+                value={settlement}
+                onChange={(event) => setSettlement(event.target.value as "USD" | "EUR")}
+              >
+                <option value="USD">USD checking account</option>
+                <option value="EUR">EUR SEPA account</option>
+              </select>
+            </label>
+          )}
+          {currency === "USD" && settlement === "EUR" && (
+            <label>
               Agreed EUR transfer amount
               <input
                 type="number"
@@ -114,8 +130,9 @@ export function BankPaymentTermsEditor({
             </label>
           )}
           <p>
-            Confirm the amount with the buyer before issuing the invoice. Changing the currency does
-            not convert the amount automatically.
+            Confirm the amount with the buyer before issuing. Changing the currency or account uses
+            that account's default bank details. Review them before issuing. Amounts are not
+            converted automatically.
           </p>
           <button type="submit" className="admin-button admin-button-primary" disabled={busy}>
             {busy ? "Saving…" : "Save amount and currency"}

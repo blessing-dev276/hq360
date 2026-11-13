@@ -46,7 +46,7 @@ export type PaymentSetup = {
 };
 export function providerLabel(provider: Invoice["provider"]) {
   return provider === "bank_transfer"
-    ? "Bank transfer (EUR)"
+    ? "Bank transfer"
     : provider === "paystack"
       ? "Paystack"
       : provider === "nowpayments"

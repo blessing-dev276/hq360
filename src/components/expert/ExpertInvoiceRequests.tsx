@@ -215,6 +215,9 @@ export function ExpertInvoiceRequests() {
               <label style={{ padding: "8px 13px", display: "flex", alignItems: "center", gap: 6 }}>
                 <input type="radio" name="payment_type" value="crypto" /> Crypto
               </label>
+              <label style={{ padding: "8px 13px", display: "flex", alignItems: "center", gap: 6 }}>
+                <input type="radio" name="payment_type" value="bank_transfer" /> USD bank transfer
+              </label>
             </div>
           </div>
           <div className="admin-button-row">

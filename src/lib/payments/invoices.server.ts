@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { defaultBankTransferDetails } from "./bank-transfer";
+import { defaultBankDetailsFor } from "./bank-transfer";
 import { leadInboxAddress, sendEmail } from "@/lib/email.server";
 import * as nowpayments from "./nowpayments.server";
 import * as flutterwave from "./flutterwave.server";
@@ -102,11 +102,6 @@ const bankPaymentTermsSchema = z
     bank_transfer_amount_minor: z.number().int().positive().max(10000000000).nullable(),
   })
   .superRefine((terms, context) => {
-    if (terms.currency === "USD" && !terms.bank_transfer_amount_minor)
-      context.addIssue({
-        code: "custom",
-        message: "Enter the agreed EUR transfer amount for a USD invoice.",
-      });
     if (terms.currency === "EUR" && terms.bank_transfer_amount_minor !== null)
       context.addIssue({
         code: "custom",
@@ -119,8 +114,23 @@ export async function updateInvoiceBankPaymentTerms(id: string, terms: unknown, 
   const parsed = bankPaymentTermsSchema.safeParse(terms);
   if (!parsed.success)
     throw new Error(parsed.error.issues[0]?.message || "Check the amount and currency.");
+  const existing = await getInvoice(id);
+  const switchingBank =
+    existing.currency !== parsed.data.currency ||
+    Boolean(existing.bank_transfer_amount_minor) !==
+      Boolean(parsed.data.bank_transfer_amount_minor);
   let query = db()
-    .update(parsed.data)
+    .update({
+      ...parsed.data,
+      ...(switchingBank
+        ? {
+            bank_details: defaultBankDetailsFor(
+              parsed.data.currency,
+              parsed.data.bank_transfer_amount_minor,
+            ),
+          }
+        : {}),
+    })
     .eq("id", id)
     .eq("provider", "bank_transfer")
     .eq("status", "draft")
@@ -221,8 +231,6 @@ export async function createInvoice(input: z.infer<typeof invoiceSchema>) {
   if (input.provider === "bank_transfer") {
     if (!(["USD", "EUR"] as string[]).includes(currency))
       throw new Error("Unsupported bank invoice currency.");
-    if (currency === "USD" && !input.bank_transfer_amount_minor)
-      throw new Error("Enter the agreed EUR transfer amount for a USD invoice.");
   } else if (currency !== "USD" || input.bank_transfer_amount_minor)
     throw new Error("Hosted checkout invoices use USD and do not have a EUR transfer amount.");
   const environment =
@@ -232,7 +240,10 @@ export async function createInvoice(input: z.infer<typeof invoiceSchema>) {
   const { split, balance_due_date, ...fields } = input;
   const base = {
     ...fields,
-    bank_details: input.provider === "bank_transfer" ? defaultBankTransferDetails : null,
+    bank_details:
+      input.provider === "bank_transfer"
+        ? defaultBankDetailsFor(currency, input.bank_transfer_amount_minor)
+        : null,
     // The requesting expert is the sender unless another one was picked.
     sender_expert_id: input.sender_expert_id ?? input.requested_by_expert_id ?? null,
     currency,

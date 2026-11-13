@@ -20,6 +20,7 @@ export const Route = createFileRoute("/api/expert/invoices/$id/bank-details")({
                 currency: invoice.currency,
                 amount_minor: invoice.amount_minor,
                 bank_transfer_amount_minor: invoice.bank_transfer_amount_minor,
+                bank_details: invoice.bank_details,
               },
             });
           }

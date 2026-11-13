@@ -10,28 +10,40 @@ function json(body: unknown, status = 200) {
 const FIELDS =
   "id, buyer_name, buyer_email, buyer_phone, description, amount_minor, currency, bank_transfer_amount_minor, due_date, payment_type, status, admin_note, invoice_id, created_at, reviewed_at";
 
-const schema = z.object({
-  buyer_name: z.string().trim().min(2).max(150),
-  buyer_email: z.string().trim().email().max(254),
-  buyer_phone: z
-    .string()
-    .trim()
-    .regex(/^\+?[\d ()-]{7,25}$/)
-    .or(z.literal(""))
-    .default(""),
-  description: z.string().trim().min(3).max(1000),
-  amount_minor: z.number().int().positive().max(10000000000),
-  bank_transfer_amount_minor: z.number().int().positive().max(10000000000).optional(),
-  due_date: z
-    .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/)
-    .refine(
-      (value) =>
-        !Number.isNaN(Date.parse(value)) && new Date(value).toISOString().slice(0, 10) === value,
-      "Invalid date",
-    ),
-  payment_type: z.enum(["card", "crypto", "bank_transfer"]),
-});
+const schema = z
+  .object({
+    buyer_name: z.string().trim().min(2).max(150),
+    buyer_email: z.string().trim().email().max(254),
+    buyer_phone: z
+      .string()
+      .trim()
+      .regex(/^\+?[\d ()-]{7,25}$/)
+      .or(z.literal(""))
+      .default(""),
+    description: z.string().trim().min(3).max(1000),
+    amount_minor: z.number().int().positive().max(10000000000),
+    currency: z.enum(["USD", "EUR"]).default("USD"),
+    bank_transfer_amount_minor: z.number().int().positive().max(10000000000).optional(),
+    due_date: z
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/)
+      .refine(
+        (value) =>
+          !Number.isNaN(Date.parse(value)) && new Date(value).toISOString().slice(0, 10) === value,
+        "Invalid date",
+      ),
+    payment_type: z.enum(["card", "crypto", "bank_transfer"]),
+  })
+  .superRefine((request, context) => {
+    if (
+      request.payment_type !== "bank_transfer" &&
+      (request.currency !== "USD" || request.bank_transfer_amount_minor)
+    )
+      context.addIssue({
+        code: "custom",
+        message: "Card and crypto requests use USD without a bank transfer amount.",
+      });
+  });
 
 export const Route = createFileRoute("/api/expert/invoice-requests")({
   server: {

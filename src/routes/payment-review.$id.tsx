@@ -119,7 +119,10 @@ function ReceiptReview() {
               </p>
               <p>
                 <strong>Expected bank receipt:</strong>{" "}
-                {money(inv.bank_transfer_amount_minor ?? inv.amount_minor, "EUR")}
+                {money(
+                  inv.bank_transfer_amount_minor ?? inv.amount_minor,
+                  inv.bank_transfer_amount_minor ? "EUR" : inv.currency,
+                )}
               </p>
               <p>
                 <strong>Submitted:</strong> {new Date(data.receipt.submitted_at).toLocaleString()}
@@ -145,7 +148,8 @@ function ReceiptReview() {
                     checked={checked}
                     onChange={(e) => setChecked(e.target.checked)}
                   />{" "}
-                  I checked the bank account and confirmed the full EUR amount was received.
+                  I checked the bank account and confirmed the full{" "}
+                  {inv.bank_transfer_amount_minor ? "EUR" : inv.currency} amount was received.
                 </label>
                 <label className="block text-sm">
                   Bank transaction reference

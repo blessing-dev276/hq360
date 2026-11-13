@@ -223,6 +223,7 @@ function QuoteEditor({
   const [conversionMethod, setConversionMethod] = useState<
     "bank_transfer" | "flutterwave" | "nowpayments"
   >(initial.currency === "EUR" ? "bank_transfer" : "flutterwave");
+  const [conversionSettlement, setConversionSettlement] = useState<"USD" | "EUR">("USD");
   const [conversionPackage, setConversionPackage] = useState(() => {
     const premium = initial.packages.findIndex((pkg) => pkg.name.toLowerCase() === "premium");
     return premium >= 0
@@ -465,9 +466,8 @@ function QuoteEditor({
         <form className="admin-invoice-form qw-convert" onSubmit={convert}>
           <h3>Invoice from this quote</h3>
           <p>
-            Select the agreed package. The buyer will see its full price in {quote.currency}. If
-            using bank transfer for a USD quote, enter the separate EUR amount you agreed with the
-            buyer.
+            Select the agreed package. The buyer will see its full price in {quote.currency}. USD
+            bank invoices can use the USD checking account or an agreed EUR amount.
           </p>
           <div className="admin-form-grid">
             <label>
@@ -505,7 +505,7 @@ function QuoteEditor({
                   <>
                     <option value="flutterwave">Card / hosted checkout (USD)</option>
                     <option value="bank_transfer">
-                      Bank transfer (invoice USD, pay agreed EUR)
+                      Bank transfer (USD checking or agreed EUR)
                     </option>
                     <option value="nowpayments">Crypto checkout</option>
                   </>
@@ -514,18 +514,32 @@ function QuoteEditor({
             </label>
             {quote.currency === "USD" && conversionMethod === "bank_transfer" && (
               <label>
-                Agreed transfer amount (EUR)
-                <input
-                  name="bank_transfer_amount"
-                  type="number"
-                  min="0.01"
-                  max="100000000"
-                  step="0.01"
-                  required
-                  placeholder="0.00"
-                />
+                Bank account
+                <select
+                  value={conversionSettlement}
+                  onChange={(event) => setConversionSettlement(event.target.value as "USD" | "EUR")}
+                >
+                  <option value="USD">USD checking account</option>
+                  <option value="EUR">EUR SEPA account</option>
+                </select>
               </label>
             )}
+            {quote.currency === "USD" &&
+              conversionMethod === "bank_transfer" &&
+              conversionSettlement === "EUR" && (
+                <label>
+                  Agreed transfer amount (EUR)
+                  <input
+                    name="bank_transfer_amount"
+                    type="number"
+                    min="0.01"
+                    max="100000000"
+                    step="0.01"
+                    required
+                    placeholder="0.00"
+                  />
+                </label>
+              )}
             <label>
               Buyer email
               <input name="buyer_email" type="email" required maxLength={254} />

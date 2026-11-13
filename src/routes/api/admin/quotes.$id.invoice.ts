@@ -31,16 +31,10 @@ export const Route = createFileRoute("/api/admin/quotes/$id/invoice")({
             parsed.data.package_index,
             parsed.data.payment_method,
           );
-          if (
-            details.currency === "USD" &&
-            parsed.data.payment_method === "bank_transfer" &&
-            !parsed.data.bank_transfer_amount_minor
-          )
-            throw new Error("Enter the agreed EUR bank transfer amount.");
           const bankAmount =
             parsed.data.payment_method === "bank_transfer"
               ? details.currency === "EUR"
-                ? details.amount_minor
+                ? undefined
                 : parsed.data.bank_transfer_amount_minor
               : undefined;
           const { supabaseAdmin } = await import("@/integrations/supabase/client.server");

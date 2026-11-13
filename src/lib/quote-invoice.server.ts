@@ -43,7 +43,7 @@ export function quoteInvoiceDetails(
     throw new Error("EUR quotes use the SEPA bank transfer method.");
   if (!(["EUR", "USD"] as string[]).includes(parsed.data.currency))
     throw new Error(
-      "Invoices support USD checkout or EUR bank transfer. Agree on one of those currencies and save the quote first.",
+      "Invoices support USD checkout or USD/EUR bank transfer. Agree on one of those currencies and save the quote first.",
     );
   const amount = Math.round(pkg.price * 100);
   if (!Number.isSafeInteger(amount) || amount <= 0 || amount > 10_000_000_000)

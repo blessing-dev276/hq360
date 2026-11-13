@@ -20,6 +20,23 @@ export const defaultBankTransferDetails: BankTransferDetails = {
   fields: bankDetails.map(([label, value]) => ({ label, value })),
 };
 
+export const usdBankTransferDetails: BankTransferDetails = {
+  instructions:
+    "Send USD to the checking account below. Use the invoice number as your payment reference. Payment is confirmed after HQ360 checks receipt in the bank account.",
+  fields: [
+    { label: "Account name", value: "Emmanuel Durosinmi" },
+    { label: "Bank name", value: "Lead bank" },
+    { label: "Account number", value: "210683730708" },
+    { label: "Account type", value: "Checking" },
+    { label: "Routing number", value: "101019644" },
+    { label: "Bank address", value: "1801 Main St. Kansas City, MO 64108, USA" },
+  ],
+};
+
+export function defaultBankDetailsFor(currency: "USD" | "EUR", eurAmount?: number | null) {
+  return currency === "USD" && !eurAmount ? usdBankTransferDetails : defaultBankTransferDetails;
+}
+
 export function invoiceBankDetails(
   value: BankTransferDetails | null | undefined,
 ): BankTransferDetails {

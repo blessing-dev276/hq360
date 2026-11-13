@@ -112,9 +112,13 @@ async function notifyReviewers(
   ];
   const site = new URL(process.env.SITE_URL || "https://www.hq360.space").origin;
   const link = `${site}/payment-review/${id}`;
-  const transfer = money(invoice.bank_transfer_amount_minor ?? invoice.amount_minor, "EUR");
+  const transferCurrency = invoice.bank_transfer_amount_minor ? "EUR" : invoice.currency;
+  const transfer = money(
+    invoice.bank_transfer_amount_minor ?? invoice.amount_minor,
+    transferCurrency,
+  );
   const subject = `Review bank transfer screenshot for ${invoice.number}`;
-  const text = `${invoice.buyer_name} submitted a screenshot for invoice ${invoice.number}.\nInvoice total: ${money(invoice.amount_minor, invoice.currency)}. Expected EUR transfer: ${transfer}.\n\nOpen the secure review screen:\n${link}\n\nThe screenshot alone does not confirm payment. Check the bank account and enter the bank transaction reference before approving.`;
+  const text = `${invoice.buyer_name} submitted a screenshot for invoice ${invoice.number}.\nInvoice total: ${money(invoice.amount_minor, invoice.currency)}. Expected ${transferCurrency} transfer: ${transfer}.\n\nOpen the secure review screen:\n${link}\n\nThe screenshot alone does not confirm payment. Check the bank account and enter the bank transaction reference before approving.`;
   const attachment = {
     filename: `receipt-${invoice.number}.${contentType.split("/")[1] === "jpeg" ? "jpg" : contentType.split("/")[1]}`,
     content: Buffer.from(bytes).toString("base64"),

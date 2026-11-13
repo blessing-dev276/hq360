@@ -2,7 +2,7 @@ import { LoadingRegion, Skeleton } from "@/components/ui/skeleton";
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { ArrowUpRight, CheckCircle2, LockKeyhole, RefreshCw, Printer } from "lucide-react";
-import { bankDetails, bankInstructions } from "@/lib/payments/bank-transfer";
+import { invoiceBankDetails, type BankTransferDetails } from "@/lib/payments/bank-transfer";
 import {
   installmentInfo,
   money,
@@ -33,6 +33,7 @@ type PaymentData = {
     project_total_minor?: number | null;
     amount_minor: number;
     bank_transfer_amount_minor: number | null;
+    bank_details?: BankTransferDetails | null;
     currency: Invoice["currency"];
     due_date: string;
     status: string;
@@ -324,9 +325,9 @@ function BuyerInvoice() {
                       </small>
                     </div>
                   )}
-                  <p className="buyer-note">{bankInstructions}</p>
+                  <p className="buyer-note">{invoiceBankDetails(inv.bank_details).instructions}</p>
                   <dl className="buyer-details">
-                    {bankDetails.map(([label, value]) => (
+                    {invoiceBankDetails(inv.bank_details).fields.map(({ label, value }) => (
                       <div key={label}>
                         <dt>{label}</dt>
                         <dd style={{ overflowWrap: "anywhere" }}>{value}</dd>

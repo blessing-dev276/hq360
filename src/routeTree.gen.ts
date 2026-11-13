@@ -232,6 +232,7 @@ import { Route as ApiAdminScoutAuthorsIdFindContactRouteImport } from './routes/
 import { Route as ApiAdminScoutAuthorsIdResearchWebsiteRouteImport } from './routes/api/admin/scout-authors.$id.research-website'
 import { Route as ApiAdminScoutBatchesIdExportRouteImport } from './routes/api/admin/scout-batches.$id.export'
 import { Route as ApiAdminScoutBatchesIdScoutRouteImport } from './routes/api/admin/scout-batches.$id.scout'
+import { Route as ApiExpertInvoicesIdBankDetailsRouteImport } from './routes/api/expert/invoices.$id.bank-details'
 import { Route as ApiStaffPaymentReceiptsIdImageRouteImport } from './routes/api/staff/payment-receipts/$id/image'
 import { Route as ApiTrackSlugFileFileIdRouteImport } from './routes/api/track/$slug.file.$fileId'
 import { Route as ApiAdminAuthorAuditsIdComparablesComparableIdRouteImport } from './routes/api/admin/author-audits.$id.comparables.$comparableId'
@@ -1409,6 +1410,12 @@ const ApiAdminScoutBatchesIdScoutRoute =
     path: '/scout',
     getParentRoute: () => ApiAdminScoutBatchesIdRoute,
   } as any)
+const ApiExpertInvoicesIdBankDetailsRoute =
+  ApiExpertInvoicesIdBankDetailsRouteImport.update({
+    id: '/api/expert/invoices/$id/bank-details',
+    path: '/api/expert/invoices/$id/bank-details',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiStaffPaymentReceiptsIdImageRoute =
   ApiStaffPaymentReceiptsIdImageRouteImport.update({
     id: '/image',
@@ -1687,6 +1694,7 @@ export interface FileRoutesByFullPath {
   '/api/admin/scout-authors/$id/research-website': typeof ApiAdminScoutAuthorsIdResearchWebsiteRoute
   '/api/admin/scout-batches/$id/export': typeof ApiAdminScoutBatchesIdExportRoute
   '/api/admin/scout-batches/$id/scout': typeof ApiAdminScoutBatchesIdScoutRoute
+  '/api/expert/invoices/$id/bank-details': typeof ApiExpertInvoicesIdBankDetailsRoute
   '/api/staff/payment-receipts/$id/image': typeof ApiStaffPaymentReceiptsIdImageRoute
   '/api/track/$slug/file/$fileId': typeof ApiTrackSlugFileFileIdRoute
   '/api/admin/author-audits/$id/comparables/$comparableId': typeof ApiAdminAuthorAuditsIdComparablesComparableIdRoute
@@ -1921,6 +1929,7 @@ export interface FileRoutesByTo {
   '/api/admin/scout-authors/$id/research-website': typeof ApiAdminScoutAuthorsIdResearchWebsiteRoute
   '/api/admin/scout-batches/$id/export': typeof ApiAdminScoutBatchesIdExportRoute
   '/api/admin/scout-batches/$id/scout': typeof ApiAdminScoutBatchesIdScoutRoute
+  '/api/expert/invoices/$id/bank-details': typeof ApiExpertInvoicesIdBankDetailsRoute
   '/api/staff/payment-receipts/$id/image': typeof ApiStaffPaymentReceiptsIdImageRoute
   '/api/track/$slug/file/$fileId': typeof ApiTrackSlugFileFileIdRoute
   '/api/admin/author-audits/$id/comparables/$comparableId': typeof ApiAdminAuthorAuditsIdComparablesComparableIdRoute
@@ -2156,6 +2165,7 @@ export interface FileRoutesById {
   '/api/admin/scout-authors/$id/research-website': typeof ApiAdminScoutAuthorsIdResearchWebsiteRoute
   '/api/admin/scout-batches/$id/export': typeof ApiAdminScoutBatchesIdExportRoute
   '/api/admin/scout-batches/$id/scout': typeof ApiAdminScoutBatchesIdScoutRoute
+  '/api/expert/invoices/$id/bank-details': typeof ApiExpertInvoicesIdBankDetailsRoute
   '/api/staff/payment-receipts/$id/image': typeof ApiStaffPaymentReceiptsIdImageRoute
   '/api/track/$slug/file/$fileId': typeof ApiTrackSlugFileFileIdRoute
   '/api/admin/author-audits/$id/comparables/$comparableId': typeof ApiAdminAuthorAuditsIdComparablesComparableIdRoute
@@ -2392,6 +2402,7 @@ export interface FileRouteTypes {
     | '/api/admin/scout-authors/$id/research-website'
     | '/api/admin/scout-batches/$id/export'
     | '/api/admin/scout-batches/$id/scout'
+    | '/api/expert/invoices/$id/bank-details'
     | '/api/staff/payment-receipts/$id/image'
     | '/api/track/$slug/file/$fileId'
     | '/api/admin/author-audits/$id/comparables/$comparableId'
@@ -2626,6 +2637,7 @@ export interface FileRouteTypes {
     | '/api/admin/scout-authors/$id/research-website'
     | '/api/admin/scout-batches/$id/export'
     | '/api/admin/scout-batches/$id/scout'
+    | '/api/expert/invoices/$id/bank-details'
     | '/api/staff/payment-receipts/$id/image'
     | '/api/track/$slug/file/$fileId'
     | '/api/admin/author-audits/$id/comparables/$comparableId'
@@ -2860,6 +2872,7 @@ export interface FileRouteTypes {
     | '/api/admin/scout-authors/$id/research-website'
     | '/api/admin/scout-batches/$id/export'
     | '/api/admin/scout-batches/$id/scout'
+    | '/api/expert/invoices/$id/bank-details'
     | '/api/staff/payment-receipts/$id/image'
     | '/api/track/$slug/file/$fileId'
     | '/api/admin/author-audits/$id/comparables/$comparableId'
@@ -3046,6 +3059,7 @@ export interface RootRouteChildren {
   ApiPaymentsPaystackWebhookRoute: typeof ApiPaymentsPaystackWebhookRoute
   ApiPublicPortfolioMediaItemIdRoute: typeof ApiPublicPortfolioMediaItemIdRoute
   ApiStaffPaymentReceiptsIdRoute: typeof ApiStaffPaymentReceiptsIdRouteWithChildren
+  ApiExpertInvoicesIdBankDetailsRoute: typeof ApiExpertInvoicesIdBankDetailsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -4611,6 +4625,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAdminScoutBatchesIdScoutRouteImport
       parentRoute: typeof ApiAdminScoutBatchesIdRoute
     }
+    '/api/expert/invoices/$id/bank-details': {
+      id: '/api/expert/invoices/$id/bank-details'
+      path: '/api/expert/invoices/$id/bank-details'
+      fullPath: '/api/expert/invoices/$id/bank-details'
+      preLoaderRoute: typeof ApiExpertInvoicesIdBankDetailsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/staff/payment-receipts/$id/image': {
       id: '/api/staff/payment-receipts/$id/image'
       path: '/image'
@@ -5329,6 +5350,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPaymentsPaystackWebhookRoute: ApiPaymentsPaystackWebhookRoute,
   ApiPublicPortfolioMediaItemIdRoute: ApiPublicPortfolioMediaItemIdRoute,
   ApiStaffPaymentReceiptsIdRoute: ApiStaffPaymentReceiptsIdRouteWithChildren,
+  ApiExpertInvoicesIdBankDetailsRoute: ApiExpertInvoicesIdBankDetailsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

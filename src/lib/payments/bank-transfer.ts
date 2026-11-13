@@ -10,3 +10,18 @@ export const bankDetails = [
 ] as const;
 export const bankInstructions =
   "Send EUR only via SEPA or SEPA Instant from a bank within the EEA. Use the invoice number as your payment reference. This account does not support other currencies or SWIFT wire transfers. Payment is confirmed after HQ360 checks receipt in the bank account.";
+
+export type BankTransferDetails = {
+  instructions: string;
+  fields: { label: string; value: string }[];
+};
+export const defaultBankTransferDetails: BankTransferDetails = {
+  instructions: bankInstructions,
+  fields: bankDetails.map(([label, value]) => ({ label, value })),
+};
+
+export function invoiceBankDetails(
+  value: BankTransferDetails | null | undefined,
+): BankTransferDetails {
+  return value ?? defaultBankTransferDetails;
+}

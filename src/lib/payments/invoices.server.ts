@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { defaultBankTransferDetails } from "./bank-transfer";
 import { leadInboxAddress, sendEmail } from "@/lib/email.server";
 import * as nowpayments from "./nowpayments.server";
 import * as flutterwave from "./flutterwave.server";
@@ -60,6 +61,40 @@ export function checkoutUrlFor(invoice: Invoice) {
 }
 
 const db = () => (supabaseAdmin as SupabaseClient).from("payment_invoices");
+export const bankDetailsSchema = z.object({
+  instructions: z.string().trim().min(10).max(1000),
+  fields: z
+    .array(
+      z.object({
+        label: z.string().trim().min(2).max(60),
+        value: z.string().trim().min(1).max(300),
+      }),
+    )
+    .min(2)
+    .max(12)
+    .refine(
+      (fields) => new Set(fields.map((field) => field.label.toLowerCase())).size === fields.length,
+      "Bank detail labels must be unique.",
+    ),
+});
+
+export async function updateInvoiceBankDetails(id: string, details: unknown, expertId?: string) {
+  if (!z.string().uuid().safeParse(id).success) throw new Error("Invoice not found.");
+  const parsed = bankDetailsSchema.safeParse(details);
+  if (!parsed.success)
+    throw new Error(parsed.error.issues[0]?.message || "Check the bank details.");
+  let query = db()
+    .update({ bank_details: parsed.data })
+    .eq("id", id)
+    .eq("provider", "bank_transfer")
+    .in("status", ["draft", "pending"]);
+  if (expertId)
+    query = query.or(`requested_by_expert_id.eq.${expertId},sender_expert_id.eq.${expertId}`);
+  const { data, error } = await query.select("id").maybeSingle();
+  if (error) throw new Error("Could not save bank details.");
+  if (!data) throw new Error("This invoice cannot be edited.");
+  return getInvoice(id);
+}
 export const invoiceSchema = z.object({
   id: z.string().uuid(),
   provider: z.enum(ACTIVE_PROVIDERS),
@@ -156,6 +191,7 @@ export async function createInvoice(input: z.infer<typeof invoiceSchema>) {
   const { split, balance_due_date, ...fields } = input;
   const base = {
     ...fields,
+    bank_details: input.provider === "bank_transfer" ? defaultBankTransferDetails : null,
     // The requesting expert is the sender unless another one was picked.
     sender_expert_id: input.sender_expert_id ?? input.requested_by_expert_id ?? null,
     currency,

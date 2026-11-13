@@ -23,12 +23,22 @@ export const Route = createFileRoute("/api/admin/invoices/$id")({
         if (!p.sameOrigin(request)) return p.paymentJson({ error: "Invalid origin" }, 403);
         const body = await request.json().catch(() => null);
         if (
-          !["issue", "send", "verify", "cancel", "confirm_bank", "set_sender"].includes(
-            body?.action,
-          )
+          ![
+            "issue",
+            "send",
+            "verify",
+            "cancel",
+            "confirm_bank",
+            "set_sender",
+            "set_bank_details",
+          ].includes(body?.action)
         )
           return p.paymentJson({ error: "Invalid action" }, 400);
         try {
+          if (body.action === "set_bank_details")
+            return p.paymentJson({
+              invoice: await p.updateInvoiceBankDetails(params.id, body.bank_details),
+            });
           if (body.action === "set_sender") {
             // Who the buyer sees as the sender: an expert id, or null for HQ360.
             const sender = body.senderExpertId;

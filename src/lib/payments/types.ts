@@ -1,3 +1,5 @@
+import type { BankTransferDetails } from "./bank-transfer";
+
 export type Invoice = {
   id: string;
   number: string;
@@ -17,6 +19,7 @@ export type Invoice = {
   project_total_minor?: number | null;
   amount_minor: number;
   bank_transfer_amount_minor: number | null;
+  bank_details?: BankTransferDetails | null;
   currency: "USD" | "NGN" | "EUR";
   due_date: string;
   status: "draft" | "pending" | "paid" | "refunded" | "cancelled";

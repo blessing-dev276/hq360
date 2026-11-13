@@ -1,4 +1,4 @@
-import { bankDetails, bankInstructions } from "./bank-transfer";
+import { invoiceBankDetails } from "./bank-transfer";
 import { installmentInfo, money, providerLabel, type Invoice } from "./types";
 
 // Branded invoice email. Email clients ignore <style> blocks and modern CSS,
@@ -98,8 +98,10 @@ export function buildInvoiceEmail(
           ...(invoice.bank_transfer_amount_minor && invoice.currency === "USD"
             ? [`Agreed EUR transfer amount: ${money(invoice.bank_transfer_amount_minor, "EUR")}`]
             : []),
-          bankInstructions,
-          ...bankDetails.map(([label, value]) => `${label}: ${value}`),
+          invoiceBankDetails(invoice.bank_details).instructions,
+          ...invoiceBankDetails(invoice.bank_details).fields.map(
+            ({ label, value }) => `${label}: ${value}`,
+          ),
           `Payment reference: ${invoice.number}`,
           "After transferring, open the invoice link and submit a screenshot for review. HQ360 will confirm payment after checking the bank account.",
           "",
@@ -176,7 +178,17 @@ export function buildInvoiceEmail(
             ${row("Payment method", method)}
           </table>
         </td></tr>
-        ${invoice.provider === "bank_transfer" ? `<tr><td style="padding:24px 36px 0;">${invoice.bank_transfer_amount_minor && invoice.currency === "USD" ? `<p style="font-size:16px;font-weight:700;">Agreed EUR transfer amount: ${esc(money(invoice.bank_transfer_amount_minor, "EUR"))}</p>` : ""}<p style="font-size:14px;line-height:1.6;">${esc(bankInstructions)}</p><table width="100%">${bankDetails.map(([label, value]) => row(label, value)).join("")}${row("Payment reference", invoice.number)}</table><p style="font-size:13px;line-height:1.6;color:${MUTED};">After transferring, open the invoice link and submit a screenshot for review. HQ360 will confirm payment after checking the bank account.</p></td></tr>` : ""}
+        ${
+          invoice.provider === "bank_transfer"
+            ? `<tr><td style="padding:24px 36px 0;">${invoice.bank_transfer_amount_minor && invoice.currency === "USD" ? `<p style="font-size:16px;font-weight:700;">Agreed EUR transfer amount: ${esc(money(invoice.bank_transfer_amount_minor, "EUR"))}</p>` : ""}<p style="font-size:14px;line-height:1.6;">${esc(invoiceBankDetails(invoice.bank_details).instructions)}</p><table width="100%">${invoiceBankDetails(
+                invoice.bank_details,
+              )
+                .fields.map(({ label, value }) => row(label, value))
+                .join(
+                  "",
+                )}${row("Payment reference", invoice.number)}</table><p style="font-size:13px;line-height:1.6;color:${MUTED};">After transferring, open the invoice link and submit a screenshot for review. HQ360 will confirm payment after checking the bank account.</p></td></tr>`
+            : ""
+        }
         <tr><td align="center" style="padding:30px 36px 8px;">
           <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
             <td align="center" style="border-radius:999px;background:${ORANGE};">

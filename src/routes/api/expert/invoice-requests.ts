@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { invoiceBankDetails } from "@/lib/payments/bank-transfer";
 
 function json(body: unknown, status = 200) {
   return Response.json(body, { status, headers: { "Cache-Control": "no-store" } });
@@ -52,12 +53,19 @@ export const Route = createFileRoute("/api/expert/invoice-requests")({
         const invoiceIds = (data ?? []).map((row) => row.invoice_id).filter(Boolean);
         const invoices = new Map<
           string,
-          { number: string; status: string; payment_token: string }
+          {
+            id: string;
+            number: string;
+            status: string;
+            payment_token: string;
+            provider: string;
+            bank_details: import("@/lib/payments/bank-transfer").BankTransferDetails | null;
+          }
         >();
         if (invoiceIds.length) {
           const { data: rows } = await (supabaseAdmin as SupabaseClient)
             .from("payment_invoices")
-            .select("id, number, status, payment_token")
+            .select("id, number, status, payment_token, provider, bank_details")
             .in("id", invoiceIds);
           for (const row of rows ?? []) invoices.set(row.id, row);
         }
@@ -70,7 +78,13 @@ export const Route = createFileRoute("/api/expert/invoice-requests")({
               invoice: invoice
                 ? {
                     number: invoice.number,
+                    id: invoice.id,
                     status: invoice.status,
+                    provider: invoice.provider,
+                    bank_details:
+                      invoice.provider === "bank_transfer"
+                        ? invoiceBankDetails(invoice.bank_details)
+                        : null,
                     pay_url:
                       invoice.status === "draft" ? null : `${origin}/pay/${invoice.payment_token}`,
                   }

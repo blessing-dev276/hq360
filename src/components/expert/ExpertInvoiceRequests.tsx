@@ -2,6 +2,8 @@ import { GlassLoading } from "@/components/ui/glass-loading";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { AlertCircle, Check, CircleCheck, Copy, Send } from "lucide-react";
 import { money } from "@/lib/payments/types";
+import { BankDetailsEditor } from "@/components/sales/BankDetailsEditor";
+import type { BankTransferDetails } from "@/lib/payments/bank-transfer";
 
 type InvoiceRequest = {
   id: string;
@@ -17,7 +19,14 @@ type InvoiceRequest = {
   status: "pending" | "fulfilled" | "declined";
   admin_note: string | null;
   created_at: string;
-  invoice: { number: string; status: string; pay_url: string | null } | null;
+  invoice: {
+    id: string;
+    number: string;
+    status: string;
+    pay_url: string | null;
+    provider: string;
+    bank_details: BankTransferDetails | null;
+  } | null;
 };
 
 function CopyPayLink({ url }: { url: string }) {
@@ -61,6 +70,7 @@ export function ExpertInvoiceRequests() {
   const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState(false);
   const [showForm, setShowForm] = useState(false);
+  const [editingInvoice, setEditingInvoice] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -263,6 +273,47 @@ export function ExpertInvoiceRequests() {
                       <small>{r.invoice.number} · being prepared</small>
                     ) : (
                       <small>—</small>
+                    )}
+                    {r.invoice?.provider === "bank_transfer" && (
+                      <button
+                        type="button"
+                        className="admin-button"
+                        onClick={() =>
+                          setEditingInvoice(editingInvoice === r.invoice!.id ? null : r.invoice!.id)
+                        }
+                      >
+                        Bank details
+                      </button>
+                    )}
+                    {r.invoice?.id === editingInvoice && r.invoice.provider === "bank_transfer" && (
+                      <BankDetailsEditor
+                        details={r.invoice.bank_details}
+                        disabled={["paid", "refunded", "cancelled"].includes(r.invoice.status)}
+                        onSave={async (bank_details) => {
+                          const response = await fetch(
+                            `/api/expert/invoices/${r.invoice!.id}/bank-details`,
+                            {
+                              method: "POST",
+                              headers: { "content-type": "application/json" },
+                              body: JSON.stringify({ bank_details }),
+                            },
+                          );
+                          const data = await response.json();
+                          if (!response.ok)
+                            throw new Error(data.error || "Could not save bank details.");
+                          setRequests((list) =>
+                            list.map((item) =>
+                              item.id === r.id && item.invoice
+                                ? {
+                                    ...item,
+                                    invoice: { ...item.invoice, bank_details: data.bank_details },
+                                  }
+                                : item,
+                            ),
+                          );
+                          setNotice("Bank details saved for this invoice.");
+                        }}
+                      />
                     )}
                   </td>
                 </tr>

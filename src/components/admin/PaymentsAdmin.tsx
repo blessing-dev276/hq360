@@ -1,4 +1,5 @@
 import { GlassLoading } from "@/components/ui/glass-loading";
+import { BankDetailsEditor } from "@/components/sales/BankDetailsEditor";
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import {
   Ban,
@@ -1062,6 +1063,21 @@ export function PaymentsAdmin() {
                   <dd>{selected.environment === "demo" ? "Test — no real payments" : "Live"}</dd>
                 </div>
               </dl>
+              {selected.provider === "bank_transfer" && (
+                <BankDetailsEditor
+                  key={selected.id}
+                  details={selected.bank_details}
+                  disabled={["paid", "refunded", "cancelled"].includes(selected.status)}
+                  onSave={async (bank_details) => {
+                    const data = await call(`/api/admin/invoices/${selected.id}`, {
+                      action: "set_bank_details",
+                      bank_details,
+                    });
+                    merge(data.invoice);
+                    setNotice("Bank details saved for this invoice.");
+                  }}
+                />
+              )}
               <div className="admin-button-row flex-wrap">
                 {selected.status === "draft" && !selected.provider_invoice_id && (
                   <button

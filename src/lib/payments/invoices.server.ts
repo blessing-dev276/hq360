@@ -95,6 +95,47 @@ export async function updateInvoiceBankDetails(id: string, details: unknown, exp
   if (!data) throw new Error("This invoice cannot be edited.");
   return getInvoice(id);
 }
+const bankPaymentTermsSchema = z
+  .object({
+    currency: z.enum(["USD", "EUR"]),
+    amount_minor: z.number().int().positive().max(10000000000),
+    bank_transfer_amount_minor: z.number().int().positive().max(10000000000).nullable(),
+  })
+  .superRefine((terms, context) => {
+    if (terms.currency === "USD" && !terms.bank_transfer_amount_minor)
+      context.addIssue({
+        code: "custom",
+        message: "Enter the agreed EUR transfer amount for a USD invoice.",
+      });
+    if (terms.currency === "EUR" && terms.bank_transfer_amount_minor !== null)
+      context.addIssue({
+        code: "custom",
+        message: "EUR invoices use the invoice total as the transfer amount.",
+      });
+  });
+
+export async function updateInvoiceBankPaymentTerms(id: string, terms: unknown, expertId?: string) {
+  if (!z.string().uuid().safeParse(id).success) throw new Error("Invoice not found.");
+  const parsed = bankPaymentTermsSchema.safeParse(terms);
+  if (!parsed.success)
+    throw new Error(parsed.error.issues[0]?.message || "Check the amount and currency.");
+  let query = db()
+    .update(parsed.data)
+    .eq("id", id)
+    .eq("provider", "bank_transfer")
+    .eq("status", "draft")
+    .is("provider_invoice_id", null)
+    .is("installment_group", null);
+  if (expertId)
+    query = query.or(`requested_by_expert_id.eq.${expertId},sender_expert_id.eq.${expertId}`);
+  const { data, error } = await query.select("id").maybeSingle();
+  if (error) throw new Error("Could not save invoice amount and currency.");
+  if (!data)
+    throw new Error(
+      "Amount and currency can only be changed on unissued, single-payment bank drafts.",
+    );
+  return getInvoice(id);
+}
 export const invoiceSchema = z.object({
   id: z.string().uuid(),
   provider: z.enum(ACTIVE_PROVIDERS),

@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { AlertCircle, Check, CircleCheck, Copy, Send } from "lucide-react";
 import { money } from "@/lib/payments/types";
 import { BankDetailsEditor } from "@/components/sales/BankDetailsEditor";
+import { BankPaymentTermsEditor } from "@/components/sales/BankPaymentTermsEditor";
 import type { BankTransferDetails } from "@/lib/payments/bank-transfer";
 
 type InvoiceRequest = {
@@ -25,6 +26,10 @@ type InvoiceRequest = {
     status: string;
     pay_url: string | null;
     provider: string;
+    currency: "USD" | "EUR";
+    amount_minor: number;
+    bank_transfer_amount_minor: number | null;
+    installment_group: string | null;
     bank_details: BankTransferDetails | null;
   } | null;
 };
@@ -252,7 +257,12 @@ export function ExpertInvoiceRequests() {
                     <small>{r.buyer_email}</small>
                     <small>{r.description.slice(0, 80)}</small>
                   </td>
-                  <td className="admin-numeric">{money(r.amount_minor, r.currency ?? "USD")}</td>
+                  <td className="admin-numeric">
+                    {money(
+                      r.invoice?.amount_minor ?? r.amount_minor,
+                      r.invoice?.currency ?? r.currency ?? "USD",
+                    )}
+                  </td>
                   <td>
                     <StatusBadge status={r.status} />
                     {r.status === "declined" && r.admin_note && (
@@ -282,38 +292,69 @@ export function ExpertInvoiceRequests() {
                           setEditingInvoice(editingInvoice === r.invoice!.id ? null : r.invoice!.id)
                         }
                       >
-                        Bank details
+                        Bank details and currency
                       </button>
                     )}
                     {r.invoice?.id === editingInvoice && r.invoice.provider === "bank_transfer" && (
-                      <BankDetailsEditor
-                        details={r.invoice.bank_details}
-                        disabled={["paid", "refunded", "cancelled"].includes(r.invoice.status)}
-                        onSave={async (bank_details) => {
-                          const response = await fetch(
-                            `/api/expert/invoices/${r.invoice!.id}/bank-details`,
-                            {
-                              method: "POST",
-                              headers: { "content-type": "application/json" },
-                              body: JSON.stringify({ bank_details }),
-                            },
-                          );
-                          const data = await response.json();
-                          if (!response.ok)
-                            throw new Error(data.error || "Could not save bank details.");
-                          setRequests((list) =>
-                            list.map((item) =>
-                              item.id === r.id && item.invoice
-                                ? {
-                                    ...item,
-                                    invoice: { ...item.invoice, bank_details: data.bank_details },
-                                  }
-                                : item,
-                            ),
-                          );
-                          setNotice("Bank details saved for this invoice.");
-                        }}
-                      />
+                      <>
+                        <BankPaymentTermsEditor
+                          terms={{
+                            currency: r.invoice.currency,
+                            amount_minor: r.invoice.amount_minor,
+                            bank_transfer_amount_minor: r.invoice.bank_transfer_amount_minor,
+                          }}
+                          editable={r.invoice.status === "draft" && !r.invoice.installment_group}
+                          onSave={async (terms) => {
+                            const response = await fetch(
+                              `/api/expert/invoices/${r.invoice!.id}/bank-details`,
+                              {
+                                method: "POST",
+                                headers: { "content-type": "application/json" },
+                                body: JSON.stringify({ action: "set_bank_payment_terms", terms }),
+                              },
+                            );
+                            const data = await response.json();
+                            if (!response.ok)
+                              throw new Error(data.error || "Could not save amount and currency.");
+                            setRequests((list) =>
+                              list.map((item) =>
+                                item.id === r.id && item.invoice
+                                  ? { ...item, invoice: { ...item.invoice, ...data.invoice } }
+                                  : item,
+                              ),
+                            );
+                            setNotice("Invoice amount and currency saved.");
+                          }}
+                        />
+                        <BankDetailsEditor
+                          details={r.invoice.bank_details}
+                          disabled={["paid", "refunded", "cancelled"].includes(r.invoice.status)}
+                          onSave={async (bank_details) => {
+                            const response = await fetch(
+                              `/api/expert/invoices/${r.invoice!.id}/bank-details`,
+                              {
+                                method: "POST",
+                                headers: { "content-type": "application/json" },
+                                body: JSON.stringify({ bank_details }),
+                              },
+                            );
+                            const data = await response.json();
+                            if (!response.ok)
+                              throw new Error(data.error || "Could not save bank details.");
+                            setRequests((list) =>
+                              list.map((item) =>
+                                item.id === r.id && item.invoice
+                                  ? {
+                                      ...item,
+                                      invoice: { ...item.invoice, bank_details: data.bank_details },
+                                    }
+                                  : item,
+                              ),
+                            );
+                            setNotice("Bank details saved for this invoice.");
+                          }}
+                        />
+                      </>
                     )}
                   </td>
                 </tr>

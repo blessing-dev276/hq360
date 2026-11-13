@@ -1,5 +1,6 @@
 import { GlassLoading } from "@/components/ui/glass-loading";
 import { BankDetailsEditor } from "@/components/sales/BankDetailsEditor";
+import { BankPaymentTermsEditor } from "@/components/sales/BankPaymentTermsEditor";
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import {
   Ban,
@@ -1063,6 +1064,30 @@ export function PaymentsAdmin() {
                   <dd>{selected.environment === "demo" ? "Test — no real payments" : "Live"}</dd>
                 </div>
               </dl>
+              {selected.provider === "bank_transfer" &&
+                (selected.currency === "USD" || selected.currency === "EUR") && (
+                  <BankPaymentTermsEditor
+                    key={selected.id}
+                    terms={{
+                      currency: selected.currency,
+                      amount_minor: selected.amount_minor,
+                      bank_transfer_amount_minor: selected.bank_transfer_amount_minor,
+                    }}
+                    editable={
+                      selected.status === "draft" &&
+                      !selected.provider_invoice_id &&
+                      !selected.installment_group
+                    }
+                    onSave={async (terms) => {
+                      const data = await call(`/api/admin/invoices/${selected.id}`, {
+                        action: "set_bank_payment_terms",
+                        terms,
+                      });
+                      merge(data.invoice);
+                      setNotice("Invoice amount and currency saved.");
+                    }}
+                  />
+                )}
               {selected.provider === "bank_transfer" && (
                 <BankDetailsEditor
                   key={selected.id}

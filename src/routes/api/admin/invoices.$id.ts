@@ -31,6 +31,7 @@ export const Route = createFileRoute("/api/admin/invoices/$id")({
             "confirm_bank",
             "set_sender",
             "set_bank_details",
+            "set_bank_payment_terms",
           ].includes(body?.action)
         )
           return p.paymentJson({ error: "Invalid action" }, 400);
@@ -38,6 +39,10 @@ export const Route = createFileRoute("/api/admin/invoices/$id")({
           if (body.action === "set_bank_details")
             return p.paymentJson({
               invoice: await p.updateInvoiceBankDetails(params.id, body.bank_details),
+            });
+          if (body.action === "set_bank_payment_terms")
+            return p.paymentJson({
+              invoice: await p.updateInvoiceBankPaymentTerms(params.id, body.terms),
             });
           if (body.action === "set_sender") {
             // Who the buyer sees as the sender: an expert id, or null for HQ360.

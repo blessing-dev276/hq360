@@ -13,6 +13,16 @@ export const Route = createFileRoute("/api/expert/invoices/$id/bank-details")({
         if (!p.sameOrigin(request)) return p.paymentJson({ error: "Invalid origin" }, 403);
         const body = await request.json().catch(() => null);
         try {
+          if (body?.action === "set_bank_payment_terms") {
+            const invoice = await p.updateInvoiceBankPaymentTerms(params.id, body.terms, expertId);
+            return p.paymentJson({
+              invoice: {
+                currency: invoice.currency,
+                amount_minor: invoice.amount_minor,
+                bank_transfer_amount_minor: invoice.bank_transfer_amount_minor,
+              },
+            });
+          }
           const invoice = await p.updateInvoiceBankDetails(params.id, body?.bank_details, expertId);
           return p.paymentJson({ bank_details: invoice.bank_details });
         } catch (error) {

@@ -59,13 +59,19 @@ export const Route = createFileRoute("/api/expert/invoice-requests")({
             status: string;
             payment_token: string;
             provider: string;
+            currency: "USD" | "EUR";
+            amount_minor: number;
+            bank_transfer_amount_minor: number | null;
+            installment_group: string | null;
             bank_details: import("@/lib/payments/bank-transfer").BankTransferDetails | null;
           }
         >();
         if (invoiceIds.length) {
           const { data: rows } = await (supabaseAdmin as SupabaseClient)
             .from("payment_invoices")
-            .select("id, number, status, payment_token, provider, bank_details")
+            .select(
+              "id, number, status, payment_token, provider, currency, amount_minor, bank_transfer_amount_minor, installment_group, bank_details",
+            )
             .in("id", invoiceIds);
           for (const row of rows ?? []) invoices.set(row.id, row);
         }
@@ -81,6 +87,10 @@ export const Route = createFileRoute("/api/expert/invoice-requests")({
                     id: invoice.id,
                     status: invoice.status,
                     provider: invoice.provider,
+                    currency: invoice.currency,
+                    amount_minor: invoice.amount_minor,
+                    bank_transfer_amount_minor: invoice.bank_transfer_amount_minor,
+                    installment_group: invoice.installment_group,
                     bank_details:
                       invoice.provider === "bank_transfer"
                         ? invoiceBankDetails(invoice.bank_details)
